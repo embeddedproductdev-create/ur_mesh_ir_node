@@ -1,0 +1,8 @@
+1.Do Amenos need to have two led indication as mentioned in document CaleidoXenia - New Sensor Sw Design Requirements V0.3
+2.From where do get device uid?
+	ref:Device Registration command from sensors to board
+
+
+
+
+

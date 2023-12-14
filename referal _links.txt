@@ -1,0 +1,110 @@
+1.Wifi
+	https://www.youtube.com/watch?v=I5UL10T0jek
+2.UDP connection and test procedure
+	https://www.youtube.com/watch?v=U3vOyzJzGRU
+3.BLE sending data to mobile
+	https://www.youtube.com/watch?v=NZi7ykalZhc&t=425s
+4.BLE receiving data from mobile
+	https://www.youtube.com/watch?v=SgeSsRxs_hg
+5.solve memory issue while use both wifi and ble
+	https://www.youtube.com/watch?v=Qu-1RK4Fk7g&feature=youtu.be
+6.json parsing :
+	https://randomnerdtutorials.com/decoding-and-encoding-json-with-arduino-or-esp8266/
+7.comaprison of esp family
+	https://maker.pro/esp8266/tutorial/a-comparison-of-the-new-esp32-s2-to-the-esp32
+8.Arduino json examples
+	https://arduinojson.org/
+9.Online json editor
+	https://jsoneditoronline.org/#right=local.vamofe&left=local.wifiti
+10.arduino json document 
+	https://arduinojson.org/v6/doc/upgrade/
+11.memory architecture of esp32-s2-to-the-esp32	
+	https://www.youtube.com/watch?v=zXqhv_iy_lI
+12.OTAP
+	https://randomnerdtutorials.com/esp32-over-the-air-ota-programming/
+13.OTAP video
+	https://www.youtube.com/watch?v=nx44dS_Syqk
+14.TCP
+	http://www.iotsharing.com/2017/05/tcp-udp-ip-with-esp32.html
+	https://www.megunolink.com/articles/wireless/talk-esp32-over-wifi/
+15.BLE-Gatt services
+	https://www.bluetooth.com/specifications/gatt/services/
+16.BLE-Generi access profile
+	https://www.bluetooth.com/specifications/assigned-numbers/generic-access-profile/
+17.beacon
+	https://github.com/pcbreflux/espressif/blob/master/esp32/arduino/sketchbook/ESP32_BLE_beaconscan/ESP32_BLE_beaconscan.ino
+	https://www.andreasjakl.com/wp-content/uploads/2017/04/Arduino-BleScanExample.png
+18.AC control
+	https://github.com/maxmacstn/MQTT-AC-Controller
+	NEC- https://medium.com/blueeast/nec-transmission-protocol-for-air-conditioners-67c8a698e633
+	RC5- https://techdocs.altium.com/display/FPGA/Philips+RC5+Infrared+Transmission+Protocol
+19.NTP 
+	https://randomnerdtutorials.com/esp32-ntp-client-date-time-arduino-ide/
+20.Uart
+	https://www.youtube.com/watch?v=GwShqW39jlE&t=211s
+	https://demo-dijiudu.readthedocs.io/en/latest/api-reference/peripherals/uart.html#_CPPv219uart_enable_rx_intr11uart_port_t
+21.pin assignment
+	https://docs.google.com/spreadsheets/d/12qL3ui2BkSn91O0ISJU8QIL2mcG-r_vlX0briknA2QQ/edit#gid=1401515447
+22.Node JS
+	http://www.brainboxes.com/faq/items/installing-and-running-node-red-on-a-windows-pc
+23.Freertos
+	https://exploreembedded.com/wiki/Setting_Up_FreeRTOS_on_Arduino
+24.ESP 32 pinout
+	https://www.instructables.com/id/ESP32-Internal-Details-and-Pinout/
+25.FTP 
+	https://www.mischianti.org/2020/02/08/ftp-server-on-esp8266-and-esp32/
+	https://github.com/esp8266/Arduino/issues/1183
+26.wifi bulb
+	https://www.hackster.io/donowak/internet-controlled-led-strip-using-esp32-arduino-2ca8a9
+	https://openlabpro.com/guide/wifi-controlled-light-using-esp32/
+27.Alexa with esp32 
+	https://randomnerdtutorials.com/alexa-echo-with-esp32-and-esp8266/
+28.hmac
+	https://github.com/Cathedrow/Cryptosuite
+	https://techtutorialsx.com/2018/01/25/esp32-arduino-applying-the-hmac-sha-256-mechanism/#:~:text=The%20HMAC%20can%20be%20used,sends%20it%20with%20the%20message.
+29.BLE- mesh
+	https://www.espressif.com/en/news/ESP_BLE_MESH_SIG_Certified
+	https://github.com/espressif/esp-idf/tree/master/examples/bluetooth/esp_ble_mesh
+	https://github.com/gmag11/painlessMesh/tree/master/examples
+	https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html#get-started-ble-mesh-check-hardware
+	https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/esp-ble-mesh/ble-mesh-architecture.html
+	
+	https://www.nordicsemi.com/Products/Low-power-short-range-wireless/Bluetooth-mesh
+	https://www.youtube.com/watch?v=tbl6Dui-_w4
+	https://github.com/NordicSemiconductor/Android-nRF-Mesh-Library
+	https://www.bluetooth.com/specifications/mesh-specifications/
+	
+30.BLE-encryption
+	https://everythingesp.com/esp32-arduino-tutorial-encryption-aes128-in-ecb-mode/
+31.sleep mode wake up
+	https://randomnerdtutorials.com/esp32-deep-sleep-arduino-ide-wake-up-sources/#:~:text=You%20can%20wake%20up%20the,change%20on%20a%20GPIO%20state.&text=To%20enable%20the%20timer%20wake,function%20to%20start%20deep%20sleep.
+32.Arduino library 
+	https://www.arduinolibraries.info/architectures/esp32
+33.useful 
+	https://www.ledsmagazine.com/leds-ssl-design/networks-controls/article/16695786/bluetooth-mesh-paves-the-way-to-iot-smart-lighting-magazine
+34.dot matrix generator
+	https://www.riyas.org/2013/12/online-led-matrix-font-generator-with.html
+
+35.Ir 
+	https://www.youtube.com/watch?v=BuqDkl8jN24	
+	https://esp8266-shop.com/blog/esp8266-ir-remote-control-of-air-conditioners/
+Shared link:
+	https://1drv.ms/u/s!Anb_KCRQQAJ8i8tNh64Z5fEKCdd3pg?e=bohQrT
+	https://www.rudiswiki.de/wiki9/WiFiFTPServer
+dropbox
+	https://www.dropbox.com/sh/v0e0s2vxvv3rsr2/AADOGJa9_LlD_Q4Q1dfAlhKca?dl=0
+	
+
+doubts:
+1.After configuration using Tirisi app,Amenos connected to WiFi.At any case wifi connection lost means what what should amenos.hub do 
+
+2.you need to have table for it. with macid, start time, last updated time and total on time. add last updated time-start time to the total on time and reset start time to 0 and set start time as last updated time every half an hour only when ON. if off no need to update (edited) 
+
+3.one we can have is porta app can also enable locking and other is we can sense our own if multiple switch pressed in small time.
+
+
+when you sense any button press, just increment some count(take care of debounce). if within 2sec you sense like 5-10 presses means you can get confirmed that somebody is playing with it.
+
+after 2 sec clear the count
+
+pendrive size issue : https://elecronicsforstudent.wordpress.com/2017/08/12/4-gb-usbmemory-card-reduced-to-40-mb-recover-it-in-3-steps/
