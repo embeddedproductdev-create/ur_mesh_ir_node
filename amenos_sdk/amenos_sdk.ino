@@ -19,7 +19,7 @@
 #include<WiFiUdp.h>
 /******For OTAP*********/
 #include <WiFiClient.h>
-#include "ESP32_FTPClient.h"  
+#include "ESP32_FTPClient.h"
 #include "FS.h"
 #include "SPIFFS.h"
 #include "Update.h"
@@ -45,9 +45,9 @@
 #include <IRac.h>
 #include <IRutils.h>
 /***Light sensor***/
-#include <LTR303.h>
+//#include <LTR303.h>
 /***Hmac sha-256***/
-#include "mbedtls/md.h"
+//#include "mbedtls/md.h"
 /*****Free rtos defintions**************/
 #define Fac_To_KILO_BYTES   1024
 #define MIN_TASK_SIZE       1024 //1 kb
@@ -73,21 +73,21 @@
 #define BYTE15  0x0F
 
 #define BYTE16 0x10
-#define BYTE17 0x11  
+#define BYTE17 0x11
 #define BYTE18 0x12
-#define BYTE19 0x13  
-#define BYTE20 0x14  
-#define BYTE21 0x15   
-#define BYTE22 0x16  
-#define BYTE23 0x17  
-#define BYTE24 0x18  
-#define BYTE25 0x19  
-#define BYTE26 0x1A 
-#define BYTE27 0x1B 
-#define BYTE28 0x1C 
-#define BYTE29 0x1D 
-#define BYTE30 0x1E 
-#define BYTE31 0x1F 
+#define BYTE19 0x13
+#define BYTE20 0x14
+#define BYTE21 0x15
+#define BYTE22 0x16
+#define BYTE23 0x17
+#define BYTE24 0x18
+#define BYTE25 0x19
+#define BYTE26 0x1A
+#define BYTE27 0x1B
+#define BYTE28 0x1C
+#define BYTE29 0x1D
+#define BYTE30 0x1E
+#define BYTE31 0x1F
 /*********Firmware Revision definition*********/
 #define MAJOR_NUMBER      "1"
 #define MINOR_NUMBER      "0"
@@ -99,7 +99,7 @@
 #define DEVELOPMENT DISABLE
 #define APPLICATION ENABLE
 #define CONFIGURATION_MODE  0x00
-#define NORMAL_MODE         0x01         
+#define NORMAL_MODE         0x01
 #define OTAP_MODE           0x02
 #define NO_MODE             0xFF
 #define EXIT_SUCCESS        0
@@ -178,7 +178,7 @@
 #define LOW_SPEED_RELAY_DRIVE_BIT6      0x40
 #define MEDIUM_SPEED_RELAY_DRIVE_BIT7   0x80
 #define HIGH_SPEED_RELAY_DRIVE_BIT0     0x01
-#define LED_B2_BIT1                     0x02 
+#define LED_B2_BIT1                     0x02
 #define ZIGBEE_BOOT_CTRL_BIT2           0x04
 #define ZIGBEE_NRESET_BIT3              0x08
 
@@ -187,7 +187,7 @@
 #define TCA9539_OUTPUT_PORT0            0x02
 #define TCA9539_OUTPUT_PORT1            0x03
 #define TCA9539_POLARITY_INVERSION0     0x04
-#define TCA9539_POLARITY_INVERSION1     0x05 
+#define TCA9539_POLARITY_INVERSION1     0x05
 #define TCA9539_CONFIG0                 0x06
 #define TCA9539_CONFIG1                 0x07
 
@@ -209,10 +209,10 @@
 #define HVAC_TYPE                 2
 #define DEVICE_TURN_ON            1
 #define DEVICE_TURN_OFF           0
-#define AUTO_MODE                 "010" 
-#define COOL_MODE                 "001"  
-#define DRY_MODE                  "100" 
-#define FAN_MODE                  "101" 
+#define AUTO_MODE                 "010"
+#define COOL_MODE                 "001"
+#define DRY_MODE                  "100"
+#define FAN_MODE                  "101"
 #define EMPTY_IP                  "0.0.0.0"
 #define DIM                       "dim"
 #define BRIGHT                    "brighten"
@@ -240,7 +240,7 @@
 #define UDP_RECONNECT_TIME_IN_MS  5
 #define UDP_RECONNECT_TIME        (uint16_t)( UDP_RECONNECT_TIME_IN_MS * MULT_FACTOR)
 #define HEART_BEAT_TIME           ONE_SEC * MULT_FACTOR
-#define SENSOR_DATA_TIME          ONE_MINUTE_IN_SEC * MULT_FACTOR 
+#define SENSOR_DATA_TIME          ONE_MINUTE_IN_SEC * MULT_FACTOR
 #define VARIANT_UPDATE_TIME       (uint32_t)(5 * ONE_MINUTE_IN_SEC * MULT_FACTOR )
 #define AMENOS                    0x05
 #define KINISI                    AMENOS+1
@@ -248,9 +248,9 @@
 #define LIGHT                     AIFI+1
 #define DEVICE_TYPE               AMENOS
 
-#define VCON_AC                   BYTE1 
+#define VCON_AC                   BYTE1
 #define PANA_AC                   BYTE2
-#define VOLT_AC                   BYTE3 
+#define VOLT_AC                   BYTE3
 #define HAIR_AC                   BYTE4
 #define SAMG_AC                   BYTE5
 #define AMENOS_DEVICE_TYPE        BYTE5
@@ -303,7 +303,7 @@
 #define NORMAL_RECEIVE_MODE       0xFF
 
 #define POWER_OFF             0x01
-#define POWER_ON              0x00  
+#define POWER_ON              0x00
 #define MAINTENANCE_MODE_ON   0x01
 #define MAINTENANCE_MODE_OFF  0x00
 /*******FLASH definition*******/
@@ -312,7 +312,7 @@
 #define AP_SSID_ALLOCATED_BYTE                      0x0A
 #define AP_PASS_KEY_ALLOCATED_BYTE                  0x0C
 #define NOT_FACTORY_DEVICE                          BYTE1
-    
+
 #define FLASH_SIZE                                  1024
 #define MAX_KINISI_DEVICE                           5
 #define FLASH_READ_WRITE_DELAY                      0x02
@@ -350,7 +350,7 @@
 #define AUTH_CODE_BASE_ADDR                         (SET_AC_STATUS_BASE_ADDR + BYTE1)
 
 
-#define KINSI_BASE_ADDR                             (FLASH_BASE_ADDRESS +  AMENOS_ALLOCATED_ADDR)                           
+#define KINSI_BASE_ADDR                             (FLASH_BASE_ADDRESS +  AMENOS_ALLOCATED_ADDR)
 #define KINISI_DEVICE_COUNT                          KINSI_BASE_ADDR
 #define KINISI_DEVICE_NAME_BASE_ADDR                (KINISI_DEVICE_COUNT + BYTE1)
 #define KINISI_SERIAL_NUM_BASE_ADDR                 (KINISI_DEVICE_NAME_BASE_ADDR + (BYTE11 * MAX_KINISI_DEVICE))
@@ -364,19 +364,19 @@
 #define BLE_BUFFER_SIZE           25
 #define BLE_PERIODIC_ADV_TIMEOUT  (30 * MULT_FACTOR) // sec * 1000
 #define MAX_BLE_PACKET_SIZE       0x14
-#define SERVICE_UUID              "6E400001-B5A3-F393-E0A9-E50E24DCCA9E" 
+#define SERVICE_UUID              "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 #define CHARACTERISTIC_UUID_RX    "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
 #define CHARACTERISTIC_UUID_TX    "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 #define BLE_PASSOWRD              "CXAMENOS"
 #define KINISI_AMENOS_PASSWORD    "amenos#k"
 #define BLE_PASSKEY_FUNC_CODE     0x05
-#define BLE_FUNCTIONAL_CODE       0x07   
+#define BLE_FUNCTIONAL_CODE       0x07
 #define AMENOS_BLE_COMMAND        0xF4
 #define BLE_ACK_INSTANT_ID        0x01
 #define AUTHENTICATION            0x00
 #define AUTHENTICATION_LEN        0x08
 #define ROOM_DETAILS              0x01
-#define SERIAL_NUMBER             0x02 
+#define SERIAL_NUMBER             0x02
 #define DEVICE_DETAILS            0x03
 #define AUTH_CODE                 0x04
 #define CONFIGURATION_FAILED      0xD1
@@ -389,7 +389,7 @@
 #define AUTHENTICATION_FAIL     0xDD
 
 /********Kinisi BLE defintions***********/
-#define KINISI_FUNCTIONAL_CODE    0x0A 
+#define KINISI_FUNCTIONAL_CODE    0x0A
 #define KINISI_BLE_COMMAND        0xF7
 #define BLE_NACK                  0xDD
 #define OCCUPANCY_SENSED          0x01
@@ -398,8 +398,8 @@
 #define KINISI_BEACON_NAME          "KinisBeacon"
 #define PRODUCT_MODEL_KINISI        "KINISI"
 #define BEACON_MODE                 "beacon"
-#define SCAN_TIME                   1 
-#define BEACON_RX_BUFFER_SIZE       300 
+#define SCAN_TIME                   1
+#define BEACON_RX_BUFFER_SIZE       300
 #define BEACON_SERVICE_CLASS_FLAG   BYTE3
 #define BEACON_SERVICE_UUID         0x3424
 #define KINISI_SERIAL_NUM_LEN       0x10
@@ -420,7 +420,7 @@
 //AT Commands
 #define AT                "AT\n"
 #define SOFT_RESET        "AT&F\n"
-#define ENABLE_MESH       "AT+ENMESH\n" 
+#define ENABLE_MESH       "AT+ENMESH\n"
 #define MESH_STATUS       "AT+ENMESH?\n"
 #define LIST_BIND_TABLE   "AT+LBTABLE\n"
 
@@ -439,24 +439,24 @@ char CTRL_LIGHT[BUFFER_SIZE];
 char DECOMMISSION_LIGHT[BUFFER_SIZE];
 /******************DOT MATRIX parameters***********/
 /*
- pin 23 is connected to the DataIn 
- pin 18 is connected to the CLK 
+ pin 23 is connected to the DataIn
+ pin 18 is connected to the CLK
  pin 5 is connected to CS
  We have 2 MAX72XX.
  */
- 
-LedControl lc=LedControl(MOSI_PIN,CLK_PIN,CS_PIN,NUMBER_OF_DEVICES);
+
+//LedControl lc=LedControl(MOSI_PIN,CLK_PIN,CS_PIN,NUMBER_OF_DEVICES);
 
 /* we always wait a bit between updates of the display */
 unsigned long delaytime=1000;
-byte matrix1_display[8], matrix2_display[8]; //byte is 8-bit unsigned (unsignede char) 
+byte matrix1_display[8], matrix2_display[8]; //byte is 8-bit unsigned (unsignede char)
 byte word1[8];
 unsigned int number_of_digits, input_temp;
 char input_temperature[3], previous_temperature[3];
 int data_on;
 bool button_pressed;
 uint16_t previous_lux,current_lux;
-char list_of_characters[11] = { 
+char list_of_characters[11] = {
   '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' '
 };
 
@@ -499,11 +499,11 @@ LTR303 light_sensor;
 
 // Global variables:
 
-unsigned char gain;     // Gain setting, values = 0-7 
+unsigned char gain;     // Gain setting, values = 0-7
 unsigned char integrationTime;  // Integration ("shutter") time in milliseconds
 unsigned char measurementRate;  // Interval between DATA_REGISTERS update
 double lux;    // Resulting lux value
-    
+
 /*********GPIO parameters*********/
 enum gpio_input
 {
@@ -522,7 +522,7 @@ volatile uint32_t lsr_switching_count = 0;
 int numberOfInterrupts = 0;
 
 volatile unsigned long last_micros;
- 
+
 portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 /********WiFi parameters**********/
 enum wifi_connection_status
@@ -557,7 +557,7 @@ char  udp_rx_packets[20]; //udp_tx_packets to hold incoming packet
 uint8_t  udp_tx_packets[10] = "hari";       // a string to send back
 
 /**********TCP parameters*********/
-WiFiClient TCP_Client;// Use WiFiClient class to create TCP connections 
+WiFiClient TCP_Client;// Use WiFiClient class to create TCP connections
 const char* tcp_host = "192.168.43.224";//"172.217.160.132"; //tcp_host
 //const char* tcp_host = "www.google.com";
 const int tcp_port = 8088;//TCP_PORT;
@@ -568,7 +568,7 @@ const int tcp_port = 8088;//TCP_PORT;
  * Indian ntp server          : in.pool.ntp.org
  * GMT(Greenwhich Mean Time)  : 5.30 (19800 seconds)
  */
-NTPClient timeClient(Udp, "in.pool.ntp.org", 19800, 60000); 
+NTPClient timeClient(Udp, "in.pool.ntp.org", 19800, 60000);
 char dayWeek [7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 String formatted_date;
 String timeStamp;
@@ -599,12 +599,12 @@ uint32_t total_ac_on_time;
 uint32_t cum_on_time[DEVICE_VARIANT_SIZE];
 uint8_t *seceret_key;
 byte hmacResult[32];
-uint16_t found_location[30] ={0};    
+uint16_t found_location[30] ={0};
 char *hmac_payload;
 /*******BLE parameters*********/
 BLECharacteristic *pTxCharacteristic;
 BLECharacteristic *pRxCharacteristic;
-BLEServer *pServer;// = BLEDevice::createServer();//create ble server  
+BLEServer *pServer;// = BLEDevice::createServer();//create ble server
 BLEService *pService;// = pServer->createService(SERVICE_UUID);//create ble service
 enum BLE_Rx_Data
 {
@@ -617,7 +617,7 @@ enum ble_ack_packet
 {
   PACKET_SIZE,
   FUNCTION_CODE_BYTE,
-  COMMAND_BYTE, 
+  COMMAND_BYTE,
   INSTANT_ID_BYTE,
   RESULT_BYTE,
   BLE_ACK_BYTE_SIZE,
@@ -701,7 +701,7 @@ uint16_t device_count[KINSI_DEVICE_COUNT_SIZE];
 // The remote service we wish to connect to.
 static BLEUUID serviceUUID(SERVICE_UUID);
 // The characteristic of the remote service we are interested in.
-static BLEUUID    charUUID_RX(CHARACTERISTIC_UUID_RX); //server's Rx characteristics 
+static BLEUUID    charUUID_RX(CHARACTERISTIC_UUID_RX); //server's Rx characteristics
 static BLEUUID    charUUID_TX(CHARACTERISTIC_UUID_TX); //server's Tx characteristics
 String My_BLE_Address = "a4:cf:12:9a:c2:c2";
 
@@ -774,7 +774,7 @@ struct udp_server_response
     const char* light_facility_uid;
     const char* light_device_name;
     const char* light_amenity_name;
-    
+
     uint32_t action,time_type;
     uint32_t zone,command_type,default_type;
 //    uint32_t fm_file_size;
@@ -847,7 +847,6 @@ IRPanasonicAc panasonic(IR_CTRL);
 IRTcl112Ac tcl(IR_CTRL);
 IRToshibaAC tosibha(IR_CTRL);
 IRWhirlpoolAc whirlpool(IR_CTRL);
-
 IRsend irsend(IR_CTRL);
 
 #if HITACHI
@@ -872,14 +871,14 @@ enum light_zone
   ZONE1,
   ZONE2,
   ZONE3,
-  LIGHT_ZONE_SIZE,          
+  LIGHT_ZONE_SIZE,
 };
 String default_light_setting_table0[LIGHT_ZONE_SIZE][6];
 String default_light_setting_table1[LIGHT_ZONE_SIZE][6];
 String default_ac_setting_table[AC_MODE_SIZE][6];
 
 /*
- * Colomn data for default light setting table 
+ * Colomn data for default light setting table
  * 0 -zone
  * 1 -color(RGB)
  * 2 -Status
@@ -914,10 +913,10 @@ int value;
 
 unsigned int ftp_Port = 21;
 char *download_file_path = "/binary/firmware.bin";
-bool SPIFF_mounted; 
+bool SPIFF_mounted;
 char download_path[100];
 char* FTP_server    = NULL;
-char* download_url; 
+char* download_url;
 /**************Function declaration****************/
 static void listNetworks();
 static void connect_to_ap(uint8_t *APsssid,uint8_t *APpassword);
@@ -950,7 +949,7 @@ int16_t wait_for(const char* data, uint16_t timeout ,bool timout_alone) ;
 static void IRAM_ATTR uart_intr_handle(void *arg);
 static void sense_button_press();
 static void smart_bulb( void *pvParameters );
-static void peripheral_sensing(void *pvParameters); 
+static void peripheral_sensing(void *pvParameters);
 static void kinisi_communication(void *pvParameters) ;
 static void pin_configuration();
 static void print_uint_data(uint8_t *print_data,uint16_t data_len);
@@ -997,10 +996,10 @@ static void set_Capacitive_Down_Led_ON();
 static void io_expander_write_one_byte(int address,uint8_t data,byte reg);
 static  uint8_t io_expander_read_one_byte(byte address,byte reg);
 static void set_individual_Relays_OFF(byte pin);
-static void printError(byte error); 
+static void printError(byte error);
 static bool get_lux_value() ;
 static void setup_light_sensor() ;
-static void DL2_led_control(char pin,char control); 
+static void DL2_led_control(char pin,char control);
 static void DL1_led_control(char pin,char control);
 static void set_dot_matrix_intensity();
 static void update_dot_matrix_intensity();
@@ -1016,16 +1015,16 @@ static void beep_buzzer(uint16_t buzzer_drive_count,uint16_t beep_delay);
  * @param  none
  *
  * @return none
- *************************************************************************/ 
+ *************************************************************************/
 void IRAM_ATTR touch1handleInterrupt() {
-   if((long)(micros() - last_micros) >= DEBOUNCING_TIME * 1000) 
+   if((long)(micros() - last_micros) >= DEBOUNCING_TIME * 1000)
    {
     portENTER_CRITICAL_ISR(&mux);
     if( json_extract.ac_temp < MAX_TEMPERATURE )
     {
       if( json_extract.ac_temp >= DEFAULT_TEMPERATURE)
       {
-        json_extract.ac_temp++; 
+        json_extract.ac_temp++;
       }
       else
       {
@@ -1041,7 +1040,7 @@ void IRAM_ATTR touch1handleInterrupt() {
     portEXIT_CRITICAL_ISR(&mux);
     last_micros = micros();
   }
-  
+
 }
 /**********************************************************************
  * @brief  subroutine for gpio35
@@ -1052,12 +1051,12 @@ void IRAM_ATTR touch1handleInterrupt() {
  *************************************************************************/
 void IRAM_ATTR touch2handleInterrupt()
 {
-   if((long)(micros() - last_micros) >= DEBOUNCING_TIME * 1000) 
+   if((long)(micros() - last_micros) >= DEBOUNCING_TIME * 1000)
    {
     portENTER_CRITICAL_ISR(&mux);
     if( json_extract.ac_temp > DEFAULT_TEMPERATURE )
     {
-      json_extract.ac_temp--; 
+      json_extract.ac_temp--;
     }
     else
     {
@@ -1067,7 +1066,7 @@ void IRAM_ATTR touch2handleInterrupt()
     input_gpio[TOUCH_2] = true;
     portEXIT_CRITICAL_ISR(&mux);
     last_micros = micros();
-  } 
+  }
 }
 /**********************************************************************
  * @brief  UART2 interrupt subroutine to ackowledge interrupt
@@ -1080,7 +1079,7 @@ static void IRAM_ATTR uart_intr_handle(void *arg)
 {
   uint16_t rx_fifo_len,status;
   uint16_t i=0;
-  
+
   status = UART2.int_st.val; // read UART interrupt Status
   rx_fifo_len = UART2.status.rxfifo_cnt; // read number of bytes in UART buffer
   while(rx_fifo_len)
@@ -1091,7 +1090,7 @@ static void IRAM_ATTR uart_intr_handle(void *arg)
   }
  // after reading bytes from buffer clear UART interrupt status
  uart_clear_intr_status(ZIGBEE_UART, UART_RXFIFO_FULL_INT_CLR|UART_RXFIFO_TOUT_INT_CLR);
- 
+
 }
 /**********************************************************************
  * @brief  Receive data from BLE server
@@ -1144,7 +1143,7 @@ class MyClientCallback : public BLEClientCallbacks {
   void onDisconnect(BLEClient* pclient) {
     connected = false;
     registration_packet_send_count = 0;
-    register_kinisi = 0; 
+    register_kinisi = 0;
     //kinisi_connection_lost = true;
     Serial.println("onDisconnect");
   }
@@ -1159,7 +1158,7 @@ class MyClientCallback : public BLEClientCallbacks {
 bool connectToServer() {
     Serial.print("Forming a connection to ");
     Serial.println(myDevice->getAddress().toString().c_str());
-    
+
     pClient  = BLEDevice::createClient();
     Serial.println(" - Created client");
 
@@ -1223,24 +1222,24 @@ bool connectToServer() {
  *
  * @return none
  *************************************************************************/
-class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks 
+class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
 {
-  void onResult(BLEAdvertisedDevice advertisedDevice) 
+  void onResult(BLEAdvertisedDevice advertisedDevice)
   {
     uint16_t count,indice;
     indice     =  0;
     beac_rxlen =  0;
     count      =  0;
-    
+
     scan_ble_list[beacon_count] = advertisedDevice.getAddress().toString().c_str();
-    beacon_count++; 
-    
+    beacon_count++;
+
     if ( !beacon_rx_flag )
     {
 //      Serial.print("BLE Advertised Device found: ");
 //      Serial.println(advertisedDevice.toString().c_str());
 //      Serial.println(advertisedDevice.getAddress().toString().c_str());
-            
+
       /*********Connecting to Kinisi********/
       String kinisi_adv_name = advertisedDevice.getName().c_str();
       if ( kinisi_adv_name.length() > 1 )
@@ -1256,14 +1255,14 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
         /******Beacon processing******/
         else if (kinisi_adv_name == KINISI_BEACON_NAME ) // check beacon name is matching
         {
-          
+
           if( advertisedDevice.haveManufacturerData() )
           {
             //store Adv data in strAdvData string data type
             std::string  strAdvData = advertisedDevice.getManufacturerData();
 //            Serial.print("Getting data from :");
             String  ble_mac_id = advertisedDevice.getAddress().toString().c_str();
-//            Serial.println(ble_mac_id);           
+//            Serial.println(ble_mac_id);
             for(count = 0;count<ble_mac_id.length();count++)
             {
               occupancy_mac_id[count] = ble_mac_id[count];
@@ -1284,20 +1283,20 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
                   scan_data[count-2] = strAdvData[count];
 //                  Serial.printf("%c",scan_data[count-2]);
                 }
-                scan_data[count]  = '\0';//add delimiter 
-                for(indice = BYTE5 ;indice < beac_rxlen;indice++)                 
-                {                   
-                  adv_room_no[indice - BYTE5] = scan_data[indice];        
-//                  Serial.printf("%c",scan_data[indice]);               
-                }                 
-                adv_room_no[indice - BYTE5] = '\0';     
-                beac_rxlen = 0;                 
+                scan_data[count]  = '\0';//add delimiter
+                for(indice = BYTE5 ;indice < beac_rxlen;indice++)
+                {
+                  adv_room_no[indice - BYTE5] = scan_data[indice];
+//                  Serial.printf("%c",scan_data[indice]);
+                }
+                adv_room_no[indice - BYTE5] = '\0';
+                beac_rxlen = 0;
                 beacon_rx_flag    = true;
-              } 
+              }
             }
             else
             {
-              Serial.println("\nExtracting Task in Progress");  
+              Serial.println("\nExtracting Task in Progress");
             }
           }
           else
@@ -1310,8 +1309,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
           Serial.println("Kinisi not found");
         }
       }
-    }  
-  }   
+    }
+  }
 };
 /**********************************************************************
  * @brief  Class to know the connection status of Client BLE device
@@ -1321,7 +1320,7 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks
  *
  * @return none
  *************************************************************************/
-class MyServerCallbacks: public BLEServerCallbacks 
+class MyServerCallbacks: public BLEServerCallbacks
 {
   void onConnect(BLEServer* pServer)
   {
@@ -1340,7 +1339,7 @@ class MyServerCallbacks: public BLEServerCallbacks
  *
  * @return none
  *************************************************************************/
-class MyCallbacks: public BLECharacteristicCallbacks 
+class MyCallbacks: public BLECharacteristicCallbacks
 {
   void onWrite (BLECharacteristic *pCharacteristic)
   {
@@ -1372,23 +1371,23 @@ class MyCallbacks: public BLECharacteristicCallbacks
 };
 
 /**********************************************************************
- * @brief  Initialization function 
+ * @brief  Initialization function
  *
  * @param  none
  *
  * @return none
  *************************************************************************/
-void setup() 
+void setup()
 {
   Serial.begin(115200);//for serial print
   device_powered = true;
-  operating_mode =  NO_MODE; 
+  operating_mode =  NO_MODE;
   mount_spiffs();
   pin_configuration();
   initialize_zigbee_uart();
   init_MAX7219();
   scan_i2c_device_and_initialize();
-  DL1_led_control(LIGHT_DEFAULT,LIGHT_DEFAULT);  
+  DL1_led_control(LIGHT_DEFAULT,LIGHT_DEFAULT);
   DL2_led_control(LIGHT_DEFAULT,LIGHT_DEFAULT);
   #if APPLICATION
   if (xTaskCreate(
@@ -1397,12 +1396,12 @@ void setup()
   ,  5*MIN_TASK_SIZE  // This stack size can be checked & adjusted by reading the Stack Highwater
   ,  NULL
   ,  TASK_PRIORITY  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-  ,  NULL 
+  ,  NULL
   ) != pdPASS)
   {
     Serial.println("peripheral_sensing Task creation failed");
   }
-  setup_internal_flash();//initialize flash 
+  setup_internal_flash();//initialize flash
 //  flush_out_Flash();
   bootup_configuartion();
 //  if (xTaskCreate(
@@ -1411,23 +1410,23 @@ void setup()
 //    ,  MIN_TASK_SIZE  // This stack size can be checked & adjusted by reading the Stack Highwater
 //    ,  NULL
 //    ,  TASK_PRIORITY  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-//    ,  NULL 
+//    ,  NULL
 //    ) != pdPASS)
 //  {
 //    Serial.println("smart_bulb Task creation failed");
 //  }
 //
-  if (xTaskCreate(
-    kinisi_communication
-    ,  "kinisi_communication"   // A name just for humans
-    ,  5*MIN_TASK_SIZE  // This stack size can be checked & adjusted by reading the Stack Highwater
-    ,  NULL
-    ,  TASK_PRIORITY  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-    ,  NULL 
-    ) != pdPASS)
-  {
-    Serial.println("kinisi_communication Task creation failed");
-  }
+  // if (xTaskCreate(
+  //   kinisi_communication
+  //   ,  "kinisi_communication"   // A name just for humans
+  //   ,  5*MIN_TASK_SIZE  // This stack size can be checked & adjusted by reading the Stack Highwater
+  //   ,  NULL
+  //   ,  TASK_PRIORITY  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+  //   ,  NULL
+  //   ) != pdPASS)
+  // {
+  //   Serial.println("kinisi_communication Task creation failed");
+  // }
   // Now the task scheduler, which takes over control of scheduling individual tasks, is automatically started.
 
   #endif
@@ -1438,13 +1437,13 @@ if (xTaskCreate(
     ,  5*MIN_TASK_SIZE  // This stack size can be checked & adjusted by reading the Stack Highwater
     ,  NULL
     ,  TASK_PRIORITY  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
-    ,  NULL 
+    ,  NULL
     ) != pdPASS)
     {
       Serial.println("peripheral_sensing Task creation failed");
     }
     operating_mode =  NORMAL_MODE;
-    setup_internal_flash();//initialize flash 
+    setup_internal_flash();//initialize flash
     device_powered  = false;
     //read over temperature status
     UDP_Rx_Packet[OVER_TEMP] = EEPROM.readUChar(OVER_TEMP_STATUS_BASE_ADDR);
@@ -1460,8 +1459,8 @@ if (xTaskCreate(
       {
         beep_buzzer(BUZZER_DRIVE_COUNT,BEEP_DELAY);
         Serial.println("Going to sleep now");
-        vTaskDelay(100); 
-        Serial.flush(); 
+        vTaskDelay(100);
+        Serial.flush();
         esp_deep_sleep_start();
       }
       else
@@ -1478,7 +1477,7 @@ if (xTaskCreate(
     DL1_led_control(LED_R1,LED_DRIVE_LOW); //over temperature error
     WiFi.begin(ssid, passkey);
     Serial.println("");
-  
+
     // Wait for connection
     while (WiFi.status() != WL_CONNECTED) {
       vTaskDelay(500);
@@ -1490,29 +1489,29 @@ if (xTaskCreate(
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
     setupudp();
-    json_extract.fm_path = "ftp://192.168.43.18/binary/firmware.bin"; 
+    json_extract.fm_path = "ftp://192.168.43.18/binary/firmware.bin";
     json_extract.fm_file_size= "10";
     device_powered = false;
 //    UDP_Rx_Packet[OVER_TEMP]  = true;
 //    update_byte_to_flash(OVER_TEMP_STATUS_BASE_ADDR,UDP_Rx_Packet[OVER_TEMP]);
-   
+
     tirisi_ac_type  = HVAC_TYPE;
-    json_extract.ac_mode = AUTO_MODE;   
+    json_extract.ac_mode = AUTO_MODE;
 //  beacon_rx_flag = 0;
 #endif
-  Serial.printf("\nFirmware version: %s\n",FIRMWARE_VERSION); 
-  
+  Serial.printf("\nFirmware version: %s\n",FIRMWARE_VERSION);
+
 }
 /**********************************************************************
- * @brief  main appliacation 
- * 
+ * @brief  main appliacation
+ *
  * @param  none
  *
  * @return none
  *************************************************************************/
-void loop() 
+void loop()
 {
-#if APPLICATION  
+#if APPLICATION
     if ( operating_mode == CONFIGURATION_MODE )
     {
       configuration_mode_operation();
@@ -1538,40 +1537,40 @@ void loop()
 //  {
 //    Serial.println("ESP restarting...Over temeperature detected");
 //    vTaskDelay(TASK_DELAY);
-//    ESP.restart();      
+//    ESP.restart();
 //  }
 //  udp_tx_data();
 //  udp_rx_data();
 //  set_Buzzer_ON();
 //  set_Buzzer_OFF();
 
-//    DL1_led_control(LED_G1,LED_DRIVE_HIGH); 
-//    vTaskDelay(5*TASK_DELAY); 
-//    DL1_led_control(LED_R1,LED_DRIVE_HIGH); 
-//    vTaskDelay(5*TASK_DELAY); 
-//    DL1_led_control(LED_B1,LED_DRIVE_HIGH); 
-//    vTaskDelay(5*TASK_DELAY); 
-//    DL2_led_control(LED_G2,LED_DRIVE_HIGH); 
-//    vTaskDelay(5*TASK_DELAY); 
-//    DL2_led_control(LED_R2,LED_DRIVE_HIGH); 
-//    vTaskDelay(5*TASK_DELAY); 
-//    DL2_led_control(LED_B2_BIT1,LED_DRIVE_LOW); 
-//    vTaskDelay(5*TASK_DELAY);  
+//    DL1_led_control(LED_G1,LED_DRIVE_HIGH);
+//    vTaskDelay(5*TASK_DELAY);
+//    DL1_led_control(LED_R1,LED_DRIVE_HIGH);
+//    vTaskDelay(5*TASK_DELAY);
+//    DL1_led_control(LED_B1,LED_DRIVE_HIGH);
+//    vTaskDelay(5*TASK_DELAY);
+//    DL2_led_control(LED_G2,LED_DRIVE_HIGH);
+//    vTaskDelay(5*TASK_DELAY);
+//    DL2_led_control(LED_R2,LED_DRIVE_HIGH);
+//    vTaskDelay(5*TASK_DELAY);
+//    DL2_led_control(LED_B2_BIT1,LED_DRIVE_LOW);
+//    vTaskDelay(5*TASK_DELAY);
 
 //    Relay_ON(LOW_SPEED_RELAY_DRIVE_BIT6);
-//    vTaskDelay(2000);  
+//    vTaskDelay(2000);
 //    Relay_ON(MEDIUM_SPEED_RELAY_DRIVE_BIT7);
-//    vTaskDelay(2000);  
+//    vTaskDelay(2000);
 //    Relay_ON(HIGH_SPEED_RELAY_DRIVE_BIT0);
-//    vTaskDelay(2000);  
-    
+//    vTaskDelay(2000);
+
 //    hvac_relay_control(23);
 #endif
     vTaskDelay(TASK_DELAY);  // one tick delay (15ms) in between reads for stability //TASK_DELAY
 }
 /**********************************************************************
  * @brief  Configure pin as Input/Output
- *         
+ *
  * @param  none
  *
  * @return none
@@ -1584,7 +1583,7 @@ static void pin_configuration()
   attachInterrupt(digitalPinToInterrupt(CAP_TOUCH_OUT1), touch1handleInterrupt, FALLING);
   pinMode(CAP_TOUCH_OUT2, INPUT);//35
   attachInterrupt(digitalPinToInterrupt(CAP_TOUCH_OUT2), touch2handleInterrupt, FALLING);
-  
+
   pinMode(LED_R1, OUTPUT);
   pinMode(LED_G1, OUTPUT);
   pinMode(LED_R2, OUTPUT);
@@ -1594,7 +1593,7 @@ static void pin_configuration()
 }
 /**********************************************************************
  * @brief  Timer task to increment count
- *         
+ *
  * @param  none
  *
  * @return none
@@ -1605,7 +1604,7 @@ void SwTimerHandle_Isr( TimerHandle_t xTimer )
 }
 /**********************************************************************
  * @brief  downloading file from FTP server and flash it to ESP32
- *         
+ *
  * @param  none
  *
  * @return none
@@ -1632,17 +1631,17 @@ static void otap_mode_operation()
         {
           Serial.println("FTP server not found");
         }
-        vTaskDelay(100);      
+        vTaskDelay(100);
       }
-    }    
-  } 
+    }
+  }
 }
 /**********************************************************************
  * @brief  This function will do following process
  *         1.check for AP connectivity.
  *         2.If connects successfully,send device health status and sensor data to Hub
  *         3.whenever it receives data from Hub,perform action based on received data
- *        
+ *
  *
  * @param  none
  *
@@ -1659,8 +1658,8 @@ static void Normal_mode_operation()
         device_powered = false;
         if( low_speed_relay.on || medium_speed_relay.on || high_speed_relay.on )
         {
-          DL1_led_control(LED_B1,LED_DRIVE_HIGH);  
-          //DL2_led_control(LED_B2_BIT1,LED_DRIVE_LOW); 
+          DL1_led_control(LED_B1,LED_DRIVE_HIGH);
+          //DL2_led_control(LED_B2_BIT1,LED_DRIVE_LOW);
         }
         else
         {
@@ -1668,8 +1667,8 @@ static void Normal_mode_operation()
           DL2_led_control(LED_G2,LED_DRIVE_HIGH); //connection with hub
         }
         /*** Read temperature***/
-        read_temperature();          
-        /***At every POR send device registration packet of 
+        read_temperature();
+        /***At every POR send device registration packet of
             1.Amenos
             2.Kinisi
             3.Light to Hub if successfully registered***/
@@ -1682,26 +1681,26 @@ static void Normal_mode_operation()
           if ( no_of_kinisi_device >= BYTE1 )
           {
             print_Kinsi_lookup_table(kinisi_lookup_table);
-            for (int reg_device = 0; reg_device < no_of_kinisi_device; reg_device++) 
+            for (int reg_device = 0; reg_device < no_of_kinisi_device; reg_device++)
             {
               if (  (atoi(kinisi_lookup_table[reg_device][4].c_str()) == true) &&
                     (atoi(kinisi_lookup_table[reg_device][3].c_str()) == false)  )
               {
-                
+
                 kinisi_serial_num_ptr[reg_device]   = (uint8_t *)kinisi_lookup_table[reg_device][1].c_str();
                 kinisi_device_name_ptr[reg_device]  = (uint8_t *)kinisi_lookup_table[reg_device][2].c_str();
                 Serial.print((char *)kinisi_serial_num_ptr[reg_device]);
                 Serial.print((char *)kinisi_device_name_ptr[reg_device]);
                 Json_post_to_AP(DEVICE_REGISTRATION,KINISI,kinisi_serial_num_ptr[reg_device],kinisi_device_name_ptr[reg_device]);
-              } 
-            }            
+              }
+            }
           }
           send_device_reg_packet = false;
         }
         /*
-         * If device registered to hub successfully, send 
+         * If device registered to hub successfully, send
          * 1.heart beat(health status) every 1 sec
-         * 2.sensor data every 1 min 
+         * 2.sensor data every 1 min
          * and scan for beacon devices
          */
         current_time = millis();
@@ -1722,23 +1721,23 @@ static void Normal_mode_operation()
         {
           receive_process_hub_data(NORMAL_RECEIVE_MODE,AMENOS);//waiting for receiving data from Hub
         }
-        
+
         /*
          * 1.Maintain AC settings
-         * 2.update total AC run time in flash 
+         * 2.update total AC run time in flash
          */
         update_variant_data(AC);
-               
+
         /***Update Dot matrix intensity based on lightt sensor data***/
         update_dot_matrix_intensity();
-        
+
         /***Do kinisi related process like
          * 1.send device registration packet
-         * 2.send health status 
+         * 2.send health status
          * 3.send event data (Occupancy detection)
          */
          kinisi_related_process();
-         
+
          /***Control AC based on switch press***/
         if( button_pressed )
         {
@@ -1752,22 +1751,22 @@ static void Normal_mode_operation()
               {
                 hvac_relay_control(json_extract.ac_temp);
               }
-              else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+              else if(tirisi_ac_type == SPLIT_AC_TYPE )
               {
                 send_ir_ac_command(json_extract.ac_temp);
               }
             }
-          }  
+          }
         }
-        
+
         /***Switch to OTAP mode if OTAP packet is received from Hub***/
         if( UDP_Rx_Packet[OTAP] )
         {
           Json_post_to_AP(OTAP_ACK_PACKET,AMENOS,NULL,NULL);//send OTAP ACK
           operating_mode = OTAP_MODE;
-          Serial.println("operating mode changed to OTAP_MODE");           
+          Serial.println("operating mode changed to OTAP_MODE");
         }
-        
+
         if( UDP_Rx_Packet[FORCE_SET_PACKET] )
         {
           if ( (json_extract.ac_temp >= MIN_TEMPERATURE) && (json_extract.ac_temp <= MAX_TEMPERATURE) )
@@ -1778,16 +1777,16 @@ static void Normal_mode_operation()
             {
               hvac_relay_control(json_extract.ac_temp);
             }
-            else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+            else if(tirisi_ac_type == SPLIT_AC_TYPE )
             {
               send_ir_ac_command(json_extract.ac_temp);
             }
-          }         
+          }
           UDP_Rx_Packet[FORCE_SET_PACKET] = false;
         }
         /*
          * 1.Turn OFF all lights
-         * 2.Set AC in night mode setting 
+         * 2.Set AC in night mode setting
          * 3.Set Dot Matrix brightness to minimum level
          */
         if ( UDP_Rx_Packet[AMENITY_SLEEP_MODE] )
@@ -1798,20 +1797,20 @@ static void Normal_mode_operation()
             lc.setIntensity(DM_device_count,MIN_INTENSITY);
           }
         }
-                      
+
       }
       else if( UDP_Rx_Packet[OVER_TEMP] )
       {
         Serial.println("ESP restarting.....Over temeperature detected");
         vTaskDelay(TASK_DELAY);
-        ESP.restart();      
+        ESP.restart();
       }
-    }    
+    }
   }
   else
   {
     DL2_led_control(LED_R2,LED_DRIVE_HIGH); //connection lost with Hub
-    DL1_led_control(LED_G1,LED_DRIVE_LOW); 
+    DL1_led_control(LED_G1,LED_DRIVE_LOW);
     Serial.println("Error: WiFi Connection Lost");
     connect_to_ap(ap_ssid,ap_passkey);
   }
@@ -1823,7 +1822,7 @@ static void Normal_mode_operation()
  *         3.If connects it will receive the configuartion parameters and extract it
  *         4.Once extracted store configuration parameters in Flash,then restart
  *         the system for AP connection
- *         5.If device has already received config data and connects to AP send 
+ *         5.If device has already received config data and connects to AP send
  *         Device Registration packet to hub wait for get ACK from Hub.
  *
  * @param  none
@@ -1840,21 +1839,21 @@ static void configuration_mode_operation()
   {
     if ( configuration_status == CONFIG_FAIL )
     {
-      DL1_led_control(LED_G1,TOGGLE);  
-      DL1_led_control(LED_G2,LED_DRIVE_LOW);  
-      DL1_led_control(LED_B1,LED_DRIVE_LOW);  
+      DL1_led_control(LED_G1,TOGGLE);
+      DL1_led_control(LED_G2,LED_DRIVE_LOW);
+      DL1_led_control(LED_B1,LED_DRIVE_LOW);
     }
     else
     {
-      DL1_led_control(LED_B1,LED_DRIVE_HIGH);  
-      DL2_led_control(LED_B2_BIT1,LED_DRIVE_HIGH); 
+      DL1_led_control(LED_B1,LED_DRIVE_HIGH);
+      DL2_led_control(LED_B2_BIT1,LED_DRIVE_HIGH);
     }
   }
   else
   {
-    DL1_led_control(LED_G1,TOGGLE);  
-    DL2_led_control(LED_G2,TOGGLE); 
-  } 
+    DL1_led_control(LED_G1,TOGGLE);
+    DL2_led_control(LED_G2,TOGGLE);
+  }
   current_time = millis();
   if(current_time - last_time >= BLE_PERIODIC_ADV_TIMEOUT)
   {
@@ -1862,18 +1861,18 @@ static void configuration_mode_operation()
     {
       //If UDP socket not opened,every 5 sec once ESP try to open the socket
       Serial.println("Advertise BLE");
-      ble_start_advertisement();  
+      ble_start_advertisement();
       last_time = millis();
-    }    
+    }
   }
   /*
-   * If received BLE data store it in respective buffer 
+   * If received BLE data store it in respective buffer
    */
   if( ble_rx_flag )
   {
     process_ble_data();
     ble_rx_length = 0;//clear receive length
-    ble_rx_flag = false;//clear the flag    
+    ble_rx_flag = false;//clear the flag
   }
   /*
    * If received all config parameters extract required data and store all data in flash
@@ -1900,15 +1899,15 @@ static void configuration_mode_operation()
     update_flash(FACILITY_ID_BASE_ADDR,facility_id,Length[FACILITY_ID]);
     update_flash(ROOM_NUM_BASE_ADDR,room_no,Length[ROOM_NUM]);
     update_flash(DEVICE_NAME_BASE_ADDR,device_name,Length[DEVICE_NAME]);
-    
+
     update_byte_to_flash(AC_TYPE_BASE_ADDR,tirisi_ac_type);
     update_byte_to_flash(AC_BRAND_BASE_ADDR,tirisi_ac_brand);
     update_byte_to_flash(LIGHT_CTRL_BASE_ADDR,light_control);
     update_byte_to_flash(OCCUPANCY_BASE_ADDR,occupancy_detection);
     update_byte_to_flash(DEVICE_TYPE_BASE_ADDR,device_type);
     update_byte_to_flash(MAX_KINISI_COUNT_BASE_ADDR,max_kinisi_in_room);
-    
-    
+
+
     if ( configuration_status != CONFIG_FAIL )
     {
       config_data_rcvd = true ;
@@ -1918,10 +1917,10 @@ static void configuration_mode_operation()
       registration_packet_send_count = 0;
     }
     else
-    { 
+    {
       /*serial number,ssid,password failes to store in flash
-       *operate in CONFIGURATION_MODE 
-       */ 
+       *operate in CONFIGURATION_MODE
+       */
       operating_mode = CONFIGURATION_MODE ;
       //store operating mode in flash
       update_byte_to_flash(OPERATING_MODE_BASE_ADDR,operating_mode);
@@ -1969,7 +1968,7 @@ static void configuration_mode_operation()
 }
 /**********************************************************************
  * @brief  This task is to process zigbee and beacon functinality
- *         
+ *
  * @param  none
  *
  * @return none
@@ -1986,21 +1985,21 @@ static void smart_bulb(void *pvParameters)  // This is a task.
     {
       if ( !device_available )
       {
-        uart_write_bytes(ZIGBEE_UART,AT,strlen(AT)); //AT 
+        uart_write_bytes(ZIGBEE_UART,AT,strlen(AT)); //AT
         if ( wait_for(OK_RESPONSE,5000,0) == EXIT_SUCCESS )
         {
           device_available = true ;
           Serial.println("Get response for AT Command");
           break;
         }
-        else 
+        else
         {
           device_available = false ;
         }
       }
     }
     /*
-     * If device_available status set,send further AT commands 
+     * If device_available status set,send further AT commands
      */
     if ( device_available )
     {
@@ -2010,7 +2009,7 @@ static void smart_bulb(void *pvParameters)  // This is a task.
         if ( wait_for(OK_RESPONSE,5000,0) == EXIT_SUCCESS )
         {
           Serial.println("Get response for AT+NODE Command");
-        } 
+        }
         UDP_Rx_Packet[LIGHT_CONFIG] = false;
       }
       if( UDP_Rx_Packet[LIGHT_CTRL] )
@@ -2019,7 +2018,7 @@ static void smart_bulb(void *pvParameters)  // This is a task.
         if ( wait_for(OK_RESPONSE,5000,0) == EXIT_SUCCESS )
         {
           Serial.println("Get response for AT+ZLC Command");
-        } 
+        }
         UDP_Rx_Packet[LIGHT_CTRL] = false;
       }
       if( UDP_Rx_Packet[BLE_MESH] )
@@ -2028,7 +2027,7 @@ static void smart_bulb(void *pvParameters)  // This is a task.
         if ( wait_for(OK_RESPONSE,5000,0) == EXIT_SUCCESS )
         {
           Serial.println("Get response for AT+ZLC Command");
-        } 
+        }
         UDP_Rx_Packet[BLE_MESH] = false;
       }
       if( UDP_Rx_Packet[LIGHT_DECOMMISSION] )
@@ -2037,7 +2036,7 @@ static void smart_bulb(void *pvParameters)  // This is a task.
         if ( wait_for(OK_RESPONSE,5000,0) == EXIT_SUCCESS )
         {
           Serial.println("Get response for AT+LDCOM Command");
-        } 
+        }
         UDP_Rx_Packet[LIGHT_DECOMMISSION] = false;
       }
     }
@@ -2051,7 +2050,7 @@ static void smart_bulb(void *pvParameters)  // This is a task.
 
 /**********************************************************************
  * @brief  This task is for sensing peripherals
- *         
+ *
  * @param  none
  *
  * @return none
@@ -2069,8 +2068,8 @@ static void peripheral_sensing(void *pvParameters)  // This is a task.
     {
       if ( device_powered )
       {
-        DL1_led_control(LED_R1,TOGGLE);  
-        DL2_led_control(LED_R2,TOGGLE);  
+        DL1_led_control(LED_R1,TOGGLE);
+        DL2_led_control(LED_R2,TOGGLE);
       }
     }
     vTaskDelay(TASK_DELAY);  // one tick delay (15ms) in between reads for stability
@@ -2079,7 +2078,7 @@ static void peripheral_sensing(void *pvParameters)  // This is a task.
 
 /**********************************************************************
  * @brief  This task is for kinisi communication
- *         
+ *
  * @param  none
  *
  * @return none
@@ -2096,25 +2095,25 @@ static void kinisi_communication(void *pvParameters)  // This is a task.
     if ( operating_mode == NORMAL_MODE )
     {
         // If the flag "doConnect" is true then we have scanned for and found the desired
-        // BLE Server with which we wish to connect.  Now we connect to it.  Once we are 
+        // BLE Server with which we wish to connect.  Now we connect to it.  Once we are
         // connected we set the connected flag to be true.
-        if (doConnect == true) 
+        if (doConnect == true)
         {
-          if (connectToServer()) 
+          if (connectToServer())
           {
             Serial.println("We are now connected to the BLE Server.");
           }
-          else 
+          else
           {
             Serial.println("We have failed to connect to the server; there is nothin more we will do.");
-            DL2_led_control(LED_B2_BIT1,LED_DRIVE_HIGH); 
+            DL2_led_control(LED_B2_BIT1,LED_DRIVE_HIGH);
             Serial.println("kinisi connection lost");
           }
           doConnect = false;
         }
-      
+
         // If we are connected to a peer BLE Server, send data to it
-        if (connected) 
+        if (connected)
         {
           connected_to_kinisi = true;
           if( send_password_to_kinisi )
@@ -2122,9 +2121,9 @@ static void kinisi_communication(void *pvParameters)  // This is a task.
             send_ble_packets_to_kinisi(PASSWORD,0);
           }
         }
-        else 
+        else
         {
-          /***scan for kinisi***/ 
+          /***scan for kinisi***/
           if( !beacon_rx_flag )
           {
             if ( (registration_packet_send_count == 0) && (register_kinisi == 0) && (send_device_reg_packet == 0) )
@@ -2143,7 +2142,7 @@ static void kinisi_communication(void *pvParameters)  // This is a task.
 //                }
               }
             }
-          }        
+          }
         }
         if ( beacon_rx_flag )
         {
@@ -2152,8 +2151,8 @@ static void kinisi_communication(void *pvParameters)  // This is a task.
           {
             beacon_rx_flag = 0;
           }
-        }          
-         
+        }
+
 
         if( ble_rx_flag )
         {
@@ -2173,7 +2172,7 @@ static void kinisi_communication(void *pvParameters)  // This is a task.
 
 /**********************************************************************
  * @brief  Send kinisi related packets to Hub
- *         
+ *
  * @param  none
  *
  * @return none
@@ -2185,7 +2184,7 @@ static void kinisi_related_process()
   /*
    * Registre kinisi to Hub
    */
-  if ( register_kinisi ) 
+  if ( register_kinisi )
   {
     if( atoi(kinisi_lookup_table[kinisi_reg_location][4].c_str()) == false )
     {
@@ -2200,7 +2199,7 @@ static void kinisi_related_process()
       {
         Serial.println("Kinisi not registered after 3 trial.....");
         registration_packet_send_count = 0;
-        register_kinisi = 0; 
+        register_kinisi = 0;
         send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
         if( !kinisi_register_status )
         {
@@ -2217,10 +2216,10 @@ static void kinisi_related_process()
           //store kinisi registration status in flash
 //              update_byte_to_flash(KINISI_REG_STS_BASE_ADDR,kinisi_register_status);
           update_byte_to_flash((KINISI_REG_ADDR + no_of_kinisi_device),kinisi_register_status);
-                               
+
           kinisi_lookup_table[kinisi_reg_location][4] = itoa(kinisi_register_status,str_buffer,DECIMAL); //update kinisi registration status
           print_Kinsi_lookup_table(kinisi_lookup_table);
-                   
+
           //clear all buffer
           for ( int indice = 0;indice < BLE_BUFFER_SIZE;indice++ )
           {
@@ -2238,7 +2237,7 @@ static void kinisi_related_process()
     else
     {
       Serial.printf("searching location = %d",kinisi_reg_location);
-      Serial.println("Registration status is set" + String(atoi(kinisi_lookup_table[kinisi_reg_location][4].c_str())));         
+      Serial.println("Registration status is set" + String(atoi(kinisi_lookup_table[kinisi_reg_location][4].c_str())));
     }
   }
   Current_Time[KINISI_HS] = millis();
@@ -2250,7 +2249,7 @@ static void kinisi_related_process()
 //      Serial.printf("beacon_count = %d\n",beacon_count);
       for( int list = 0;list < beacon_count ; list++ )
       {
-        for (int reg_device = 0; reg_device < no_of_kinisi_device; reg_device++) 
+        for (int reg_device = 0; reg_device < no_of_kinisi_device; reg_device++)
         {
           if ( scan_ble_list[list] == kinisi_lookup_table[reg_device][5] )
           {
@@ -2258,24 +2257,24 @@ static void kinisi_related_process()
             if (  (atoi(kinisi_lookup_table[reg_device][4].c_str()) == true) &&
                   (atoi(kinisi_lookup_table[reg_device][3].c_str()) == false)  )
             {
-//              Serial.printf(" mactch found @ %d\n",reg_device);          
+//              Serial.printf(" mactch found @ %d\n",reg_device);
               kinisi_serial_num_ptr[reg_device]   = (uint8_t *)kinisi_lookup_table[reg_device][1].c_str();
-//              Serial.println((char *)kinisi_serial_num_ptr[reg_device]);          
+//              Serial.println((char *)kinisi_serial_num_ptr[reg_device]);
               //send heart beat
               Json_post_to_AP(DEVICE_HEALTH_STATUS,KINISI,kinisi_serial_num_ptr[reg_device],NULL);
-            } 
+            }
           }
         }
-      }      
-    }         
+      }
+    }
     Last_Time[KINISI_HS] = millis();
   }
-       
+
   if( occupancy_detected )
   {
     //when ever occupancy is detected we need to send sensor data
-//      print_Kinsi_lookup_table(kinisi_lookup_table); 
-      for (int i = 0; i < no_of_kinisi_device; i++) 
+//      print_Kinsi_lookup_table(kinisi_lookup_table);
+      for (int i = 0; i < no_of_kinisi_device; i++)
       {
         if( kinisi_lookup_table[i][5]  == (String)(char *)occupancy_mac_id)
         {
@@ -2287,7 +2286,7 @@ static void kinisi_related_process()
       }
       if( mac_id_found )
       {
-        Json_post_to_AP(DEVICE_SENSOR_DATA,KINISI,(uint8_t *)Ser_num,NULL);//send event data      
+        Json_post_to_AP(DEVICE_SENSOR_DATA,KINISI,(uint8_t *)Ser_num,NULL);//send event data
       }
       occupancy_detected  = 0;
       beacon_rx_flag      = 0;
@@ -2295,29 +2294,29 @@ static void kinisi_related_process()
 }
 /**********************************************************************
  * @brief  Increment/Decrement AC Temperature
- *         
+ *
  * @param  none
  *
  * @return none
  *************************************************************************/
 static void sense_button_press()
 {
-  if ( input_gpio[TOUCH_1] ) 
-  { 
+  if ( input_gpio[TOUCH_1] )
+  {
     button_pressed      = 1;
     set_Capacitive_Up_Led_ON();
     vTaskDelay(TOUCH_BUTTON_LED_TIME);
     set_Capacitive_Up_Led_OFF();
     display_temperature(json_extract.ac_temp);
-    Serial.printf("set temperature = %d\n",json_extract.ac_temp); 
+    Serial.printf("set temperature = %d\n",json_extract.ac_temp);
     input_gpio[TOUCH_1] = false;
     input_gpio[TOUCH_2] = false;
     #if HITACHI
       irsend.sendRaw(temp_up, 595, 38);  // Send a raw data capture at 38kHz.
     #endif
   }
-  else if ( input_gpio[TOUCH_2] ) 
-  { 
+  else if ( input_gpio[TOUCH_2] )
+  {
     button_pressed      = 1;
     set_Capacitive_Down_Led_ON();
     vTaskDelay(TOUCH_BUTTON_LED_TIME);
@@ -2333,7 +2332,7 @@ static void sense_button_press()
 }
 /**********************************************************************
  * @brief  Intialize Zigbee uart @115200
- *         
+ *
  * @param  none
  *
  * @return none
@@ -2361,7 +2360,7 @@ static void initialize_zigbee_uart()
   //Set UART pins (using UART2 default pins ie no changes.)
   ESP_ERROR_CHECK(uart_set_pin(ZIGBEE_UART, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 //  ESP_ERROR_CHECK(uart_set_pin(ZIGBEE_UART, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
-  
+
   //Install UART driver, and get the queue.
   ESP_ERROR_CHECK(uart_driver_install(ZIGBEE_UART, BUF_SIZE * 2, 0, 0, NULL, 0));
 
@@ -2372,7 +2371,7 @@ static void initialize_zigbee_uart()
   ESP_ERROR_CHECK(uart_isr_register(ZIGBEE_UART,uart_intr_handle, NULL, ESP_INTR_FLAG_IRAM, &handle_console));
 
   // enable RX interrupt
-  ESP_ERROR_CHECK(uart_enable_rx_intr(ZIGBEE_UART)); 
+  ESP_ERROR_CHECK(uart_enable_rx_intr(ZIGBEE_UART));
 }
 
 /**********************************************************************
@@ -2411,7 +2410,7 @@ static void extract_device_registration_credential( uint16_t sensor)
           }
           Serial.printf("org_id %d : %c\n",location,org_id[location]);
         }
-        /*********Get Facility ID**************/ 
+        /*********Get Facility ID**************/
         else if( (location >= 3) && (location < 6))
         {
           if( location == 3)
@@ -2447,12 +2446,12 @@ static void extract_device_registration_credential( uint16_t sensor)
         }
       }
       room_no[location-6] = '\0';// add delimiter
-      
+
       Length[ORG_ID]            = strlen((char*)org_id);//store array length of pass key
       Length[FACILITY_ID]       = strlen((char*)facility_id);//store array length of pass key
       Length[ROOM_NUM]          = strlen((char*)room_no);//store array length of pass key
       Length[SENSOR_AUTH_CODE]  = strlen((char*)amenos_auth_code);//store array length of auth code
-        
+
       /*************Get AC mode*************/
       tirisi_ac_type      = room_details[BYTE12];
       /************Get Ac Brand***********/
@@ -2460,7 +2459,7 @@ static void extract_device_registration_credential( uint16_t sensor)
       /************Get status of zigbee control,occupancy******/
       light_control       = room_details[BYTE14];
       occupancy_detection = room_details[BYTE15];
-  
+
       if ( tirisi_ac_type == HVAC_TYPE )
       {
         device_variant = 0x5000;
@@ -2470,11 +2469,11 @@ static void extract_device_registration_credential( uint16_t sensor)
         }
         if ( occupancy_detection == ENABLE  )
         {
-          device_variant = 0x5010; 
+          device_variant = 0x5010;
         }
         if( (light_control == ENABLE) && (occupancy_detection == ENABLE) )
         {
-          device_variant = 0x5011; 
+          device_variant = 0x5011;
         }
       }
       else if ( tirisi_ac_type == SPLIT_AC_TYPE )
@@ -2486,15 +2485,15 @@ static void extract_device_registration_credential( uint16_t sensor)
         }
         if ( occupancy_detection == ENABLE  )
         {
-          device_variant = 0x5110; 
+          device_variant = 0x5110;
         }
         if( (light_control == ENABLE) && (occupancy_detection == ENABLE) )
         {
-          device_variant = 0x5111; 
+          device_variant = 0x5111;
         }
       }
       max_kinisi_in_room  = device_name[12];
-    
+
       Serial.printf("No. of kinisi in room = %d\n",max_kinisi_in_room );
       Serial.printf("device variant   = %x\n",device_variant);
       device_name[11] = '\0'; //add delimiter
@@ -2513,7 +2512,7 @@ static void extract_device_registration_credential( uint16_t sensor)
       /*
        * AP password logic:
        * First character - '#'
-       * Then pad        - <room_no> and <org_id> 
+       * Then pad        - <room_no> and <org_id>
        * Last character  - '#'
        * e.g. if ssid     = "010101"
        *         password = "#<org_id><room_no>#"
@@ -2523,7 +2522,7 @@ static void extract_device_registration_credential( uint16_t sensor)
       Serial.printf("AP Password : %s\n", ap_passkey);
       Serial.printf("AP password length: %d\n", strlen((const char*)ap_passkey));
       strcpy((char*)copy_ap_passkey,(const char*)ap_passkey);
-      memset(ap_passkey, 0, ((BLE_BUFFER_SIZE/2)*sizeof(ap_passkey[BYTE0]))); 
+      memset(ap_passkey, 0, ((BLE_BUFFER_SIZE/2)*sizeof(ap_passkey[BYTE0])));
       ap_passkey[BYTE0] = '#';
       for( uint16_t misc_count = 0 ;misc_count < strlen((const char*)copy_ap_passkey);misc_count++)
       {
@@ -2534,7 +2533,7 @@ static void extract_device_registration_credential( uint16_t sensor)
       Serial.printf("password: %s\n", ap_passkey);
       Serial.printf("password length: %d\n", strlen((const char*)ap_passkey));
       Length[WIFI_PASSWORD] = strlen((char*)ap_passkey);//store array length of pass key
-      
+
       Serial.print("Org id: ");
       print_uint_data(org_id,Length[ORG_ID]);
       Serial.print("\nFacility id:");
@@ -2588,7 +2587,7 @@ static void extract_device_registration_credential( uint16_t sensor)
           }
           Serial.printf("kinisi_org_id %d : %c\n",location,kinisi_org_id[location]);
         }
-        /*********Get Facility ID**************/ 
+        /*********Get Facility ID**************/
         else if( (location >= 3) && (location < 6))
         {
           if( location == 3)
@@ -2632,28 +2631,28 @@ static void extract_device_registration_credential( uint16_t sensor)
       if ( strcmp((const char*)room_no,(const char*)kinisi_Amenity_id) == 0 )
       {
         //allow kinisi to register to Hub
-//        if ( !kinisi_register_status )  
+//        if ( !kinisi_register_status )
 //        {
           no_of_kinisi_device = EEPROM.readUChar(KINISI_DEVICE_COUNT);
           Serial.printf(" no of kinisi = %d\n",no_of_kinisi_device);
-          if( no_of_kinisi_device < max_kinisi_in_room ) 
+          if( no_of_kinisi_device < max_kinisi_in_room )
           {
-            register_kinisi                   = true;  
+            register_kinisi                   = true;
             registration_packet_send_count    = 0;
-            
+
             device_count[KINISI_SERIAL_NUM]   = no_of_kinisi_device;
             device_count[KINISI_DEVICE_NAME]  = no_of_kinisi_device;
-            
+
             kinisi_serial_num_ptr[device_count[KINISI_SERIAL_NUM]++]     = kinisi_serial_number;
             kinisi_device_name_ptr[device_count[KINISI_DEVICE_NAME]++]   = kinisi_device_name;
-            
-            
+
+
             if ( device_count[KINISI_SERIAL_NUM] - device_count[KINISI_DEVICE_NAME] == 0)
             {
-              Serial.println("checking it is same serial # or not");    
+              Serial.println("checking it is same serial # or not");
               if ( no_of_kinisi_device >= BYTE1)
               {
-                for (int i = 0; i < no_of_kinisi_device; i++) 
+                for (int i = 0; i < no_of_kinisi_device; i++)
                 {
                   if( kinisi_lookup_table[i][1]  == (String)(char *)kinisi_serial_number)
                   {
@@ -2669,8 +2668,8 @@ static void extract_device_registration_credential( uint16_t sensor)
                     kinisi_lookup_table[kinisi_reg_location][5]               = myDevice->getAddress().toString().c_str();
                     kinisi_mac_id                                             = myDevice->getAddress().toString().c_str();
                     Serial.println(kinisi_lookup_table[kinisi_reg_location][5]);
-                    
-//                    update_flash( ( KINISI_SERIAL_MACID_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE17) ),(uint8_t *)kinisi_lookup_table[kinisi_reg_location][5].c_str(),BYTE17 ); 
+
+//                    update_flash( ( KINISI_SERIAL_MACID_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE17) ),(uint8_t *)kinisi_lookup_table[kinisi_reg_location][5].c_str(),BYTE17 );
 
                     break;
                   }
@@ -2684,52 +2683,52 @@ static void extract_device_registration_credential( uint16_t sensor)
 
                 kinisi_lookup_table[kinisi_reg_location][1] = (char *)kinisi_serial_number;//kinisi_serial_num_ptr[device_count[KINISI_SERIAL_NUM]];
                 kinisi_lookup_table[kinisi_reg_location][2] = (char *)kinisi_device_name;//kinisi_device_name_ptr[device_count[KINISI_DEVICE_NAME]] ;
-            
+
                 kinisi_lookup_table[kinisi_reg_location][4] = itoa(kinisi_register_status,str_buffer,DECIMAL); //update kinisi registration status
-                
+
                 kinisi_lookup_table[kinisi_reg_location][5]               = myDevice->getAddress().toString().c_str();
                 kinisi_mac_id                                             = myDevice->getAddress().toString().c_str();
                 Serial.println(kinisi_mac_id);
-                
+
                 Serial.println(myDevice->getAddress().toString().c_str());
                 Serial.println(kinisi_lookup_table[kinisi_reg_location][5]);
                 Serial.println(kinisi_mac_id);
-            
+
                 Serial.println("kinisi location" + String(kinisi_reg_location));
 
                 Serial.println("list of kinisi serial #:");
-                for (int i = 0; i < no_of_kinisi_device; i++) 
+                for (int i = 0; i < no_of_kinisi_device; i++)
                 {
                   kinisi_lookup_table[i][0] = itoa(i+1,str_buffer,DECIMAL);
                   Serial.print(kinisi_lookup_table[i][1]);
                   Serial.print("\t");
-                  Serial.println(kinisi_lookup_table[i][1].length());                  
+                  Serial.println(kinisi_lookup_table[i][1].length());
                 }
                 Serial.println("list of kinisi Device name:");
-                for (int i = 0; i < no_of_kinisi_device; i++) 
+                for (int i = 0; i < no_of_kinisi_device; i++)
                 {
                   Serial.print(kinisi_lookup_table[i][2]);
                   Serial.print("\t");
                   Serial.println(kinisi_lookup_table[i][2].length());
                 }
-             
-                update_flash( ( KINISI_DEVICE_NAME_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE11) ),kinisi_device_name,strlen((char *)kinisi_device_name) );     
-                update_flash( ( KINISI_SERIAL_NUM_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE16) ),kinisi_serial_number,strlen((char *)kinisi_serial_number) ); 
-                update_flash( ( KINISI_SERIAL_MACID_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE17) ),(uint8_t *)kinisi_lookup_table[kinisi_reg_location][5].c_str(),BYTE17 ); 
+
+                update_flash( ( KINISI_DEVICE_NAME_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE11) ),kinisi_device_name,strlen((char *)kinisi_device_name) );
+                update_flash( ( KINISI_SERIAL_NUM_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE16) ),kinisi_serial_number,strlen((char *)kinisi_serial_number) );
+                update_flash( ( KINISI_SERIAL_MACID_BASE_ADDR + ( ( no_of_kinisi_device - 1) * BYTE17) ),(uint8_t *)kinisi_lookup_table[kinisi_reg_location][5].c_str(),BYTE17 );
               }
               else
               {
-                Serial.println("match found");                            
+                Serial.println("match found");
               }
             }
-            print_Kinsi_lookup_table(kinisi_lookup_table); 
-                          
+            print_Kinsi_lookup_table(kinisi_lookup_table);
+
           }
           else
           {
             if ( no_of_kinisi_device >= BYTE1)
             {
-              for (int i = 0; i < no_of_kinisi_device; i++) 
+              for (int i = 0; i < no_of_kinisi_device; i++)
               {
                 if( kinisi_lookup_table[i][1]  == (String)(char *)kinisi_serial_number)
                 {
@@ -2741,8 +2740,8 @@ static void extract_device_registration_credential( uint16_t sensor)
                   no_of_kinisi_device -=  1;
                   kinisi_serial_num_ptr[kinisi_reg_location]  = kinisi_serial_number;
                   kinisi_device_name_ptr[kinisi_reg_location] = kinisi_device_name;
-                  kinisi_lookup_table[kinisi_reg_location][4] = itoa(kinisi_register_status,str_buffer,DECIMAL); //update kinisi registration status       
-                  register_kinisi                   = true;  
+                  kinisi_lookup_table[kinisi_reg_location][4] = itoa(kinisi_register_status,str_buffer,DECIMAL); //update kinisi registration status
+                  register_kinisi                   = true;
                   registration_packet_send_count    = 0;
                   print_Kinsi_lookup_table(kinisi_lookup_table);
                   break;
@@ -2761,25 +2760,25 @@ static void extract_device_registration_credential( uint16_t sensor)
               Serial.println("match found");
             }
           }
-         
+
           Serial.println("Allow to register Kinisi");
-//        } 
+//        }
       }
-      else 
+      else
       {
         Serial.println("\nNot a same room number\n disconnect kinisi");
         pClient->disconnect();
         vTaskDelay(50);
       }
     }
-    else 
+    else
     {
       Serial.printf("Error: %d\n",kinisi_device_type);
       Serial.println("Sensor mis-matches\n Disconnect kinisi");
       pClient->disconnect();
       vTaskDelay(50);
     }
-    
+
     Serial.print("Kinisi Org id: ");
     print_uint_data(kinisi_org_id,Length[ORG_ID]);
     Serial.print("\nKinisi Facility id:");
@@ -2789,9 +2788,9 @@ static void extract_device_registration_credential( uint16_t sensor)
     Serial.print("\nKinisi Device name:");
     print_uint_data(kinisi_device_name,Length[DEVICE_NAME]);
   }
-  else 
+  else
   {
-    
+
   }
 }
 /**********************************************************************
@@ -2800,7 +2799,7 @@ static void extract_device_registration_credential( uint16_t sensor)
  * @param  address    - location of data need to be verify
  *         flash_data - array pointer which holds the data need to store/verify
  *         len        - length of data to be store in flash
- * 
+ *
  * @return none
  *************************************************************************/
 static void update_flash(uint16_t address,uint8_t *flash_data,uint16_t len)
@@ -2858,19 +2857,19 @@ static void update_flash(uint16_t address,uint8_t *flash_data,uint16_t len)
   {
     Serial.println("\nverifying auth code....");
   }
-  else if ( (address >= KINISI_SERIAL_MACID_BASE_ADDR) && ( address < (KINISI_SERIAL_MACID_BASE_ADDR * BYTE17) ) ) 
+  else if ( (address >= KINISI_SERIAL_MACID_BASE_ADDR) && ( address < (KINISI_SERIAL_MACID_BASE_ADDR * BYTE17) ) )
   {
     Serial.println("\nverifying Kinisi mac id....");
   }
-  else if ( (address >= KINISI_SERIAL_NUM_BASE_ADDR) && ( address < (KINISI_SERIAL_NUM_BASE_ADDR * BYTE16) ) ) 
+  else if ( (address >= KINISI_SERIAL_NUM_BASE_ADDR) && ( address < (KINISI_SERIAL_NUM_BASE_ADDR * BYTE16) ) )
   {
     Serial.println("\nverifying Kinisi serial number....");
   }
-  else if ( (address >= KINISI_DEVICE_NAME_BASE_ADDR) && ( address < (KINISI_DEVICE_NAME_BASE_ADDR * BYTE11) ) ) 
+  else if ( (address >= KINISI_DEVICE_NAME_BASE_ADDR) && ( address < (KINISI_DEVICE_NAME_BASE_ADDR * BYTE11) ) )
   {
     Serial.println("\nverifying Kinisi device name....");
   }
-  
+
   Serial.println();
   Serial.print("read data :");
   if ( address == AP_SSID_BASE_ADDR )
@@ -2904,11 +2903,11 @@ static void update_flash(uint16_t address,uint8_t *flash_data,uint16_t len)
     else
     {
       Serial.println("\nError:Flash read/write issue");
-      //update configuration status 
-      configuration_status = CONFIG_FAIL; 
+      //update configuration status
+      configuration_status = CONFIG_FAIL;
       send_ble_ack_packets(configuration_status);//send status to ble
       break;
-    }  
+    }
   }
   if( verify_count == len )
   {
@@ -2920,7 +2919,7 @@ static void update_flash(uint16_t address,uint8_t *flash_data,uint16_t len)
  *
  * @param  address      - location of data need to be stored
  *         working_mode - data need to be stored
- * 
+ *
  * @return none
  *************************************************************************/
 static void update_byte_to_flash(uint16_t address,uint8_t working_mode)
@@ -3067,7 +3066,7 @@ static void update_byte_to_flash(uint16_t address,uint8_t working_mode)
     }
     else if ( address == DEVICE_REG_STS_BASE_ADDR )
     {
-      Serial.println("Device reg status updated successfully"); 
+      Serial.println("Device reg status updated successfully");
     }
     /***BLE extracted data***/
     else if( address == AC_TYPE_BASE_ADDR )
@@ -3124,7 +3123,7 @@ static void update_byte_to_flash(uint16_t address,uint8_t working_mode)
  *
  * @param  address      - location of data need to be stored
  *         working_mode - data need to be stored
- * 
+ *
  * @return none
  *************************************************************************/
 static void update_uint32_t_to_flash(uint16_t address,uint32_t working_mode)
@@ -3206,7 +3205,7 @@ static void update_uint32_t_to_flash(uint16_t address,uint32_t working_mode)
 static void process_ble_data()
 {
   uint16_t update_count=0;
-  
+
   if( (ble_rx_buffer[FUNCTION_CODE] == BLE_PASSKEY_FUNC_CODE ) && (ble_rx_buffer[COMMAND] == AMENOS_BLE_COMMAND) )
   {
     if ( ble_rx_buffer[INSTANT_ID] == AUTHENTICATION )
@@ -3232,19 +3231,19 @@ static void process_ble_data()
           Serial.println("BLE password mis-matched");
           configuration_status = PASSWORD_MIS_MATCHED;
           send_ble_ack_packets(configuration_status);//send status to ble
-          allow_process_ble_data = 0; 
+          allow_process_ble_data = 0;
         }
-        
+
       }
       else
       {
-        Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
-        //update configuration status 
-        configuration_status = CONFIG_FAIL; 
+        Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
+        //update configuration status
+        configuration_status = CONFIG_FAIL;
         send_ble_ack_packets(configuration_status);//send status to ble
       }
       memset(ble_rx_buffer,NULL,sizeof(ble_rx_buffer));//clear array
-    } 
+    }
   }
   if ( allow_process_ble_data  )
   {
@@ -3264,9 +3263,9 @@ static void process_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
-          //update configuration status 
-          configuration_status = CONFIG_FAIL; 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
+          //update configuration status
+          configuration_status = CONFIG_FAIL;
           send_ble_ack_packets(configuration_status);//send status to ble
         }
       }
@@ -3280,7 +3279,7 @@ static void process_ble_data()
             if( ble_rx_buffer[update_count] != '#' )
             {
               serial_number[update_count - (INSTANT_ID +1)] = ble_rx_buffer[update_count];
-              Serial.printf("%c",serial_number[update_count - (INSTANT_ID +1)]);            
+              Serial.printf("%c",serial_number[update_count - (INSTANT_ID +1)]);
             }
             else
             {
@@ -3292,9 +3291,9 @@ static void process_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
-          //update configuration status 
-          configuration_status = CONFIG_FAIL; 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
+          //update configuration status
+          configuration_status = CONFIG_FAIL;
           send_ble_ack_packets(configuration_status);//send status to ble
         }
       }
@@ -3318,9 +3317,9 @@ static void process_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
-          //update configuration status 
-          configuration_status = CONFIG_FAIL; 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
+          //update configuration status
+          configuration_status = CONFIG_FAIL;
           send_ble_ack_packets(configuration_status);//send status to ble
         }
       }
@@ -3346,21 +3345,21 @@ static void process_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
-          //update configuration status 
-          configuration_status = CONFIG_FAIL; 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
+          //update configuration status
+          configuration_status = CONFIG_FAIL;
           send_ble_ack_packets(configuration_status);//send status to ble
         }
       }
       else
       {
         Serial.print("Error: Data lost send again");
-        //update configuration status 
-        configuration_status = CONFIG_FAIL; 
+        //update configuration status
+        configuration_status = CONFIG_FAIL;
         send_ble_ack_packets(configuration_status);//send status to ble
       }
       memset(ble_rx_buffer,NULL,sizeof(ble_rx_buffer));//clear array
-          
+
     }
   }
 }
@@ -3371,18 +3370,18 @@ static void process_ble_data()
  *
  * @return none
  *************************************************************************/
-static void listNetworks() 
+static void listNetworks()
 {
   Serial.println("Scan nearby networks....");
-  
+
   // WiFi.scanNetworks will return the number of networks found
   int available_wifi = WiFi.scanNetworks();
   Serial.println("scan done");
-  if ( available_wifi == NO_WIFI_AVAILABLE ) 
+  if ( available_wifi == NO_WIFI_AVAILABLE )
   {
     Serial.println("no networks found");
-  } 
-  else 
+  }
+  else
   {
     Serial.print(available_wifi);
     Serial.println(" networks found");
@@ -3402,7 +3401,7 @@ static void listNetworks()
 }
 
 /**********************************************************************//**
- * @brief  Trying to connect to ssid,passkey mentioned.It will restart the ESP 
+ * @brief  Trying to connect to ssid,passkey mentioned.It will restart the ESP
  *         if not connects to AP 3 sec.
  *
  * @param  APsssid    - pointer holds the ssid of accesspoint
@@ -3418,7 +3417,7 @@ static void connect_to_ap(uint8_t *APsssid,uint8_t *APpassword)
     send_device_reg_packet  = true;
     Serial.println(" send device reg packet Flag set");
   }
-  DL2_led_control(LED_R2,LED_DRIVE_HIGH); 
+  DL2_led_control(LED_R2,LED_DRIVE_HIGH);
   uint16_t connection_intervel = 0;
   trial_count = EEPROM.readUChar(WIFI_CONNECTION_TRIAL_COUNT_BASE_ADDR);
   Serial.printf("\nRead trial count = %d",trial_count);
@@ -3445,7 +3444,7 @@ static void connect_to_ap(uint8_t *APsssid,uint8_t *APpassword)
     //wait untill board connects to mentioned network
     connection_intervel++;
     //update configuration status
-    configuration_status = WIFI_CONNECTION_IN_PROGRESS; 
+    configuration_status = WIFI_CONNECTION_IN_PROGRESS;
     /*
      * Send Acknowledgement to TIRISI App only on configuration mode
      */
@@ -3473,14 +3472,14 @@ static void connect_to_ap(uint8_t *APsssid,uint8_t *APpassword)
         /*reset the trial count and update in flash*/
         trial_count = 0;
         update_byte_to_flash(WIFI_CONNECTION_TRIAL_COUNT_BASE_ADDR,trial_count);
-        /*In 3 trial if ESP doesn't connect to ssid,password 
+        /*In 3 trial if ESP doesn't connect to ssid,password
          *change mode to CONFIGURATION_MODE and restart the ESP if device is already not registered
          */
          if( !device_register_status )
          {
           operating_mode = CONFIGURATION_MODE;
           update_byte_to_flash(OPERATING_MODE_BASE_ADDR,operating_mode);
-          //Change configuration received status to false 
+          //Change configuration received status to false
           config_data_rcvd = false;
           update_byte_to_flash(CONFIG_DATA_STATUS_BASE_ADDR,config_data_rcvd);
           //send acknowledgment to connected ble device
@@ -3490,31 +3489,31 @@ static void connect_to_ap(uint8_t *APsssid,uint8_t *APpassword)
           Serial.println("ESP restarting for mode change");
           vTaskDelay(500);
           ESP.restart();
-         } 
+         }
          else
          {
             Serial.println("Device already registered\nHub not available...\nESP restarting");
             vTaskDelay(500);
-            ESP.restart();        
-         } 
+            ESP.restart();
+         }
       }
     }
     vTaskDelay(500);
   }
-  DL2_led_control(LED_R2,LED_DRIVE_LOW); 
-  DL2_led_control(LED_G2,LED_DRIVE_HIGH); 
+  DL2_led_control(LED_R2,LED_DRIVE_LOW);
+  DL2_led_control(LED_G2,LED_DRIVE_HIGH);
   if( operating_mode == CONFIGURATION_MODE )
   {
     configuration_status = WIFI_CONNECTED;
     send_ble_ack_packets(configuration_status);//send status to ble
-  } 
+  }
   trial_count = 0;
-  update_byte_to_flash(WIFI_CONNECTION_TRIAL_COUNT_BASE_ADDR,trial_count);      
+  update_byte_to_flash(WIFI_CONNECTION_TRIAL_COUNT_BASE_ADDR,trial_count);
   /*
    * print Wifi connection status
    */
   Serial.println("ESP32 WiFi connection status =>");
-  Serial.print("\nconnected to WiFi Network : ");     
+  Serial.print("\nconnected to WiFi Network : ");
   for ( int misc_count = 0;misc_count < strlen((char*)APsssid); misc_count++)
   {
     Serial.printf("%c",APsssid[misc_count]);
@@ -3528,12 +3527,12 @@ static void connect_to_ap(uint8_t *APsssid,uint8_t *APpassword)
   Serial.println(" dbm");
   Serial.println("Starting NTP client...");
   timeClient.begin();
-  setupudp(); 
+  setupudp();
 }
 /**********************************************************************//**
- * @brief  whenever data is received fro UDP server it will receive and 
+ * @brief  whenever data is received fro UDP server it will receive and
  *         store in udp_rx_packets buffer
- *         Print the server IP,PORT 
+ *         Print the server IP,PORT
  *
  * @param  none
  *
@@ -3543,7 +3542,7 @@ static void udp_rx_data()
 {
   // if there's data available, read a packet
   int packetSize = Udp.parsePacket();
-  if (packetSize) 
+  if (packetSize)
   {//
     Serial.print("\nReceived packet size : ");
     Serial.println(packetSize);
@@ -3556,7 +3555,7 @@ static void udp_rx_data()
     StaticJsonDocument<2048> parsing_buffer;
     DeserializationError error;
     error = deserializeJson(parsing_buffer, Udp);
-    if( error ) 
+    if( error )
     {
       Serial.print(F("deserializeJson() failed with code "));
       Serial.println(error.c_str());
@@ -3601,7 +3600,7 @@ static void udp_tx_data()
     Serial.println("Success:connected to server");
   }
   Serial.println("UDP data to server");
-  
+
   StaticJsonDocument<1024> json_buffer;//allocate 1kb memory in stack
   json_buffer["hmac"] = "";
   JsonObject payload = json_buffer.createNestedObject("payload");//add for nested json document
@@ -3632,10 +3631,10 @@ static void setupudp()
     Serial.println("Successfully opened UDP socket");
     Serial.println("Listening at :");
     Serial.print("Local port: ");
-    Serial.println(udp_port); 
+    Serial.println(udp_port);
     Serial.print("Local IP: ");
     Serial.println( WiFi.localIP() );
-    
+
   }
   else
   {
@@ -3653,14 +3652,14 @@ static void setupudp()
 static void setup_internal_flash()
 {
   Serial.println("Initializing Internal Flash....");
-  if (!EEPROM.begin(FLASH_SIZE)) 
+  if (!EEPROM.begin(FLASH_SIZE))
   {
     Serial.println("Failed to initialise Flash");
     Serial.println("Restarting...");
     vTaskDelay(1000);
     ESP.restart();
   }
-  Serial.println("Initialize Internal Flash successfully"); 
+  Serial.println("Initialize Internal Flash successfully");
 }
 /**********************************************************************//**
  * @brief  Initialize BLE with name AMENOS
@@ -3679,10 +3678,10 @@ static void setup_ble()
   //BLEService *pService = pServer->createService(SERVICE_UUID);//create ble service
   pService = pServer->createService(SERVICE_UUID);//create ble service
   pTxCharacteristic = pService->createCharacteristic
-                    ( 
+                    (
                         //create ble Tx characteristics
                         CHARACTERISTIC_UUID_TX,//add tx characteristics
-                        BLECharacteristic::PROPERTY_NOTIFY//add notification characteristics 
+                        BLECharacteristic::PROPERTY_NOTIFY//add notification characteristics
 //                       BLECharacteristic::PROPERTY_READ |
 //                       BLECharacteristic::PROPERTY_WRITE
                      );
@@ -3695,7 +3694,7 @@ static void setup_ble()
                     );
   pRxCharacteristic->setCallbacks(new MyCallbacks());
   ble_start_advertisement();
-  Serial.print("Waiting for BLE device to connect");  
+  Serial.print("Waiting for BLE device to connect");
 }
 /**********************************************************************//**
  * @brief  starts the BLE advertisement
@@ -3738,7 +3737,7 @@ static void send_ble_ack_packets(uint8_t Status)
     ble_ack_to_mobile[INSTANT_ID_BYTE] = BLE_ACK_INSTANT_ID;
     if( configuration_status == WIFI_NOT_CONNECT)
     {
-      ble_ack_to_mobile[RESULT_BYTE] = WIFI_CONNECTION_FAIL; 
+      ble_ack_to_mobile[RESULT_BYTE] = WIFI_CONNECTION_FAIL;
       Serial.println("Wifi connection fail");
     }
     else if( configuration_status == WIFI_CONNECTION_IN_PROGRESS)
@@ -3768,7 +3767,7 @@ static void send_ble_ack_packets(uint8_t Status)
       ble_ack_to_mobile[RESULT_BYTE] = AUTHENTICATION_FAIL;
       Serial.println("BLE Authentication failed");
     }
-    
+
 //    String ble_tx_data = (char*)ble_ack_to_mobile;
 //    String ble = "hello";
 //    ble_tx_value = random(1,10);
@@ -3783,7 +3782,7 @@ static void send_ble_ack_packets(uint8_t Status)
 }
 /**********************************************************************//**
  * @brief  Post data in Json format to TCP server
- * 
+ *
  * @param  none
  *
  * @return none
@@ -3796,12 +3795,12 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
      */
     StaticJsonDocument<1024> json_buffer;//allocate 1kb memory in stack
     uint8_t copy_buffer[1024]={0};
-    /*     
+    /*
      *      Device Registration packet
      */
     if(  tcp_packet_no ==  DEVICE_REGISTRATION )
     {
-      /*  sample device registration JOSN packet 
+      /*  sample device registration JOSN packet
            * {
         "hmac": "",
         "payload": {
@@ -3828,18 +3827,18 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
           */
       Serial.println("\nsending Device registrartion packet");
       if ( sensor == AMENOS )
-      { 
+      {
         json_buffer["hmac"]                     = "";
         JsonObject payload                      = json_buffer.createNestedObject("payload");//add for nested json document
         payload["device_uid"]                   = serial_number;//add serial number
-#if 0   //ack testing     
+#if 0   //ack testing
         payload["action"] = DEVICE_REG_ACK;
         JsonArray data = payload.createNestedArray("device_data");
         JsonObject device_data = data.createNestedObject();//add for nested json document
         device_data["ack_type"] = 1;
         device_data["status"] = 1;
-#endif 
-#if 0   //OTAP testing     
+#endif
+#if 0   //OTAP testing
         payload["action"] = 7;
         JsonArray data = payload.createNestedArray("device_data");
         JsonObject device_data = data.createNestedObject();//add for nested json document
@@ -3847,8 +3846,8 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         device_data["firmware_path"] = "ftp://192.168.43.18/binary/firmware.bin";
         device_data["crc"] = "2345";
         device_data["file_size"] = "10";
-#endif        
-#if 1        
+#endif
+#if 1
         payload["data_type"]                    = DEVICE_REGISTRATION;
         JsonArray data                          = payload.createNestedArray("device_data");
         JsonObject device_data                  = data.createNestedObject();//add for nested json document
@@ -3871,14 +3870,14 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         json_buffer["hmac"]                      = "";
         JsonObject payload                       = json_buffer.createNestedObject("payload");//add for nested json document
         payload["device_uid"]                    = Serial_Number;//add serial number
-#if 1        
+#if 1
         payload["action"] = DEVICE_REG_ACK;
         JsonArray data = payload.createNestedArray("device_data");
         JsonObject device_data = data.createNestedObject();//add for nested json document
         device_data["ack_type"] = 1;
         device_data["status"] = 1;
-#endif  
-#if 0   //OTAP testing     
+#endif
+#if 0   //OTAP testing
         payload["action"] = 7;
         JsonArray data = payload.createNestedArray("device_data");
         JsonObject device_data = data.createNestedObject();//add for nested json document
@@ -3886,7 +3885,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         device_data["firmware_path"] = "ftp://192.168.43.18/binary/firmware.bin";
         device_data["crc"] = "2345";
         device_data["file_size"] = "10";
-#endif 
+#endif
 #if 0
         payload["data_type"]                    = DEVICE_REGISTRATION;
         JsonArray data                          = payload.createNestedArray("device_data");
@@ -3895,7 +3894,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         device_data["auth_code"]                = kinisi_auth_code;
         device_data["product_model"]            = PRODUCT_MODEL_KINISI;
         device_data["firmware_version"]         = kinsi_fm_version;
-        device_data["mfg_date"]                 = kinisi_mfg; 
+        device_data["mfg_date"]                 = kinisi_mfg;
         device_data["device_operational_mode"]  = SLAVE_TO_AMENOS;
         device_data["org_uid"]                  = kinisi_org_id;
         device_data["faciliti_uid"]             = kinisi_Facility_id;
@@ -3905,11 +3904,11 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
 #endif
       }
       else if ( sensor == LIGHT )
-      { 
+      {
         json_buffer["hmac"]                     = "";
         JsonObject payload                      = json_buffer.createNestedObject("payload");//add for nested json document
-        payload["device_uid"]                   = json_extract.zone_light_epid; //light mac id   
-#if 1        
+        payload["device_uid"]                   = json_extract.zone_light_epid; //light mac id
+#if 1
         payload["data_type"]                    = DEVICE_REGISTRATION;
         JsonArray data                          = payload.createNestedArray("device_data");
         JsonObject device_data                  = data.createNestedObject();//add for nested json document
@@ -3925,7 +3924,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
 #endif
       }
     }
-    /*          
+    /*
      *           sensor health packet
      */
     else if (tcp_packet_no == DEVICE_HEALTH_STATUS )
@@ -3955,7 +3954,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         JsonArray data                      = payload.createNestedArray("device_data");
         JsonObject device_data              = data.createNestedObject();//add for nested json documentdevice_data["device_type"] = DEVICE_TYPE;
         device_data["device_health_status"] = 0;
-        device_data["device_temperature"]   = room_temperature; 
+        device_data["device_temperature"]   = room_temperature;
       }
       else if ( sensor == KINISI )
       {
@@ -3968,7 +3967,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         JsonObject device_data              = data.createNestedObject();//add for nested json documentdevice_data["device_type"] = DEVICE_TYPE;
         device_data["device_health_status"] = 0;
         device_data["device_temperature"]   = 0; //kinisi don't have tempearture sensor
-      } 
+      }
       else if ( sensor == LIGHT )
       {
         JsonObject key                      = json_buffer.to<JsonObject>();//create json object
@@ -3980,7 +3979,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         JsonObject device_data              = data.createNestedObject();//add for nested json documentdevice_data["device_type"] = DEVICE_TYPE;
         device_data["device_health_status"] = 0;
         device_data["device_temperature"]   = 0; //Light don't have tempearture sensor
-      }              
+      }
     }
     /*
      * Sensor data packet
@@ -4054,7 +4053,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         device_data["zone"]           = json_extract.zone;
         device_data["total_on_time"]  = "2345";//need to change to minutes
         device_data["color"]          = json_extract.light_color;
-        device_data["light_status"]   = json_extract.light_status; 
+        device_data["light_status"]   = json_extract.light_status;
         device_data["contrast"]       = json_extract.light_contrast;
       }
     }
@@ -4180,7 +4179,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         kinisi_register_status = false ;
         Serial.println("Kinisi registration status : Fail");
         registration_packet_send_count = 0;
-        register_kinisi = 0; 
+        register_kinisi = 0;
         send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
         //update kinisi count
         if( no_of_kinisi_device >= BYTE1)
@@ -4210,7 +4209,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
         update_byte_to_flash((KINISI_REG_ADDR + no_of_kinisi_device),kinisi_register_status);
       }
     }
-    else 
+    else
     {
       Serial.println("Sensor to Hub:");
       //uint8_t Room[7] = "11012"; // for testing
@@ -4224,7 +4223,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
           if( Generate_hmac((uint8_t *)seceret_key,(uint8_t *)hmac_payload) != EXIT_FAILURE )
           {
 //            Serial.println("adding hmac to data");
-            json_buffer["hmac"] = hmacResult; 
+            json_buffer["hmac"] = hmacResult;
             serializeJsonPretty(json_buffer, Serial);//print in serial terminal
 
             serializeJsonPretty(json_buffer,Udp);//send data to idp server
@@ -4253,7 +4252,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
             }
             else
             {
-              
+
             }
           }
           else
@@ -4269,7 +4268,7 @@ static void Json_post_to_AP(uint16_t tcp_packet_no,uint16_t sensor,uint8_t *Seri
       else
       {
         seceret_key = NULL;
-      }  
+      }
     }
     //Udp.endPacket();//close the udp server
     Serial.println("Closing connection.");
@@ -4298,7 +4297,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
 //    while(millis() < (current_time+HUB_ACK_TIMEOUT) )
 //    {
       packetSize = Udp.parsePacket();
-      if (packetSize) 
+      if (packetSize)
       {//
         Serial.print("\nReceived packet size : ");
         Serial.println(packetSize);
@@ -4308,7 +4307,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
         Serial.print(", port ");
         Serial.println(Udp.remotePort());
         error = deserializeJson(parsing_buffer, Udp);
-        if( error ) 
+        if( error )
         {
           Serial.print(F("deserializeJson() failed with code "));
           Serial.println(error.c_str());
@@ -4336,8 +4335,8 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
             json_extract.status = parsing_buffer["payload"]["device_data"][0]["status"];
             Serial.printf("ack type = %d\n",json_extract.ack_type);
             Serial.printf("status = %d\n",json_extract.status);
-                
-            
+
+
             if(strcmp(json_extract.device_id,(const char*)kinisi_serial_number) == 0 )
             {//check it is kinisi serial number or not
               if( json_extract.action == DEVICE_REG_ACK )
@@ -4359,12 +4358,12 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     vTaskDelay(50);
                     //store kinisi registration status in flash
 //                    update_byte_to_flash(KINISI_REG_STS_BASE_ADDR,kinisi_register_status);
-                    register_kinisi = 0;   
+                    register_kinisi = 0;
                     if ( no_of_kinisi_device >= BYTE1 )
                     {
                       kinisi_lookup_table[kinisi_reg_location][4] = itoa(kinisi_register_status,str_buffer,DECIMAL); //update kinisi registration status
                       print_Kinsi_lookup_table(kinisi_lookup_table);
-                      update_byte_to_flash((KINISI_REG_ADDR + (no_of_kinisi_device - 1)),kinisi_register_status);                   
+                      update_byte_to_flash((KINISI_REG_ADDR + (no_of_kinisi_device - 1)),kinisi_register_status);
                     }
                     kinisi_register_status = false ;
                     //clear all buffer
@@ -4387,7 +4386,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     kinisi_register_status = false ;
                     Serial.println("Kinisi registration status : Fail");
                     registration_packet_send_count = 0;
-                    register_kinisi = 0; 
+                    register_kinisi = 0;
                     send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
                     //update kinisi count
                     if( no_of_kinisi_device >= BYTE1)
@@ -4402,11 +4401,11 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     //store kinisi registration status in flash
       //              update_byte_to_flash(KINISI_REG_STS_BASE_ADDR,kinisi_register_status);
                     update_byte_to_flash((KINISI_REG_ADDR + no_of_kinisi_device),kinisi_register_status);
-                                         
+
                     kinisi_lookup_table[kinisi_reg_location][4] = itoa(kinisi_register_status,str_buffer,DECIMAL); //update kinisi registration status
                     print_Kinsi_lookup_table(kinisi_lookup_table);
-              
-                    
+
+
                     //clear all buffer
                     for ( int indice = 0;indice < BLE_BUFFER_SIZE;indice++ )
                     {
@@ -4422,7 +4421,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                 }
               }
             }
-            else if( strcmp(json_extract.device_id,(const char*)serial_number) == 0 ) 
+            else if( strcmp(json_extract.device_id,(const char*)serial_number) == 0 )
             {//Check it is Amenos serial number or not
               if( json_extract.action == DEVICE_REG_ACK )
               {
@@ -4448,7 +4447,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
             }
             else
             {
-              Serial.println("Serial number mis match");           
+              Serial.println("Serial number mis match");
             }
           }
           else
@@ -4481,18 +4480,18 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
         vTaskDelay(100);
         ESP.restart();
       }
-      else 
+      else
       {
         Serial.println("Device registration ACK not received from Hub......");
-      } 
+      }
     }
-    
+
   }
   else if ( operation == NORMAL_RECEIVE_MODE )
   {
     // if there's data available, read a packet
     packetSize = Udp.parsePacket();
-    if (packetSize) 
+    if (packetSize)
     {//
       Serial.print("\nReceived packet size : ");
       Serial.println(packetSize);
@@ -4502,7 +4501,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
       Serial.print(", port ");
       Serial.println(Udp.remotePort());
       error = deserializeJson(parsing_buffer, Udp);
-      if( error ) 
+      if( error )
       {
         Serial.print(F("deserializeJson() failed with code "));
         Serial.println(error.c_str());
@@ -4527,7 +4526,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
             json_extract.device_id = parsing_buffer["payload"]["device_uid"];
             json_extract.action = parsing_buffer["payload"]["action"];
             Serial.printf("action num = %d\n",json_extract.action );
-            if( strcmp(json_extract.device_id,(const char*)serial_number) == 0 ) 
+            if( strcmp(json_extract.device_id,(const char*)serial_number) == 0 )
             {//Check it is Amenos serial number or not
                 //comes here any data received from hub other than device registration ack
                 if( json_extract.action == MAINTENANCE_CMD )
@@ -4539,9 +4538,9 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                    */
                   if ( json_extract.maintenance_mode == MAINTENANCE_MODE_ON )
                   {
-                    Serial.println("Maintenance mode ON"); 
+                    Serial.println("Maintenance mode ON");
                     //send data to destination of ip address received via MOBILE_IP_INFO_CMD
-                    enable_maintenance_mode = true; 
+                    enable_maintenance_mode = true;
                   }
                   else if ( json_extract.maintenance_mode == MAINTENANCE_MODE_OFF )
                   {
@@ -4551,7 +4550,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   json_extract.maintenance_mode = 0;
                 }
                 else if( json_extract.action == FIRMWARE_UPDATE_CMD  )
-                { 
+                {
                   Serial.println("\nFirmware update command received");
                   /*******Firmware update data extraction*********/
                   json_extract.fm_version   = parsing_buffer["payload"]["device_data"][0]["firmware_version"];
@@ -4562,18 +4561,18 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   Serial.printf("\nFM Version : %s\n",json_extract.fm_version);
                   Serial.printf("FM Path      : %s\n",json_extract.fm_path);
                   Serial.printf("FM Crc       : %s\n",json_extract.fm_crc);
-                  Serial.printf("FM Size      : %s\n",json_extract.fm_file_size);                  
+                  Serial.printf("FM Size      : %s\n",json_extract.fm_file_size);
                   UDP_Rx_Packet[OTAP]  = true;
                 }
                 else if( json_extract.action == MOBILE_IP_INFO_CMD  )
-                { 
+                {
                   Serial.println("\nMobile ip addres command received");
                   /*******mobile ip address extraction*********/
                   json_extract.ipaddress = parsing_buffer["payload"]["device_data"][0]["ipaddr"];
                   if( strcmp(json_extract.ipaddress,EMPTY_IP) == 0 )
                   {
                     enable_maintenance_mode = 0;
-                    if ( WiFi.status() == WL_CONNECTED ) 
+                    if ( WiFi.status() == WL_CONNECTED )
                     {
                       udp_ip = WiFi.gatewayIP().toString().c_str();
                     }
@@ -4633,7 +4632,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                         //enter sleep mode
                         Serial.println("ESP entering into sleep mode");
                         vTaskDelay(5000);
-                        esp_deep_sleep_start(); //deep sleep not tested 
+                        esp_deep_sleep_start(); //deep sleep not tested
                       }
                       else if (json_extract.poweroff == POWER_ON )
                       {
@@ -4648,7 +4647,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     json_extract.poweroff = POWER_ON;
                   }
                   else if( json_extract.command_type == AC_CTRL_CMD_TYPE  )
-                  { 
+                  {
                     Serial.println("\nAC control command received");
                     /*******AC control data extraction*********/
                     json_extract.ac_status  = parsing_buffer["payload"]["device_data"][0]["ac_status"];
@@ -4661,7 +4660,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     update_byte_to_flash(SET_AC_TEMP_BASE_ADDR,json_extract.ac_temp);
                     display_temperature(json_extract.ac_temp);
                     maintain_ac_setting();//update the AC setting
-                    
+
       //                  /******print AC type**********/
       //                  if( json_extract.ac_type == SPLIT_AC_TYPE )
       //                  {
@@ -4678,7 +4677,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
 
                   }
                   else if( json_extract.command_type == ZONE_LIGHT_CTRL_CMD_TYPE  )
-                  { 
+                  {
                     Serial.println("\nZone light control command received");
                     /*******Zone light control data extraction*********/
                     json_extract.light_color    = parsing_buffer["payload"]["device_data"][0]["color"];
@@ -4687,7 +4686,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     json_extract.zone           = parsing_buffer["payload"]["device_data"][0]["zone"];
                     UDP_Rx_Packet[LIGHT_CTRL] = true;
                     sprintf(CTRL_LIGHT,"AT+ZLC:%d,0x%x,%d,%d\n",json_extract.zone,json_extract.light_color,json_extract.light_status,json_extract.light_contrast);
-                    Serial.println(CTRL_LIGHT); 
+                    Serial.println(CTRL_LIGHT);
                     /******print light color**********/
                     if( json_extract.light_color > 0 )
                     {
@@ -4697,7 +4696,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     {
                       Serial.printf("Light color mis - match : %x\n",json_extract.light_color);
                     }
-                    
+
                     /******print light status**********/
                     if( json_extract.light_status == DEVICE_TURN_ON )
                     {
@@ -4720,7 +4719,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     {
                       json_extract.light_contrast = 15;//minimum light contrast
                     }
-                    
+
                      /******print light zone**********/
                     if( json_extract.zone == NIGHT_LAMP )
                     {
@@ -4775,14 +4774,14 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                       /************updtae Kinisi decommission device count in flash*****************/
                       update_byte_to_flash(KINISI_DECOM_DEVICE_COUNT,device_count[KINISI_DECOMMISSION_COUNT]);
                       Serial.println("\nList of decommissioned Kinisi Serial Number");
-                      for (int i = 0; i < device_count[KINISI_DECOMMISSION_COUNT]; i++) 
+                      for (int i = 0; i < device_count[KINISI_DECOMMISSION_COUNT]; i++)
                       {
                         Serial.println((char *)kinisi_decommission_serial_num[i]);
                       }
                       print_Kinsi_lookup_table(kinisi_lookup_table);
                       for(int indice = 0;indice < device_count[KINISI_DECOMMISSION_COUNT]; indice++)
                       {
-                        for (int i = 0; i < no_of_kinisi_device; i++) 
+                        for (int i = 0; i < no_of_kinisi_device; i++)
                         {
                           if( kinisi_lookup_table[i][1]  == (String)kinisi_decommission_serial_num[i])
                           {
@@ -4802,7 +4801,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                    }
                 }
                 else if( json_extract.action == REG_REQ_CMD  )
-                { 
+                {
                   Serial.println("\nRegistration request command received");
                   /*******Registration request data extraction*********/
                   json_extract.reg_required = parsing_buffer["payload"]["device_data"][0]["reg_required"];
@@ -4816,14 +4815,14 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   }
                 }
                 else if( json_extract.action == DEFAULT_SETTING_CMD  )
-                { 
+                {
                   json_extract.default_type = parsing_buffer["payload"]["default_type"];
                   if( json_extract.default_type == AC_DEFAULT_TYPE  )
                   {
                     Serial.println("\nAC default setting command received");
                     /*******AC default setting data extraction*********/
                     json_extract.from_time                = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["from_time"];
-                    json_extract.to_time                  = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["to_time"];  
+                    json_extract.to_time                  = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["to_time"];
                     json_extract.ac_mode                  = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["mode"];
                     default_ac_setting_table[MODE001][0]  = json_extract.ac_mode;
                     default_ac_setting_table[MODE001][1]  = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["temperature"],str_buffer,DECIMAL);
@@ -4833,9 +4832,9 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
                     default_cool_mode_AC_temperature = atoi(default_ac_setting_table[MODE001][1].c_str());
-                    
+
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["from_time"];
-                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["to_time"];  
+                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["to_time"];
                     json_extract.ac_mode = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["mode"];
                     default_ac_setting_table[MODE101][0] = json_extract.ac_mode;
                     default_ac_setting_table[MODE101][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["temperature"],str_buffer,DECIMAL);
@@ -4844,9 +4843,9 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     default_ac_setting_table[MODE101][4] = json_extract.to_time;
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
-                    
+
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["from_time"];
-                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["to_time"];  
+                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["to_time"];
                     json_extract.ac_mode = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["mode"];
                     default_ac_setting_table[MODE100][0] = json_extract.ac_mode;
                     default_ac_setting_table[MODE100][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][2]["temperature"],str_buffer,DECIMAL);
@@ -4859,83 +4858,83 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     /***********Cool Mode From Time & To Time*************/
                     From_Time[MODE001]  = get_ac_mode_change_time(default_ac_setting_table[MODE001][3]);
                     To_Time[MODE001]    = get_ac_mode_change_time(default_ac_setting_table[MODE001][4]);
-                  
+
                     /***********Fan Mode From Time & To Time*************/
                     From_Time[MODE101]  = get_ac_mode_change_time(default_ac_setting_table[MODE101][3]);
                     To_Time[MODE101]    = get_ac_mode_change_time(default_ac_setting_table[MODE101][4]);
-                  
+
                     /***********Dry Mode From Time & To Time*************/
                     From_Time[MODE100]  = get_ac_mode_change_time(default_ac_setting_table[MODE100][3]);
                     To_Time[MODE100]    = get_ac_mode_change_time(default_ac_setting_table[MODE100][4]);
 
                     maintain_ac_setting();
-                    
+
                     print_default_table(default_ac_setting_table,AIR_CONDITIONER);
                   }
                   else if( json_extract.default_type == LIGHT_DEFAULT_TYPE  )
-                  { 
+                  {
                     Serial.println("\nLight default setting command received");
                     /*******Light default setting data extraction*********/
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["from_time"];
                     json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["to_time"];
-                    
+
                     default_light_setting_table0[ZONE1][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE1][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table0[ZONE1][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE1][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE1][4] = json_extract.from_time;
                     default_light_setting_table0[ZONE1][5] = json_extract.to_time;
-                      
+
                     default_light_setting_table0[ZONE2][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE2][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table0[ZONE2][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE2][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE2][4] = json_extract.from_time;
                     default_light_setting_table0[ZONE2][5] = json_extract.to_time;
-                     
+
                     default_light_setting_table0[ZONE3][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE3][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table0[ZONE3][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE3][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE3][4] = json_extract.from_time;
                     default_light_setting_table0[ZONE3][5] = json_extract.to_time;
-    
+
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["from_time"];
                     json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["to_time"];
-                    
+
                     default_light_setting_table1[ZONE1][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE1][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table1[ZONE1][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE1][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE1][4] = json_extract.from_time;
                     default_light_setting_table1[ZONE1][5] = json_extract.to_time;
-                      
+
                     default_light_setting_table1[ZONE2][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE2][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table1[ZONE2][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE2][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE2][4] = json_extract.from_time;
                     default_light_setting_table1[ZONE2][5] = json_extract.to_time;
-                     
+
                     default_light_setting_table1[ZONE3][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE3][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table1[ZONE3][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE3][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE3][4] = json_extract.from_time;
                     default_light_setting_table1[ZONE3][5] = json_extract.to_time;
-                    
+
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
-                    
+
                     print_default_table(default_light_setting_table0,SMART_BULB);
                     print_default_table(default_light_setting_table1,SMART_BULB);
                   }
                   json_extract.default_type = 0;
                 }
                 else if( json_extract.action == LIGHT_CONFIG_CMD  )
-                { 
+                {
                   Serial.println("\nEnable  light  pairing mode command received");
                   /*******Enable light pairing mode data extraction*********/
                   json_extract.zone               = parsing_buffer["payload"]["device_data"][0]["zone"];
@@ -4968,7 +4967,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   Serial.printf("light_facility_uid :%s\n",json_extract.light_facility_uid);
                   Serial.printf("light_device_name  :%s\n",json_extract.light_device_name);
                   Serial.printf("light_amenity_name :%s\n",json_extract.light_amenity_name);
-  
+
                   if(strcmp(json_extract.light_amenity_name,(const char*)room_no) == 0)
                   {
                     if(strcmp(json_extract.light_org_uid,(const char*)org_id) == 0)
@@ -5009,7 +5008,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   //parse_macid((char*)json_extract.zone_light_epid,COMMA_DELIMITER);
                 }
                 else if( json_extract.action == LOCK_TOUCH_BUTTON_CMD  )
-                { 
+                {
                   Serial.println("\nLock touch button command received");
                   /*******Lock touch button data extraction*********/
                   json_extract.status = parsing_buffer["payload"]["device_data"][0]["status"];
@@ -5025,7 +5024,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   }
                 }
                 else if( json_extract.action == FORCE_SET_AC_TEMP_CMD  )
-                { 
+                {
                   Serial.println("\nForce set temperature command received");
                   /*******Force set temperature data extraction*********/
                   json_extract.status = parsing_buffer["payload"]["device_data"][0]["status"];
@@ -5043,7 +5042,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     Serial.println("Disable force set AC temperature");
                     UDP_Rx_Packet[FORCE_SET_PACKET] = false;
                   }
-                  
+
                    /********print AC status*******/
                   if( json_extract.ac_status == DEVICE_TURN_ON )
                   {
@@ -5067,14 +5066,14 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   }
                 }
                 else if( json_extract.action == AMENITY_SLEEP_MODE_SETTING_CMD  )
-                { 
+                {
                   Serial.println("\nAmenity sleep mode command received");
                   /*******Amenity sleep mode data extraction*********/
                   json_extract.status = parsing_buffer["payload"]["device_data"][0]["status"];
                   if ( json_extract.status )
                   {
-                      Serial.println("Enable sleep mode setting");                      
-                      UDP_Rx_Packet[AMENITY_SLEEP_MODE] = true;                      
+                      Serial.println("Enable sleep mode setting");
+                      UDP_Rx_Packet[AMENITY_SLEEP_MODE] = true;
                   }
                   else
                   {
@@ -5083,7 +5082,7 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   }
                 }
                 else if( json_extract.action == OVER_TEMP_WAKE_AFTER_CMD  )
-                { 
+                {
                   Serial.println("\nOver temperature wake after command received");
                   /*******Over temperature wake after data extraction*********/
                   json_extract.status = parsing_buffer["payload"]["device_data"][0]["status"];
@@ -5101,14 +5100,14 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                   update_byte_to_flash(OVER_TEMP_STATUS_BASE_ADDR,UDP_Rx_Packet[OVER_TEMP]);
                 }
                 else if( json_extract.action == DEFAULT_BROADCAST_CMD  )
-                { 
+                {
                   json_extract.default_type = parsing_buffer["payload"]["default_type"];
                   if( json_extract.default_type == AC_DEFAULT_TYPE  )
                   {
                     Serial.println("\nAC default setting command received");
                     /*******AC default setting data extraction*********/
                     json_extract.from_time                = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["from_time"];
-                    json_extract.to_time                  = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["to_time"];  
+                    json_extract.to_time                  = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["to_time"];
                     json_extract.ac_mode                  = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["mode"];
                     default_ac_setting_table[MODE001][0]  = json_extract.ac_mode;
                     default_ac_setting_table[MODE001][1]  = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["temperature"],str_buffer,DECIMAL);
@@ -5118,9 +5117,9 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
                     default_cool_mode_AC_temperature = atoi(default_ac_setting_table[MODE001][1].c_str());
-                    
+
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["from_time"];
-                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["to_time"];  
+                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["to_time"];
                     json_extract.ac_mode = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["mode"];
                     default_ac_setting_table[MODE101][0] = json_extract.ac_mode;
                     default_ac_setting_table[MODE101][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["temperature"],str_buffer,DECIMAL);
@@ -5129,9 +5128,9 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     default_ac_setting_table[MODE101][4] = json_extract.to_time;
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
-                    
+
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["from_time"];
-                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["to_time"];  
+                    json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["to_time"];
                     json_extract.ac_mode = parsing_buffer["payload"]["device_data"][0]["schedule"][2]["mode"];
                     default_ac_setting_table[MODE100][0] = json_extract.ac_mode;
                     default_ac_setting_table[MODE100][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][2]["temperature"],str_buffer,DECIMAL);
@@ -5144,76 +5143,76 @@ static void receive_process_hub_data(uint16_t operation,uint16_t sensor)
                     /***********Cool Mode From Time & To Time*************/
                     From_Time[MODE001]  = get_ac_mode_change_time(default_ac_setting_table[MODE001][3]);
                     To_Time[MODE001]    = get_ac_mode_change_time(default_ac_setting_table[MODE001][4]);
-                  
+
                     /***********Fan Mode From Time & To Time*************/
                     From_Time[MODE101]  = get_ac_mode_change_time(default_ac_setting_table[MODE101][3]);
                     To_Time[MODE101]    = get_ac_mode_change_time(default_ac_setting_table[MODE101][4]);
-                  
+
                     /***********Dry Mode From Time & To Time*************/
                     From_Time[MODE100]  = get_ac_mode_change_time(default_ac_setting_table[MODE100][3]);
                     To_Time[MODE100]    = get_ac_mode_change_time(default_ac_setting_table[MODE100][4]);
 
                     maintain_ac_setting();
-                    
+
                     print_default_table(default_ac_setting_table,AIR_CONDITIONER);
                   }
                   else if( json_extract.default_type == LIGHT_DEFAULT_TYPE  )
-                  { 
+                  {
                     Serial.println("\nLight default setting command received");
                     /*******Light default setting data extraction*********/
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["from_time"];
                     json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][0]["to_time"];
-                    
+
                     default_light_setting_table0[ZONE1][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE1][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table0[ZONE1][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE1][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][0]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE1][4] = json_extract.from_time;
                     default_light_setting_table0[ZONE1][5] = json_extract.to_time;
-                      
+
                     default_light_setting_table0[ZONE2][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE2][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table0[ZONE2][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE2][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][1]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE2][4] = json_extract.from_time;
                     default_light_setting_table0[ZONE2][5] = json_extract.to_time;
-                     
+
                     default_light_setting_table0[ZONE3][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE3][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table0[ZONE3][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE3][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][0]["zone_settings"][2]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table0[ZONE3][4] = json_extract.from_time;
                     default_light_setting_table0[ZONE3][5] = json_extract.to_time;
-    
+
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
                     json_extract.from_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["from_time"];
                     json_extract.to_time = parsing_buffer["payload"]["device_data"][0]["schedule"][1]["to_time"];
-                    
+
                     default_light_setting_table1[ZONE1][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE1][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table1[ZONE1][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE1][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][0]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE1][4] = json_extract.from_time;
                     default_light_setting_table1[ZONE1][5] = json_extract.to_time;
-                      
+
                     default_light_setting_table1[ZONE2][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE2][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table1[ZONE2][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE2][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][1]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE2][4] = json_extract.from_time;
                     default_light_setting_table1[ZONE2][5] = json_extract.to_time;
-                     
+
                     default_light_setting_table1[ZONE3][0] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["zone"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE3][1] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["color"],str_buffer,HEX_VALUE);
                     default_light_setting_table1[ZONE3][2] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["light_status"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE3][3] = itoa(parsing_buffer["payload"]["device_data"][0]["schedule"][1]["zone_settings"][2]["contrast"],str_buffer,DECIMAL);
                     default_light_setting_table1[ZONE3][4] = json_extract.from_time;
                     default_light_setting_table1[ZONE3][5] = json_extract.to_time;
-                    
+
                     json_extract.from_time = NULL;
                     json_extract.to_time = NULL;
-                    
+
                     print_default_table(default_light_setting_table0,SMART_BULB);
                     print_default_table(default_light_setting_table1,SMART_BULB);
                   }
@@ -5295,7 +5294,7 @@ static void read_flash()
       if(location == FLASH_BASE_ADDRESS)
       {
         //read opearting mode and update in variable operating_mode
-        operating_mode = EEPROM.readUChar(OPERATING_MODE_BASE_ADDR); 
+        operating_mode = EEPROM.readUChar(OPERATING_MODE_BASE_ADDR);
       }
       else if ((location >= SERIAL_NUM_BASE_ADDR) && location < (SERIAL_NUM_BASE_ADDR + SERIAL_NUM_ALLOCATED_BYTE) )
       {
@@ -5311,7 +5310,7 @@ static void read_flash()
       {
         //read access point password and update in ap_passkey buffer
         ap_passkey[location-AP_PASS_KEY_BASE_ADDR] = EEPROM.readUChar(location);
-      } 
+      }
     }
     for (uint16_t location = ORG_ID_BASE_ADDR;location < (DEVICE_NAME_BASE_ADDR + BYTE11);location++)
     {
@@ -5330,7 +5329,7 @@ static void read_flash()
      org_id[BYTE2]= flash_read_data[BYTE2];
      org_id[BYTE3]= '\0'; // add delimiter
      Length[ORG_ID] = strlen((char*)org_id);//store array length of pass key
-    /*********Get Facility ID**************/ 
+    /*********Get Facility ID**************/
      facility_id[BYTE0]= flash_read_data[BYTE3];
      facility_id[BYTE1]= flash_read_data[BYTE4];
      facility_id[BYTE2]= flash_read_data[BYTE5];
@@ -5357,8 +5356,8 @@ static void read_flash()
      device_name[BYTE9]= flash_read_data[BYTE21];
      device_name[BYTE10]= flash_read_data[BYTE22];
      device_name[BYTE11]= '\0'; // add delimiter
-     
-     
+
+
     Serial.print("Org id: ");
     print_uint_data(org_id,Length[ORG_ID]);
     Serial.print("\nFacility id:");
@@ -5373,7 +5372,7 @@ static void read_flash()
     print_uint_data(ap_passkey,Length[WIFI_PASSWORD]);
     Serial.print("\nAuth code:");
     print_uint_data(amenos_auth_code,Length[SENSOR_AUTH_CODE]);
-  
+
     //read 1 byte data
     device_register_status  = EEPROM.readUChar(DEVICE_REG_STS_BASE_ADDR);
     tirisi_ac_type          = EEPROM.readUChar(AC_TYPE_BASE_ADDR);
@@ -5401,8 +5400,8 @@ static void read_flash()
       if( room_temperature >= OVER_TEMPERATURE )
       {
         Serial.println("Going to sleep now");
-        vTaskDelay(100); 
-        Serial.flush(); 
+        vTaskDelay(100);
+        Serial.flush();
         esp_deep_sleep_start();
       }
       else
@@ -5420,7 +5419,7 @@ static void read_flash()
     Serial.printf("ssid length        = %d\n",strlen((char*)ap_ssid));
     Serial.printf("password length    = %d\n",strlen((char*)ap_passkey));
     Serial.printf("serial num length  = %d\n",strlen((char*)serial_number));
-    Serial.printf("mode = %d",operating_mode); 
+    Serial.printf("mode = %d",operating_mode);
     if(device_register_status)
     {
         Serial.println("Device successfully registered");
@@ -5523,11 +5522,11 @@ static void read_flash()
           }
           if ( occupancy_detection == ENABLE  )
           {
-            device_variant = 0x5010; 
+            device_variant = 0x5010;
           }
           if( (light_control == ENABLE) && (occupancy_detection == ENABLE) )
           {
-            device_variant = 0x5011; 
+            device_variant = 0x5011;
           }
         }
         else if ( tirisi_ac_type == SPLIT_AC_TYPE )
@@ -5539,20 +5538,20 @@ static void read_flash()
           }
           if ( occupancy_detection == ENABLE  )
           {
-            device_variant = 0x5110; 
+            device_variant = 0x5110;
           }
           if( (light_control == ENABLE) && (occupancy_detection == ENABLE) )
           {
-            device_variant = 0x5111; 
+            device_variant = 0x5111;
           }
         }
         Serial.printf("device variant   = %x\n",device_variant);
-        
+
         /*
          * Read kinisi related data from flash
          */
          Serial.printf("\nno of kinisi registered = %d\n",no_of_kinisi_device);
-         
+
         if( no_of_kinisi_device >=BYTE1)
         {
           for( int i = 0;i<max_kinisi_in_room;i++)
@@ -5616,13 +5615,13 @@ static void read_flash()
             }
             Kinisi_Mac_Id[BYTE17] = '\0';
 //            Serial.printf(" lenghth = %d\n",strlen((char *)Kinisi_Mac_Id));
-            
+
             kinisi_lookup_table[1][5] = (char *)Kinisi_Mac_Id;
 //            Serial.println(kinisi_lookup_table[1][5]);
             memset(Kinisi_Mac_Id,'\0',BYTE17);
             read_kinisi_count++;
           }
-          
+
           if( read_kinisi_count < no_of_kinisi_device )
           {
             for(int i = (KINISI_SERIAL_NUM_BASE_ADDR + (BYTE16 * BYTE2));i < (KINISI_SERIAL_NUM_BASE_ADDR + ( BYTE16 * BYTE3));i++)
@@ -5648,10 +5647,10 @@ static void read_flash()
             Kinisi_Mac_Id[BYTE17] = '\0';
             kinisi_lookup_table[2][5] = (char *)Kinisi_Mac_Id;
             memset(Kinisi_Mac_Id,'\0',BYTE17);
-            
+
             read_kinisi_count++;
           }
-          
+
           if( read_kinisi_count < no_of_kinisi_device )
           {
             for(int i = (KINISI_SERIAL_NUM_BASE_ADDR + (BYTE16 * BYTE3)) ;i < (KINISI_SERIAL_NUM_BASE_ADDR + ( BYTE16 * BYTE4));i++)
@@ -5677,10 +5676,10 @@ static void read_flash()
             Kinisi_Mac_Id[BYTE17] = '\0';
             kinisi_lookup_table[3][5] = (char *)Kinisi_Mac_Id;
             memset(Kinisi_Mac_Id,'\0',BYTE17);
-            
+
             read_kinisi_count++;
           }
-          
+
           if( read_kinisi_count < no_of_kinisi_device )
           {
             for(int i = (KINISI_SERIAL_NUM_BASE_ADDR + (BYTE16 * BYTE4)) ;i < (KINISI_SERIAL_NUM_BASE_ADDR + ( BYTE16 * BYTE5));i++)
@@ -5706,11 +5705,11 @@ static void read_flash()
             Kinisi_Mac_Id[BYTE17] = '\0';
             kinisi_lookup_table[4][5] = (char *)Kinisi_Mac_Id;
             memset(Kinisi_Mac_Id,'\0',BYTE17);
-            
+
             read_kinisi_count++;
           }
           read_kinisi_count = 0;
-  
+
           Serial.println();
           for(int i = 0 ;i < no_of_kinisi_device;i++)
           {
@@ -5725,7 +5724,7 @@ static void read_flash()
         Serial.println("Device not registered");
     }
     Serial.printf(" Total AC ON time = %ld\n",cum_on_time[AC]);
-    Serial.printf(" Total Light ON time = %ld\n",cum_on_time[BULB]);    
+    Serial.printf(" Total Light ON time = %ld\n",cum_on_time[BULB]);
 }
 /**********************************************************************//**
  * @brief  read data from flash and update in respective buffer
@@ -5767,20 +5766,20 @@ static void bootup_configuartion()
     update_flash(SET_AC_MODE_BASE_ADDR,(uint8_t *)json_extract.ac_mode,strlen(json_extract.ac_mode));
     update_byte_to_flash(SET_AC_STATUS_BASE_ADDR,json_extract.ac_status);
     update_byte_to_flash(SET_AC_TEMP_BASE_ADDR,json_extract.ac_temp);
-    
+
     no_of_kinisi_device = 0;
     update_byte_to_flash(KINISI_DEVICE_COUNT,no_of_kinisi_device);
     device_count[KINISI_DECOMMISSION_COUNT] = 0;
     update_byte_to_flash(KINISI_DECOM_DEVICE_COUNT,device_count[KINISI_DECOMMISSION_COUNT]);
     update_byte_to_flash(FACTORY_DEVICE_BASE_ADDR,NOT_FACTORY_DEVICE);
   }
-  display_temperature(json_extract.ac_temp); 
+  display_temperature(json_extract.ac_temp);
   if(EEPROM.readUChar(OPERATING_MODE_BASE_ADDR) != CONFIGURATION_MODE)
   {
     Serial.println("\nConfigured device");
-    /*allow to store in flash only when all configuration parametrs 
+    /*allow to store in flash only when all configuration parametrs
     are received from mobile app*/
-    write_data_to_flash = false; 
+    write_data_to_flash = false;
     send_device_reg_packet = true;
     read_flash();
     connect_to_ap(ap_ssid,ap_passkey);
@@ -5797,11 +5796,11 @@ static void bootup_configuartion()
     irsend.sendRaw(turn_on, 595, 38);  // Send a raw data capture at 38kHz.
 #endif
     ac.on_minute = get_time();
-    Serial.printf("AC turn ON time =  %ld\n",ac.on_minute);  
+    Serial.printf("AC turn ON time =  %ld\n",ac.on_minute);
   }
   else
   {
-    /*allow to store in flash only when all configuration parametrs 
+    /*allow to store in flash only when all configuration parametrs
     are received from mobile app*/
     write_data_to_flash = false;
 //    for(uint16_t misc_count = 0;misc_count < FLASH_SIZE ; misc_count++)
@@ -5828,15 +5827,15 @@ static void bootup_configuartion()
       update_byte_to_flash(OPERATING_MODE_BASE_ADDR,operating_mode);
       device_register_status = false;
     }
-  } 
-  print_amenos_status();   
+  }
+  print_amenos_status();
 }
 
 /**********************************************************************//**
- * @brief  wrap the display data to matrix1_display,matrix2_display buffer 
+ * @brief  wrap the display data to matrix1_display,matrix2_display buffer
  *
  * @param  temperature[]  - array that holds the value to be displayed
- * 
+ *
  * @param  digit_count    - No of digits need to display
  *
  * @return none
@@ -5844,52 +5843,52 @@ static void bootup_configuartion()
 static void update_display_content(char temperature[],int digit_count)
 {
   unsigned int i, j, digit, count = 0;
-  for (digit = 0; digit < 3; digit++) 
+  for (digit = 0; digit < 3; digit++)
   {
-    for(i = 0; i < 11 ; i++) 
+    for(i = 0; i < 11 ; i++)
     {
-      if (temperature[digit] == list_of_characters[i]) 
+      if (temperature[digit] == list_of_characters[i])
       {
         previous_temperature[digit] = temperature[digit];
         //Serial.print("character is found in : ");
         //Serial.println(i);
         count++;
-        if ( digit_count == 1 ) 
+        if ( digit_count == 1 )
         {
-          for (j = 1; j < 9; j++) 
+          for (j = 1; j < 9; j++)
           {
             //Serial.println(led_hex[i][j-1]);
-            matrix2_display[j-1] = led_hex[i][j-1] >> 5; //displaying 1st digit in matrix1 
-            if (DEGREE_C) 
+            matrix2_display[j-1] = led_hex[i][j-1] >> 5; //displaying 1st digit in matrix1
+            if (DEGREE_C)
             {
               matrix1_display[j-1] = led_hex[11][j-1] << 2; //2//displaying 2nd digit and degree C in matrix2
-            } 
-            else 
+            }
+            else
             {
-              matrix1_display[j-1] = led_hex[12][j-1] << 2; //displaying 2nd digit and degree F in matrix2 
+              matrix1_display[j-1] = led_hex[12][j-1] << 2; //displaying 2nd digit and degree F in matrix2
             }
             vTaskDelay(2);
           }
         }
-        else if ( digit_count == 2 ) 
+        else if ( digit_count == 2 )
         {
-          for (j = 1; j < 9; j++) 
+          for (j = 1; j < 9; j++)
           {
             //Serial.println(led_hex[i][j-1]);
-            if (count == 1) 
+            if (count == 1)
             {
-              word1[j-1] = led_hex[i][j-1]; 
-            } 
-            if (count == 2) 
+              word1[j-1] = led_hex[i][j-1];
+            }
+            if (count == 2)
             {
-              matrix2_display[j-1] = ((word1[j-1] >> 1 ) + (led_hex[i][j-1] >> 5)); //displaying 1st digit in matrix1 
-              if (DEGREE_C) 
+              matrix2_display[j-1] = ((word1[j-1] >> 1 ) + (led_hex[i][j-1] >> 5)); //displaying 1st digit in matrix1
+              if (DEGREE_C)
               {
                 matrix1_display[j-1] = led_hex[11][j-1] << 2; //displaying 2nd digit and degree C in matrix2
-              } 
-              else 
+              }
+              else
               {
-                matrix1_display[j-1] = led_hex[12][j-1] << 2; //displaying 2nd digit and degree F in matrix2 
+                matrix1_display[j-1] = led_hex[12][j-1] << 2; //displaying 2nd digit and degree F in matrix2
               }
             }
             vTaskDelay(2);
@@ -5897,23 +5896,23 @@ static void update_display_content(char temperature[],int digit_count)
         }
         else if ( digit_count == 3 )
         {
-          for (j = 1; j < 9; j++) 
+          for (j = 1; j < 9; j++)
           {
             //Serial.println(led_hex[i][j-1]);
-            if (count == 1) 
+            if (count == 1)
             {
-              word1[j-1] = led_hex[i][j-1]; 
+              word1[j-1] = led_hex[i][j-1];
             }
             if (count == 2)
             {
               matrix2_display[j-1] = word1[j-1] + (led_hex[i][j-1] >> 4); //displaying 1st and 2nd digit in matrix1
             }
-            if (count == 3) 
+            if (count == 3)
             {
-              if (DEGREE_C) 
+              if (DEGREE_C)
               {
                 matrix1_display[j-1] = led_hex[i][j-1] + led_hex[11][j-1];  //displaying 3rd digit and degree C in matrix2
-              } else 
+              } else
               {
                 matrix1_display[j-1] = led_hex[i][j-1] + led_hex[12][j-1];  //displaying 3rd digit and degree F in matrix2
               }
@@ -5925,7 +5924,7 @@ static void update_display_content(char temperature[],int digit_count)
       vTaskDelay(1);
     }
     vTaskDelay(2);
-  } 
+  }
 }
 /**********************************************************************//**
  * @brief  Display byte in Dot matrix-1
@@ -5958,7 +5957,7 @@ static void displayByte_matrix2(byte character[])
 }
 
 /**********************************************************************//**
- * @brief  display temperature 
+ * @brief  display temperature
  *
  * @param  none
  *
@@ -5969,20 +5968,20 @@ static void display_temperature(int temp)
     itoa(temp,input_temperature, 10);  //convert interger to string
     //Serial.printf("Hexadecimal value = %s\n", input_temperature);
     number_of_digits = strlen(input_temperature);  //finding length of the string
-    for (int i = 0; i < 3; i++) 
+    for (int i = 0; i < 3; i++)
     {
-      if (input_temperature[i] != previous_temperature[i]) 
+      if (input_temperature[i] != previous_temperature[i])
       {
         update_display_content(input_temperature,number_of_digits);
         lc.clearDisplay(0);
         lc.clearDisplay(1);
         displayByte_matrix2(matrix1_display);
         displayByte_matrix1(matrix2_display);
-      }  
-    } 
+      }
+    }
 }
 /**********************************************************************//**
- * @brief  Initialize MAX7219 
+ * @brief  Initialize MAX7219
  *
  * @param  none
  *
@@ -6002,11 +6001,11 @@ static void init_MAX7219()
       /* and clear the display */
       lc.clearDisplay(DM_device_count);
   }
-  
+
 }
 
 /**********************************************************************//**
- * @brief  Get time from server 
+ * @brief  Get time from server
  *
  * @param  none
  *
@@ -6030,7 +6029,7 @@ static uint32_t get_time()
   timeStamp = formatted_date.substring(splitT+1, formatted_date.length()-1);
 //  Serial.print("HOUR: ");
 //  Serial.println(timeStamp);
-//  
+//
   current.hour    = (((timeStamp[BYTE0] - CHARACTER_OFFSET) * 10) + (timeStamp[BYTE1] - CHARACTER_OFFSET));
   current.minute  = (((timeStamp[BYTE3] - CHARACTER_OFFSET) * 10) + (timeStamp[BYTE4] - CHARACTER_OFFSET));
   current.on_minute = ( ( current.hour * ONE_MINUTE_IN_SEC ) + current.minute );
@@ -6060,7 +6059,7 @@ static void cummulative_on_minute(uint8_t variant , uint32_t previous_on_time)
     light.previous_on_time  = 0;
     Serial.println("\nClear time at End of day");
   }
-  
+
 //  Serial.printf("total on time = %d\n",total_on_minute);
   if(variant == AIR_CONDITIONER)
   {
@@ -6125,7 +6124,7 @@ static void start_scan()
 //  Serial.print("Devices found: ");
 //  Serial.println(foundDevices.getCount());
 //  Serial.println("Scan done!");
-  pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory 
+  pBLEScan->clearResults();   // delete results fromBLEScan buffer to release memory
 }
 /**********************************************************************//**
  * @brief  send data to destination over TCP protocol
@@ -6161,10 +6160,10 @@ static void transmit_over_tcp()
     device_data["Occupancy_detection"] = 1;
 
     serializeJsonPretty(json_buffer, Serial);//print in serial terminal
-    
+
     serializeJsonPretty(json_buffer,TCP_Client);//send data to idp server
 
-    
+
     //TCP_Client.print("hello world\n\n");
     #if 0
     int maxloops = 0;
@@ -6197,9 +6196,9 @@ static void transmit_over_tcp()
   StaticJsonDocument<1024> parsing_buffer;
   // Deserialize the JSON document
   DeserializationError error = deserializeJson(parsing_buffer, TCP_Client);
-  
+
   // Test if parsing succeeds.
-  if( error ) 
+  if( error )
   {
     Serial.print(F("deserializeJson() failed with code "));
     Serial.println(error.c_str());
@@ -6235,30 +6234,30 @@ static void transmit_over_tcp()
  #if 0
 static void Receive_tcp_data()
 {
-        
-  TCP_Client = TCP_server.available(); 
-  uint8_t data[30]; 
-  if (TCP_Client) 
-  {                   
-    Serial.println("new client");         
-    /* check client is connected */           
-    while (TCP_Client.connected()) 
-    {          
-      if (TCP_Client.available()) 
+
+  TCP_Client = TCP_server.available();
+  uint8_t data[30];
+  if (TCP_Client)
+  {
+    Serial.println("new client");
+    /* check client is connected */
+    while (TCP_Client.connected())
+    {
+      if (TCP_Client.available())
       {
         int len = TCP_Client.read(data, 30);
         if(len < 30)
         {
-          data[len] = '\0';  
+          data[len] = '\0';
         }
-        else 
+        else
         {
           data[30] = '\0';
-        }    
-        Serial.print("client sent: ");            
-        Serial.println((char *)data); 
+        }
+        Serial.print("client sent: ");
+        Serial.println((char *)data);
       }
-    } 
+    }
   }
 }
 #endif
@@ -6272,7 +6271,7 @@ static void Receive_tcp_data()
 static void extract_beacon_data()
 {
 
-  /* 
+  /*
    *  kinisi Beacon advertising packet format
    *  |--------------------|------------------|---------------------|-----------------|---------------|--------------------|
    *  | kinisi device type | firmware version | PIR sensor status   | Battery voltage |  Room number  | Advertisement name |
@@ -6283,7 +6282,7 @@ static void extract_beacon_data()
     sprintf(kinsi_fm_version,"%d.%d\0",scan_data[BYTE1],scan_data[BYTE2]);
 //    Serial.print("FW version :");
 //    Serial.println(kinsi_fm_version);
-    
+
     if( strcmp(adv_room_no,(const char*)room_no) == 0 )
     {
       if( scan_data[BYTE3] ==  OCCUPANCY_SENSED )
@@ -6311,19 +6310,19 @@ static void extract_beacon_data()
 /**********************************************************************//**
  * @brief  Extract required data from scanned beacon data
  *
- * @param  data         - pointer that holds the data need to check whether it is present in 
- *                        rxbuf 
+ * @param  data         - pointer that holds the data need to check whether it is present in
+ *                        rxbuf
 *          timeout      - duration to wait in this function in milli seconds
-*          timout_alone - Enable/Disable that just to wait or wait and check response 
+*          timout_alone - Enable/Disable that just to wait or wait and check response
  *
  * @return none
  *************************************************************************/
-int16_t wait_for(const char* data, uint16_t timeout ,bool timout_alone) 
+int16_t wait_for(const char* data, uint16_t timeout ,bool timout_alone)
 {
   uint64_t timer = millis();
   char c;
 
-  while (millis() - timer < timeout) 
+  while (millis() - timer < timeout)
   {
     if ( timout_alone )
     {
@@ -6336,9 +6335,9 @@ int16_t wait_for(const char* data, uint16_t timeout ,bool timout_alone)
         Zigbee_msg_length = 0;
         return EXIT_SUCCESS;
       }
-      
+
     }
-    else 
+    else
     {
       if( uart2_rx_flag )
       {
@@ -6358,7 +6357,7 @@ int16_t wait_for(const char* data, uint16_t timeout ,bool timout_alone)
             Serial.print("Error: ");
             Serial.println((char*)rxbuf);
           }
-          
+
           //Serial.println("super");
         }
         for ( int misc_count = 0; misc_count < Zigbee_msg_length ; misc_count++ )
@@ -6426,12 +6425,12 @@ static void process_Kinisi_ble_data()
             pClient->disconnect();
             Serial.println("Disconnected from Kinisi");
             vTaskDelay(50);
-            allow_process_Kinisi_ble_data = 0; 
+            allow_process_Kinisi_ble_data = 0;
           }
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 5 bytes"); 
+          Serial.println("\nError: BLE packet size mismatch\nSend 5 bytes");
           send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
           pClient->disconnect();
           Serial.println("Disconnected from Kinisi");
@@ -6473,7 +6472,7 @@ static void process_Kinisi_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
           send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
         }
       }
@@ -6492,7 +6491,7 @@ static void process_Kinisi_ble_data()
        }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
           send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
         }
       }
@@ -6517,7 +6516,7 @@ static void process_Kinisi_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
           send_ble_packets_to_kinisi(DEVICE_REG_ACK,EXIT_FAILURE);//send NACK to Kinisi
         }
       }
@@ -6544,9 +6543,9 @@ static void process_Kinisi_ble_data()
         }
         else
         {
-          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes"); 
-          //update configuration status 
-          configuration_status = CONFIG_FAIL; 
+          Serial.println("\nError: BLE packet size mismatch\nSend 20 bytes");
+          //update configuration status
+          configuration_status = CONFIG_FAIL;
           send_ble_ack_packets(configuration_status);//send status to ble
           pClient->disconnect();
           Serial.println("Disconnected from Kinisi");
@@ -6654,14 +6653,14 @@ static void scan_i2c_device_and_initialize()
   int nDevices;
   Serial.println("Scanning...");
   nDevices = 0;
-  for(address = 1; address < 127; address++ ) 
+  for(address = 1; address < 127; address++ )
   {
     Wire.beginTransmission(address);
     error = Wire.endTransmission();
-    if (error == 0) 
+    if (error == 0)
     {
       Serial.print("I2C device found at address 0x");
-      if (address<16) 
+      if (address<16)
       {
         Serial.print("0");
       }
@@ -6669,21 +6668,21 @@ static void scan_i2c_device_and_initialize()
       found_slave_address[nDevices] = address;
       nDevices++;
     }
-    else if (error==4) 
+    else if (error==4)
     {
       Serial.print("Unknow error at address 0x");
-      if (address<16) 
+      if (address<16)
       {
         Serial.print("0");
       }
       Serial.println(address,HEX);
-    }    
+    }
   }
-  if (nDevices == 0) 
+  if (nDevices == 0)
   {
     Serial.println("No I2C devices found\n");
   }
-  else 
+  else
   {
     Serial.println("done\n");
     if( found_slave_address[TEMPERATURE_SENSOR] == TEMP_SENSOR_SLAVE_ADDRESS )
@@ -6727,7 +6726,7 @@ static void i2c_write(byte address,uint16_t data,byte reg)
     Wire.write(data >> 8);//first write msb
     Wire.write(data & 0x00FF);//then write lsb
   }
-  Wire.endTransmission(); // Stop I2C Transmission 
+  Wire.endTransmission(); // Stop I2C Transmission
 }
 
 /**********************************************************************//**
@@ -6747,7 +6746,7 @@ int i2c_read(byte address,byte reg,byte read_byte_count)
   Wire.write(reg);  // send Temperature register address
   Wire.endTransmission(); // Stop I2C Transmission
   vTaskDelay(300);//convertion time
-  
+
   Wire.requestFrom(address, read_byte_count); // Request 2 bytes of data
   // Read  bytes of data
   if (Wire.available() == read_byte_count)
@@ -6760,19 +6759,19 @@ int i2c_read(byte address,byte reg,byte read_byte_count)
 }
 /**********************************************************************//**
  * @brief  read temperature from sensor and convert into celsiuis or fareheat
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void read_temperature()
 {
   read_temp = i2c_read(TEMP_SENSOR_SLAVE_ADDRESS,TEMP_SENSOR_DATA_REG,2);
-  if(DEGREE_C) 
+  if(DEGREE_C)
   {
     room_temperature = (read_temp >> 4) * 0.0625;  //temperature in celsius .Taken from data sheet
-  } 
-  else 
+  }
+  else
   {
     /*
      * Formula : (32°C × 9/5) + 32 = 89.6°F
@@ -6784,7 +6783,7 @@ static void read_temperature()
 }
 
 /**********************************************************************//**
- * @brief  write data to IO EXPANDER 
+ * @brief  write data to IO EXPANDER
  *
  * @param  address  - IO EXPANDER  slave address
  * @param  data     - data to be write in IO EXPANDER
@@ -6797,7 +6796,7 @@ static void io_expander_write_one_byte(int address,uint8_t data,byte reg)
   Wire.beginTransmission(address); // Start I2C Transmission
   Wire.write(reg);  // Select configuration register
   Wire.write(data);//first write msb
-  Wire.endTransmission(); // Stop I2C Transmission 
+  Wire.endTransmission(); // Stop I2C Transmission
 }
 
 /**********************************************************************//**
@@ -6819,15 +6818,15 @@ static uint8_t io_expander_read_one_byte(byte address,byte reg)
   // Read  bytes of data
   if (Wire.available() == 1)
   {
-    read_data = Wire.read(); 
+    read_data = Wire.read();
   }
   return read_data;
 }
 /**********************************************************************//**
  * @brief  Turn LED B2 ON
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Led_B2_ON()
@@ -6837,9 +6836,9 @@ static void set_Led_B2_ON()
 }
 /**********************************************************************//**
  * @brief  Turn LED B2 OFF
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Led_B2_OFF()
@@ -6849,9 +6848,9 @@ static void set_Led_B2_OFF()
 }
 /**********************************************************************//**
  * @brief  Turn ON up capacitive Touch Button Led
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Capacitive_Up_Led_ON()
@@ -6861,9 +6860,9 @@ static void set_Capacitive_Up_Led_ON()
 }
 /**********************************************************************//**
  * @brief  Turn OFF up capacitive Touch Button Led
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Capacitive_Up_Led_OFF()
@@ -6873,21 +6872,21 @@ static void set_Capacitive_Up_Led_OFF()
 }
 /**********************************************************************//**
  * @brief  Turn ON down capacitive Touch Button Led
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Capacitive_Down_Led_ON()
 {
-  Exp_Port0 &= (~TOUCH_DOWN_LED_BIT4); 
+  Exp_Port0 &= (~TOUCH_DOWN_LED_BIT4);
   io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port0,TCA9539_OUTPUT_PORT0);
 }
 /**********************************************************************//**
  * @brief  Turn OFF down capacitive Touch Button Led
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Capacitive_Down_Led_OFF()
@@ -6897,9 +6896,9 @@ static void set_Capacitive_Down_Led_OFF()
 }
 /**********************************************************************//**
  * @brief  Turn OFF Buzzer
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Buzzer_OFF()
@@ -6909,9 +6908,9 @@ static void set_Buzzer_OFF()
 }
 /**********************************************************************//**
  * @brief  Turn ON Buzzer
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Buzzer_ON()
@@ -6921,9 +6920,9 @@ static void set_Buzzer_ON()
 }
 /**********************************************************************//**
  * @brief  Turn Relay ON
- * 
+ *
  * @param   pin IO EXPANDER pin number to be set High
- * 
+ *
  * @return  none
  *************************************************************************/
 static void Relay_ON(byte pin)
@@ -6965,9 +6964,9 @@ static void Relay_ON(byte pin)
 }
 /**********************************************************************//**
  * @brief  Turn OFF all relay
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_Relays_OFF()
@@ -6977,13 +6976,13 @@ static void set_Relays_OFF()
   Exp_Port1 &= (~HIGH_SPEED_RELAY_DRIVE_BIT0);
   /***set value of pin in IO EXPANDER***/
   io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port0,TCA9539_OUTPUT_PORT0);
-  io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port1,TCA9539_OUTPUT_PORT1); 
+  io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port1,TCA9539_OUTPUT_PORT1);
 }
 /**********************************************************************//**
  * @brief  Turn OFF individual relay
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_individual_Relays_OFF(byte pin)
@@ -7018,9 +7017,9 @@ static void set_individual_Relays_OFF(byte pin)
 }
 /**********************************************************************//**
  * @brief  configure the GPIO in IO EXPANDER
- * 
+ *
  * @param   none
- * 
+ *
  * @return  none
  *************************************************************************/
 static void set_up_expander()
@@ -7030,7 +7029,7 @@ static void set_up_expander()
   Exp_Port_Cfg0 |= (TEMP_ALERT_BIT | SWITCH_BIT);                                                     //configure pins as input
   Exp_Port_Cfg1 &= ~(HIGH_SPEED_RELAY_DRIVE_BIT0 |LED_B2_BIT1 | ZIGBEE_BOOT_CTRL_BIT2 | ZIGBEE_NRESET_BIT3);    //configure pins as output
   io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port_Cfg0,TCA9539_CONFIG0);
-  io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port_Cfg1,TCA9539_CONFIG1);  
+  io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port_Cfg1,TCA9539_CONFIG1);
   Exp_Port1 = 0x00;
   Exp_Port1 |= ZIGBEE_BOOT_CTRL_BIT2; //Zigbee module PA5 should be set high at boot
   io_expander_write_one_byte(EXPANDER_SLAVE_ADDRESS,Exp_Port1,TCA9539_OUTPUT_PORT1);
@@ -7061,24 +7060,24 @@ static void flush_out_Flash()
  *************************************************************************/
 static void parse_macid(char *data , char *delimiter)
 {
-    // Returns first token 
-    char* token = strtok(data, delimiter); 
+    // Returns first token
+    char* token = strtok(data, delimiter);
     char* bulb_epid_list[5];
     int count=0;
-  
-    // Keep printing tokens while one of the 
-    // delimiters present in str[]. 
-    while (token != NULL) 
-    { 
+
+    // Keep printing tokens while one of the
+    // delimiters present in str[].
+    while (token != NULL)
+    {
         bulb_epid_list[count++] = token;
-        token = strtok(NULL, delimiter); 
+        token = strtok(NULL, delimiter);
         if( count == 1)
         {
           break;
         }
-    } 
+    }
     Serial.println("\nextracted data");
-    for (int i = 0; i < count; i++) 
+    for (int i = 0; i < count; i++)
     {
         Serial.println(bulb_epid_list[i]);
     }
@@ -7218,15 +7217,15 @@ static void hvac_relay_control(uint16_t Set_AC_Temperature)
 }
 
 /**********************************************************************//**
- * @brief  shift array right side to make all data to same length and 
+ * @brief  shift array right side to make all data to same length and
  *         calculate secrete key
  *
  * @param  Room_Num
- * 
+ *
  * @param  Static_Code
  *
  * @return copy_buffer
- *************************************************************************/ 
+ *************************************************************************/
 static uint8_t *get_hmac_key(uint8_t *Room_Num,uint8_t *Static_Code)
 {
   static uint8_t return_buf[8]={0}; //need to us static else we we will loose the data
@@ -7237,32 +7236,32 @@ static uint8_t *get_hmac_key(uint8_t *Room_Num,uint8_t *Static_Code)
 
   /*
    *  secrete key generation  logic
-   *  1.convert room number and static code to same length 
-   *  2.Do bit wise AND operation 
-   *  
-   *  case : 1 room number length == static code length 
+   *  1.convert room number and static code to same length
+   *  2.Do bit wise AND operation
+   *
+   *  case : 1 room number length == static code length
    *  31 31  30  31  room number
- 
+
       43  58  50  4c  static code ( CXPL)
-      
+
       -----------------------------------------
       1 16  16  0     secrete key
       -----------------------------------------
-      
-      case : 2 room number length < static code length 
+
+      case : 2 room number length < static code length
        0  31  30  31  room number
-       
+
       43  58  50  4c  static code ( CXPL)
-      
+
       -----------------------------------------
       0 16  16  0     secrete key
       -----------------------------------------
 
-      case : 3 room number length > static code length 
+      case : 3 room number length > static code length
       31  30  31  31  32  room number
-       
+
       0   43  58  50  4c  static code ( CXPL)
-      
+
       -----------------------------------------
       0   0   16  16   0  secrete key
       -----------------------------------------
@@ -7275,7 +7274,7 @@ static uint8_t *get_hmac_key(uint8_t *Room_Num,uint8_t *Static_Code)
 
   max_len = Length[STATIC_CODE_LEN] > Length[ROOM_NUM] ? Length[STATIC_CODE_LEN]:Length[ROOM_NUM];
 //  Serial.printf(" Max len         = %d\n",max_len);
-  
+
   if(Length[ROOM_NUM] < Length[STATIC_CODE_LEN])
   {
 //    Serial.println("shiting room number right side");
@@ -7289,8 +7288,8 @@ static uint8_t *get_hmac_key(uint8_t *Room_Num,uint8_t *Static_Code)
       shift++;
     }
     copy_buffer[shift] = '\0';
-    memcpy ((char*)copy_room_no, (const char*)copy_buffer, max_len); 
-    memcpy ((char*)copy_static_code, (const char*)Static_Code, max_len); 
+    memcpy ((char*)copy_room_no, (const char*)copy_buffer, max_len);
+    memcpy ((char*)copy_static_code, (const char*)Static_Code, max_len);
   }
   else if(Length[ROOM_NUM] > Length[STATIC_CODE_LEN])
   {
@@ -7305,14 +7304,14 @@ static uint8_t *get_hmac_key(uint8_t *Room_Num,uint8_t *Static_Code)
       shift++;
     }
     copy_buffer[shift] = '\0';
-    memcpy((char*)copy_static_code, (const char*)copy_buffer, max_len); 
-    memcpy((char*)copy_room_no, (const char*)Room_Num, max_len); 
+    memcpy((char*)copy_static_code, (const char*)copy_buffer, max_len);
+    memcpy((char*)copy_room_no, (const char*)Room_Num, max_len);
   }
   else
   {
 //    Serial.println("Keep as it");
-    memcpy((char*)copy_room_no, (const char*)Room_Num, max_len); 
-    memcpy((char*)copy_static_code, (const char*)Static_Code, max_len); 
+    memcpy((char*)copy_room_no, (const char*)Room_Num, max_len);
+    memcpy((char*)copy_static_code, (const char*)Static_Code, max_len);
   }
 
   Serial.println("calculating secrete key");
@@ -7357,26 +7356,26 @@ static uint8_t *get_hmac_key(uint8_t *Room_Num,uint8_t *Static_Code)
   {
     return NULL;
   }
-  
+
 }
 /**********************************************************************//**
  * @brief  Generate 32 byte Hmac code uisng SHA-256
  *
  * @param  key  - secret key
- * 
+ *
  * @param  payload  - data to calculate hmac
  *
  * @return none
- *************************************************************************/ 
+ *************************************************************************/
 static uint16_t Generate_hmac(uint8_t *key,uint8_t *payload)
 {
 
   mbedtls_md_context_t ctx; //create context
   mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256; //define sha-256 hmac we are using
-  
+
   const size_t payloadLength = strlen((char*)payload);
-  const size_t keyLength = strlen((char*)key);            
- 
+  const size_t keyLength = strlen((char*)key);
+
   mbedtls_md_init(&ctx); //intialize the context
   if( mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 1) != 0 ) //select hmac
   {
@@ -7401,7 +7400,7 @@ static uint16_t Generate_hmac(uint8_t *key,uint8_t *payload)
   mbedtls_md_free(&ctx);//call this function to complete the process
 
 //  Serial.print("Hash: ");
-// 
+//
 //  for(int i= 0; i< sizeof(hmacResult); i++)
 //  {
 //    char str[3];
@@ -7419,16 +7418,16 @@ static uint16_t Generate_hmac(uint8_t *key,uint8_t *payload)
 /**********************************************************************//**
  * @brief  Delete character in the given string
  *
- * @param  data               - data where character to be deleted 
- * 
+ * @param  data               - data where character to be deleted
+ *
  * @param  no_of_char         - No of character to be deleted
- * 
+ *
  *@param  position_to_delete  - From which location character to be deleted
  *
  *@param  length              - data length
  *
  * @return return_data        - buffer which has final deleted data
- *************************************************************************/ 
+ *************************************************************************/
 static char *delchar(char *data,int no_of_char, int position_to_delete)
 {
   static char return_data[1024]={0}; //need to us static else we we will loose the data
@@ -7447,7 +7446,7 @@ static char *delchar(char *data,int no_of_char, int position_to_delete)
  * @param  none
  *
  * @return none
- *************************************************************************/ 
+ *************************************************************************/
 static char *get_payload(uint8_t *Json_buffer,uint16_t length)
 {
   /*
@@ -7459,32 +7458,32 @@ static char *get_payload(uint8_t *Json_buffer,uint16_t length)
   static char *del_data;
   static char *del_hmac;
   static char *Payload;
-  char *find_string = "payload"; 
-  char* ptr; 
+  char *find_string = "payload";
+  char* ptr;
   char* buffer_ptr;
-  
-  memcpy (copy_json_buffer, (const char*)Json_buffer, length); 
+
+  memcpy (copy_json_buffer, (const char*)Json_buffer, length);
 //  Serial.println("\ncopied data");
 //  Serial.println((char *)copy_json_buffer);
   buffer_ptr =  (char *)copy_json_buffer;
 
-    
-  
-    // Find first occurrence of find_string in Json_buffer 
-    ptr = strstr(buffer_ptr, find_string); 
-  
-    // Prints the result 
-    if (ptr) 
-    { 
-//        Serial.println("String found"); 
+
+
+    // Find first occurrence of find_string in Json_buffer
+    ptr = strstr(buffer_ptr, find_string);
+
+    // Prints the result
+    if (ptr)
+    {
+//        Serial.println("String found");
 //        Serial.printf("loctaion = %d\n",ptr - buffer_ptr);
 
         del_hmac = delchar((char *)copy_json_buffer, (ptr - buffer_ptr - 1),2);
         buf_len[BYTE0] = strlen((char *)del_hmac);
 //        Serial.printf("\nbuffer length = %d\n",buf_len[BYTE0]);
         memset(copy_json_buffer,'\0',sizeof(copy_json_buffer));
-          
-        memcpy (copy_json_buffer, (const char*)del_hmac, buf_len[BYTE0]); 
+
+        memcpy (copy_json_buffer, (const char*)del_hmac, buf_len[BYTE0]);
 //        Serial.println("\ncopied data");
 //        Serial.println((char *)copy_json_buffer);
 //        Serial.println("_______________________________________");
@@ -7494,7 +7493,7 @@ static char *get_payload(uint8_t *Json_buffer,uint16_t length)
           del_data = delchar((char *)copy_json_buffer, found_location[BYTE1] - found_location[BYTE0],found_location[BYTE0]);
           memset(found_location,'\0',sizeof(found_location));
           buf_len[BYTE1] = strlen(del_data);
-//          Serial.printf("\ndel data payload length = %d\n",buf_len[BYTE1]);          
+//          Serial.printf("\ndel data payload length = %d\n",buf_len[BYTE1]);
           find_char_location((uint8_t *)del_data,buf_len[BYTE1],'}');
           if( buf_len[BYTE1] <= (buf_len[BYTE0] - 10) )
           {
@@ -7510,25 +7509,25 @@ static char *get_payload(uint8_t *Json_buffer,uint16_t length)
           }
           else
           {
-            Serial.println("\nHmac payload parsing failed"); 
+            Serial.println("\nHmac payload parsing failed");
             return NULL;
           }
         }
         else
         {
-          Serial.println("\ncopy length mis match"); 
+          Serial.println("\ncopy length mis match");
           return NULL;
         }
-    } 
+    }
     else
     {
-        printf("String not found\n"); 
+        printf("String not found\n");
         return NULL;
     }
 
-        
-  
-  
+
+
+
 }
 /**********************************************************************//**
  * @brief  Find location of character in the string
@@ -7536,11 +7535,11 @@ static char *get_payload(uint8_t *Json_buffer,uint16_t length)
  * @param  buffer - Data buffer in which we need to find character
  *
  * @param  length - Data buffer length
- * 
+ *
  * @param  buffer - Character to be found
- * 
+ *
  * @return none
- *************************************************************************/ 
+ *************************************************************************/
 static void find_char_location(uint8_t *buffer,int length,char ch)
 {
   uint8_t location;
@@ -7560,11 +7559,11 @@ static void find_char_location(uint8_t *buffer,int length,char ch)
  * @brief  validate hmac for received data
  *
  * @param  copy_buffer  - Holds server response
- * 
+ *
  * @return EXIT_FAILURE - on failure this will be return
  *         EXIT_SUCCESS - on success this will be return
- * 
- *************************************************************************/ 
+ *
+ *************************************************************************/
 static uint16_t hmac_validation(uint8_t *copy_buffer)
 {
   //uint8_t Room[7] = "11012"; //for testing
@@ -7601,16 +7600,16 @@ static uint16_t hmac_validation(uint8_t *copy_buffer)
   else
   {
     return EXIT_FAILURE;
-  }  
+  }
 }
 /**********************************************************************//**
  * @brief  update time in flash
  *
- * @param  variant  - select light or AC 
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param  variant  - select light or AC
+ *
+ * @return
+ *
+ *************************************************************************/
 static void update_variant_data(uint8_t variant)
 {
   if( variant == AC )
@@ -7620,7 +7619,7 @@ static void update_variant_data(uint8_t variant)
     {
       //every 5 minutes once update data
       /*** Send AC fail packet by following steps below
-       *  1.Check AC is ON 
+       *  1.Check AC is ON
        *  2.Check room temperature is in range of +-1 AC set temperature.If so send AC fail packet
        */
       cummulative_on_minute(AIR_CONDITIONER,ac.on_minute);
@@ -7638,7 +7637,7 @@ static void update_variant_data(uint8_t variant)
           Json_post_to_AP(AC_FAIL_PACKET,AMENOS,NULL,NULL);//send sensor data
         }
       }
-      maintain_ac_setting();      
+      maintain_ac_setting();
       Last_Time[AC] = millis();
     }
   }
@@ -7651,16 +7650,16 @@ static void update_variant_data(uint8_t variant)
       update_uint32_t_to_flash(LIGHT_CUM_ON_TIME_BAS_ADDR,cum_on_time[BULB]);
       Last_Time[BULB] = millis();
     }
-  } 
+  }
 }
 /**********************************************************************//**
  * @brief  print Light look up table
  *
- * @param  array1[ROW][COLOMN]  - 2D array buffer 
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param  array1[ROW][COLOMN]  - 2D array buffer
+ *
+ * @return
+ *
+ *************************************************************************/
 static void print_light_lookup_table( String array1[ROW][COLOMN] )
 {
   Serial.println("Count\tZone\t   Mac id\tTotal ON time(min)");
@@ -7679,11 +7678,11 @@ static void print_light_lookup_table( String array1[ROW][COLOMN] )
 /**********************************************************************//**
  * @brief  print light default table
  *
- * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer 
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer
+ *
+ * @return
+ *
+ *************************************************************************/
 static void print_default_table( String array1[LIGHT_ZONE_SIZE][6] ,int variant )
 {
   if( variant == SMART_BULB )
@@ -7720,11 +7719,11 @@ static void print_default_table( String array1[LIGHT_ZONE_SIZE][6] ,int variant 
 /**********************************************************************//**
  * @brief  print light default table
  *
- * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer 
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer
+ *
+ * @return
+ *
+ *************************************************************************/
 static void print_Kinsi_lookup_table( String array1[MAX_KINISI_DEVICE][6] )
 {
   Serial.println("Count\tSerial_number\tDevice_name\tDecom\tRegister\t\tmac_id");
@@ -7733,8 +7732,8 @@ static void print_Kinsi_lookup_table( String array1[MAX_KINISI_DEVICE][6] )
   {
     for (int j = 0; j < 6; ++j)
     {
-      Serial.print("\t"); 
-      Serial.print(array1[i][j]);             
+      Serial.print("\t");
+      Serial.print(array1[i][j]);
     }
     Serial.println();
   }
@@ -7743,11 +7742,11 @@ static void print_Kinsi_lookup_table( String array1[MAX_KINISI_DEVICE][6] )
 /**********************************************************************//**
  * @brief  Initialize timer as sleep mode wake up source
  *
- * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer 
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer
+ *
+ * @return
+ *
+ *************************************************************************/
 static void init_wakeup_timer()
 {
   /*
@@ -7759,32 +7758,32 @@ static void init_wakeup_timer()
 /**********************************************************************//**
  * @brief  Get default AC time
  *
- * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer 
- * 
+ * @param  array1[LIGHT_ZONE_SIZE][6]  - 2D array buffer
+ *
  * @return Time in minutes
- * 
- *************************************************************************/ 
+ *
+ *************************************************************************/
 static uint32_t get_ac_mode_change_time(String time_table)
 {
   static uint32_t time_in_sec = 0;
   current.hour    = (((time_table[0] - CHARACTER_OFFSET) * 10) + (time_table[1] - CHARACTER_OFFSET));
   current.minute  = (((time_table[3] - CHARACTER_OFFSET) * 10) + (time_table[4] - CHARACTER_OFFSET));
   current.sec     = (((time_table[6] - CHARACTER_OFFSET) * 10) + (time_table[7] - CHARACTER_OFFSET));
-  time_in_sec = ( ( current.hour * HR_TO_MIN ) + current.minute);  
+  time_in_sec = ( ( current.hour * HR_TO_MIN ) + current.minute);
   Serial.println("\ntime in sec " + String(time_in_sec));
   return time_in_sec ;
 }
 /**********************************************************************//**
- * @brief  maintaining default AC setting 
+ * @brief  maintaining default AC setting
  *
- * @param  
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param
+ *
+ * @return
+ *
+ *************************************************************************/
 static void maintain_ac_setting()
 {
-  print_default_table(default_ac_setting_table,AIR_CONDITIONER);  
+  print_default_table(default_ac_setting_table,AIR_CONDITIONER);
   for(int i =0 ;i<3;i++)
   {
     Serial.println("From Time : " + String(From_Time[i]) + "\tTo Time :" + String(To_Time[i])) ;
@@ -7799,11 +7798,11 @@ static void maintain_ac_setting()
       {
         hvac_relay_control(json_extract.ac_temp);
       }
-      else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+      else if(tirisi_ac_type == SPLIT_AC_TYPE )
       {
         send_ir_ac_command(json_extract.ac_temp);
       }
-      display_temperature(json_extract.ac_temp);          
+      display_temperature(json_extract.ac_temp);
     }
     else
     {
@@ -7812,13 +7811,13 @@ static void maintain_ac_setting()
       {
         hvac_relay_control(json_extract.ac_temp);
       }
-      else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+      else if(tirisi_ac_type == SPLIT_AC_TYPE )
       {
         json_extract.ac_status  = atoi(default_ac_setting_table[MODE001][2].c_str());
         json_extract.ac_mode    = default_ac_setting_table[MODE001][0].c_str();
         send_ir_ac_command(json_extract.ac_temp);
       }
-      display_temperature(json_extract.ac_temp);          
+      display_temperature(json_extract.ac_temp);
     }
   }
   else if( (curent_time >= From_Time[MODE101]) && (curent_time <= To_Time[MODE101]) )
@@ -7830,11 +7829,11 @@ static void maintain_ac_setting()
       {
         hvac_relay_control(json_extract.ac_temp);
       }
-      else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+      else if(tirisi_ac_type == SPLIT_AC_TYPE )
       {
         send_ir_ac_command(json_extract.ac_temp);
       }
-      display_temperature(json_extract.ac_temp);          
+      display_temperature(json_extract.ac_temp);
     }
     else
     {
@@ -7843,13 +7842,13 @@ static void maintain_ac_setting()
       {
         hvac_relay_control(json_extract.ac_temp);
       }
-      else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+      else if(tirisi_ac_type == SPLIT_AC_TYPE )
       {
         json_extract.ac_status  = atoi(default_ac_setting_table[MODE101][2].c_str());
         json_extract.ac_mode    = default_ac_setting_table[MODE101][0].c_str();
         send_ir_ac_command(json_extract.ac_temp);
       }
-      display_temperature(json_extract.ac_temp);        
+      display_temperature(json_extract.ac_temp);
     }
   }
   else if( (curent_time >= From_Time[MODE100]) && (curent_time <= To_Time[MODE100]) )
@@ -7861,11 +7860,11 @@ static void maintain_ac_setting()
       {
         hvac_relay_control(json_extract.ac_temp);
       }
-      else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+      else if(tirisi_ac_type == SPLIT_AC_TYPE )
       {
         send_ir_ac_command(json_extract.ac_temp);
       }
-      display_temperature(json_extract.ac_temp);    
+      display_temperature(json_extract.ac_temp);
     }
     else
     {
@@ -7874,7 +7873,7 @@ static void maintain_ac_setting()
       {
         hvac_relay_control(json_extract.ac_temp);
       }
-      else if(tirisi_ac_type == SPLIT_AC_TYPE ) 
+      else if(tirisi_ac_type == SPLIT_AC_TYPE )
       {
         json_extract.ac_status  = atoi(default_ac_setting_table[MODE100][2].c_str());
         json_extract.ac_mode    = default_ac_setting_table[MODE100][0].c_str();
@@ -7891,11 +7890,11 @@ static void maintain_ac_setting()
 /**********************************************************************//**
  * @brief  Split AC control command
  *
- * @param  
- * 
- * @return 
- * 
- *************************************************************************/ 
+ * @param
+ *
+ * @return
+ *
+ *************************************************************************/
 static void send_ir_ac_command(uint16_t set_temperature)
 {
   unsigned long end = 0;
@@ -7942,7 +7941,7 @@ static void send_ir_ac_command(uint16_t set_temperature)
               {
                 coolix.setTemp(set_temperature);
               }
-          
+
             }
             else if( json_extract.ac_status == DEVICE_TURN_OFF )
             {
@@ -8131,7 +8130,7 @@ static void send_ir_ac_command(uint16_t set_temperature)
             }
             tcl.send();
             break;
-      case TOSHIBA_BRAND: 
+      case TOSHIBA_BRAND:
             Serial.println("sending command to TOSHIBA brand");
             tosibha.begin();
             irsend.begin();
@@ -8233,12 +8232,12 @@ static void send_ir_ac_command(uint16_t set_temperature)
 /**********************************************************************//**
  * @brief  Initialize light sensor
  *
- * @param  
- * 
- * @return 
- * 
- *************************************************************************/ 
-static void setup_light_sensor() 
+ * @param
+ *
+ * @return
+ *
+ *************************************************************************/
+static void setup_light_sensor()
 {
   // You can pass nothing to light.begin() for the default I2C address (0x29)
   light_sensor.begin();
@@ -8247,8 +8246,8 @@ static void setup_light_sensor()
   // (Just for fun, you don't need to do this to operate the sensor)
 
   unsigned char ID;
-  
-  if (light_sensor.getPartID(ID)) 
+
+  if (light_sensor.getPartID(ID))
   {
     Serial.print("Got Sensor Part ID: 0X");
     Serial.print(ID,HEX);
@@ -8256,7 +8255,7 @@ static void setup_light_sensor()
   // Most library commands will return true if communications was successful,
   // and false if there was a problem. You can ignore this returned value,
   // or check whether a command worked correctly and retrieve an error code:
-  else 
+  else
   {
     byte error = light_sensor.getError();
     printError(error);
@@ -8264,10 +8263,10 @@ static void setup_light_sensor()
 
   // The light sensor has a default integration time of 100ms,
   // and a default gain of low (1X).
-  
+
   // If you would like to change either of these, you can
   // do so using the setControl() and setMeasurementRate() command.
-  
+
   // Gain can take any value from 0-7, except 4 & 5
   // If gain = 0, device is set to 1X gain (default)
   // If gain = 1, device is set to 2X gain
@@ -8300,15 +8299,15 @@ static void setup_light_sensor()
   // If integrationTime = 5, integrationTime will be 250ms
   // If integrationTime = 6, integrationTime will be 300ms
   // If integrationTime = 7, integrationTime will be 350ms
-  
+
   Serial.println("\nSet timing...");
   light_sensor.setMeasurementRate(time,3);
 
   // To start taking measurements, power up the sensor:
-  
+
   Serial.println("Powerup...");
   light_sensor.setPowerUp();
-  
+
   // The sensor will now gather light_sensor during the integration time.
   // After the specified time, you can retrieve the result from the sensor.
   // Once a measurement occurs, another integration period will start.
@@ -8316,59 +8315,59 @@ static void setup_light_sensor()
 /**********************************************************************//**
  * @brief  Get room light intensity
  *
- * @param  
- * 
- * @return 
- * 
- *************************************************************************/ 
-static bool get_lux_value() 
+ * @param
+ *
+ * @return
+ *
+ *************************************************************************/
+static bool get_lux_value()
 {
   // Wait between measurements before retrieving the result
-  // You can also configure the sensor to issue an interrupt 
+  // You can also configure the sensor to issue an interrupt
   // when measurements are complete)
-  
+
   // This sketch uses the LTR303's built-in integration timer.
-  
+
 //  int ms = 1000;
-//  
+//
 //  delay(ms);
-  
-  
+
+
   // Once integration is complete, we'll retrieve the data.
-  
+
   // There are two light sensors on the device, one for visible light
   // and one for infrared. Both sensors are needed for lux calculations.
-  
+
   // Retrieve the data from the device:
 
   unsigned int data0, data1;
-  
-  if (light_sensor.getData(data0,data1)) 
+
+  if (light_sensor.getData(data0,data1))
   {
     // getData() returned true, communication was successful
-//    
+//
 //    Serial.print("data0: ");
 //    Serial.println(data0);
 //    Serial.print("data1: ");
 //    Serial.println(data1);
-  
+
     // To calculate lux, pass all your settings and readings
     // to the getLux() function.
-    
+
     // The getLux() function will return 1 if the calculation
     // was successful, or 0 if one or both of the sensors was
     // saturated (too much light). If this happens, you can
     // reduce the integration time and/or gain.
-  
+
     boolean good;  // True if neither sensor is saturated
-    
+
     // Perform lux calculation:
-    integrationTime = 100; //In millisec 
+    integrationTime = 100; //In millisec
     good = light_sensor.getLux(gain,integrationTime,data0,data1,lux);
-    
+
     // Print out the results:
-  
-    if (good) 
+
+    if (good)
     {
 //      Serial.println(" (good)");
 //      Serial.print(" lux: ");
@@ -8381,7 +8380,7 @@ static bool get_lux_value()
       return EXIT_FAILURE;
     }
   }
-  else 
+  else
   {
     // getData() returned false because of an I2C error, inform the user.
 
@@ -8393,12 +8392,12 @@ static bool get_lux_value()
 /**********************************************************************//**
  * @brief  print light sensor error  code
  *
- * @param  
- * 
- * @return 
- * 
- *************************************************************************/ 
-static void printError(byte error) 
+ * @param
+ *
+ * @return
+ *
+ *************************************************************************/
+static void printError(byte error)
 {
   // If there's an I2C error, this function will
   // print out an explanation.
@@ -8406,7 +8405,7 @@ static void printError(byte error)
   Serial.print("I2C error: ");
   Serial.print(error,DEC);
   Serial.print(", ");
-  
+
   switch(error) {
     case 0:
       Serial.println("success");
@@ -8429,15 +8428,15 @@ static void printError(byte error)
 }
 
 /**********************************************************************//**
- * @brief  control DL1 RGB led 
+ * @brief  control DL1 RGB led
  *
  * @param  pin        - led pin to control
- * 
+ *
  * @param  control    - set or reset
- * 
- * @return 
- * 
- *************************************************************************/ 
+ *
+ * @return
+ *
+ *************************************************************************/
  static void DL1_led_control(char pin,char control)
  {
   switch(pin)
@@ -8445,7 +8444,7 @@ static void printError(byte error)
     case LED_R1:
           if( control == LED_DRIVE_HIGH )
           {
-            digitalWrite(LED_R1, LED_DRIVE_HIGH);  
+            digitalWrite(LED_R1, LED_DRIVE_HIGH);
             digitalWrite(LED_G1, LED_DRIVE_LOW);
             digitalWrite(LED_B1, LED_DRIVE_LOW);
           }
@@ -8463,7 +8462,7 @@ static void printError(byte error)
     case LED_G1:
           if( control == LED_DRIVE_HIGH )
           {
-            digitalWrite(LED_R1, LED_DRIVE_LOW);  
+            digitalWrite(LED_R1, LED_DRIVE_LOW);
             digitalWrite(LED_G1, LED_DRIVE_HIGH);
             digitalWrite(LED_B1, LED_DRIVE_LOW);
           }
@@ -8474,14 +8473,14 @@ static void printError(byte error)
           else if ( control == TOGGLE )
           {
             digitalWrite(LED_G1, !digitalRead(LED_G1));
-            digitalWrite(LED_R1, LED_DRIVE_LOW);  
+            digitalWrite(LED_R1, LED_DRIVE_LOW);
             digitalWrite(LED_B1, LED_DRIVE_LOW);
           }
           break;
     case LED_B1:
           if( control == LED_DRIVE_HIGH )
           {
-            digitalWrite(LED_R1, LED_DRIVE_LOW);  
+            digitalWrite(LED_R1, LED_DRIVE_LOW);
             digitalWrite(LED_G1, LED_DRIVE_LOW);
             digitalWrite(LED_B1, LED_DRIVE_HIGH);
           }
@@ -8492,29 +8491,29 @@ static void printError(byte error)
           else if ( control == TOGGLE )
           {
             digitalWrite(LED_B1, !digitalRead(LED_B1));
-            digitalWrite(LED_R1, LED_DRIVE_LOW);  
+            digitalWrite(LED_R1, LED_DRIVE_LOW);
             digitalWrite(LED_G1, LED_DRIVE_LOW);
           }
           break;
     default:
-          digitalWrite(LED_R1, LED_DRIVE_LOW);  
+          digitalWrite(LED_R1, LED_DRIVE_LOW);
           digitalWrite(LED_G1, LED_DRIVE_LOW);
           digitalWrite(LED_B1, LED_DRIVE_LOW);
           Serial.println("DL1 led turn off");
           break;
-                
-  }  
+
+  }
  }
  /**********************************************************************//**
- * @brief  control DL2 RGB led 
+ * @brief  control DL2 RGB led
  *
  * @param  pin        - led pin to control
- * 
+ *
  * @param  control    - set or reset
- * 
- * @return 
- * 
- *************************************************************************/ 
+ *
+ * @return
+ *
+ *************************************************************************/
  static void DL2_led_control(char pin,char control)
  {
   switch(pin)
@@ -8522,7 +8521,7 @@ static void printError(byte error)
     case LED_R2:
           if( control == LED_DRIVE_HIGH )
           {
-            digitalWrite(LED_R2, LED_DRIVE_HIGH);  
+            digitalWrite(LED_R2, LED_DRIVE_HIGH);
             digitalWrite(LED_G2, LED_DRIVE_LOW);
             set_Led_B2_OFF();
           }
@@ -8540,7 +8539,7 @@ static void printError(byte error)
     case LED_G2:
           if( control == LED_DRIVE_HIGH )
           {
-            digitalWrite(LED_R2, LED_DRIVE_LOW);  
+            digitalWrite(LED_R2, LED_DRIVE_LOW);
             digitalWrite(LED_G2, LED_DRIVE_HIGH);
             set_Led_B2_OFF();
           }
@@ -8551,14 +8550,14 @@ static void printError(byte error)
           else if ( control == TOGGLE )
           {
             digitalWrite(LED_G2, !digitalRead(LED_G2));
-            digitalWrite(LED_R2, LED_DRIVE_LOW);  
+            digitalWrite(LED_R2, LED_DRIVE_LOW);
             set_Led_B2_OFF();
           }
           break;
     case LED_B2_BIT1:
           if( control == LED_DRIVE_HIGH )
           {
-            digitalWrite(LED_R2, LED_DRIVE_LOW);  
+            digitalWrite(LED_R2, LED_DRIVE_LOW);
             digitalWrite(LED_G2, LED_DRIVE_LOW);
             set_Led_B2_ON();
           }
@@ -8572,22 +8571,22 @@ static void printError(byte error)
           }
           break;
     default:
-          digitalWrite(LED_R2, LED_DRIVE_LOW);  
+          digitalWrite(LED_R2, LED_DRIVE_LOW);
           digitalWrite(LED_G2, LED_DRIVE_LOW);
           set_Led_B2_OFF();
           Serial.println("DL2 led turn off");
           break;
-                
+
   }
  }
 /**********************************************************************//**
- * @brief  control DL2 RGB led 
+ * @brief  control DL2 RGB led
  *
  * @param  none
- * 
- * @return 
- * 
- *************************************************************************/ 
+ *
+ * @return
+ *
+ *************************************************************************/
  static void set_dot_matrix_intensity()
  {
   if ( lux >= 500 )
@@ -8688,16 +8687,16 @@ static void printError(byte error)
       lc.setIntensity(DM_device_count,MIN_INTENSITY);
     }
     Serial.println("set intensity = " + String(MIN_INTENSITY));
-  } 
+  }
 }
 /**********************************************************************//**
  * @brief  control the brightness of DOT Matrix based on light sensor data
  *
  * @param  none
- * 
- * @return 
- * 
- *************************************************************************/ 
+ *
+ * @return
+ *
+ *************************************************************************/
 static void update_dot_matrix_intensity()
 {
   if( get_lux_value() == EXIT_SUCCESS )
@@ -8722,10 +8721,10 @@ static void update_dot_matrix_intensity()
  * @brief  Mount SPIIFS to ESP
  *
  * @param  none
- * 
- * @return 
- * 
- *************************************************************************/ 
+ *
+ * @return
+ *
+ *************************************************************************/
 static void mount_spiffs()
 {
   if(!SPIFFS.begin(true)) //mount SPIFFS to ESP32
@@ -8754,7 +8753,7 @@ static void mount_spiffs()
   Serial.print("Total free space: ");
   Serial.print(totalBytes - usedBytes); // Get Free space
   Serial.println("  Mb");
-   
+
   Serial.println();
 }
 
@@ -8762,23 +8761,23 @@ static void mount_spiffs()
  * @brief  login to FTP server
  *
  * @param  none
- * 
+ *
  * @return 0 - Failed to login to server
  *         1 - login success
- * 
- *************************************************************************/ 
+ *
+ *************************************************************************/
 static bool open_ftp_socket()
 {
   if ( connectToFTPServer(FTP_server,ftp_Port) )
   {
     if( loginFTPServer(FTP_USER_NAME,FTP_PASSWORD) )
     {
-      Serial.println(">Loged iN"); 
+      Serial.println(">Loged iN");
       sendFTPCommand("NOOP");
       sendFTPCommand("TYPE I");
       sendFTPCommand("TYPE I");
       vTaskDelay(200);
-      sendFTPCommand("EPSV");    
+      sendFTPCommand("EPSV");
     }
     else
     {
@@ -8795,11 +8794,11 @@ static bool open_ftp_socket()
  * @brief  download binary image from FTP server and flash to esp32
  *
  * @param  none
- * 
+ *
  * @return 0 - Failed to login to server
  *         1 - login success
- * 
- *************************************************************************/ 
+ *
+ *************************************************************************/
 static void Download_Flash_image()
 {
   uint32_t download_image_size = 0;
@@ -8817,16 +8816,16 @@ static void Download_Flash_image()
        {
         /*
          * If parshed FTP data port is greater than 0
-         * 1. Download image in the path json_extract.fm_path 
+         * 1. Download image in the path json_extract.fm_path
          * 2. update the downloaded image if File size matched
-         */    
+         */
         downloadFileFromFTP(download_path);
         listDir("/", 0);
         update_firmware(download_path);
 //        /*
-//         * Check downloaded image size and received image size is approx equal 
+//         * Check downloaded image size and received image size is approx equal
 //         * If matched update the image else delete the image and don't do Update process
-//         */    
+//         */
 //        download_image_size = Get_File_Size(download_path)/Fac_To_KILO_BYTES;
 //        if( (download_image_size -2) <= json_extract.fm_file_size )//have to change.Don't forget
 //        {
@@ -8842,21 +8841,21 @@ static void Download_Flash_image()
           Serial.println("FTP Data port is 0");
        }
        vTaskDelay(100);
-      }      
+      }
     }
   }
   else
   {
     /*
      * If parshed FTP data port is greater than 0
-     * 1. Download image in the path json_extract.fm_path 
+     * 1. Download image in the path json_extract.fm_path
      * 2. update the downloaded image if File size matched
      */
     downloadFileFromFTP(download_path);
     listDir("/", 0);
     update_firmware(download_path);
 //    /*
-//     * Check downloaded image size and received image size is approx equal 
+//     * Check downloaded image size and received image size is approx equal
 //     * If matched update the image else delete the image and don't do Update process
 //     */
 //    download_image_size = Get_File_Size(download_path)/Fac_To_KILO_BYTES;
@@ -8874,10 +8873,10 @@ static void Download_Flash_image()
  * @brief  Get download path and FTP server ip from FTP url
  *
  * @param  none
- * 
- * @return 
- * 
- *************************************************************************/ 
+ *
+ * @return
+ *
+ *************************************************************************/
 static void Get_ftp_details()
 {
   char* Get_path = NULL;
@@ -8886,24 +8885,24 @@ static void Get_ftp_details()
   char get_ip[100]    = {0};
   memset(download_path,'\0',sizeof(download_path));
 //  Serial.printf("download url : %s\n",json_extract.fm_path);
-  memcpy (get_path,json_extract.fm_path, strlen(json_extract.fm_path));  
-  memcpy (get_ip,json_extract.fm_path, strlen(json_extract.fm_path)); 
+  memcpy (get_path,json_extract.fm_path, strlen(json_extract.fm_path));
+  memcpy (get_ip,json_extract.fm_path, strlen(json_extract.fm_path));
   find_char_location((uint8_t*)get_path,strlen(get_path),'/');
   Get_path = delchar(get_path,found_location[BYTE2]-1,BYTE1);
-  memcpy (download_path,Get_path,strlen(Get_path));  
+  memcpy (download_path,Get_path,strlen(Get_path));
   Serial.print("Download path :");
   Serial.println(download_path);
   FTP_server = delchar(get_ip,strlen(get_ip) - found_location[BYTE2] +1,found_location[BYTE2]);
   FTP_server = delchar(FTP_server,found_location[BYTE1],BYTE1);
   Serial.print("FTP server IP :");
-  Serial.println(FTP_server); 
+  Serial.println(FTP_server);
   memset(found_location,'\0',sizeof(found_location));
 }
 /**********************************************************************//**
  * @brief  make beep sound using buzzer
  *
  * @param  buzzer_drive_count - beep duration
- * 
+ *
  *         beep_delay         - Buzzer switching speed
  *
  * @return none
