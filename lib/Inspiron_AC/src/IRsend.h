@@ -98,6 +98,10 @@ namespace stdAc {
 };  // namespace stdAc
 
 // Classes
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 class IRsend {
  public:
   explicit IRsend(uint16_t IRsendPin, bool inverted = false,
@@ -226,5 +230,7 @@ class IRsend {
   bool modulation;
   uint32_t calcUSecPeriod(uint32_t hz, bool use_offset = true);
 };
-
+#ifdef __cplusplus
+}
+#endif
 #endif  // IRSEND_H_

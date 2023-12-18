@@ -490,7 +490,7 @@ void IRsend::sendRaw(uint16_t buf[], uint16_t len, uint16_t hz) {
 //   int16_t:  The number of repeats required.
 uint16_t IRsend::minRepeats(const decode_type_t protocol) {
   switch (protocol) {
-    
+
     case COOLIX:
     case TOSHIBA_AC:
       return kSingleRepeat;
@@ -506,7 +506,7 @@ uint16_t IRsend::minRepeats(const decode_type_t protocol) {
 //   int16_t:  The number of bits.
 uint16_t IRsend::defaultBits(const decode_type_t protocol) {
   switch (protocol) {
-    
+
     case COOLIX:
     case SAMSUNG:
     case SAMSUNG36:
