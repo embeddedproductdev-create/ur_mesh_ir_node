@@ -4,6 +4,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <rom/ets_sys.h>
+#include <esp_log.h>
+
+#define TAG "UART"
 
 const int8_t kPeriodOffset = -5;
 const uint8_t kDutyDefault = 50;
@@ -38,7 +41,6 @@ const uint16_t kNecMinGapTicks =
 
 void irsend_configuration(bool inverted, bool use_modulation)
 {
-	printf("Inside irsend_configuration\n");
     if (inverted)
     {
         IRObject.outputOn = LOW;
@@ -54,12 +56,10 @@ void irsend_configuration(bool inverted, bool use_modulation)
         IRObject._dutycycle = kDutyDefault;
     else
         IRObject._dutycycle = kDutyMax;
-    printf("Leaving irsend_configuration\n");
 }
 
 void irsend_begin()
 {
-	printf("inside irsend_begin\n");
     // zero-initialize the config structure.
     gpio_config_t io_conf = {};
     // disable interrupt
@@ -74,21 +74,17 @@ void irsend_begin()
     io_conf.pull_up_en = 0;
     // configure GPIO with the given settings
     gpio_config(&io_conf);
-    printf("GPIO configured and leaving irsend_begin\n");
 }
 
 void sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
 {
-	printf("inside sendNEC\n");
     sendGeneric(kNecHdrMark, kNecHdrSpace, kNecBitMark, kNecOneSpace, kNecBitMark,
                 kNecZeroSpace, kNecBitMark, kNecMinGap, kNecMinCommandLength,
                 data, nbits, 38, true, 0, 33);
-    printf("leaving sendNEC\n");
 }
 
 void enableIROut(uint32_t freq, uint8_t duty)
 {
-	printf("inside enableIROut\n");
     // Set the duty cycle to use if we want freq. modulation.
     if (IRObject.modulation)
     {
@@ -108,7 +104,6 @@ void enableIROut(uint32_t freq, uint8_t duty)
     IRObject.onTimePeriod = (period * IRObject._dutycycle) / kDutyMax;
     // Nr. of uSeconds the LED will be off per pulse.
     IRObject.offTimePeriod = period - IRObject.onTimePeriod;
-    printf("Leaving enableIROut\n");
 }
 
 void sendGeneric(const uint16_t headermark, const uint32_t headerspace,
@@ -120,7 +115,6 @@ void sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                  const bool MSBfirst, const uint16_t repeat,
                  const uint8_t dutycycle)
 {
-	printf("inside sendGeneric\n");
     // Setup
     enableIROut(frequency, dutycycle);
     // We always send a message, even for repeat=0, hence '<= repeat'.
@@ -136,9 +130,7 @@ void sendGeneric(const uint16_t headermark, const uint32_t headerspace,
             space(headerspace);
 
         // Data
-        printf("Sending data...\n");
         sendData(onemark, onespace, zeromark, zerospace, data, nbits, MSBfirst);
-        printf("completed sending data... \n");
         // Footer
         if (footermark)
             mark(footermark);
@@ -149,23 +141,19 @@ void sendGeneric(const uint16_t headermark, const uint32_t headerspace,
         else
             space(max(gap, mesgtime - elapsed));
     }
-    printf("Leaving sendGeneric\n");
 }
 
 uint32_t calcUSecPeriod(uint32_t hz, bool use_offset) {
-  printf("Inside calcUSecPeriod\n");
   if (hz == 0)
     hz = 1;  // Avoid Zero hz. Divide by Zero is nasty.
   uint32_t period = (1000000UL + hz / 2) / hz;  // The equiv of round(1000000/hz).
   // Apply the offset and ensure we don't result in a <= 0 value.
   if (use_offset)
   {
-	  printf("Leaving calcUSecPeriod\n");
 	  return max((uint32_t)1, period + IRObject.periodOffset);
   }
   else
   {
-	printf("Leaving calcUSecPeriod\n");
     return max((uint32_t)1, period);
   }
 }
@@ -188,14 +176,12 @@ uint64_t max(uint64_t param1, uint64_t param2)
 
 void mark(uint16_t usec)
 {
-  printf("Inside mark \n");
   // Handle the simple case of no required frequency modulation.
   if (!IRObject.modulation || IRObject._dutycycle >= 100) {
     gpio_set_level(IRObject.IRpin, HIGH);
     ets_delay_us(usec);
     gpio_set_level(IRObject.IRpin, LOW);
   }
-  printf("Leaving mark \n");
 }
 
 void space(uint32_t time)
@@ -237,4 +223,41 @@ void sendData(uint16_t onemark, uint32_t onespace, uint16_t zeromark,
         space(zerospace);
       }
   }
+}
+
+void ir_send_NEC_command(commands command)
+{
+	switch(command)
+	{
+		case Vol_up:
+			sendNEC(VOLUME_UP_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Vol_down:
+			sendNEC(VOLUME_DOWN_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Up:
+			sendNEC(UP_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Down:
+			sendNEC(DOWN_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Left:
+			sendNEC(LEFT_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Right:
+			sendNEC(RIGHT_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Home:
+			sendNEC(HOME_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Power:
+			sendNEC(POWER_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		case Back:
+			sendNEC(BACK_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
+			break;
+		default:
+			ESP_LOGI(TAG, "Invalid IR command\r\n");
+			break;
+	}
 }

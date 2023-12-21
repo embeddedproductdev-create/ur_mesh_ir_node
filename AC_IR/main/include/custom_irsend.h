@@ -7,7 +7,19 @@
 #define LOW 0
 #define HIGH 1
 
+/*OTT Box IR Codes*/
+#define VOLUME_UP_CMD		0x00f9ff00
+#define VOLUME_DOWN_CMD		0x00f9ba45
+#define UP_BUTTON_CMD		0x00f9c23d
+#define DOWN_BUTTON_CMD		0x00f950af
+#define LEFT_BUTTON_CMD		0x00f9609f
+#define RIGHT_BUTTON_CMD	0x00f9708f
+#define HOME_BUTTON_CMD		0x00f9e21d
+#define BACK_BUTTON_CMD		0x00f9f2d0
+#define POWER_BUTTON_CMD	0x00f9ea15
 
+#define NUM_OF_BITS_32 		32
+#define NO_REPEAT			0
 
 //function Declarations
 void irsend_configuration(bool inverted, bool use_modulation);
@@ -33,6 +45,20 @@ void sendData(uint16_t onemark, uint32_t onespace, uint16_t zeromark,
 uint64_t min(uint64_t param1, uint64_t param2);
 uint64_t max(uint64_t param1, uint64_t param2);
 
+typedef enum{
+  Vol_up,
+  Vol_down,
+  Up,
+  Down,
+  Left,
+  Right,
+  Home,
+  Power,
+  Back
+}commands;
+
+void ir_send_NEC_command(commands command);
+
 //Variable Declarations
 typedef struct IRsend{
     uint8_t outputOn;
@@ -46,6 +72,7 @@ typedef struct IRsend{
 }IRSend_t;
 
 extern IRSend_t IRObject;
+extern int cmd;
 
 #endif
 
