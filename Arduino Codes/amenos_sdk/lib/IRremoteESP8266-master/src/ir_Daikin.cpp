@@ -66,8 +66,7 @@ void IRsend::sendDaikin(const unsigned char data[], const uint16_t nbytes,
   for (uint16_t r = 0; r <= repeat; r++) {
     uint16_t offset = 0;
     // Send the header, 0b00000
-    sendGeneric(0, 0,  // No header for the header
-                kDaikinBitMark, kDaikinOneSpace, kDaikinBitMark,
+    sendGeneric(0, 0, kDaikinBitMark, kDaikinOneSpace, kDaikinBitMark,
                 kDaikinZeroSpace, kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
                 (uint64_t)0b00000, kDaikinHeaderLength, 38, false, 0, 50);
     // Data #1

@@ -12,7 +12,7 @@
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 1
+#define CLIENT_IDX 2
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
@@ -119,6 +119,8 @@ extern uint8_t client_flag;
 extern uint8_t subscribe_flag;
 
 void gpio_configuration();
+void ConnectToNetwork();
+void SubscribeToTopics();
 void resetLte();
 void sendAT_Data(const char* data);
 void LTE_initialization(void);
@@ -139,3 +141,4 @@ uint8_t MQTT_ClientDisconnect(int client_idx);
 uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
 uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report();
+

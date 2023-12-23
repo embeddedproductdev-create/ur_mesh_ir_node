@@ -817,7 +817,7 @@ enum decode_type_t {
 // Message lengths & required repeat values
 const uint16_t kNoRepeat = 0;
 const uint16_t kSingleRepeat = 1;
-
+  
 const uint16_t kAirwellBits = 34;
 const uint16_t kAirwellMinRepeats = 2;
 const uint16_t kAiwaRcT501Bits = 15;

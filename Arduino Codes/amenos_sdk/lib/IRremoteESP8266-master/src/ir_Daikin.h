@@ -140,8 +140,7 @@ const uint16_t kDaikinHeaderLength = 5;
 const uint8_t kDaikinSections = 3;
 const uint8_t kDaikinSection1Length = 8;
 const uint8_t kDaikinSection2Length = 8;
-const uint8_t kDaikinSection3Length =
-    kDaikinStateLength - kDaikinSection1Length - kDaikinSection2Length;
+const uint8_t kDaikinSection3Length = kDaikinStateLength - kDaikinSection1Length - kDaikinSection2Length;
 const uint8_t kDaikinByteComfort = 6;
 const uint8_t kDaikinByteChecksum1 = 7;
 const uint8_t kDaikinBitComfortOffset = 4;

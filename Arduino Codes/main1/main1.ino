@@ -12,7 +12,7 @@
 
 typedef enum{
   Vol_up,
-  Vol_down,
+  Vol_down, 
   Up,
   Down,
   Left,

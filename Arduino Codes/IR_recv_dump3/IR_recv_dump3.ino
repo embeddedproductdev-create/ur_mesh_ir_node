@@ -111,7 +111,7 @@ const uint8_t kTimeout = 15;
 // Set lower if you are sure your setup is working, but it doesn't see messages
 // from your device. (e.g. Other IR remotes work.)
 // NOTE: Set this value very high to effectively turn off UNKNOWN detection.
-const uint16_t kMinUnknownSize = 12;
+const uint16_t kMinUnknownSize = 30;
 
 // How much percentage lee way do we give to incoming signals in order to match
 // it?
@@ -122,7 +122,7 @@ const uint16_t kMinUnknownSize = 12;
 //       need to adjust this value. Typically that's when the library detects
 //       your remote's message some of the time, but not all of the time.
 const uint8_t kTolerancePercentage = kTolerance;  // kTolerance is normally 25%
-
+//const uint8_t kTolerancePercentage = 49;
 // Legacy (No longer supported!)
 //
 // Change to `true` if you miss/need the old "Raw Timing[]" display.
