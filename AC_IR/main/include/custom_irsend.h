@@ -6,6 +6,7 @@
 
 #define LOW 0
 #define HIGH 1
+#define IR_CTRL_SEND_PIN    22
 
 /*OTT Box IR Codes*/
 #define VOLUME_UP_CMD		0x00f9ff00
@@ -20,6 +21,9 @@
 
 #define NUM_OF_BITS_32 		32
 #define NO_REPEAT			0
+
+#define MSB_FIRST_TRUE	true
+#define MSB_FIRST_FALSE false
 
 //function Declarations
 void irsend_configuration(bool inverted, bool use_modulation);

@@ -1,6 +1,7 @@
 #include "include/custom_daikin.h"
 #include "include/custom_irsend.h"
 #include <stdint.h>
+#include <stdio.h>
 
 const uint16_t kNoRepeat = 0;
 const uint16_t kMarkExcess = 50;
@@ -421,19 +422,19 @@ const uint8_t kDaikin64PowerToggleBit = 59;
 const uint8_t kDaikin64ChecksumOffset = 60;
 const uint8_t kDaikin64ChecksumSize = 4;  // Mask 0b1111 << 59
 
-void setTemp(const uint8_t temp)
+void setTemp_Daikin280(const uint8_t temp)
 {
   uint8_t degrees = (uint8_t)max(temp, kDaikinMinTemp);
   degrees = (uint8_t)min(degrees, kDaikinMaxTemp);
   data[kDaikinByteTemp] = degrees << 1;
 }
 
-void setPower(const bool on)
+void setPower_Daikin280(const bool on)
 {
-  setBit(&data[kDaikinBytePower], kDaikinBitPowerOffset, on);
+  setBit_Daikin280(&data[kDaikinBytePower], kDaikinBitPowerOffset, on);
 }
 
-void setBit(uint8_t * const data, const uint8_t position, const bool on)
+void setBit_Daikin280(uint8_t * const data, const uint8_t position, const bool on)
 {
 	uint8_t mask = 1 << position;
 	if (on)
@@ -442,7 +443,7 @@ void setBit(uint8_t * const data, const uint8_t position, const bool on)
 	  *data &= ~mask;
 }
 
-void setBits(uint8_t * const dst, const uint8_t offset, const uint8_t nbits,
+void setBits_Daikin280(uint8_t * const dst, const uint8_t offset, const uint8_t nbits,
                const uint8_t data) {
     if (offset >= 8 || !nbits) return;  // Short circuit as it won't change.
     // Calculate the mask for the supplied value.
@@ -454,7 +455,7 @@ void setBits(uint8_t * const dst, const uint8_t offset, const uint8_t nbits,
     *dst |= ((data & mask) << offset);
   }
 
-void setFan(const uint8_t fan) {
+void setFan_Daikin280(const uint8_t fan) {
   // Set the fan speed bits, leave low 4 bits alone
   uint8_t fanset;
   if (fan == kDaikinFanQuiet || fan == kDaikinFanAuto)
@@ -463,63 +464,63 @@ void setFan(const uint8_t fan) {
     fanset = kDaikinFanAuto;
   else
     fanset = 2 + fan;
-  setBits(&data[kDaikinByteFan], kDaikinFanOffset, kDaikinFanSize, fanset);
+  setBits_Daikin280(&data[kDaikinByteFan], kDaikinFanOffset, kDaikinFanSize, fanset);
 }
 
-void setMode(const uint8_t mode) {
+void setMode_Daikin280(const uint8_t mode) {
   switch (mode) {
 	case kDaikinAuto:
 	case kDaikinCool:
 	case kDaikinHeat:
 	case kDaikinFan:
 	case kDaikinDry:
-	  setBits(&data[kDaikinBytePower], kDaikinModeOffset, kDaikinModeSize,
+	  setBits_Daikin280(&data[kDaikinBytePower], kDaikinModeOffset, kDaikinModeSize,
 			  mode);
 	  break;
 	default:
-	  setMode(kDaikinAuto);
+	  setMode_Daikin280(kDaikinAuto);
   }
 }
 
-void setSwingVertical(const bool on) {
-  setBits(&data[kDaikinByteFan], kDaikinSwingOffset, kDaikinSwingSize,
+void setSwingVertical_Daikin280(const bool on) {
+  setBits_Daikin280(&data[kDaikinByteFan], kDaikinSwingOffset, kDaikinSwingSize,
           on ? kDaikinSwingOn : kDaikinSwingOff);
 }
 
-void setSwingHorizontal(const bool on) {
-  setBits(&data[kDaikinByteSwingH], kDaikinSwingOffset, kDaikinSwingSize,
+void setSwingHorizontal_Daikin280(const bool on) {
+  setBits_Daikin280(&data[kDaikinByteSwingH], kDaikinSwingOffset, kDaikinSwingSize,
           on ? kDaikinSwingOn : kDaikinSwingOff);
 }
 
-void setQuiet(const bool on) {
-  setBit(&data[kDaikinByteSilent], kDaikinBitSilentOffset, on);
+void setQuiet_Daikin280(const bool on) {
+  setBit_Daikin280(&data[kDaikinByteSilent], kDaikinBitSilentOffset, on);
   // Powerful & Quiet mode being on are mutually exclusive.
-  if (on) setPowerful(false);
+  if (on) setPowerful_Daikin280(false);
 }
 
-void setPowerful(const bool on) {
-  setBit(&data[kDaikinBytePowerful], kDaikinBitPowerfulOffset, on);
+void setPowerful_Daikin280(const bool on) {
+  setBit_Daikin280(&data[kDaikinBytePowerful], kDaikinBitPowerfulOffset, on);
   if (on) {
-	setQuiet(false);
-	setEcono(false);
+	setQuiet_Daikin280(false);
+	setEcono_Daikin280(false);
   }
 }
 
-void setEcono(const bool on) {
-  setBit(&data[kDaikinByteEcono], kDaikinBitEconoOffset, on);
-  if (on) setPowerful(false);
+void setEcono_Daikin280(const bool on) {
+  setBit_Daikin280(&data[kDaikinByteEcono], kDaikinBitEconoOffset, on);
+  if (on) setPowerful_Daikin280(false);
 }
 
-void setSensor(const bool on) {
-  setBit(&data[kDaikinByteSensor], kDaikinBitSensorOffset, on);
+void setSensor_Daikin280(const bool on) {
+  setBit_Daikin280(&data[kDaikinByteSensor], kDaikinBitSensorOffset, on);
 }
 
-void setMold(const bool on) {
-  setBit(&data[kDaikinByteMold], kDaikinBitMoldOffset, on);
+void setMold_Daikin280(const bool on) {
+  setBit_Daikin280(&data[kDaikinByteMold], kDaikinBitMoldOffset, on);
 }
 
-void setComfort(const bool on) {
-  setBit(&data[kDaikinByteComfort], kDaikinBitComfortOffset, on);
+void setComfort_Daikin280(const bool on) {
+  setBit_Daikin280(&data[kDaikinByteComfort], kDaikinBitComfortOffset, on);
 }
 
 //void enableOnTimer(const uint16_t starttime) {
@@ -530,9 +531,9 @@ void setComfort(const bool on) {
 //		  kDaikinOnTimerMinsHighSize, starttime >> 8);
 //}
 
-void disableOnTimer(void) {
-  enableOnTimer(kDaikinUnusedTime);
-  setBit(&data[kDaikinByteOnTimer], kDaikinBitOnTimerOffset, false);
+void disableOnTimer_Daikin280(void) {
+  enableOnTimer_Daikin280(kDaikinUnusedTime);
+  setBit_Daikin280(&data[kDaikinByteOnTimer], kDaikinBitOnTimerOffset, false);
 }
 
 void sendDaikin280IRCommand(void *arg)
@@ -541,23 +542,28 @@ void sendDaikin280IRCommand(void *arg)
 //	printf("IRObject.dutycycle    : %d\r\n",IRObject._dutycycle);
 //	configASSERT( ( ( uint32_t ) arg ) == 1 );
 	uint16_t offset = 0;
+//	for(uint8_t index=0; index<35; index++)
+//	{
+//		printf("data[%d] : %x\r\n",index,data[index]);
+//	}
+//	printf("\r\n");
 	sendGenericmsgtime(0,0, kDaikinBitMark, kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
 			kDaikinBitMark, kDaikinZeroSpace + kDaikinGap, 0U, (uint64_t)0U, kDaikinHeaderLength,
-			38, false, 0, 50);
+			41, false, 0, IRObject._dutycycle);
 	sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
 				  kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
 				  kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-				  data, kDaikinSection1Length, 38, false, 0, 50);
+				  data, kDaikinSection1Length, 41, false, 0, IRObject._dutycycle);
 	offset += kDaikinSection1Length;
 	sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
 				kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
 				kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-				data+offset, kDaikinSection2Length, 38, false, 0, 50);
+				data+offset, kDaikinSection2Length, 41, false, 0, IRObject._dutycycle);
 	offset += kDaikinSection2Length;
 	sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
 				kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
 				kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-				data+offset, 35 - offset, 38, false, 0, 50);
+				data+offset, 35 - offset, 41, false, 0, IRObject._dutycycle);
 }
 
 uint8_t daikin280_sumBytes(const uint8_t * const start, const uint16_t length) {
@@ -575,4 +581,75 @@ void daikin_280_checksum()
     data[kDaikinByteChecksum3] = daikin280_sumBytes(data + kDaikinSection1Length +
 										  kDaikinSection2Length,
 										  kDaikinSection3Length - 1);
+}
+
+void data_init_Daikin280()
+{
+	for(uint8_t index=0; index<35; index++)
+	{
+		data[index] = 0x00;
+	}
+	data[0] = 0x11;
+	data[1] = 0xda;
+	data[2] = 0x27;
+	data[4] = 0xc5;
+	data[8] = 0x11;
+	data[9] = 0xda;
+	data[10] = 0x27;
+	data[12] = 0x42;
+	data[16] = 0x01;
+	data[17] = 0xDA;
+	data[18] = 0x27;
+	data[21] = 0x49;
+	data[22] = 0x1E;
+	data[24] = 0xB0;
+	data[27] = 0x06;
+    data[28] = 0x60;
+    data[31] = 0xC0;
+    daikin_280_checksum();
+}
+
+void toggle_daikin()
+{
+	data[0] = 0x11;
+	data[1] = 0xDA;
+	data[2] = 0x27;
+	data[3] = 0x00;
+	data[4] = 0xC5;
+	data[5] = 0x00;
+	data[6] = 0x00;
+	data[7] = 0xD7;
+	data[8] = 0x11;
+	data[9] = 0xDA;
+	data[10] = 0x27;
+	data[11] = 0x00;
+	data[12] = 0x42;
+	data[13] = 0x00;
+	data[14] = 0x00;
+	data[15] = 0x54;
+	data[16] = 0x11;
+	data[17] = 0xDA;
+	data[18] = 0x27;
+	data[19] = 0x00;
+	data[20] = 0x00;
+	data[21] = 0x38;
+	data[22] = 0x30;
+	data[23] = 0x00;
+	data[24] = 0xA0;
+	data[25] = 0x00;
+	data[26] = 0x00;
+	data[27] = 0x06;
+	data[28] = 0x60;
+	data[29] = 0x00;
+	data[30] = 0x00;
+	data[31] = 0xC0;
+	data[32] = 0x00;
+	data[33] = 0x00;
+	data[34] = 0x40;
+	sendDaikin280IRCommand((void *)1);
+	vTaskDelay(pdMS_TO_TICKS(5000));
+	data[22] = 0x32;
+	data[34] = 0x42;
+	sendDaikin280IRCommand((void *)1);
+	vTaskDelay(pdMS_TO_TICKS(5000));
 }

@@ -80,7 +80,7 @@ void sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
 {
 	sendGenericmsgtime(kNecHdrMark, kNecHdrSpace, kNecBitMark, kNecOneSpace, kNecBitMark,
                 kNecZeroSpace, kNecBitMark, kNecMinGap, kNecMinCommandLength,
-                data, nbits, 38, true, 0, 33);
+                data, nbits, 40, true, 0, 33);
 }
 
 void enableIROut(uint32_t freq, uint8_t duty)
@@ -120,8 +120,10 @@ void sendGeneric(const uint16_t headermark, const uint32_t headerspace,
     if (headermark) mark(headermark);
     if (headerspace) space(headerspace);
     for (uint16_t i = 0; i < nbytes; i++)
-      sendData(onemark, onespace, zeromark, zerospace, *(dataptr + i), 8,
+    {
+    	sendData(onemark, onespace, zeromark, zerospace, *(dataptr + i), 8,
                MSBfirst);
+    }
     if (footermark) mark(footermark);
     space(gap);
   }
@@ -135,45 +137,27 @@ void sendGenericmsgtime(const uint16_t headermark, const uint32_t headerspace,
                          const uint16_t nbits, const uint16_t frequency,
                          const bool MSBfirst, const uint16_t repeat,
                          const uint8_t dutycycle) {
-//  printf("Inside sendGenericMsgtime\r\n");
   enableIROut(frequency, dutycycle);
   for (uint16_t r = 0; r <= repeat; r++) {
-//	printf("Value of r is %d\r\n",r);
-//	printf("Inside for loop\r\n");
 	uint64_t start_usecs = esp_timer_get_time();
-//	printf("Got current time in microseconds\r\n");
 
     if (headermark) mark(headermark);
 
     if (headerspace) space(headerspace);
-
-//    printf("Sending data ... \r\n");
     sendData(onemark, onespace, zeromark, zerospace, data, nbits, MSBfirst);
-
-//    printf("going to send footer .. \r\n");
 
     if (footermark) mark(footermark);
     uint32_t elapsed = esp_timer_get_time() - start_usecs;
-//    printf("Calculated time elapsed ... \r\n");
     if (elapsed >= mesgtime)
     {
-//      printf("entered if ..\r\n");
       space(gap);
-//      printf("leaving if ..\r\n");
     }
     else
     {
-//      printf("entered else ... \r\n");
-//      printf("msgtime : %ld elapsed : %ld\r\n",mesgtime, elapsed);
       uint64_t delay1 = max(gap, mesgtime - elapsed);
-//      printf("max returned : %lld\r\n",delay1);
-
       space(delay1);
-//      printf("leaving else ... \r\\n");
     }
-//    printf("For loop is ending ... \r\n");
   }
-//  printf("Leaving sendGenericMsgtime\r\n");
 }
 
 uint32_t calcUSecPeriod(uint32_t hz, bool use_offset) {
@@ -201,28 +185,13 @@ uint64_t min(uint64_t param1, uint64_t param2)
 
 uint64_t max(uint64_t param1, uint64_t param2)
 {
-//	printf("entered max\r\n");
     if(param1 > param2)
     {
-//    	printf("leaving max\r\n");
     	return param1;
     }
-//    printf("leaving max\r\n");
 	return param2;
 }
 
-//void mark(uint16_t usec)
-//{
-//  // Handle the simple case of no required frequency modulation.
-//  if (!IRObject.modulation || IRObject._dutycycle >= 100) {
-//    gpio_set_level(IRObject.IRpin, HIGH);
-////    uint64_t now = esp_timer_get_time();
-////    while(esp_timer_get_time()-now < usec)
-////    	;
-//    ets_delay_us(usec);
-//    gpio_set_level(IRObject.IRpin, LOW);
-//  }
-//}
 
 uint16_t mark(uint16_t usec) {
   // Handle the simple case of no required frequency modulation.
@@ -244,7 +213,6 @@ uint16_t mark(uint16_t usec) {
 	gpio_set_level(IRObject.IRpin, HIGH);
     // Calculate how long we should pulse on for.
     // e.g. Are we to close to the end of our requested mark time (usec)?
-//    ets_delay_us(min((uint32_t)IRObject.onTimePeriod, usec - elapsed));
 	ets_delay_us(IRObject.onTimePeriod);
     gpio_set_level(IRObject.IRpin, LOW);
     counter++;
