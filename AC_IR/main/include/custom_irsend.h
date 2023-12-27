@@ -7,6 +7,8 @@
 #define LOW 0
 #define HIGH 1
 #define IR_CTRL_SEND_PIN    22
+#define INVERTED_FALSE		false
+#define USE_MODULATION		true
 
 /*OTT Box IR Codes*/
 #define VOLUME_UP_CMD		0x00f9ff00
@@ -18,6 +20,14 @@
 #define HOME_BUTTON_CMD		0x00f9e21d
 #define BACK_BUTTON_CMD		0x00f9f2d0
 #define POWER_BUTTON_CMD	0x00f9ea15
+
+/*BUTTON DEFINITION*/
+#define TEMP_INC_BUTTON		32
+#define TEMP_DEC_BUTTON		33
+#define POWER_BUTTON		34
+#define MODE_BUTTON			35
+#define FAN_BUTTON			25
+#define GPIO_INPUT_PIN_SEL (1ULL << TEMP_INC_BUTTON) | (1ULL << TEMP_DEC_BUTTON) | (1ULL << POWER_BUTTON) | (1ULL << MODE_BUTTON) | (1ULL << FAN_BUTTON)
 
 #define NUM_OF_BITS_32 		32
 #define NO_REPEAT			0

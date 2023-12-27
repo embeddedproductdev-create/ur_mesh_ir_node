@@ -118,7 +118,7 @@ extern uint8_t network_flag;
 extern uint8_t client_flag;
 extern uint8_t subscribe_flag;
 
-void gpio_configuration();
+void LTE_gpio_configuration();
 void ConnectToNetwork();
 void SubscribeToTopics();
 void resetLte();

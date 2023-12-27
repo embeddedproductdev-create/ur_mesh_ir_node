@@ -5,6 +5,18 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#define DaikinAuto		0
+#define DaikinDry		2
+#define DaikinCool		3
+#define DaikinHeat		4
+#define DaikinFan		6
+
+#define DaikinFanMin 	1
+#define DaikinFanMed 	3
+#define DaikinFanMax 	5
+#define DaikinFanAuto 	10
+#define DaikinFanQuiet	11
+
 /*Function Declarations*/
 
 void setTemp_Daikin280(const uint8_t temp);

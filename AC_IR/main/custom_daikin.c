@@ -597,7 +597,7 @@ void data_init_Daikin280()
 	data[9] = 0xda;
 	data[10] = 0x27;
 	data[12] = 0x42;
-	data[16] = 0x01;
+	data[16] = 0x11;
 	data[17] = 0xDA;
 	data[18] = 0x27;
 	data[21] = 0x49;
@@ -611,45 +611,7 @@ void data_init_Daikin280()
 
 void toggle_daikin()
 {
-	data[0] = 0x11;
-	data[1] = 0xDA;
-	data[2] = 0x27;
-	data[3] = 0x00;
-	data[4] = 0xC5;
-	data[5] = 0x00;
-	data[6] = 0x00;
-	data[7] = 0xD7;
-	data[8] = 0x11;
-	data[9] = 0xDA;
-	data[10] = 0x27;
-	data[11] = 0x00;
-	data[12] = 0x42;
-	data[13] = 0x00;
-	data[14] = 0x00;
-	data[15] = 0x54;
-	data[16] = 0x11;
-	data[17] = 0xDA;
-	data[18] = 0x27;
-	data[19] = 0x00;
-	data[20] = 0x00;
-	data[21] = 0x38;
-	data[22] = 0x30;
-	data[23] = 0x00;
-	data[24] = 0xA0;
-	data[25] = 0x00;
-	data[26] = 0x00;
-	data[27] = 0x06;
-	data[28] = 0x60;
-	data[29] = 0x00;
-	data[30] = 0x00;
-	data[31] = 0xC0;
-	data[32] = 0x00;
-	data[33] = 0x00;
-	data[34] = 0x40;
-	sendDaikin280IRCommand((void *)1);
-	vTaskDelay(pdMS_TO_TICKS(5000));
-	data[22] = 0x32;
-	data[34] = 0x42;
-	sendDaikin280IRCommand((void *)1);
-	vTaskDelay(pdMS_TO_TICKS(5000));
+
+	vTaskDelay(pdMS_TO_TICKS(1000));
+	vTaskDelay(pdMS_TO_TICKS(1000));
 }

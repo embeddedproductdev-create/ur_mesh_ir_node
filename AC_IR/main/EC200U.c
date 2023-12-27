@@ -459,31 +459,30 @@ void resetLte()
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
 }
 
-void gpio_configuration()
+void LTE_gpio_configuration()
 {
 	//zero-initialize the config structure.
-	gpio_config_t io_conf = {};
+	gpio_config_t o_conf = {};
 	//disable interrupt
-	io_conf.intr_type = GPIO_INTR_DISABLE;
+	o_conf.intr_type = GPIO_INTR_DISABLE;
 	//set as output mode
-	io_conf.mode = GPIO_MODE_OUTPUT;
+	o_conf.mode = GPIO_MODE_OUTPUT;
 	//bit mask of the pins that you want to set,e.g.GPIO18/19
-	io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
+	o_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
 	//disable pull-down mode
-	io_conf.pull_down_en = 0;
+	o_conf.pull_down_en = 0;
 	//disable pull-up mode
-	io_conf.pull_up_en = 0;
+	o_conf.pull_up_en = 0;
 	//configure GPIO with the given settings
-	esp_err_t ret = gpio_config(&io_conf);
-	if(ret == ESP_OK)
+	esp_err_t ret_o = gpio_config(&o_conf);
+	if(ret_o == ESP_OK)
 	{
-		ESP_LOGI(TAG, "GPIO configuration successful ...\r\n");
+		ESP_LOGI(TAG, "GPIO output configuration successful ...\r\n");
 	}
 	else
 	{
-		ESP_LOGI(TAG, "GPIO configuration failed with err : %d\r\n", ret);
+		ESP_LOGI(TAG, "GPIO output configuration failed with err : %d\r\n", ret_o);
 	}
-
 }
 
 void LTE_initialization(void)
