@@ -1,23 +1,4 @@
-/*
- * EC200U.c
- *
- *  Created on: 11-Aug-2022
- *      Author: Varun Kumar
- */
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_system.h"
-#include "esp_log.h"
-#include "driver/uart.h"
-#include "string.h"
-#include "driver/gpio.h"
-#include "EC200U.h"
-#include "stdint.h"
-#include "certificates.h"
-#include <esp_timer.h>
-#include <esp_check.h>
-#include <esp_err.h>
-#include "include/custom_irsend.h"
+#include "include/main.h"
 
 #define SUCCESS 1
 #define FAILURE 0
