@@ -68,29 +68,29 @@ uint64_t min(uint64_t param1, uint64_t param2);
 uint64_t max(uint64_t param1, uint64_t param2);
 uint8_t sumBytes(const uint8_t *const start, const uint16_t length);
 void poll_button();
-
-typedef enum
-{
-        Vol_up,
-        Vol_down,
-        Up,
-        Down,
-        Left,
-        Right,
-        Home,
-        Power,
-        Back
-} commands;
-
-typedef enum
-{
-        Daikin200,
-        Daikin216,
-        Daikin280,
-        Hitachi
-} AC_model;
+void control_AC();
 
 // Variable Declarations
+typedef enum
+{
+        Vol_up_cmd,
+        Vol_down_cmd,
+        Up_cmd,
+        Down_cmd,
+        Left_cmd,
+        Right_cmd,
+        Home_cmd,
+        Power_cmd,
+        Back_cmd
+} OTT_commands;
+
+typedef enum
+{
+        Daikin = 0,
+        Hitachi = 1
+} AC_model;
+
+
 typedef struct IRsend
 {
         uint8_t outputOn;

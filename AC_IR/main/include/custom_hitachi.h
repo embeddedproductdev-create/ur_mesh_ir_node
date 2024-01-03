@@ -36,7 +36,7 @@
 #define kHitachiAc296PowerOn  				1
 #define kHitachiAc296PowerOff 				0
 
-typedef union HitachiAC296Protocol{
+typedef union HitachiAC296{
   uint8_t raw[HITACHI296_NBYTES];
   struct {
     // Byte 0~12
@@ -80,18 +80,25 @@ typedef union HitachiAC296Protocol{
     uint8_t Humidity           :4;  // LSB
     uint8_t                    :8;
   };
-}HitachiAC296Protocol_t;
+}HitachiAC296_t;
 
-extern HitachiAC296Protocol_t data_Hitachi296;
+extern HitachiAC296_t data_Hitachi296;
 
-/*Function Declarations*/
-
+/*HITACHI296 FUNCTION DECLARATION*/
 void data_init_Hitachi296();
-void send_Hitachi296(uint8_t repeat, bool MSBfirst);
-void setTemp_Hitachi296(const uint8_t temp);
+void send_Hitachi296();
+void setTemp_Hitachi296(uint8_t temp);
 void setMode_Hitachi296(const uint8_t mode);
 void setFan_Hitachi296(const uint8_t speed);
+void setSwingV_Hitachi296(const bool on);
+void setSwingH_Hitachi296(const bool on);
+void setPower_Hitachi296(const bool on);
 void setInvertedStates_Hitachi296(void);
 uint8_t * invertBytePairs(uint8_t *ptr, const uint16_t length);
+
+extern uint8_t curr_temp_Hitachi296;
+extern uint8_t curr_power_Hitachi296;
+extern uint8_t curr_mode_Hitachi296;
+extern uint8_t curr_fan_Hitachi296;
 
 #endif /* MAIN_INCLUDE_CUSTOM_HITACHI_H_ */

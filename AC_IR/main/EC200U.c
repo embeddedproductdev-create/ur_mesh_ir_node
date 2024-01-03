@@ -45,6 +45,8 @@ void sendAT_Data(const char* data)
 
 uint8_t check_response(char* response, uint32_t timeout)
 {
+		uint8_t index=0,j=0;
+		bool copy_flag = false;
 		char* data = (char*) calloc(BUF_SIZE,sizeof(char));
 		uint32_t time = esp_timer_get_time()/1000ULL;
 		while((esp_timer_get_time()/1000ULL) - time < timeout){
@@ -52,6 +54,26 @@ uint8_t check_response(char* response, uint32_t timeout)
 			if(length>0){
 				if(strstr((const char* )data,(const char*)response)){
 					ESP_LOGI(TAG, "Received string : %s\r\n", (char *) data);
+					for(index=0,j=0; data[index] != '\0'; index++)
+					{
+						if(data[index]=='{' && copy_flag == false)
+							copy_flag = true;
+						else
+							continue;
+						while(copy_flag)
+						{
+							vTaskDelay(1);
+							json_packet[j++] = data[index++];
+							if(data[index]=='}')
+							{
+								json_packet[j] = data[index];
+								copy_flag = false;
+								break;
+							}
+						}
+						break;
+					}
+					printf("json_packet : %s\r\n",json_packet);
 					free(data);
 					return SUCCESS;
 				}
@@ -276,7 +298,7 @@ uint8_t ReadMessage(int client_idx)
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
 		sprintf((char*)transmit_buffer,"%s%d\r\n",READ_MSG_BUFFER ,client_idx);
 	    sendAT_Data((char*)transmit_buffer);
-		if(check_response(OK_RESPONSE,150*MAX_WAIT_MS)	==	SUCCESS ){
+		if(check_response(OK_RESPONSE,150*MAX_WAIT_MS) == SUCCESS ){
 			free(transmit_buffer);
 			return SUCCESS;
 		}
@@ -481,7 +503,8 @@ void LTE_initialization(void)
 
 void ConnectToNetwork()
 {
-	while(network_flag == 0){
+	MQTT_NetworkClose(CLIENT_IDX);
+	while(!network_flag){
 		if(MQTT_NetworkOpen(CLIENT_IDX,"54.215.188.103",1883)==2){
 			MQTT_NetworkClose(CLIENT_IDX);
 		}
@@ -492,15 +515,11 @@ void ConnectToNetwork()
 
 void SubscribeToTopics()
 {
-	uint8_t retry_flag = 1, count=0;
-	while(client_flag == 0 && retry_flag)
+	while(!client_flag)
 	{
 		printf("Retrying client connect and subscribe ... \r\n");
 		MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","AC_IR_Control");
-//		SubscribeTopic(CLIENT_IDX,2,"IR_Commands", 0);
-		SubscribeTopic(CLIENT_IDX,2,"ControlDaikin280", 0);
-		if(count++ > 5)
-			retry_flag = 0;
+		if(!subscribe_flag)
+			SubscribeTopic(CLIENT_IDX,2,"Command", 0);
 	}
-	printf("Giving up trying to subscribe ... \r\n");
 }

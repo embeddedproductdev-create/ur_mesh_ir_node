@@ -270,6 +270,7 @@ void poll_button()
     button_pressed = true;
     setTemp_Daikin280(++curr_temp_Daikin280);
     setTemp_Daikin216(++curr_temp_Daikin216);
+    setTemp_Hitachi296(++curr_temp_Hitachi296);
     printf("Temp_inc_button pressed\r\n");
   }
   else if (!gpio_get_level(TEMP_DEC_BUTTON))
@@ -277,6 +278,7 @@ void poll_button()
     button_pressed = true;
     setTemp_Daikin280(--curr_temp_Daikin280);
     setTemp_Daikin216(--curr_temp_Daikin216);
+    setTemp_Hitachi296(--curr_temp_Hitachi296);
     printf("Temp_dec_button pressed\r\n");
   }
   else if (!gpio_get_level(POWER_BUTTON))
@@ -290,6 +292,10 @@ void poll_button()
       setPower_Daikin216(false);
     else
       setPower_Daikin216(true);
+    if(data_Hitachi296.Power)
+    	data_Hitachi296.Power = false;
+	else
+		data_Hitachi296.Power = true;
     printf("Power button pressed\r\n");
   }
   else if (!gpio_get_level(MODE_BUTTON))
@@ -372,17 +378,416 @@ void poll_button()
       printf("Invalid Fan Mode \r\n");
       break;
     }
+    switch(curr_fan_Hitachi296)
+    {
+    case kHitachiAc296FanSilent:
+    	curr_fan_Hitachi296 = kHitachiAc296FanLow;
+		break;
+    case kHitachiAc296FanLow:
+    	curr_fan_Hitachi296 = kHitachiAc296FanMedium;
+		break;
+    case kHitachiAc296FanMedium:
+    	curr_fan_Hitachi296 = kHitachiAc296FanHigh;
+    	break;
+    case kHitachiAc296FanHigh:
+    	curr_fan_Hitachi296 = kHitachiAc296FanAuto;
+    	break;
+    case kHitachiAc296FanAuto:
+    	curr_fan_Hitachi296 = kHitachiAc296FanSilent;
+    	break;
+    }
     setFan_Daikin280(curr_fan_Daikin280);
     setFan_Daikin216(curr_fan_Daikin216);
+    setFan_Hitachi296(curr_fan_Hitachi296);
     printf("fan button pressed\r\n");
   }
   if(button_pressed)
 	{
 		button_pressed = false;
-		// checksum_Daikin280();
-		// send_Daikin280();
-    checksum_Daikin216();
-    send_Daikin216();
+		checksum_Daikin280();
+		send_Daikin280();
 		vTaskDelay(10);
+	}
+}
+
+void control_AC()
+{
+	uint8_t fan = 0, mode = 0;
+	char command_str[10] = "";
+	strcpy(command_str, ac_control_t.command_str);
+	AC_model model_value;
+	if(!strcmp(ac_control_t.model_str,"Daikin"))
+		model_value = Daikin;
+	else
+		model_value = Hitachi;
+	if(!strcmp(command_str, "Fan"))
+	{
+		switch(model_value)
+		{
+		case Daikin:
+			switch(ac_control_t.cmd_value)
+			{
+			case 0:
+				fan = kDaikinFanMin;
+				break;
+			case 1:
+				fan = kDaikinFanMed;
+				break;
+			case 2:
+				fan = kDaikinFanMax;
+				break;
+			case 3:
+				fan = kDaikinFanAuto;
+				break;
+			case 4:
+				fan = kDaikinFanQuiet;
+				break;
+			default:
+				printf("Invalid fan value\r\n");
+				return;
+			}
+			switch(ac_control_t.protocol_num)
+			{
+			case 216:
+				setFan_Daikin216(fan);
+				break;
+			case 200:
+				setFan_Daikin200(fan);
+				break;
+			case 280:
+				setFan_Daikin280(fan);
+				break;
+			default:
+				printf("Invalid protocol in Fan control\r\n");
+				return;
+			}
+			break;
+		case Hitachi:
+			switch(ac_control_t.cmd_value)
+			{
+			case 0:
+				fan = kHitachiAc296FanSilent;
+				break;
+			case 1:
+				fan = kHitachiAc296FanLow;
+				break;
+			case 2:
+				fan = kHitachiAc296FanMedium;
+				break;
+			case 3:
+				fan = kHitachiAc296FanHigh;
+				break;
+			case 4:
+				fan = kHitachiAc296FanAuto;
+				break;
+			default:
+				printf("Invalid fan value\r\n");
+				return;
+			}
+			switch(ac_control_t.protocol_num)
+			{
+			case 296:
+				setFan_Hitachi296(fan);
+				break;
+			default:
+				printf("Invalid protocol in Fan control\r\n");
+				return;
+			}
+			break;
+		default:
+			printf("Invalid AC Model\r\n");
+			return;
+		}
+	}
+	else if(!strcmp(command_str, "Mode"))
+	{
+		switch(model_value)
+		{
+		case Daikin:
+			switch(ac_control_t.cmd_value)
+			{
+			case 0:
+				mode = kDaikinAuto;
+				break;
+			case 1:
+				mode = kDaikinDry;
+				break;
+			case 2:
+				mode = kDaikinCool;
+				break;
+			case 3:
+				mode = kDaikinHeat;
+				break;
+			case 4:
+				mode = kDaikinFan;
+				break;
+			default:
+				printf("Invalid mode control value\r\n");
+				return;
+			}
+			switch(ac_control_t.protocol_num)
+			{
+			case 216:
+				setMode_Daikin216(mode);
+				break;
+			case 200:
+				setMode_Daikin200(mode);
+				break;
+			case 280:
+				setMode_Daikin280(mode);
+				break;
+			}
+			break;
+		case Hitachi:
+			switch(ac_control_t.cmd_value)
+			{
+			case 0:
+				mode = kHitachiAc296Cool;
+				break;
+			case 1:
+				mode = kHitachiAc296DryCool;
+				break;
+			case 2:
+				mode = kHitachiAc296Dehumidify;
+				break;
+			case 3:
+				mode = kHitachiAc296Heat;
+				break;
+			case 4:
+				mode = kHitachiAc296Auto;
+				break;
+			case 5:
+				mode = kHitachiAc296AutoDehumidifying;
+				break;
+			case 6:
+				mode = kHitachiAc296QuickLaundry;
+				break;
+			case 7:
+				mode = kHitachiAc296CondensationControl;
+				break;
+			default:
+				printf("Invalid mode control value\r\n");
+				return;
+			}
+			switch(ac_control_t.protocol_num)
+			{
+			case 296:
+				setMode_Hitachi296(mode);
+				break;
+			default:
+				printf("Invalid protocol in Mode control\r\n");
+				return;
+			}
+			break;
+		default:
+			printf("Invalid AC Model\r\n");
+			return;
+		}
+	}
+	else if(!strcmp(command_str, "Power"))
+	{
+		switch(model_value)
+		{
+		case Daikin:
+			switch(ac_control_t.protocol_num)
+			{
+			case 216:
+				setPower_Daikin216(ac_control_t.cmd_value);
+				break;
+			case 200:
+				setPower_Daikin200(ac_control_t.cmd_value);
+				break;
+			case 280:
+				setPower_Daikin280(ac_control_t.cmd_value);
+				break;
+			default:
+				printf("Invalid protocol in Power control\r\n");
+				return;
+			}
+			break;
+		case Hitachi:
+			switch(ac_control_t.protocol_num)
+			{
+			case 296:
+				setPower_Hitachi296(ac_control_t.cmd_value);
+				break;
+			default:
+				printf("Invalid protocol in Power control\r\n");
+				return;
+			}
+			break;
+		default:
+			printf("Invalid AC Model\r\n");
+			return;
+		}
+	}
+	else if(!strcmp(command_str, "Temp"))
+	{
+		switch(model_value)
+		{
+		case Daikin:
+			if(ac_control_t.cmd_value)
+			{
+				switch(ac_control_t.protocol_num)
+				{
+				case 216:
+					setTemp_Daikin216(++curr_temp_Daikin216);
+					break;
+				case 200:
+					setTemp_Daikin200(++curr_temp_Daikin200);
+					break;
+				case 280:
+					setTemp_Daikin280(++curr_temp_Daikin280);
+					break;
+				default:
+					printf("Invalid protocol in Temp control\r\n");
+					return;
+				}
+			}
+			else
+			{
+				switch(ac_control_t.protocol_num)
+				{
+				case 216:
+					setTemp_Daikin216(--curr_temp_Daikin216);
+					break;
+				case 200:
+					setTemp_Daikin200(--curr_temp_Daikin200);
+					break;
+				case 280:
+					setTemp_Daikin280(--curr_temp_Daikin280);
+					break;
+				default:
+					printf("Invalid protocol in Temp control\r\n");
+					return;
+				}
+			}
+			break;
+		case Hitachi:
+			if(ac_control_t.cmd_value)
+			{
+				switch(ac_control_t.protocol_num)
+				{
+				case 296:
+					setTemp_Hitachi296(++curr_temp_Hitachi296);
+					break;
+				default:
+					printf("Invalid protocol in Temp control\r\n");
+					return;
+				}
+			}
+			else
+			{
+				switch(ac_control_t.protocol_num)
+				{
+				case 296:
+					setTemp_Hitachi296(--curr_temp_Hitachi296);
+					break;
+				default:
+					printf("Invalid protocol in Temp control\r\n");
+					return;
+				}
+			}
+			break;
+		default:
+			printf("Invalid AC Model\r\n");
+			return;
+		}
+	}
+	else if(!strcmp(command_str, "SwingV"))
+	{
+		switch(model_value)
+		{
+		case Daikin:
+			switch(ac_control_t.protocol_num)
+			{
+			case 216:
+				setSwingV_Daikin216(ac_control_t.cmd_value);
+				break;
+			case 200:
+				setSwingV_Daikin200(ac_control_t.cmd_value);
+				break;
+			case 280:
+				setSwingV_Daikin280(ac_control_t.cmd_value);
+				break;
+			default:
+				printf("Invalid protocol in SwingV control\r\n");
+				return;
+			}
+			break;
+		case Hitachi:
+			switch(ac_control_t.protocol_num)
+			{
+			case 296:
+				setSwingV_Hitachi296(ac_control_t.cmd_value);
+				break;
+			default:
+				printf("Invalid protocol in SwingV control\r\n");
+				return;
+			}
+			break;
+		default:
+			printf("Invalid AC Model\r\n");
+			return;
+		}
+	}
+	else if(!strcmp(command_str, "SwingH"))
+	{
+		switch(model_value)
+		{
+		case Daikin:
+			switch(ac_control_t.protocol_num)
+			{
+			case 216:
+				setSwingH_Daikin216(ac_control_t.cmd_value);
+				break;
+			case 200:
+				setSwingH_Daikin200(ac_control_t.cmd_value);
+				break;
+			case 280:
+				setSwingH_Daikin280(ac_control_t.cmd_value);
+				break;
+			default:
+				printf("Invalid protocol in SwingH control\r\n");
+				return;
+			}
+			break;
+		case Hitachi:
+			switch(ac_control_t.protocol_num)
+			{
+			case 296:
+				setSwingH_Hitachi296(ac_control_t.cmd_value);
+				break;
+			default:
+				printf("Invalid protocol in SwingH control\r\n");
+				return;
+			}
+			break;
+		default:
+			printf("Invalid AC Model\r\n");
+			return;
+		}
+	}
+	switch(ac_control_t.protocol_num)
+	{
+	case 200:
+		checksum_Daikin200();
+		send_Daikin200();
+		break;
+	case 216:
+		checksum_Daikin216();
+		send_Daikin216();
+		break;
+	case 280:
+		checksum_Daikin280();
+		send_Daikin280();
+		break;
+	case 296:
+		setInvertedStates_Hitachi296();
+		send_Hitachi296();
+		break;
+	default:
+		printf("Invalid Protocol num in sending\r\n");
+		return;
 	}
 }

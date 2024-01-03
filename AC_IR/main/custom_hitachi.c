@@ -2,17 +2,20 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "include/custom_hitachi.h"
-#include "include/custom_irsend.h"
+#include "main.h"
 
-HitachiAC296Protocol_t data_Hitachi296;
+/*HITACHI296 GLOBAL VARIABLE INITIALIZATION*/
+uint8_t curr_temp_Hitachi296 = 25;
+uint8_t curr_power_Hitachi296 = false;
+uint8_t curr_mode_Hitachi296 = kHitachiAc296Cool;
+uint8_t curr_fan_Hitachi296 = kHitachiAc296FanSilent;
+HitachiAC296_t data_Hitachi296;
 
-void send_Hitachi296(uint8_t repeat, bool MSBfirst){
-	setTemp_Hitachi296(25);
-	setMode_Hitachi296(kHitachiAc296Cool);
+void send_Hitachi296(){
 	sendGeneric(kHitachiAcHdrMark, kHitachiAcHdrSpace, kHitachiAcBitMark,
 	              kHitachiAcOneSpace, kHitachiAcBitMark, kHitachiAcZeroSpace,
-	              kHitachiAcBitMark, kHitachiAcMinGap, data_Hitachi296.raw, HITACHI296_NBYTES, 38, MSBfirst,
-	              repeat, 50);
+	              kHitachiAcBitMark, kHitachiAcMinGap, data_Hitachi296.raw, HITACHI296_NBYTES, 38, false,
+	              0, 50);
 }
 
 void data_init_Hitachi296()
@@ -39,14 +42,22 @@ void data_init_Hitachi296()
 	data_Hitachi296.raw[33] = 0x00;
 	data_Hitachi296.raw[35] = 0x03;  // Humidity
 
-//	setTemp_Hitachi296(24);
-//	setMode_Hitachi296(kHitachiAc296Heat);
-//	setFan_Hitachi296(kHitachiAc296FanAuto);
-	data_Hitachi296.Temp = 9;
-	data_Hitachi296.Power = false;
-	data_Hitachi296.Mode = 3;
-	data_Hitachi296.Fan = 4;
 	setInvertedStates_Hitachi296();
+}
+
+void setSwingV_Hitachi296(const bool on)
+{
+	;
+}
+
+void setSwingH_Hitachi296(const bool on)
+{
+	;
+}
+
+void setPower_Hitachi296(const bool on)
+{
+	data_Hitachi296.Power = on;
 }
 
 void setTemp_Hitachi296(uint8_t temp) {

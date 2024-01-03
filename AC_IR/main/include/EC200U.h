@@ -12,7 +12,7 @@
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 2
+#define CLIENT_IDX 5
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
@@ -112,7 +112,6 @@
 #define GPIO_LTE_RESET	19
 #define GPIO_LTE_ONOFF	23
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
-
 
 extern uint8_t network_flag;
 extern uint8_t client_flag;

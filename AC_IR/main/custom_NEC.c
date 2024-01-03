@@ -7,35 +7,35 @@ void sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat)
                 data, nbits, 40, true, 0, 33);
 }
 
-void ir_send_NEC_command(commands command)
+void ir_send_NEC_command(OTT_commands command)
 {
 	switch(command)
 	{
-		case Vol_up:
+		case Vol_up_cmd:
 			sendNEC(VOLUME_UP_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Vol_down:
+		case Vol_down_cmd:
 			sendNEC(VOLUME_DOWN_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Up:
+		case Up_cmd:
 			sendNEC(UP_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Down:
+		case Down_cmd:
 			sendNEC(DOWN_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Left:
+		case Left_cmd:
 			sendNEC(LEFT_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Right:
+		case Right_cmd:
 			sendNEC(RIGHT_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Home:
+		case Home_cmd:
 			sendNEC(HOME_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Power:
+		case Power_cmd:
 			sendNEC(POWER_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
-		case Back:
+		case Back_cmd:
 			sendNEC(BACK_BUTTON_CMD, NUM_OF_BITS_32, NO_REPEAT);
 			break;
 		default:

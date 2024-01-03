@@ -245,6 +245,10 @@ typedef union Daikin216{
   };
 }Daikin216_t;
 
+typedef union Daikin200{
+	uint8_t raw[25];
+}Daikin200_t;
+
 
 /*DAIKIN 280 FUNCTIONS*/
 void setTemp_Daikin280(const uint8_t temp);
@@ -253,8 +257,8 @@ void setBit_Daikin280(uint8_t *const data, const uint8_t position, const bool on
 void setFan_Daikin280(const uint8_t fan);
 void setBits_Daikin280(uint8_t *const dst, const uint8_t offset, const uint8_t nbits, const uint8_t data);
 void setMode_Daikin280(const uint8_t mode);
-void setSwingVertical_Daikin280(const bool on);
-void setSwingHorizontal_Daikin280(const bool on);
+void setSwingV_Daikin280(const bool on);
+void setSwingH_Daikin280(const bool on);
 void setQuiet_Daikin280(const bool on);
 void setPowerful_Daikin280(const bool on);
 void setEcono_Daikin280(const bool on);
@@ -273,9 +277,20 @@ void setPower_Daikin216(const bool on);
 void setTemp_Daikin216(const uint8_t temp);
 void setMode_Daikin216(const uint8_t mode);
 void setFan_Daikin216(const uint8_t fan);
-void setSwingVertical_Daikin216(const bool on);
-void setSwingHorizontal(const bool on);
+void setSwingV_Daikin216(const bool on);
+void setSwingH_Daikin216(const bool on);
 void send_Daikin216();
+
+/*DAIKIN 200 FUNCTIONS*/
+void setTemp_Daikin200(const uint8_t temp);
+void setMode_Daikin200(const uint8_t mode);
+void setFan_Daikin200(const uint8_t fan);
+void setSwingV_Daikin200(const bool on);
+void setSwingH_Daikin200(const bool on);
+void setPower_Daikin200(const bool on);
+void checksum_Daikin200(void);
+void data_init_Daikin200();
+void send_Daikin200();
 
 /*DAIKIN 280 GLOBAL VARIABLES*/
 extern Daikin280_t data_Daikin280;
@@ -290,5 +305,12 @@ extern uint8_t curr_temp_Daikin216;
 extern uint8_t curr_fan_Daikin216;
 extern uint8_t curr_mode_Daikin216;
 extern uint8_t curr_power_Daikin216;
+
+/*DAIKIN 200 GLOBAL VARIABLES*/
+extern Daikin200_t data_Daikin200;
+extern uint8_t curr_temp_Daikin200;
+extern uint8_t curr_fan_Daikin200;
+extern uint8_t curr_mode_Daikin200;
+extern uint8_t curr_power_Daikin200;
 
 #endif

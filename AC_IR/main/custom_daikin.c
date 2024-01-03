@@ -14,6 +14,13 @@ uint8_t curr_mode_Daikin216 = DaikinAuto;
 uint8_t curr_fan_Daikin216 = DaikinFanMin;
 Daikin216_t data_Daikin216;
 
+/*DAIKIN 200 GLOBAL VARIABLE INITIALIZATION*/
+uint8_t curr_temp_Daikin200 = 25;
+uint8_t curr_power_Daikin200 = false;
+uint8_t curr_mode_Daikin200 = DaikinAuto;
+uint8_t curr_fan_Daikin200 = DaikinFanMin;
+Daikin200_t data_Daikin200;
+
 void setTemp_Daikin280(const uint8_t temp)
 {
 	uint8_t degrees = (uint8_t)max(temp, kDaikinMinTemp);
@@ -27,9 +34,19 @@ void setTemp_Daikin216(const uint8_t temp) {
   data_Daikin216.Temp = degrees;
 }
 
+void setTemp_Daikin200(const uint8_t temp)
+{
+	;
+}
+
 void setPower_Daikin280(const bool on) { data_Daikin280.Power = on; }
 
 void setPower_Daikin216(const bool on) { data_Daikin216.Power = on; }
+
+void setPower_Daikin200(const bool on)
+{
+	;
+}
 
 void setBit_Daikin280(uint8_t *const data_Daikin280, const uint8_t position, const bool on)
 {
@@ -79,6 +96,11 @@ void setFan_Daikin216(const uint8_t fan) {
   data_Daikin216.Fan = fanset;
 }
 
+void setFan_Daikin200(const uint8_t fan)
+{
+	;
+}
+
 void setMode_Daikin280(const uint8_t mode)
 {
 	switch (mode)
@@ -112,24 +134,36 @@ void setMode_Daikin216(const uint8_t mode)
 	}
 }
 
-void setSwingVertical_Daikin280(const bool on)
+void setMode_Daikin200(const uint8_t mode)
 {
-	setBits_Daikin280(&data_Daikin280.raw[kDaikinByteFan], kDaikinSwingOffset, kDaikinSwingSize,
-					  on ? kDaikinSwingOn : kDaikinSwingOff);
+	;
 }
 
-void setSwingVertical_Daikin216(const bool on) {
+void setSwingV_Daikin280(const bool on)
+{
+	data_Daikin280.SwingV = (on ? kDaikinSwingOn : kDaikinSwingOff);
+}
+
+void setSwingV_Daikin216(const bool on) {
   data_Daikin216.SwingV = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
 }
 
-void setSwingHorizontal_Daikin280(const bool on)
+void setSwingV_Daikin200(const bool on)
 {
-	setBits_Daikin280(&data_Daikin280.raw[kDaikinByteSwingH], kDaikinSwingOffset, kDaikinSwingSize,
-					  on ? kDaikinSwingOn : kDaikinSwingOff);
+	;
 }
 
-void setSwingHorizontal(const bool on) {
+void setSwingH_Daikin280(const bool on)
+{
+	data_Daikin280.SwingH = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
+}
+
+void setSwingH_Daikin216(const bool on) {
   data_Daikin216.SwingH = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
+}
+
+void setSwingH_Daikin200(const bool on) {
+	;
 }
 
 void setQuiet_Daikin280(const bool on)
@@ -211,6 +245,11 @@ void send_Daikin280()
 				data_Daikin280.raw + offset, 35 - offset, 41, false, 0, IRObject._dutycycle);
 }
 
+void send_Daikin200()
+{
+	;
+}
+
 void checksum_Daikin280()
 {
 	data_Daikin280.raw[kDaikinByteChecksum1] = sumBytes(data_Daikin280.raw, kDaikinSection1Length - 1);
@@ -225,6 +264,11 @@ void checksum_Daikin216(void)
 {
 	data_Daikin216.Sum1 = sumBytes(data_Daikin216.raw, kDaikin216Section1Length - 1);
 	data_Daikin216.Sum2 = sumBytes(data_Daikin216.raw + kDaikin216Section1Length, kDaikin216Section2Length - 1);
+}
+
+void checksum_Daikin200(void)
+{
+	;
 }
 
 void data_init_Daikin280()
@@ -271,4 +315,9 @@ void data_init_Daikin216()
 	data_Daikin216.raw[10] = 0x27;
 	data_Daikin216.raw[23] = 0xC0;
 	// _.raw[26] is a checksum byte, it will be set by checksum().
+}
+
+void data_init_Daikin200()
+{
+	;
 }
