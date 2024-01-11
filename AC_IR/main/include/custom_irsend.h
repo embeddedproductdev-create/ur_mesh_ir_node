@@ -68,45 +68,53 @@ uint64_t min(uint64_t param1, uint64_t param2);
 uint64_t max(uint64_t param1, uint64_t param2);
 uint8_t sumBytes(const uint8_t *const start, const uint16_t length);
 void poll_button();
-void control_AC();
+uint8_t control_AC();
+
 
 // Variable Declarations
 typedef enum
 {
-        Vol_up_cmd,
-        Vol_down_cmd,
-        Up_cmd,
-        Down_cmd,
-        Left_cmd,
-        Right_cmd,
-        Home_cmd,
-        Power_cmd,
-        Back_cmd
+	Vol_up_cmd,
+	Vol_down_cmd,
+	Up_cmd,
+	Down_cmd,
+	Left_cmd,
+	Right_cmd,
+	Home_cmd,
+	Power_cmd,
+	Back_cmd
 } OTT_commands;
 
 typedef enum
 {
-        Daikin = 0,
-        Hitachi = 1
+        Bluestar,
+		Coolix,
+		Daikin,
+        Hitachi,
+		Voltas,
+		Num_of_AC_models
 } AC_model;
 
 
 typedef struct IRsend
 {
-        uint8_t outputOn;
-        uint8_t outputOff;
-        uint16_t IRpin;
-        uint16_t onTimePeriod;
-        uint16_t offTimePeriod;
-        int8_t periodOffset;
-        uint8_t _dutycycle;
-        bool modulation;
+	uint8_t outputOn;
+	uint8_t outputOff;
+	uint16_t IRpin;
+	uint16_t onTimePeriod;
+	uint16_t offTimePeriod;
+	int8_t periodOffset;
+	uint8_t _dutycycle;
+	bool modulation;
 } IRSend_t;
 
 extern IRSend_t IRObject;
 extern int cmd;
-extern uint8_t data[35];
+extern char AC_models[20][10];
 
 extern bool button_pressed;
+extern bool configured;
+extern void (*control_ptr)(void);
+extern char curr_selected_protocol[10];
 
 #endif

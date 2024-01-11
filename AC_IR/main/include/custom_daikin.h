@@ -3,6 +3,10 @@
 
 #include <main.h>
 
+#define DAIKIN200 "Daikin200"
+#define DAIKIN216 "Daikin216"
+#define DAIKIN280 "Daikin280"
+
 /*DAIKIN CONSTANTS*/
 #define kNoRepeat 0
 #define kMarkExcess 50
@@ -12,20 +16,24 @@
 #define kDaikinStateLengthShort kDaikinStateLength - 8
 #define kDaikinBitsShort kDaikinStateLengthShort * 8
 #define kDaikinDefaultRepeat kNoRepeat
+
 #define kDaikinAuto 0b000
 #define kDaikinDry 0b010
 #define kDaikinCool 0b011
 #define kDaikinHeat 0b100
 #define kDaikinFan 0b110
+
 #define kDaikinModeOffset 4
 #define kDaikinModeSize 3
 #define kDaikinMinTemp 10 // Celsius
 #define kDaikinMaxTemp 32 // Celsius
+
 #define kDaikinFanMin 1
 #define kDaikinFanMed 3
 #define kDaikinFanMax 5
 #define kDaikinFanAuto 0b1010  // 10 / 0xA
 #define kDaikinFanQuiet 0b1011 // 11 / 0xB
+
 #define kDaikinFanOffset 4
 #define kDaikinFanSize 4
 #define kDaikinSwingOffset 0
@@ -269,6 +277,7 @@ void disableOnTimer_Daikin280(void);
 void checksum_Daikin280();
 void data_init_Daikin280();
 void send_Daikin280();
+void control_Daikin280(void);
 
 /*DAIKIN 216 FUNCTIONS*/
 void checksum_Daikin216(void);
@@ -280,6 +289,7 @@ void setFan_Daikin216(const uint8_t fan);
 void setSwingV_Daikin216(const bool on);
 void setSwingH_Daikin216(const bool on);
 void send_Daikin216();
+void control_Daikin216(void);
 
 /*DAIKIN 200 FUNCTIONS*/
 void setTemp_Daikin200(const uint8_t temp);
@@ -291,6 +301,7 @@ void setPower_Daikin200(const bool on);
 void checksum_Daikin200(void);
 void data_init_Daikin200();
 void send_Daikin200();
+void control_Daikin200(void);
 
 /*DAIKIN 280 GLOBAL VARIABLES*/
 extern Daikin280_t data_Daikin280;

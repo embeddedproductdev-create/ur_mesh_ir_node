@@ -518,8 +518,8 @@ void SubscribeToTopics()
 	while(!client_flag)
 	{
 		printf("Retrying client connect and subscribe ... \r\n");
-		MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","AC_IR_Control");
+		MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","ac_control");
 		if(!subscribe_flag)
-			SubscribeTopic(CLIENT_IDX,2,"Command", 0);
+			SubscribeTopic(CLIENT_IDX,2,"ac_cmd", 0);
 	}
 }

@@ -280,6 +280,7 @@ void data_init_Daikin280()
 	data_Daikin280.raw[0] = 0x11;
 	data_Daikin280.raw[1] = 0xda;
 	data_Daikin280.raw[2] = 0x27;
+	data_Daikin280.raw[3] = 0xf0;
 	data_Daikin280.raw[4] = 0xc5;
 	data_Daikin280.raw[8] = 0x11;
 	data_Daikin280.raw[9] = 0xda;
@@ -309,7 +310,7 @@ void data_init_Daikin216()
 	data_Daikin216.raw[1] = 0xDA;
 	data_Daikin216.raw[2] = 0x27;
 	data_Daikin216.raw[3] = 0xF0;
-	// _.raw[7] is a checksum byte, it will be set by checksum().
+//	 _.raw[7] is a checksum byte, it will be set by checksum().
 	data_Daikin216.raw[8] = 0x11;
 	data_Daikin216.raw[9] = 0xDA;
 	data_Daikin216.raw[10] = 0x27;
@@ -320,4 +321,140 @@ void data_init_Daikin216()
 void data_init_Daikin200()
 {
 	;
+}
+
+void control_Daikin216()
+{
+	/*Power control*/
+	if(!strcmp(ac_control_t.power_str, "On"))
+		setPower_Daikin216(true);
+	else
+		setPower_Daikin216(false);
+	/*Temperature control*/
+	if(ac_control_t.temp >= kDaikinMinTemp && ac_control_t.temp <= kDaikinMaxTemp)
+		setTemp_Daikin216(ac_control_t.temp);
+	/*SwingH control*/
+	if(!strcmp(ac_control_t.swingH_str, "On"))
+		setSwingH_Daikin216(kDaikinSwingOn);
+	else
+		setSwingH_Daikin216(kDaikinSwingOff);
+	/*SwingV control*/
+	if(!strcmp(ac_control_t.swingV_str, "On"))
+		setSwingV_Daikin216(kDaikinSwingOn);
+	else
+		setSwingV_Daikin216(kDaikinSwingOff);
+	/*Fan control*/
+	switch(ac_control_t.fan)
+	{
+	case kDaikinFanMin:
+		setFan_Daikin216(kDaikinFanMin);
+		break;
+	case kDaikinFanMed:
+		setFan_Daikin216(kDaikinFanMed);
+		break;
+	case kDaikinFanMax:
+		setFan_Daikin216(kDaikinFanMax);
+		break;
+	case kDaikinFanAuto:
+		setFan_Daikin216(kDaikinFanAuto);
+		break;
+	case kDaikinFanQuiet:
+		setFan_Daikin216(kDaikinFanQuiet);
+		break;
+	default:
+		printf("Invalid Fan value in Daikin216\r\n");
+		break;
+	}
+	/*Mode control*/
+	switch(ac_control_t.mode)
+	{
+	case kDaikinAuto:
+		setMode_Daikin216(kDaikinAuto);
+		break;
+	case kDaikinDry:
+		setMode_Daikin216(kDaikinDry);
+		break;
+	case kDaikinCool:
+		setMode_Daikin216(kDaikinCool);
+		break;
+	case kDaikinHeat:
+		setMode_Daikin216(kDaikinHeat);
+		break;
+	case kDaikinFan:
+		setMode_Daikin216(kDaikinFan);
+		break;
+	default:
+		printf("Invalid fan value in Daikin216\r\n");
+		break;
+	}
+	checksum_Daikin216();
+	send_Daikin216();
+}
+
+void control_Daikin280()
+{
+	/*Power control*/
+	if(!strcmp(ac_control_t.power_str, "On"))
+		setPower_Daikin280(true);
+	else
+		setPower_Daikin280(false);
+	/*Temperature control*/
+	if(ac_control_t.temp >= kDaikinMinTemp && ac_control_t.temp <= kDaikinMaxTemp)
+		setTemp_Daikin280(ac_control_t.temp);
+	/*SwingH control*/
+	if(!strcmp(ac_control_t.swingH_str, "On"))
+		setSwingH_Daikin280(kDaikinSwingOn);
+	else
+		setSwingH_Daikin280(kDaikinSwingOff);
+	/*SwingV control*/
+	if(!strcmp(ac_control_t.swingV_str, "On"))
+		setSwingV_Daikin280(kDaikinSwingOn);
+	else
+		setSwingV_Daikin280(kDaikinSwingOff);
+	/*Fan control*/
+	switch(ac_control_t.fan)
+	{
+	case kDaikinFanMin:
+		setFan_Daikin280(kDaikinFanMin);
+		break;
+	case kDaikinFanMed:
+		setFan_Daikin280(kDaikinFanMed);
+		break;
+	case kDaikinFanMax:
+		setFan_Daikin280(kDaikinFanMax);
+		break;
+	case kDaikinFanAuto:
+		setFan_Daikin280(kDaikinFanAuto);
+		break;
+	case kDaikinFanQuiet:
+		setFan_Daikin280(kDaikinFanQuiet);
+		break;
+	default:
+		printf("Invalid Fan value in Daikin280\r\n");
+		break;
+	}
+	/*Mode control*/
+	switch(ac_control_t.mode)
+	{
+	case kDaikinAuto:
+		setMode_Daikin280(kDaikinAuto);
+		break;
+	case kDaikinDry:
+		setMode_Daikin280(kDaikinDry);
+		break;
+	case kDaikinCool:
+		setMode_Daikin280(kDaikinCool);
+		break;
+	case kDaikinHeat:
+		setMode_Daikin280(kDaikinHeat);
+		break;
+	case kDaikinFan:
+		setMode_Daikin280(kDaikinFan);
+		break;
+	default:
+		printf("Invalid fan value in Daikin280\r\n");
+		break;
+	}
+	checksum_Daikin280();
+	send_Daikin280();
 }

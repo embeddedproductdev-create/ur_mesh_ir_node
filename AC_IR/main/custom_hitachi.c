@@ -20,6 +20,8 @@ void send_Hitachi296(){
 
 void data_init_Hitachi296()
 {
+	for(uint8_t i = 0; i < 37; i++)
+		data_Hitachi296.raw[i] = 0x00;
 	data_Hitachi296.raw[0] = 0x01;
 	data_Hitachi296.raw[1] = 0x10;
 	data_Hitachi296.raw[2] = 0x00;
@@ -78,7 +80,7 @@ void setMode_Hitachi296(const uint8_t mode)
 	    	setTemp_Hitachi296(data_Hitachi296.Temp);
 	    	break;
 	    default:
-//	      setMode(kHitachiAc296Auto);
+	      setMode_Hitachi296(kHitachiAc296Auto);
 	      printf("default case in setMode_Hitachi296\r\n");
 	  }
 }
