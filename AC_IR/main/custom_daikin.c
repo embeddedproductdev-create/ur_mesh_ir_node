@@ -28,10 +28,11 @@ void setTemp_Daikin280(const uint8_t temp)
 	data_Daikin280.raw[kDaikinByteTemp] = degrees << 1;
 }
 
-void setTemp_Daikin216(const uint8_t temp) {
-  uint8_t degrees = max(temp, kDaikinMinTemp);
-  degrees = min(degrees, kDaikinMaxTemp);
-  data_Daikin216.Temp = degrees;
+void setTemp_Daikin216(const uint8_t temp)
+{
+	uint8_t degrees = max(temp, kDaikinMinTemp);
+	degrees = min(degrees, kDaikinMaxTemp);
+	data_Daikin216.Temp = degrees;
 }
 
 void setTemp_Daikin200(const uint8_t temp)
@@ -84,16 +85,17 @@ void setFan_Daikin280(const uint8_t fan)
 	setBits_Daikin280(&data_Daikin280.raw[kDaikinByteFan], kDaikinFanOffset, kDaikinFanSize, fanset);
 }
 
-void setFan_Daikin216(const uint8_t fan) {
-  // Set the fan speed bits, leave low 4 bits alone
-  uint8_t fanset;
-  if (fan == kDaikinFanQuiet || fan == kDaikinFanAuto)
-    fanset = fan;
-  else if (fan < kDaikinFanMin || fan > kDaikinFanMax)
-    fanset = kDaikinFanAuto;
-  else
-    fanset = 2 + fan;
-  data_Daikin216.Fan = fanset;
+void setFan_Daikin216(const uint8_t fan)
+{
+	// Set the fan speed bits, leave low 4 bits alone
+	uint8_t fanset;
+	if (fan == kDaikinFanQuiet || fan == kDaikinFanAuto)
+		fanset = fan;
+	else if (fan < kDaikinFanMin || fan > kDaikinFanMax)
+		fanset = kDaikinFanAuto;
+	else
+		fanset = 2 + fan;
+	data_Daikin216.Fan = fanset;
 }
 
 void setFan_Daikin200(const uint8_t fan)
@@ -144,8 +146,9 @@ void setSwingV_Daikin280(const bool on)
 	data_Daikin280.SwingV = (on ? kDaikinSwingOn : kDaikinSwingOff);
 }
 
-void setSwingV_Daikin216(const bool on) {
-  data_Daikin216.SwingV = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
+void setSwingV_Daikin216(const bool on)
+{
+	data_Daikin216.SwingV = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
 }
 
 void setSwingV_Daikin200(const bool on)
@@ -158,11 +161,13 @@ void setSwingH_Daikin280(const bool on)
 	data_Daikin280.SwingH = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
 }
 
-void setSwingH_Daikin216(const bool on) {
-  data_Daikin216.SwingH = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
+void setSwingH_Daikin216(const bool on)
+{
+	data_Daikin216.SwingH = (on ? kDaikin216SwingOn : kDaikin216SwingOff);
 }
 
-void setSwingH_Daikin200(const bool on) {
+void setSwingH_Daikin200(const bool on)
+{
 	;
 }
 
@@ -310,7 +315,7 @@ void data_init_Daikin216()
 	data_Daikin216.raw[1] = 0xDA;
 	data_Daikin216.raw[2] = 0x27;
 	data_Daikin216.raw[3] = 0xF0;
-//	 _.raw[7] is a checksum byte, it will be set by checksum().
+	//	 _.raw[7] is a checksum byte, it will be set by checksum().
 	data_Daikin216.raw[8] = 0x11;
 	data_Daikin216.raw[9] = 0xDA;
 	data_Daikin216.raw[10] = 0x27;
@@ -326,25 +331,25 @@ void data_init_Daikin200()
 void control_Daikin216()
 {
 	/*Power control*/
-	if(!strcmp(ac_control_t.power_str, "On"))
+	if (!strcmp(ac_control_t.power_str, "On"))
 		setPower_Daikin216(true);
 	else
 		setPower_Daikin216(false);
 	/*Temperature control*/
-	if(ac_control_t.temp >= kDaikinMinTemp && ac_control_t.temp <= kDaikinMaxTemp)
+	if (ac_control_t.temp >= kDaikinMinTemp && ac_control_t.temp <= kDaikinMaxTemp)
 		setTemp_Daikin216(ac_control_t.temp);
 	/*SwingH control*/
-	if(!strcmp(ac_control_t.swingH_str, "On"))
+	if (!strcmp(ac_control_t.swingH_str, "On"))
 		setSwingH_Daikin216(kDaikinSwingOn);
 	else
 		setSwingH_Daikin216(kDaikinSwingOff);
 	/*SwingV control*/
-	if(!strcmp(ac_control_t.swingV_str, "On"))
+	if (!strcmp(ac_control_t.swingV_str, "On"))
 		setSwingV_Daikin216(kDaikinSwingOn);
 	else
 		setSwingV_Daikin216(kDaikinSwingOff);
 	/*Fan control*/
-	switch(ac_control_t.fan)
+	switch (ac_control_t.fan)
 	{
 	case kDaikinFanMin:
 		setFan_Daikin216(kDaikinFanMin);
@@ -366,7 +371,7 @@ void control_Daikin216()
 		break;
 	}
 	/*Mode control*/
-	switch(ac_control_t.mode)
+	switch (ac_control_t.mode)
 	{
 	case kDaikinAuto:
 		setMode_Daikin216(kDaikinAuto);
@@ -394,25 +399,25 @@ void control_Daikin216()
 void control_Daikin280()
 {
 	/*Power control*/
-	if(!strcmp(ac_control_t.power_str, "On"))
+	if (!strcmp(ac_control_t.power_str, "On"))
 		setPower_Daikin280(true);
 	else
 		setPower_Daikin280(false);
 	/*Temperature control*/
-	if(ac_control_t.temp >= kDaikinMinTemp && ac_control_t.temp <= kDaikinMaxTemp)
+	if (ac_control_t.temp >= kDaikinMinTemp && ac_control_t.temp <= kDaikinMaxTemp)
 		setTemp_Daikin280(ac_control_t.temp);
 	/*SwingH control*/
-	if(!strcmp(ac_control_t.swingH_str, "On"))
+	if (!strcmp(ac_control_t.swingH_str, "On"))
 		setSwingH_Daikin280(kDaikinSwingOn);
 	else
 		setSwingH_Daikin280(kDaikinSwingOff);
 	/*SwingV control*/
-	if(!strcmp(ac_control_t.swingV_str, "On"))
+	if (!strcmp(ac_control_t.swingV_str, "On"))
 		setSwingV_Daikin280(kDaikinSwingOn);
 	else
 		setSwingV_Daikin280(kDaikinSwingOff);
 	/*Fan control*/
-	switch(ac_control_t.fan)
+	switch (ac_control_t.fan)
 	{
 	case kDaikinFanMin:
 		setFan_Daikin280(kDaikinFanMin);
@@ -434,7 +439,7 @@ void control_Daikin280()
 		break;
 	}
 	/*Mode control*/
-	switch(ac_control_t.mode)
+	switch (ac_control_t.mode)
 	{
 	case kDaikinAuto:
 		setMode_Daikin280(kDaikinAuto);
@@ -457,4 +462,38 @@ void control_Daikin280()
 	}
 	checksum_Daikin280();
 	send_Daikin280();
+}
+
+/* RECEIVER PART */
+bool decodeDaikin216(uint16_t offset)
+{
+	if (rawlen < 2 * (kDaikin216Bits + kHeader + kFooter) - 1 + offset)
+		return false;
+
+	const uint8_t ksectionSize[kDaikin216Sections] = {kDaikin216Section1Length, kDaikin216Section2Length};
+
+	// Sections
+	uint16_t pos = 0;
+	for (uint8_t section = 0; section < kDaikin216Sections; section++)
+	{
+		uint16_t used;
+		// Section Header + Section Data + Section Footer
+		used = matchGeneric(rawbuf + offset, state.state_array + pos,
+							rawlen - offset, ksectionSize[section] * 8,
+							kDaikin216HdrMark, kDaikin216HdrSpace,
+							kDaikin216BitMark, kDaikin216OneSpace,
+							kDaikin216BitMark, kDaikin216ZeroSpace,
+							kDaikin216BitMark, kDaikin216Gap,
+							section >= kDaikin216Sections - 1,
+							kDaikinTolerance, kDaikinMarkExcess, false);
+		if (used == 0)
+			return false;
+		offset += used;
+		pos += ksectionSize[section];
+	}
+
+	//success
+	decode_type = DAIKIN216;
+	bits = kDaikin216Bits;
+	return true;
 }

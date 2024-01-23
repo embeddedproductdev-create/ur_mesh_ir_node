@@ -21,14 +21,6 @@
 #define BACK_BUTTON_CMD 0x00f9f2d0
 #define POWER_BUTTON_CMD 0x00f9ea15
 
-/*BUTTON DEFINITION*/
-#define TEMP_INC_BUTTON 32
-#define TEMP_DEC_BUTTON 33
-#define POWER_BUTTON 34
-#define MODE_BUTTON 35
-#define FAN_BUTTON 25
-#define GPIO_INPUT_PIN_SEL (1ULL << TEMP_INC_BUTTON) | (1ULL << TEMP_DEC_BUTTON) | (1ULL << POWER_BUTTON) | (1ULL << MODE_BUTTON) | (1ULL << FAN_BUTTON)
-
 #define NUM_OF_BITS_32 32
 #define NO_REPEAT 0
 
@@ -39,7 +31,7 @@
 void IR_init();
 void irsend_configuration(bool inverted, bool use_modulation);
 void sendNEC(uint64_t data, uint16_t nbits, uint16_t repeat);
-void IR_gpio_configuration();
+void IR_send_gpio_configuration();
 void sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                  const uint16_t onemark, const uint32_t onespace,
                  const uint16_t zeromark, const uint32_t zerospace,
@@ -69,6 +61,7 @@ uint64_t max(uint64_t param1, uint64_t param2);
 uint8_t sumBytes(const uint8_t *const start, const uint16_t length);
 void poll_button();
 uint8_t control_AC();
+void *recv_handler(void *args);
 
 
 // Variable Declarations

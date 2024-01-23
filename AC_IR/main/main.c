@@ -16,16 +16,25 @@ void app_main(void)
 
 	LTE_gpio_configuration();
 
-	resetLte();
+    resetLte();
 	LTE_initialization();
 	ConnectToNetwork();
 
-	while(1)
-	{
-		ReadMessage(CLIENT_IDX);
-		parse_and_control();
-		vTaskDelay(pdMS_TO_TICKS(10));
-	}
+	//Thread ID initialization
+    pthread_t recv_handler_tid;
+	pthread_t send_handler_tid;
+
+
+	//Create Threads
+	if(pthread_create(&recv_handler_tid, NULL, recv_handler, NULL) !=0){
+        perror("Error in creating modbus_req_handler_thread : ");
+    }
+	if(pthread_create(&send_handler_tid, NULL, send_handler, NULL) !=0){
+        perror("Error in creating modbus_req_handler_thread : ");
+    }
+
+	pthread_join(recv_handler_tid, NULL);
+	pthread_join(send_handler_tid, NULL);
 }
 
 

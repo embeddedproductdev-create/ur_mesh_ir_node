@@ -147,6 +147,10 @@ void setup() {
   // packing as we expect and Endianness is as we expect.
   assert(irutils::lowLevelSanityCheck() == 0);
 
+  //Instead of 3.3V using this
+  pinMode(32, OUTPUT);
+  digitalWrite(32, HIGH);
+
   Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", kRecvPin);
 //  OTAinit();  // setup OTA handlers and show IP
 #if DECODE_HASH

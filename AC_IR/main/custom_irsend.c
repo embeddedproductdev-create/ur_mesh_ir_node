@@ -34,7 +34,7 @@ void IR_init()
   IRObject.IRpin = IR_CTRL_SEND_PIN;
   IRObject._dutycycle = 75;
   irsend_configuration(INVERTED_FALSE, USE_MODULATION);
-  IR_gpio_configuration();
+  IR_send_gpio_configuration();
 }
 
 void irsend_configuration(bool inverted, bool use_modulation)
@@ -56,28 +56,22 @@ void irsend_configuration(bool inverted, bool use_modulation)
     IRObject._dutycycle = kDutyMax;
 }
 
-void IR_gpio_configuration()
+void IR_send_gpio_configuration()
 {
   // zero-initialize the config structure.
-  gpio_config_t o_conf = {}, i_conf = {};
+  gpio_config_t o_conf = {};
   // disable interrupt
   o_conf.intr_type = GPIO_INTR_DISABLE;
-  i_conf.intr_type = GPIO_INTR_DISABLE;
   // set as output mode
   o_conf.mode = GPIO_MODE_OUTPUT;
-  i_conf.mode = GPIO_MODE_INPUT;
   // bit mask of the pins that you want to set,e.g.GPIO18/19
   o_conf.pin_bit_mask = (1ULL << IRObject.IRpin);
-  i_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL;
   // disable pull-down mode
   o_conf.pull_down_en = 0;
-  i_conf.pull_down_en = 0;
   // disable pull-up mode
   o_conf.pull_up_en = 0;
-  i_conf.pull_up_en = 1;
   // configure GPIO with the given settings
   gpio_config(&o_conf);
-  gpio_config(&i_conf);
 }
 
 void enableIROut(uint32_t freq, uint8_t duty)
@@ -291,153 +285,6 @@ void sendData(uint16_t onemark, uint32_t onespace, uint16_t zeromark,
   }
 }
 
-void poll_button()
-{
-  if (!gpio_get_level(TEMP_INC_BUTTON))
-  {
-    button_pressed = true;
-    setTemp_Daikin280(++curr_temp_Daikin280);
-    setTemp_Daikin216(++curr_temp_Daikin216);
-    setTemp_Hitachi296(++curr_temp_Hitachi296);
-    printf("Temp_inc_button pressed\r\n");
-  }
-  else if (!gpio_get_level(TEMP_DEC_BUTTON))
-  {
-    button_pressed = true;
-    setTemp_Daikin280(--curr_temp_Daikin280);
-    setTemp_Daikin216(--curr_temp_Daikin216);
-    setTemp_Hitachi296(--curr_temp_Hitachi296);
-    printf("Temp_dec_button pressed\r\n");
-  }
-  else if (!gpio_get_level(POWER_BUTTON))
-  {
-    button_pressed = true;
-    if(data_Daikin280.Power)
-      setPower_Daikin280(false);
-    else
-      setPower_Daikin280(true);
-    if(data_Daikin216.Power)
-      setPower_Daikin216(false);
-    else
-      setPower_Daikin216(true);
-    if(data_Hitachi296.Power)
-    	data_Hitachi296.Power = false;
-	else
-		data_Hitachi296.Power = true;
-    printf("Power button pressed\r\n");
-  }
-  else if (!gpio_get_level(MODE_BUTTON))
-  {
-    button_pressed = true;
-//    switch (curr_mode_Daikin280)
-//    {
-//    case DaikinAuto:
-//    	curr_mode_Daikin280 = DaikinDry;
-//      break;
-//    case DaikinDry:
-//    	curr_mode_Daikin280 = DaikinCool;
-//      break;
-//    case DaikinCool:
-//    	curr_mode_Daikin280 = DaikinHeat;
-//      break;
-//    case DaikinHeat:
-//    	curr_mode_Daikin280 = DaikinFan;
-//      break;
-//    case DaikinFan:
-//    	curr_mode_Daikin280 = DaikinAuto;
-//      break;
-//    default:
-//      printf("Invalid Mode\r\n");
-//      break;
-//    }
-//    setMode_Daikin280(curr_mode_Daikin280);
-    if(data_Daikin280.SwingV)
-    	data_Daikin280.SwingV = 0b0000;
-    else
-    	data_Daikin280.SwingV = 0b1111;
-    if(data_Daikin216.SwingV)
-      data_Daikin216.SwingV = 0b0000;
-    else
-      data_Daikin216.SwingV = 0b1111;
-    printf("Swing Vertical button pressed\r\n");
-  }
-  else if (!gpio_get_level(FAN_BUTTON))
-  {
-    button_pressed = true;
-    switch (curr_fan_Daikin280)
-    {
-    case DaikinFanMin:
-      curr_fan_Daikin280 = DaikinFanMed;
-      break;
-    case DaikinFanMed:
-      curr_fan_Daikin280 = DaikinFanMax;
-      break;
-    case DaikinFanMax:
-      curr_fan_Daikin280 = DaikinFanAuto;
-      break;
-    case DaikinFanAuto:
-      curr_fan_Daikin280 = DaikinFanQuiet;
-      break;
-    case DaikinFanQuiet:
-      curr_fan_Daikin280 = DaikinFanMin;
-      break;
-    default:
-      printf("Invalid Fan Mode \r\n");
-      break;
-    }
-    switch (curr_fan_Daikin216)
-    {
-    case DaikinFanMin:
-      curr_fan_Daikin216 = DaikinFanMed;
-      break;
-    case DaikinFanMed:
-      curr_fan_Daikin216 = DaikinFanMax;
-      break;
-    case DaikinFanMax:
-      curr_fan_Daikin216 = DaikinFanAuto;
-      break;
-    case DaikinFanAuto:
-      curr_fan_Daikin216 = DaikinFanQuiet;
-      break;
-    case DaikinFanQuiet:
-      curr_fan_Daikin216 = DaikinFanMin;
-      break;
-    default:
-      printf("Invalid Fan Mode \r\n");
-      break;
-    }
-    switch(curr_fan_Hitachi296)
-    {
-    case kHitachiAc296FanSilent:
-    	curr_fan_Hitachi296 = kHitachiAc296FanLow;
-		break;
-    case kHitachiAc296FanLow:
-    	curr_fan_Hitachi296 = kHitachiAc296FanMedium;
-		break;
-    case kHitachiAc296FanMedium:
-    	curr_fan_Hitachi296 = kHitachiAc296FanHigh;
-    	break;
-    case kHitachiAc296FanHigh:
-    	curr_fan_Hitachi296 = kHitachiAc296FanAuto;
-    	break;
-    case kHitachiAc296FanAuto:
-    	curr_fan_Hitachi296 = kHitachiAc296FanSilent;
-    	break;
-    }
-    setFan_Daikin280(curr_fan_Daikin280);
-    setFan_Daikin216(curr_fan_Daikin216);
-    setFan_Hitachi296(curr_fan_Hitachi296);
-    printf("fan button pressed\r\n");
-  }
-  if(button_pressed)
-	{
-		button_pressed = false;
-		checksum_Daikin280();
-		send_Daikin280();
-		vTaskDelay(10);
-	}
-}
-
 uint8_t control_AC()
 {
 	uint8_t ac_id = 0;
@@ -465,13 +312,13 @@ uint8_t control_AC()
 		case 216:
 			control_ptr = control_Daikin216;
 			configured = true;
-			strcpy(curr_selected_protocol, DAIKIN216);
+			strcpy(curr_selected_protocol, DAIKIN216_STRING);
 			control_Daikin216();
 			return 1;
 		case 280:
 			control_ptr = control_Daikin280;
 			configured = true;
-			strcpy(curr_selected_protocol, DAIKIN280);
+			strcpy(curr_selected_protocol, DAIKIN280_STRING);
 			control_Daikin280();
 			return 1;
 		default:
@@ -489,5 +336,15 @@ uint8_t control_AC()
 	default:
 		printf("Invalid AC Model\r\n");
 		return 0;
+	}
+}
+
+void *send_handler(void *args)
+{
+  while(1)
+	{
+//		ReadMessage(CLIENT_IDX);
+//		parse_and_control();
+		vTaskDelay(pdMS_TO_TICKS(10));
 	}
 }

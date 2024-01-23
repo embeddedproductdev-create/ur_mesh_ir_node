@@ -3,9 +3,9 @@
 
 #include <main.h>
 
-#define DAIKIN200 "Daikin200"
-#define DAIKIN216 "Daikin216"
-#define DAIKIN280 "Daikin280"
+#define DAIKIN200_STRING "Daikin200"
+#define DAIKIN216_STRING "Daikin216"
+#define DAIKIN280_STRING "Daikin280"
 
 /*DAIKIN CONSTANTS*/
 #define kNoRepeat 0
@@ -16,6 +16,7 @@
 #define kDaikinStateLengthShort kDaikinStateLength - 8
 #define kDaikinBitsShort kDaikinStateLengthShort * 8
 #define kDaikinDefaultRepeat kNoRepeat
+#define kDaikin216Bits 216
 
 #define kDaikinAuto 0b000
 #define kDaikinDry 0b010
@@ -213,7 +214,6 @@ typedef union Daikin280
     uint8_t Sum3 : 8; // checksum of the third part
   };
 } Daikin280_t;
-
 
 typedef union Daikin216{
   uint8_t raw[27];  ///< The state of the IR remote.
