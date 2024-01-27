@@ -361,7 +361,7 @@ void IRrecv::enableIRIn(const bool pullup) {
   // Initialise the ESP32 timer.
   // 80MHz / 80 = 1 uSec granularity.
   // timer = timerBegin(_timer_num, 80, true);//commentedhere
-  timer = timerBegin(8000000);
+  timer = timerBegin(1000000);
 #ifdef DEBUG
   if (timer == NULL) {
     DPRINT("FATAL: Unable enable system timer: ");

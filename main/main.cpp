@@ -101,7 +101,6 @@ void *LTE_task(void *args)
         {
             Serial.println(json_packet);
             strcpy(json_packet, "");
-            // memset(json_packet,'', sizeof(json_packet));
         }
     }
 }
