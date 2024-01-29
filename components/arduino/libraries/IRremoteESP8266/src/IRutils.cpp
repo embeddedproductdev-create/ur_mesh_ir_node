@@ -393,7 +393,7 @@ String resultToHexidecimal(const decode_results * const result) {
 /// Dump out the decode_results structure into a human readable format.
 /// @param[in] results A ptr to a decode_results structure.
 /// @return A String containing the output.
-String resultToHumanReadableBasic(const decode_results * const results) {
+String resultToHumanReadableBasic(const decode_results * const results, decode_type_t *protocol_detected) {
   String output = "";
   // Reserve some space for the string to reduce heap fragmentation.
   // "Protocol  : LONGEST_PROTOCOL_NAME (Repeat)\n"
@@ -414,6 +414,7 @@ String resultToHumanReadableBasic(const decode_results * const results) {
   output += ' ';
   output += kBitsStr;
   output +=  F(")\n");
+  *protocol_detected = results->decode_type;
   return output;
 }
 

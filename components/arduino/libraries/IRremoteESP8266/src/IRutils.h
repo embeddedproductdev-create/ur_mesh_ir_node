@@ -26,7 +26,7 @@ String typeToString(const decode_type_t protocol,
 void serialPrintUint64(uint64_t input, uint8_t base = 10);
 String resultToSourceCode(const decode_results * const results);
 String resultToTimingInfo(const decode_results * const results);
-String resultToHumanReadableBasic(const decode_results * const results);
+String resultToHumanReadableBasic(const decode_results * const results, decode_type_t *protocol_detected);
 String resultToHexidecimal(const decode_results * const result);
 bool hasACState(const decode_type_t protocol);
 uint16_t getCorrectedRawLength(const decode_results * const results);

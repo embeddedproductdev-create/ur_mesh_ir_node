@@ -31,10 +31,16 @@
 #define kMinUnknownSize 12
 #define kTolerancePercentage kTolerance
 
+/*Sending part*/
+#define kSendPin 22
+
+#define TAG "UART"
+
 /*Function Declarations*/
 void *recv_task(void *args);
 void *send_task(void *args);
 void *LTE_task(void *args);
+void configure_sendFunc(void);
 
 /*Global variables*/
 extern bool configured;

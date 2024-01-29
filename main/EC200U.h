@@ -14,7 +14,7 @@
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 				2
+#define CLIENT_IDX 				1
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
@@ -118,27 +118,3 @@
 extern uint8_t network_flag;
 extern uint8_t client_flag;
 extern uint8_t subscribe_flag;
-
-// void LTE_gpio_configuration();
-// void ConnectToNetwork();
-// void SubscribeToTopics();
-// void resetLte();
-// void sendAT_Data(const char* data);
-// void LTE_initialization(void);
-// uint8_t check_response(char* response, uint32_t timeout);
-// uint8_t MQTT_Config(uint8_t client_idx,
-// 		uint8_t enable_ssl, uint8_t SSL_ctx_idx,
-// 		uint16_t keep_alive,
-// 		uint8_t clean_session,
-// 		uint8_t msg_recv_mode,uint8_t msg_len_enable,
-// 		uint8_t will_fg, uint8_t will_qos, uint8_t will_retain, char* will_topic, char* will_message);
-// uint8_t SSL_config(uint8_t ssl_context_index, char* ca_cert, char* client_cert, char* client_key);
-// uint8_t SubscribeTopic(int client_idx, int msgid, char* topic, int qos);
-// uint8_t UnsubscribeTopic(int client_idx, int msgid, char* topic);
-// int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port);
-// uint8_t MQTT_NetworkClose(int client_idx);
-// uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* clientID);
-// uint8_t MQTT_ClientDisconnect(int client_idx);
-// uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
-// uint8_t ReadMessage(int client_idx);
-// uint8_t Error_Report();

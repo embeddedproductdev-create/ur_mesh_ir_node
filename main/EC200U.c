@@ -3,7 +3,6 @@
 #define SUCCESS 1
 #define FAILURE 0
 #define MAX_WAIT_MS  100
-#define TAG "UART"
 #define BUF_SIZE	2048
 
 uint8_t network_flag = 0;
@@ -15,6 +14,38 @@ uint8_t subscribe_flag = 0;
 #define CTS_PIN (GPIO_NUM_4)
 #define RTS_PIN (GPIO_NUM_5)
 
+char json_packet[100];
+cJSON *json_packet_j;
+control_t ac_control_t;
+
+/**
+ * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
+ * @param None
+ * @retval None
+ */
+void parse_json_packet()
+{
+	json_packet_j = cJSON_Parse(json_packet);
+	if(json_packet_j != NULL)
+	{
+		ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+		ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+		ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+		ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+		ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
+		strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
+		ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
+		ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
+		ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
+		ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
+		ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
+		ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
+	}
+	else
+	{
+		printf("json_packet_j is null\r\n");
+	}
+}
 
 /**
   * @brief configure esp32 uart
@@ -458,7 +489,7 @@ void resetLte()
 	gpio_set_level(GPIO_LTE_RESET, 0);
 	vTaskDelay(10); //100ms delay
 	gpio_set_level(GPIO_LTE_ONOFF, 1);
-	vTaskDelay(250); //2.5s delay
+	vTaskDelay(pdMS_TO_TICKS(2500)); //2.5s delay
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
 }
 
@@ -480,11 +511,11 @@ void LTE_gpio_configuration()
 	esp_err_t ret_o = gpio_config(&o_conf);
 	if(ret_o == ESP_OK)
 	{
-		ESP_LOGI(TAG, "GPIO output configuration successful ...\r\n");
+		ESP_LOGI(TAG, "GPIO output configuration for LTE successful ...\r\n");
 	}
 	else
 	{
-		ESP_LOGI(TAG, "GPIO output configuration failed with err : %d\r\n", ret_o);
+		ESP_LOGI(TAG, "GPIO output configuration for LTE failed with err : %d\r\n", ret_o);
 	}
 }
 
