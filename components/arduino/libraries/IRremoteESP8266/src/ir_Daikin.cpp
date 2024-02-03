@@ -74,32 +74,32 @@ void IRsend::sendDaikin(const unsigned char data[], const uint16_t nbytes,
     sendGeneric(0, 0,  // No header for the header
                 kDaikinBitMark, kDaikinOneSpace, kDaikinBitMark,
                 kDaikinZeroSpace, kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                (uint64_t)0b00000, kDaikinHeaderLength, 38, false, 0, 50);
+                (uint64_t)0b00000, kDaikinHeaderLength, 41, false, 0, 75);
     // Data #1
     if (nbytes < kDaikinStateLength) {  // Are we using the legacy size?
       // Do this as a constant to save RAM and keep in flash memory
       sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                   kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                   kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                  kDaikinFirstHeader64, 64, 38, false, 0, 50);
+                  kDaikinFirstHeader64, 41, 41, false, 0, 75);
     } else {  // We are using the newer/more correct size.
       sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                   kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                   kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                  data, kDaikinSection1Length, 38, false, 0, 50);
+                  data, kDaikinSection1Length, 41, false, 0, 75);
       offset += kDaikinSection1Length;
     }
     // Data #2
     sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                 kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                 kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                data + offset, kDaikinSection2Length, 38, false, 0, 50);
+                data + offset, kDaikinSection2Length, 41, false, 0, 75);
     offset += kDaikinSection2Length;
     // Data #3
     sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                 kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                 kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                data + offset, nbytes - offset, 38, false, 0, 50);
+                data + offset, nbytes - offset, 41, false, 0, 75);
   }
 }
 #endif  // SEND_DAIKIN
@@ -185,6 +185,7 @@ void IRDaikinESP::stateReset(void) {
 /// Get a PTR to the internal state/code for this protocol.
 /// @return PTR to a code for this protocol based on the current internal state.
 uint8_t *IRDaikinESP::getRaw(void) {
+  stateReset();
   checksum();  // Ensure correct settings before sending.
   return _.raw;
 }
@@ -603,10 +604,16 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
   if (results->rawlen < (2 * (nbits + kDaikinHeaderLength) +
                          kDaikinSections * (kHeader + kFooter) + kFooter - 1) +
                          offset)
+                         {
+    printf("False at 1\r\n");
     return false;
-
+    }
   // Compliance
-  if (strict && nbits != kDaikinBits) return false;
+  if (strict && nbits != kDaikinBits)
+  {
+    printf("false at 2\r\n");
+    return false;
+  }
 
   match_result_t data_result;
 
@@ -616,13 +623,26 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
                           kDaikinBitMark, kDaikinZeroSpace,
                           kDaikinTolerance, kDaikinMarkExcess, false);
   offset += data_result.used;
-  if (data_result.success == false) return false;  // Fail
-  if (data_result.data) return false;  // The header bits should be zero.
+  if (data_result.success == false){
+    printf("False at 3\r\n");
+    return false; // Fail
+  }
+  if (data_result.data)
+  {
+    printf("False at 4\r\n");
+    return false;  // The header bits should be zero.
+  }
   // Footer
   if (!matchMark(results->rawbuf[offset++], kDaikinBitMark,
-                 kDaikinTolerance, kDaikinMarkExcess)) return false;
+                 kDaikinTolerance, kDaikinMarkExcess)) {
+                  printf("False at 5\r\n");
+                  return false;
+  }
   if (!matchSpace(results->rawbuf[offset++], kDaikinZeroSpace + kDaikinGap,
-                  kDaikinTolerance, kDaikinMarkExcess)) return false;
+                  kDaikinTolerance, kDaikinMarkExcess)) {
+                    printf("False at 6\r\n");
+                    return false;
+  }
   // Sections
   const uint8_t ksectionSize[kDaikinSections] = {
       kDaikinSection1Length, kDaikinSection2Length, kDaikinSection3Length};
@@ -638,16 +658,25 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
                         kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
                         section >= kDaikinSections - 1,
                         kDaikinTolerance, kDaikinMarkExcess, false);
-    if (used == 0) return false;
+    if (used == 0) {
+      printf("False at 7\r\n");
+      return false;
+    }
     offset += used;
     pos += ksectionSize[section];
   }
   // Compliance
   if (strict) {
     // Re-check we got the correct size/length due to the way we read the data.
-    if (pos * 8 != kDaikinBits) return false;
+    if (pos * 8 != kDaikinBits) {
+      printf("False at 8\r\n");
+      return false;
+    }
     // Validate the checksum.
-    if (!IRDaikinESP::validChecksum(results->state)) return false;
+    if (!IRDaikinESP::validChecksum(results->state)) {
+      printf("False at 9\r\n");
+      return false;
+    }
   }
 
   // Success

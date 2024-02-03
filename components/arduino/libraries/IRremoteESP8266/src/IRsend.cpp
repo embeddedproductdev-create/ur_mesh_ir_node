@@ -14,6 +14,10 @@
 #include <cmath>
 #endif
 #include "IRtimer.h"
+#include "rom/ets_sys.h"
+#include "driver/gpio.h"
+
+const uint8_t IRSendPin = 22;
 
 /// Constructor for an IRsend object.
 /// @param[in] IRsendPin Which GPIO pin to use when sending an IR command.
@@ -101,11 +105,12 @@ void IRsend::enableIROut(uint32_t freq, uint8_t duty) {
 #ifdef UNIT_TEST
   _freq_unittest = freq;
 #endif  // UNIT_TEST
-  uint32_t period = calcUSecPeriod(freq);
+  uint32_t period = calcUSecPeriod(freq, false);
   // Nr. of uSeconds the LED will be on per pulse.
   onTimePeriod = (period * _dutycycle) / kDutyMax;
   // Nr. of uSeconds the LED will be off per pulse.
   offTimePeriod = period - onTimePeriod;
+  printf("period : %ld | onTimePeriod : %d | offTimePeriod : %d | dutyCycle : %d\r\n", period, onTimePeriod, offTimePeriod, _dutycycle);
 }
 
 #if ALLOW_DELAY_CALLS
@@ -156,33 +161,42 @@ void IRsend::_delayMicroseconds(uint32_t usec) {
 ///   https://www.analysir.com/blog/2017/01/29/updated-esp8266-nodemcu-backdoor-upwm-hack-for-ir-signals/
 uint16_t IRsend::mark(uint16_t usec) {
   // Handle the simple case of no required frequency modulation.
-  if (!modulation || _dutycycle >= 100) {
-    ledOn();
-    _delayMicroseconds(usec);
-    ledOff();
-    return 1;
-  }
+  // if (!modulation || _dutycycle >= 100) {
+  //   ledOn();
+  //   _delayMicroseconds(usec);
+  //   ledOff();
+  //   return 1;
+  // }
 
   // Not simple, so do it assuming frequency modulation.
   uint16_t counter = 0;
-  IRtimer usecTimer = IRtimer();
+  // IRtimer usecTimer = IRtimer();
+  uint64_t usectimer = esp_timer_get_time();
   // Cache the time taken so far. This saves us calling time, and we can be
   // assured that we can't have odd math problems. i.e. unsigned under/overflow.
-  uint32_t elapsed = usecTimer.elapsed();
+  // uint32_t elapsed = usecTimer.elapsed();
+  uint32_t elapsed = esp_timer_get_time() - usectimer;
 
   while (elapsed < usec) {  // Loop until we've met/exceeded our required time.
-    ledOn();
+    // ledOn();
+    digitalWrite(IRpin, HIGH);
     // Calculate how long we should pulse on for.
     // e.g. Are we to close to the end of our requested mark time (usec)?
-    _delayMicroseconds(std::min((uint32_t)onTimePeriod, usec - elapsed));
-    ledOff();
+    // _delayMicroseconds(std::min((uint32_t)onTimePeriod, usec - elapsed));
+    // ets_delay_us(std::min((uint32_t)onTimePeriod, usec - elapsed));
+    ets_delay_us(onTimePeriod);
+    // ledOff();
+    digitalWrite(IRpin, LOW);
     counter++;
     if (elapsed + onTimePeriod >= usec)
       return counter;  // LED is now off & we've passed our allotted time.
     // Wait for the lesser of the rest of the duty cycle, or the time remaining.
-    _delayMicroseconds(
-        std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
-    elapsed = usecTimer.elapsed();  // Update & recache the actual elapsed time.
+    // _delayMicroseconds(
+        // std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
+        ets_delay_us(std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
+        // ets_delay_us(offTimePeriod);
+    // elapsed = usecTimer.elapsed();  // Update & recache the actual elapsed time.
+        elapsed = esp_timer_get_time() - usectimer;
   }
   return counter;
 }
@@ -192,9 +206,11 @@ uint16_t IRsend::mark(uint16_t usec) {
 /// A space is no output, so the PWM output is disabled.
 /// @param[in] time Time in microseconds (us).
 void IRsend::space(uint32_t time) {
-  ledOff();
+  // ledOff();
+  digitalWrite(IRpin, LOW);
   if (time == 0) return;
-  _delayMicroseconds(time);
+  // _delayMicroseconds(time);
+  ets_delay_us(time);
 }
 
 /// Calculate & set any offsets to account for execution times during sending.
@@ -355,12 +371,15 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                          const bool MSBfirst, const uint16_t repeat,
                          const uint8_t dutycycle) {
   // Setup
+  printf("dutycycle in sendGeneric : %d\r\n", dutycycle);
   enableIROut(frequency, dutycycle);
   IRtimer usecs = IRtimer();
+
 
   // We always send a message, even for repeat=0, hence '<= repeat'.
   for (uint16_t r = 0; r <= repeat; r++) {
     usecs.reset();
+    uint64_t usecs = esp_timer_get_time();
 
     // Header
     if (headermark) mark(headermark);
@@ -371,7 +390,8 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
 
     // Footer
     if (footermark) mark(footermark);
-    uint32_t elapsed = usecs.elapsed();
+    // uint32_t elapsed = usecs.elapsed();
+    uint32_t elapsed = esp_timer_get_time() - usecs;
     // Avoid potential unsigned integer underflow. e.g. when mesgtime is 0.
     if (elapsed >= mesgtime)
       space(gap);
@@ -414,6 +434,7 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                          const uint16_t frequency, const bool MSBfirst,
                          const uint16_t repeat, const uint8_t dutycycle) {
   // Setup
+  printf("dutycycle in sendGeneric : %d\r\n", dutycycle);
   enableIROut(frequency, dutycycle);
   // We always send a message, even for repeat=0, hence '<= repeat'.
   for (uint16_t r = 0; r <= repeat; r++) {

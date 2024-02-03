@@ -15,7 +15,8 @@
         "regex": "cpp",
         "xhash": "cpp",
         "main.h": "c",
-        "cjson.h": "c"
+        "cjson.h": "c",
+        "utility": "cpp"
     },
     "idf.adapterTargetName": "esp32",
     "idf.flashType": "UART",

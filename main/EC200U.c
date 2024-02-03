@@ -26,24 +26,35 @@ control_t ac_control_t;
 void parse_json_packet()
 {
 	json_packet_j = cJSON_Parse(json_packet);
-	if(json_packet_j != NULL)
+	switch()
 	{
-		ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-		ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-		ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-		ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-		ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
-		strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
-		ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
-		ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
-		ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
-		ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
-		ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
-		ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
-	}
-	else
-	{
-		printf("json_packet_j is null\r\n");
+		case GWY_REG_PACKET:
+			break;
+		case GWY_UNREG_PACKET:
+			break;
+		case PROV_PACKET:
+			break;
+		case UNPROV_PACKET:
+			break;
+		case CONTROL_PACKET:
+			if(json_packet_j != NULL)
+			{
+				ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+				ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+				ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+				ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
+				strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
+				ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
+				ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
+				ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
+				ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
+				ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
+				ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
+			}
+			break;
+		default:
+			printf("UNKNOWN MQTT PACKET ERROR\r\n");
 	}
 }
 

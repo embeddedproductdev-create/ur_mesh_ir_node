@@ -32,7 +32,7 @@ const int8_t kPeriodOffset = -2;
 // Calculated on ESP8266 Wemos D1 mini using v2.4.1 with v2.4.0 ESP core @ 40MHz
 const int8_t kPeriodOffset = -5;
 #endif  // (defined(ESP8266) && F_CPU == 160000000L)
-const uint8_t kDutyDefault = 50;  // Percentage
+const uint8_t kDutyDefault = 65;  // Percentage
 const uint8_t kDutyMax = 100;     // Percentage
 // delayMicroseconds() is only accurate to 16383us.
 // Ref: https://www.arduino.cc/en/Reference/delayMicroseconds

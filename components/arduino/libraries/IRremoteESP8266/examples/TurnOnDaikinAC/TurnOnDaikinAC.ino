@@ -43,18 +43,18 @@ void loop() {
 
   // Set up what we want to send. See ir_Daikin.cpp for all the options.
   ac.on();
-  ac.setFan(1);
-  ac2.setFan(1);
-  ac.setMode(kDaikinCool);
+  // ac.setFan(1);
+  // ac2.setFan(1);
+  // ac.setMode(kDaikinCool);
   ac.setTemp(25);
-  ac.setSwingVertical(false);
+  ac.setSwingVertical(true);
   ac.setSwingHorizontal(false);
 
   // Set the current time to 1:33PM (13:33)
   // Time works in minutes past midnight
-  ac.setCurrentTime(13 * 60 + 33);
+  // ac.setCurrentTime(13 * 60 + 33);
   // Turn off about 1 hour later at 2:30PM (14:30)
-  ac.enableOffTimer(14 * 60 + 30);
+  // ac.enableOffTimer(14 * 60 + 30);
 
   // Display what we are going to send.
   Serial.println(ac.toString());

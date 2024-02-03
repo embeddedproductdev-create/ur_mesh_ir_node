@@ -38,11 +38,14 @@
 
 /*Function Declarations*/
 void *recv_task(void *args);
-void *send_task(void *args);
 void *LTE_task(void *args);
-void configure_sendFunc(void);
+void send_func();
 
 /*Global variables*/
 extern bool configured;
+extern bool sending;
+extern bool needtosend;
+
+extern char protocol_chosen[15];
 
 #endif
