@@ -18,7 +18,7 @@ extern "C" {
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 				1
+#define CLIENT_IDX 				2
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
@@ -125,7 +125,7 @@ extern uint8_t subscribe_flag;
 
 /* FUNCTION DECLARATIONS */
 void LTE_part(void);
-void LTE_gpio_configuration();
+void LTE_gpio_configuration(void);
 void establishMQTTConnection(void);
 void resetLte(void);
 void sendAT_Data(const char* data);
@@ -146,9 +146,9 @@ uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* c
 uint8_t MQTT_ClientDisconnect(int client_idx);
 uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
 uint8_t ReadMessage(int client_idx);
-uint8_t Error_Report();
-void parse_json_packet();
-void fill_macid(char *macid);
+uint8_t Error_Report(void);
+void parse_json_packet(void);
+void fill_macid(void);
 
 #ifdef __cplusplus
 }

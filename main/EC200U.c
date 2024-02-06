@@ -31,19 +31,24 @@ gwy_reg_t gwy_registration_t;
 gwy_unreg_t gwy_unregistration_t;
 prov_t provision_t;
 unprov_t unprovision_t;
+reconf_t reconfigure_t;
 
-void fill_macid(char *macid)
+void fill_macid()
 {
-	char hex_char_str[2];
-	// "ff:ff:ff:ff:ff:ff"
-	// 12 45 78 1011 1314 1617
-	for(uint8_t index=0, i=1; index<6; index++, i+=3)
+	char macid[17];
+	strcpy(macid, cJSON_GetObjectItemCaseSensitive(json_packet_j, MAC_ID_STR)->valuestring);
+	// printf("macid recvd : %s\r\n",macid);
+    char hex_char_str[2];
+	for(uint8_t index=0, i=0; index<6; index++, i+=3)
 	{
-		hex_char_str[i] = macid[i];
-		hex_char_str[i+1] = macid[i+1];
+	    strncat(hex_char_str,&macid[i],1);
+	    strncat(hex_char_str,&macid[i+1],1);
+		// printf("hex_char_str : %s\r\n",hex_char_str);
 		provision_t.macid[index] = strtol(hex_char_str, NULL, 16);
-		printf("\tmacid[%d] : %x",index, provision_t.macid[index]);
+		strcpy(hex_char_str, "");
+		printf("macid[%d] : %x\r\n",index, provision_t.macid[index]);
 	}
+	printf("\r\n");
 }
 
 /**
@@ -57,7 +62,8 @@ void parse_json_packet()
 	json_packet_j = cJSON_Parse(json_packet);
 	if(json_packet_j != NULL)
 	{
-		json_packet_id = cJSON_GetObjectItemCaseSensitive(json_packet_j, JSON_PACKET_ID);
+		json_packet_id = cJSON_GetObjectItemCaseSensitive(json_packet_j, JSON_PACKET_ID)->valueint;
+		printf("Json_packet_id : %d\r\n",json_packet_id);
 		switch(json_packet_id)
 		{
 			case GWY_REG_PACKET:
@@ -79,27 +85,27 @@ void parse_json_packet()
 				}
 				break;
 			case PROV_PACKET:
-				printf("Provisioning packet recevied\r\n");
+				printf("Provisioning packet received\r\n");
 				if(json_packet_j != NULL)
 				{
 					provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
 					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
 					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-					fill_macid(cJSON_GetObjectItemCaseSensitive(json_packet_j, MAC_ID_STR)->valuestring);
+					fill_macid();
 				}
 				break;
 			case UNPROV_PACKET:
 				printf("Unprovisioning packet received\r\n");
 				if(json_packet_j != NULL)
 				{
-					provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-					provision_t.elementAddr = cJSON__GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+					unprovision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					unprovision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					unprovision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+					unprovision_t.elemnt_addr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
 				}
 				break;
 			case CONTROL_PACKET:
-				printf("Control packet receved\r\n");
+				printf("Control packet received\r\n");
 				if(json_packet_j != NULL)
 				{
 					ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
@@ -115,7 +121,19 @@ void parse_json_packet()
 					ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
 					ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
 					//Above parsed data needs to be error handled before passing to the send function
+					printf("Setting need to send to True\r\n");
 					needtosend = true;
+				}
+				break;
+			case RECONFIGURE_PACKET:
+				printf("Reconfigure packet received\r\n");
+				if(json_packet_j != NULL)
+				{
+					reconfigure_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					reconfigure_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					reconfigure_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+					reconfigure_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+					configured = false;
 				}
 				break;
 			default:
@@ -171,6 +189,25 @@ uint8_t check_response(char* response, uint32_t timeout)
 				}
 				if(strstr((const char* )data,(const char*)response)){
 					ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
+					for(index=0,j=0; data[index] != '\0'; index++)
+					{
+						if(data[index]=='{' && copy_flag == false)
+							copy_flag = true;
+						else
+							continue;
+						while(copy_flag)
+						{
+							vTaskDelay(1);
+							json_packet[j++] = data[index++];
+							if(data[index]=='}')
+							{
+								json_packet[j] = data[index];
+								copy_flag = false;
+								break;
+							}
+						}
+						break;
+					}
 					free(data);
 					return SUCCESS;
 				}
@@ -630,7 +667,11 @@ void establishMQTTConnection()
 					client_connect_retry_count = 0;
 				}
 			}
-		if(client_connect_retry_count > RETRY_COUNT) network_flag = false;
+		if(client_connect_retry_count > RETRY_COUNT)
+		{
+			network_flag = false;
+			MQTT_NetworkClose(CLIENT_IDX);
+		}
 		network_connect_retry_count = 0;
 		}
 	}

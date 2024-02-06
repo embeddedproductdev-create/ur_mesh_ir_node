@@ -9,7 +9,7 @@
 
 bool configured = false;
 bool sending = false;
-bool needtosend = true;
+bool needtosend = false;
 bool restart_flag = false;
 
 IRrecv irrecv(kRecvPin, kCaptureBufferSize, kTimeout, true);
@@ -44,22 +44,22 @@ void send_func()
             ac_daikin216.setSwingVertical(ac_control_t.swingV);
             ac_daikin216.setFan(ac_control_t.fan);
             ac_daikin216.send();
-            printf("Protocol Chosen Daikin216\r\n");
+            printf("Sending Daikin216\r\n");
             break;
         case DAIKIN200:
             strcpy(protocol_chosen, "Daikin200");
-            printf("Protocol Chosen Daikin200\r\n");
+            printf("Sending Daikin200\r\n");
             return;
         case DAIKIN:
             strcpy(protocol_chosen, "Daikin280");
             ac_daikin280.setPower(ac_control_t.power);
             ac_daikin280.send();
-            printf("Protocol Chosen Daikin280\r\n");
+            printf("Sending Daikin280\r\n");
             break;
         case HITACHI_AC296:
             strcpy(protocol_chosen, "Hitachi296");
             ac_hitachi296.send();
-            printf("Protocol Chosen Hitachi296\r\n");
+            printf("Sending Hitachi296\r\n");
             break;
         case VOLTAS:
             strcpy(protocol_chosen, "Voltas");
@@ -134,10 +134,11 @@ void *recv_and_send_task(void *args)
                 yield();             // Feed the WDT (again)
             }
         }
-        else if(configured && needtosend && !sending)
+        // printf("configured : %d | needtosend : %d | sending : %d\r\n",configured, needtosend, sending);
+        if(configured && needtosend && !sending)
         {
-            printf("Protcol Chosen : %s\r\n", protocol_chosen);
             send_func();
+            printf("Protcol Chosen : %s\r\n", protocol_chosen);
         }
     }
 }
