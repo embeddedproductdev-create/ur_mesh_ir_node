@@ -110,7 +110,6 @@ void IRsend::enableIROut(uint32_t freq, uint8_t duty) {
   onTimePeriod = (period * _dutycycle) / kDutyMax;
   // Nr. of uSeconds the LED will be off per pulse.
   offTimePeriod = period - onTimePeriod;
-  printf("period : %ld | onTimePeriod : %d | offTimePeriod : %d | dutyCycle : %d\r\n", period, onTimePeriod, offTimePeriod, _dutycycle);
 }
 
 #if ALLOW_DELAY_CALLS
@@ -371,7 +370,6 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                          const bool MSBfirst, const uint16_t repeat,
                          const uint8_t dutycycle) {
   // Setup
-  printf("dutycycle in sendGeneric : %d\r\n", dutycycle);
   enableIROut(frequency, dutycycle);
   IRtimer usecs = IRtimer();
 
@@ -434,7 +432,6 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                          const uint16_t frequency, const bool MSBfirst,
                          const uint16_t repeat, const uint8_t dutycycle) {
   // Setup
-  printf("dutycycle in sendGeneric : %d\r\n", dutycycle);
   enableIROut(frequency, dutycycle);
   // We always send a message, even for repeat=0, hence '<= repeat'.
   for (uint16_t r = 0; r <= repeat; r++) {

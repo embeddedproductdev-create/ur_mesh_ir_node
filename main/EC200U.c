@@ -1,4 +1,4 @@
-#include "main.h"
+#include "inc/main.h"
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -120,8 +120,8 @@ void parse_json_packet()
 					ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
 					ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
 					ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
+					ac_control_t.Locking = cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCKING_STR)->valueint;
 					//Above parsed data needs to be error handled before passing to the send function
-					printf("Setting need to send to True\r\n");
 					needtosend = true;
 				}
 				break;

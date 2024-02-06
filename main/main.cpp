@@ -1,11 +1,13 @@
 #include "Arduino.h"
-#include "main.h"
+#include "inc/main.h"
+#include "inc/mesh_main.h"
 #include <assert.h>
 #include <IRrecv.h>
 #include <IRremoteESP8266.h>
 #include <IRac.h>
 #include <IRtext.h>
 #include <IRutils.h>
+
 
 bool configured = false;
 bool sending = false;
@@ -26,6 +28,7 @@ IRVoltas ac_voltas(kSendPin);
 extern "C"
 {
     void app_main(void);
+    void mesh_init(void);
 }
 
 void send_func()
@@ -40,7 +43,9 @@ void send_func()
             strcpy(protocol_chosen, "Daikin216");
             ac_daikin216.setPower(ac_control_t.power);
             ac_daikin216.setTemp(ac_control_t.temp);
+            if(ac_control_t.swingH) ac_control_t.swingH = kDaikinSwingOn;
             ac_daikin216.setSwingHorizontal(ac_control_t.swingH);
+            if(ac_control_t.swingV) ac_control_t.swingV = kDaikinSwingOn;
             ac_daikin216.setSwingVertical(ac_control_t.swingV);
             ac_daikin216.setFan(ac_control_t.fan);
             ac_daikin216.send();
@@ -48,16 +53,27 @@ void send_func()
             break;
         case DAIKIN200:
             strcpy(protocol_chosen, "Daikin200");
-            printf("Sending Daikin200\r\n");
+            printf("\r\n");
             return;
         case DAIKIN:
             strcpy(protocol_chosen, "Daikin280");
             ac_daikin280.setPower(ac_control_t.power);
+            ac_daikin280.setTemp(ac_control_t.temp);
+            if(ac_control_t.swingH) ac_control_t.swingH = kDaikinSwingOn;
+            ac_daikin280.setSwingHorizontal(ac_control_t.swingH);
+            if(ac_control_t.swingV) ac_control_t.swingV = kDaikinSwingOn;
+            ac_daikin280.setSwingVertical(ac_control_t.swingV);
+            ac_daikin280.setFan(ac_control_t.fan);
             ac_daikin280.send();
             printf("Sending Daikin280\r\n");
             break;
         case HITACHI_AC296:
             strcpy(protocol_chosen, "Hitachi296");
+            ac_hitachi296.setPower(ac_control_t.power);
+            ac_hitachi296.setTemp(ac_control_t.temp);
+            // ac_hitachi296.setSwingHorizontal(ac_control_t.swingH);
+            // ac_hitachi296.setSwingVertical(ac_control_t.swingV);
+            ac_hitachi296.setFan(ac_control_t.fan-3);
             ac_hitachi296.send();
             printf("Sending Hitachi296\r\n");
             break;
@@ -100,39 +116,36 @@ void *recv_and_send_task(void *args)
     while(1)
     {
         vTaskDelay(10);
-        if(!configured && !sending)
-        {
-            // Check if the IR code has been received.
-            if (irrecv.decode(&results)) {
-                // Display a crude timestamp.;
-                uint32_t now = millis();
-                Serial.printf(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
-                // Check if we got an IR message that was to big for our capture buffer.
-                if (results.overflow)
-                Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
-                // Display the library version the message was captured with.
-                Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
-                // Display the tolerance percentage if it has been change from the default.
-                if (kTolerancePercentage != kTolerance)
-                Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
-                // Display the basic output of what we found.
-                Serial.print(resultToHumanReadableBasic(&results, &protocol_detected));
-                // Display any extra A/C info if we have it.
-                String description = IRAcUtils::resultAcToString(&results);
-                if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
-                if(protocol_detected != UNKNOWN && protocol_detected != UNUSED)
-                    configured = true;
-                yield();  // Feed the WDT as the text output can take a while to print.
-            #if LEGACY_TIMING_INFO
-                // Output legacy RAW timing info of the result.
-                Serial.println(resultToTimingInfo(&results));
-                yield();  // Feed the WDT (again)
-            #endif  // LEGACY_TIMING_INFO
-                // Output the results as source code
-                Serial.println(resultToSourceCode(&results));
-                Serial.println();    // Blank line between entries
-                yield();             // Feed the WDT (again)
-            }
+        // Check if the IR code has been received.
+        if (irrecv.decode(&results) && ! sending) {
+            // Display a crude timestamp.;
+            uint32_t now = millis();
+            Serial.printf(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
+            // Check if we got an IR message that was to big for our capture buffer.
+            if (results.overflow)
+            Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
+            // Display the library version the message was captured with.
+            Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
+            // Display the tolerance percentage if it has been change from the default.
+            if (kTolerancePercentage != kTolerance)
+            Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
+            // Display the basic output of what we found.
+            Serial.print(resultToHumanReadableBasic(&results, &protocol_detected));
+            // Display any extra A/C info if we have it.
+            String description = IRAcUtils::resultAcToString(&results);
+            if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
+            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED)
+                configured = true;
+            yield();  // Feed the WDT as the text output can take a while to print.
+        #if LEGACY_TIMING_INFO
+            // Output legacy RAW timing info of the result.
+            Serial.println(resultToTimingInfo(&results));
+            yield();  // Feed the WDT (again)
+        #endif  // LEGACY_TIMING_INFO
+            // Output the results as source code
+            Serial.println(resultToSourceCode(&results));
+            Serial.println();    // Blank line between entries
+            yield();             // Feed the WDT (again)
         }
         // printf("configured : %d | needtosend : %d | sending : %d\r\n",configured, needtosend, sending);
         if(configured && needtosend && !sending)
@@ -146,6 +159,8 @@ void *recv_and_send_task(void *args)
 
 void app_main(void)
 {
+    mesh_init();
+
     Serial.begin(kBaudRate);
     while(!Serial)
         delay(50);

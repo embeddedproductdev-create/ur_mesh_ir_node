@@ -18,6 +18,7 @@
 #define SWING_V_STR		"swingV"
 #define ONTIMER_STR		"OnTimer"
 #define OFFTIMER_STR	"OffTimer"
+#define LOCKING_STR 	"Locking"
 
 /* STRUCTURE DEFINITIONS */
 typedef struct control_struct
@@ -34,6 +35,7 @@ typedef struct control_struct
 	bool swingV;
 	uint16_t OnTimer;
 	uint16_t OffTimer;
+	bool Locking;
 }control_t;
 
 typedef struct prov_struct{
@@ -68,7 +70,7 @@ typedef struct reconf_struct{
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
-	uint16_t elmnt_addr;
+	uint16_t elementAddr;
 }reconf_t;
 
 enum json_packet_id {

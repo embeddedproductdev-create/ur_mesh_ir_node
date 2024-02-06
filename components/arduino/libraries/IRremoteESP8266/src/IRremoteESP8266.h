@@ -1141,6 +1141,7 @@ enum decode_type_t {
   kLastDecodeType = YORK,
 };
 
+
 // Message lengths & required repeat values
 const uint16_t kNoRepeat = 0;
 const uint16_t kSingleRepeat = 1;

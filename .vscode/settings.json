@@ -16,7 +16,10 @@
         "xhash": "cpp",
         "main.h": "c",
         "cjson.h": "c",
-        "utility": "cpp"
+        "utility": "cpp",
+        "irrecv.h": "c",
+        "irremoteesp8266.h": "c",
+        "mesh_main.h": "c"
     },
     "idf.adapterTargetName": "esp32",
     "idf.flashType": "UART",
