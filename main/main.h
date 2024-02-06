@@ -37,7 +37,7 @@
 #define TAG "UART"
 
 /*Function Declarations*/
-void *recv_task(void *args);
+void *recv_and_send_task(void *args);
 void *LTE_task(void *args);
 void send_func();
 
@@ -45,6 +45,7 @@ void send_func();
 extern bool configured;
 extern bool sending;
 extern bool needtosend;
+extern bool restart_flag;
 
 extern char protocol_chosen[15];
 

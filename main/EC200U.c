@@ -13,10 +13,38 @@ uint8_t subscribe_flag = 0;
 #define RXD_PIN (GPIO_NUM_16)
 #define CTS_PIN (GPIO_NUM_4)
 #define RTS_PIN (GPIO_NUM_5)
+#define RETRY_COUNT 5
+
+
+void LTE_part()
+{
+	LTE_gpio_configuration();
+	resetLte();
+	LTE_initialization();
+	establishMQTTConnection();
+}
 
 char json_packet[100];
 cJSON *json_packet_j;
 control_t ac_control_t;
+gwy_reg_t gwy_registration_t;
+gwy_unreg_t gwy_unregistration_t;
+prov_t provision_t;
+unprov_t unprovision_t;
+
+void fill_macid(char *macid)
+{
+	char hex_char_str[2];
+	// "ff:ff:ff:ff:ff:ff"
+	// 12 45 78 1011 1314 1617
+	for(uint8_t index=0, i=1; index<6; index++, i+=3)
+	{
+		hex_char_str[i] = macid[i];
+		hex_char_str[i+1] = macid[i+1];
+		provision_t.macid[index] = strtol(hex_char_str, NULL, 16);
+		printf("\tmacid[%d] : %x",index, provision_t.macid[index]);
+	}
+}
 
 /**
  * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
@@ -25,37 +53,77 @@ control_t ac_control_t;
  */
 void parse_json_packet()
 {
+	uint8_t json_packet_id = UNKNOWN_PACKET;
 	json_packet_j = cJSON_Parse(json_packet);
-	switch()
+	if(json_packet_j != NULL)
 	{
-		case GWY_REG_PACKET:
-			break;
-		case GWY_UNREG_PACKET:
-			break;
-		case PROV_PACKET:
-			break;
-		case UNPROV_PACKET:
-			break;
-		case CONTROL_PACKET:
-			if(json_packet_j != NULL)
-			{
-				ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-				ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-				ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
-				strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
-				ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
-				ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
-				ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
-				ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
-				ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
-				ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
-			}
-			break;
-		default:
-			printf("UNKNOWN MQTT PACKET ERROR\r\n");
+		json_packet_id = cJSON_GetObjectItemCaseSensitive(json_packet_j, JSON_PACKET_ID);
+		switch(json_packet_id)
+		{
+			case GWY_REG_PACKET:
+				printf("Gwy registration packet received\r\n");
+				if(json_packet_j != NULL)
+				{
+					gwy_registration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					gwy_registration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					strcpy(gwy_registration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
+				}
+				break;
+			case GWY_UNREG_PACKET:
+				printf("Gwy unregistration packet received\r\n");
+				if(json_packet_j != NULL)
+				{
+					gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					strcpy(gwy_unregistration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
+				}
+				break;
+			case PROV_PACKET:
+				printf("Provisioning packet recevied\r\n");
+				if(json_packet_j != NULL)
+				{
+					provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+					fill_macid(cJSON_GetObjectItemCaseSensitive(json_packet_j, MAC_ID_STR)->valuestring);
+				}
+				break;
+			case UNPROV_PACKET:
+				printf("Unprovisioning packet received\r\n");
+				if(json_packet_j != NULL)
+				{
+					provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+					provision_t.elementAddr = cJSON__GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				}
+				break;
+			case CONTROL_PACKET:
+				printf("Control packet receved\r\n");
+				if(json_packet_j != NULL)
+				{
+					ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+					ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+					ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+					ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+					ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
+					strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
+					ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
+					ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
+					ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
+					ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
+					ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
+					ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
+					//Above parsed data needs to be error handled before passing to the send function
+					needtosend = true;
+				}
+				break;
+			default:
+				printf("UNKNOWN MQTT PACKET ERROR\r\n");
+		}
 	}
+	else
+		printf("json_packet_j is NULL\r\n");
 }
 
 /**
@@ -94,28 +162,15 @@ uint8_t check_response(char* response, uint32_t timeout)
 		while((esp_timer_get_time()/1000ULL) - time < timeout){
 			uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
 			if(length>0){
+				char check_string[30];
+				sprintf(check_string, "+QMTSTAT: %d,1", CLIENT_IDX);
+				if(strstr(data, check_string))
+				{
+					establishMQTTConnection();
+					break;
+				}
 				if(strstr((const char* )data,(const char*)response)){
-					ESP_LOGI(TAG, "Received string : %s\r\n", (char *) data);
-					for(index=0,j=0; data[index] != '\0'; index++)
-					{
-						if(data[index]=='{' && copy_flag == false)
-							copy_flag = true;
-						else
-							continue;
-						while(copy_flag)
-						{
-							vTaskDelay(1);
-							json_packet[j++] = data[index++];
-							if(data[index]=='}')
-							{
-								json_packet[j] = data[index];
-								copy_flag = false;
-								break;
-							}
-						}
-						break;
-					}
-					printf("json_packet : %s\r\n",json_packet);
+					ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
 					free(data);
 					return SUCCESS;
 				}
@@ -212,6 +267,8 @@ uint8_t SubscribeTopic(int client_idx, int msgid, char* topic, int qos)
 			subscribe_flag=1;
 			return SUCCESS;
 		}
+		client_flag = 0;
+		subscribe_flag = 0;
 		ESP_LOGI(TAG, "Could not Subscribe to Topic. \r\n");
 		free(transmit_buffer);
 		return FAILURE;
@@ -254,6 +311,7 @@ int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port)
 		if(check_response(transmit_buffer,10*MAX_WAIT_MS)	==	SUCCESS ){
 			return 2;
 		}
+		network_flag = 0;
 	}
 	ESP_LOGI(TAG, "Could not Connect to network. \r\n");
 	free(transmit_buffer);
@@ -291,6 +349,7 @@ uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* c
 			client_flag = 1;
 			return SUCCESS;
 		}
+		client_flag = 0;
 		ESP_LOGI(TAG,"Could not Connect client to broker.\r\n");
 		free(transmit_buffer);
 		return FAILURE;
@@ -543,28 +602,37 @@ void LTE_initialization(void)
 			1,0,0,"will/topic","Network Disconnected unexpectedly");
 }
 
-void subscribe(void)
-{
-	while(!client_flag)
-	{
-		vTaskDelay(1);
-		printf("Retrying client connect and subscribe ... \r\n");
-		MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","ac_control");
-		if(!subscribe_flag)
-			SubscribeTopic(CLIENT_IDX,2,"ac_cmd", 0);
-	}
-}
 
-void ConnectToNetwork()
+void establishMQTTConnection()
 {
-	MQTT_NetworkClose(CLIENT_IDX);
-	while(!network_flag){
+	uint8_t network_connect_retry_count = 0;
+	uint8_t client_connect_retry_count = 0;
+	uint8_t subscribe_retry_count = 0;
+	while(network_connect_retry_count <= RETRY_COUNT && !network_flag){
 		vTaskDelay(1);
-		if(MQTT_NetworkOpen(CLIENT_IDX,"54.215.188.103",1883)==2){
-			MQTT_NetworkClose(CLIENT_IDX);
+		client_connect_retry_count = 0;
+		printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count++);
+		uint8_t ret_val = MQTT_NetworkOpen(CLIENT_IDX,"54.215.188.103",1883);
+		if(ret_val == 2) MQTT_NetworkClose(CLIENT_IDX);
+		if(!network_flag) continue;
+		if(ret_val == SUCCESS)
+		{
+			while(client_connect_retry_count <= RETRY_COUNT && !client_flag) {
+				subscribe_retry_count = 0;
+				printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count++);
+				if(MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","AC_IR_CONTROL") == SUCCESS)
+				{
+					while(subscribe_retry_count <= RETRY_COUNT && !subscribe_flag) {
+						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
+						SubscribeTopic(CLIENT_IDX,2,"Control_packet", 0);
+					}
+					if(subscribe_retry_count > RETRY_COUNT) client_flag = 0;
+					client_connect_retry_count = 0;
+				}
+			}
+		if(client_connect_retry_count > RETRY_COUNT) network_flag = false;
+		network_connect_retry_count = 0;
 		}
 	}
-	if(network_flag) subscribe();
 }
-
 

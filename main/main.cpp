@@ -10,6 +10,7 @@
 bool configured = false;
 bool sending = false;
 bool needtosend = true;
+bool restart_flag = false;
 
 IRrecv irrecv(kRecvPin, kCaptureBufferSize, kTimeout, true);
 decode_results results;
@@ -20,58 +21,11 @@ char protocol_chosen[15] = "";
 IRDaikinESP ac_daikin280(kSendPin);
 IRDaikin216 ac_daikin216(kSendPin);
 IRHitachiAc296 ac_hitachi296(kSendPin);
+IRVoltas ac_voltas(kSendPin);
 
 extern "C"
 {
     void app_main(void);
-    void LTE_gpio_configuration();
-    void ConnectToNetwork();
-    void subscribe();
-    void resetLte();
-    void sendAT_Data(const char* data);
-    void LTE_initialization(void);
-    uint8_t check_response(char* response, uint32_t timeout);
-    uint8_t MQTT_Config(uint8_t client_idx,
-            uint8_t enable_ssl, uint8_t SSL_ctx_idx,
-            uint16_t keep_alive,
-            uint8_t clean_session,
-            uint8_t msg_recv_mode,uint8_t msg_len_enable,
-    uint8_t will_fg, uint8_t will_qos, uint8_t will_retain, char* will_topic, char* will_message);
-    uint8_t SSL_config(uint8_t ssl_context_index, char* ca_cert, char* client_cert, char* client_key);
-    uint8_t SubscribeTopic(int client_idx, int msgid, char* topic, int qos);
-    uint8_t UnsubscribeTopic(int client_idx, int msgid, char* topic);
-    int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port);
-    uint8_t MQTT_NetworkClose(int client_idx);
-    uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* clientID);
-    uint8_t MQTT_ClientDisconnect(int client_idx);
-    uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
-    uint8_t ReadMessage(int client_idx);
-    uint8_t Error_Report();
-    void parse_json_packet();
-}
-
-void app_main(void)
-{
-    Serial.begin(kBaudRate);
-    while(!Serial)
-        delay(50);
-    Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", kRecvPin);
-    irrecv.setUnknownThreshold(kMinUnknownSize);
-    irrecv.setTolerance(kTolerancePercentage);
-    irrecv.enableIRIn();
-
-    pthread_t recv_tid;
-    pthread_t LTE_tid;
-
-    ac.begin();
-
-    if(pthread_create(&recv_tid, NULL, recv_task, NULL)!=0){
-        perror("Error in creating recv_task : ");
-    }
-    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-        perror("Error in creating LTE_task : ");
-    }
-
 }
 
 void send_func()
@@ -84,6 +38,11 @@ void send_func()
             return;
         case DAIKIN216:
             strcpy(protocol_chosen, "Daikin216");
+            ac_daikin216.setPower(ac_control_t.power);
+            ac_daikin216.setTemp(ac_control_t.temp);
+            ac_daikin216.setSwingHorizontal(ac_control_t.swingH);
+            ac_daikin216.setSwingVertical(ac_control_t.swingV);
+            ac_daikin216.setFan(ac_control_t.fan);
             ac_daikin216.send();
             printf("Protocol Chosen Daikin216\r\n");
             break;
@@ -93,6 +52,7 @@ void send_func()
             return;
         case DAIKIN:
             strcpy(protocol_chosen, "Daikin280");
+            ac_daikin280.setPower(ac_control_t.power);
             ac_daikin280.send();
             printf("Protocol Chosen Daikin280\r\n");
             break;
@@ -108,9 +68,34 @@ void send_func()
             break;
     }
     sending = false;
+    needtosend = false;
 }
 
-void *recv_task(void *args)
+void *LTE_task(void *args)
+{
+    LTE_gpio_configuration();
+    resetLte();
+    LTE_initialization();
+    establishMQTTConnection();
+    while(1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        if(network_flag && client_flag && subscribe_flag &&!restart_flag)
+            ReadMessage(CLIENT_IDX);
+        else
+        {
+            printf("NETWORK_FLAG : %d | CLIENT_FLAG : %d | SUBSCRIBE_FLAG : %d",network_flag, client_flag, subscribe_flag);
+            LTE_part();
+        }
+        if(strlen(json_packet) > 20)
+        {
+            parse_json_packet();
+            strcpy(json_packet, "");
+        }
+    }
+}
+
+void *recv_and_send_task(void *args)
 {
     while(1)
     {
@@ -157,20 +142,29 @@ void *recv_task(void *args)
     }
 }
 
-void *LTE_task(void *args)
+
+void app_main(void)
 {
-    LTE_gpio_configuration();
-    resetLte();
-    LTE_initialization();
-    ConnectToNetwork();
-    while(1)
-    {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        ReadMessage(CLIENT_IDX);
-        if(strlen(json_packet) > 20)
-        {
-            parse_json_packet();
-            strcpy(json_packet, "");
-        }
+    Serial.begin(kBaudRate);
+    while(!Serial)
+        delay(50);
+    Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", kRecvPin);
+    irrecv.setUnknownThreshold(kMinUnknownSize);
+    irrecv.setTolerance(kTolerancePercentage);
+    irrecv.enableIRIn();
+
+    pthread_t recv_tid;
+    pthread_t LTE_tid;
+
+    ac_daikin216.begin();
+    ac_daikin280.begin();
+    ac_hitachi296.begin();
+
+    if(pthread_create(&recv_tid, NULL, recv_and_send_task, NULL)!=0){
+        perror("Error in creating recv_task : ");
     }
+    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
+        perror("Error in creating LTE_task : ");
+    }
+
 }
