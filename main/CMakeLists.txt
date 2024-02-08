@@ -1,6 +1,5 @@
-idf_component_register(
-    SRCS "main.cpp" "EC200U.c"  "BLE_mesh/mesh_main.c" "BLE_mesh/board.c" 
-)
+set(srcs "main.cpp" "mesh_main.c" "EC200U.c"
+    "board.c")
 
-
-
+idf_component_register(SRCS "${srcs}"
+                    INCLUDE_DIRS  ".")

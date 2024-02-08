@@ -1,27 +1,4 @@
 {
-    "files.associations": {
-        "algorithm": "cpp",
-        "initializer_list": "cpp",
-        "iterator": "cpp",
-        "memory": "cpp",
-        "vector": "cpp",
-        "xlocmon": "cpp",
-        "xlocnum": "cpp",
-        "xmemory": "cpp",
-        "xstring": "cpp",
-        "xtree": "cpp",
-        "xutility": "cpp",
-        "list": "cpp",
-        "regex": "cpp",
-        "xhash": "cpp",
-        "main.h": "c",
-        "cjson.h": "c",
-        "utility": "cpp",
-        "irrecv.h": "c",
-        "irremoteesp8266.h": "c",
-        "mesh_main.h": "c"
-    },
-    "idf.adapterTargetName": "esp32",
-    "idf.flashType": "UART",
-    "idf.portWin": "COM4"
+  "C_Cpp.intelliSenseEngine": "default",
+  "idf.adapterTargetName": "esp32"
 }

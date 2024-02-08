@@ -3,4 +3,4 @@ dependencies:
     version: '>=4.3'
 description: LittleFS is a small fail-safe filesystem for micro-controllers.
 url: https://github.com/joltwallet/esp_littlefs
-version: 1.13.0
+version: 1.14.1

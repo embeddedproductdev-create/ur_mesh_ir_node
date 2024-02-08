@@ -1,6 +1,5 @@
 #include "Arduino.h"
-#include "inc/main.h"
-#include "inc/mesh_main.h"
+#include "main.h"
 #include <assert.h>
 #include <IRrecv.h>
 #include <IRremoteESP8266.h>
@@ -155,7 +154,6 @@ void *recv_and_send_task(void *args)
         }
     }
 }
-
 
 void app_main(void)
 {
