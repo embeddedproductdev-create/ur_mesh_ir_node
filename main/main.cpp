@@ -116,7 +116,7 @@ void *recv_and_send_task(void *args)
     {
         vTaskDelay(10);
         // Check if the IR code has been received.
-        if (irrecv.decode(&results) && ! sending) {
+        if (irrecv.decode(&results) && !sending) {
             // Display a crude timestamp.;
             uint32_t now = millis();
             Serial.printf(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
@@ -177,8 +177,8 @@ void app_main(void)
     if(pthread_create(&recv_tid, NULL, recv_and_send_task, NULL)!=0){
         perror("Error in creating recv_task : ");
     }
-    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-        perror("Error in creating LTE_task : ");
-    }
+    // if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
+    //     perror("Error in creating LTE_task : ");
+    // }
 
 }
