@@ -23,7 +23,6 @@
 #include "rom/ets_sys.h"
 #include "sdkconfig.h"
 #include <IRremoteESP8266.h>
-#include "mesh_main.h"
 
 /*Recviver part*/
 #define kRecvPin 34
