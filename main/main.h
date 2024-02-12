@@ -49,5 +49,4 @@ extern bool needtosend;
 extern bool restart_flag;
 
 extern char protocol_chosen[15];
-
 #endif

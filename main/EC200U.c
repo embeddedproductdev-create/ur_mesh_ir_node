@@ -25,6 +25,7 @@ void LTE_part()
 	establishMQTTConnection();
 }
 
+enum json_packet_enum json_packet_id = UNKNOWN_PACKET;
 char json_packet[100];
 cJSON *json_packet_j;
 control_t ac_control_t;
@@ -38,13 +39,11 @@ void fill_macid()
 {
 	char macid[17];
 	strcpy(macid, cJSON_GetObjectItemCaseSensitive(json_packet_j, MAC_ID_STR)->valuestring);
-	// printf("macid recvd : %s\r\n",macid);
     char hex_char_str[2];
 	for(uint8_t index=0, i=0; index<6; index++, i+=3)
 	{
 	    strncat(hex_char_str,&macid[i],1);
 	    strncat(hex_char_str,&macid[i+1],1);
-		// printf("hex_char_str : %s\r\n",hex_char_str);
 		provision_t.macid[index] = strtol(hex_char_str, NULL, 16);
 		strcpy(hex_char_str, "");
 		printf("macid[%d] : %x\r\n",index, provision_t.macid[index]);
@@ -59,7 +58,6 @@ void fill_macid()
  */
 void parse_json_packet()
 {
-	uint8_t json_packet_id = UNKNOWN_PACKET;
 	json_packet_j = cJSON_Parse(json_packet);
 	if(json_packet_j != NULL)
 	{
@@ -75,7 +73,11 @@ void parse_json_packet()
 					gwy_registration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
 					strcpy(gwy_registration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
 				}
+            	break;
+
+			case GWY_CONF_PACKET:
 				break;
+
 			case GWY_UNREG_PACKET:
 				printf("Gwy unregistration packet received\r\n");
 				if(json_packet_j != NULL)
@@ -85,18 +87,34 @@ void parse_json_packet()
 					strcpy(gwy_unregistration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
 				}
 				break;
-			case PROV_PACKET:
-				printf("Provisioning packet received\r\n");
+
+			case GWY_AC_CONTROL_PACKET:
+				break;
+
+			case GWY_AC_LOCKING_PACKET:
+				break;
+
+			case GWY_RECONF_PACKET:
+				break;
+
+			case NODE_PROV_PACKET:
+				printf("Node Provisioning packet received\r\n");
 				if(json_packet_j != NULL)
 				{
 					provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
 					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
 					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
 					fill_macid();
+					handle_cloud_packets(json_packet_id);
 				}
+
 				break;
-			case UNPROV_PACKET:
-				printf("Unprovisioning packet received\r\n");
+
+			case NODE_CONF_PACKET:
+				break;
+
+			case NODE_UNPROV_PACKET:
+				printf("Node Unprovisioning packet received\r\n");
 				if(json_packet_j != NULL)
 				{
 					unprovision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
@@ -105,8 +123,9 @@ void parse_json_packet()
 					unprovision_t.elemnt_addr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
 				}
 				break;
-			case CONTROL_PACKET:
-				printf("Control packet received\r\n");
+
+			case NODE_AC_CONTROL_PACKET:
+				printf("Node AC Control packet received\r\n");
 				if(json_packet_j != NULL)
 				{
 					ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
@@ -126,8 +145,12 @@ void parse_json_packet()
 					needtosend = true;
 				}
 				break;
-			case RECONFIGURE_PACKET:
-				printf("Reconfigure packet received\r\n");
+
+			case NODE_AC_LOCKING_PACKET:
+				break;
+
+			case NODE_RECONF_PACKET:
+				printf("Node Reconfigure packet received\r\n");
 				if(json_packet_j != NULL)
 				{
 					reconfigure_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
@@ -137,6 +160,7 @@ void parse_json_packet()
 					configured = false;
 				}
 				break;
+
 			default:
 				printf("UNKNOWN MQTT PACKET ERROR\r\n");
 		}

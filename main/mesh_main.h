@@ -2,6 +2,6 @@
 #define MESH_MAIN_H
 
 /* FUNCTION DECLARATIONS */
-void initiate_provisioning(void);
+void handle_cloud_packets(enum json_packet_enum json_packet_id);
 
 #endif

@@ -245,17 +245,6 @@ static void prov_link_close(esp_ble_mesh_prov_bearer_t bearer, uint8_t reason)
              bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT", reason);
 }
 
-bool is_mac_addr_matching(uint8_t *dev_uuid)
-{
-    for(uint8_t index=0; index<6; index++)
-    {
-        if(provision_t.macid[index]!=dev_uuid[index+2])
-            return false;
-    }
-    printf("MAC addr is matching !!!\n");
-    return true;
-}
-
 static void recv_unprov_adv_pkt(uint8_t dev_uuid[16], uint8_t addr[BD_ADDR_LEN],
                                 esp_ble_mesh_addr_type_t addr_type, uint16_t oob_info,
                                 uint8_t adv_type, esp_ble_mesh_prov_bearer_t bearer)
@@ -279,13 +268,10 @@ static void recv_unprov_adv_pkt(uint8_t dev_uuid[16], uint8_t addr[BD_ADDR_LEN],
     add_dev.bearer = (uint8_t)bearer;
     /* Note: If unprovisioned device adv packets have not been received, we should not add
              device with ADD_DEV_START_PROV_NOW_FLAG set. */
-    if(is_mac_addr_matching(dev_uuid))
-    {
-        err = esp_ble_mesh_provisioner_add_unprov_dev(&add_dev,
-                ADD_DEV_RM_AFTER_PROV_FLAG | ADD_DEV_START_PROV_NOW_FLAG | ADD_DEV_FLUSHABLE_DEV_FLAG);
-        if (err) {
-            ESP_LOGE(TAG, "%s: Add unprovisioned device into queue failed", __func__);
-        }
+    err = esp_ble_mesh_provisioner_add_unprov_dev(&add_dev,
+            ADD_DEV_RM_AFTER_PROV_FLAG | ADD_DEV_START_PROV_NOW_FLAG | ADD_DEV_FLUSHABLE_DEV_FLAG);
+    if (err) {
+        ESP_LOGE(TAG, "%s: Add unprovisioned device into queue failed", __func__);
     }
     return;
 }
@@ -358,6 +344,44 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     }
 
     return;
+}
+
+static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t event,
+                                              esp_ble_mesh_cfg_server_cb_param_t *param)
+{
+    if (event == ESP_BLE_MESH_CFG_SERVER_STATE_CHANGE_EVT) {
+        switch (param->ctx.recv_op) {
+        case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
+            ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD");
+            ESP_LOGI(TAG, "net_idx 0x%04x, app_idx 0x%04x",
+                param->value.state_change.appkey_add.net_idx,
+                param->value.state_change.appkey_add.app_idx);
+            ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
+            break;
+        case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
+            ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND");
+            ESP_LOGI(TAG, "elem_addr 0x%04x, app_idx 0x%04x, cid 0x%04x, mod_id 0x%04x",
+                param->value.state_change.mod_app_bind.element_addr,
+                param->value.state_change.mod_app_bind.app_idx,
+                param->value.state_change.mod_app_bind.company_id,
+                param->value.state_change.mod_app_bind.model_id);
+            break;
+        case ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD:
+            ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD");
+            ESP_LOGI(TAG, "elem_addr 0x%04x, sub_addr 0x%04x, cid 0x%04x, mod_id 0x%04x",
+                param->value.state_change.mod_sub_add.element_addr,
+                param->value.state_change.mod_sub_add.sub_addr,
+                param->value.state_change.mod_sub_add.company_id,
+                param->value.state_change.mod_sub_add.model_id);
+            break;
+        case ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET:
+        	ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_PUB_SET");
+        	ESP_LOGI(TAG, "elem_addr 0x%04x, pub_addr - 0x%04x", param->value.state_change.mod_pub_set.element_addr, param->value.state_change.mod_pub_set.pub_addr);
+        	break;
+        default:
+            break;
+        }
+    }
 }
 
 static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t event,
@@ -601,7 +625,7 @@ static void example_ble_mesh_generic_client_cb(esp_ble_mesh_generic_client_cb_ev
 
 static esp_err_t ble_mesh_init(void)
 {
-    uint8_t match[2] = {0xdd, 0xdd};
+    uint8_t match[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
     esp_err_t err = ESP_OK;
 
     prov_key.net_idx = ESP_BLE_MESH_KEY_PRIMARY;
@@ -611,6 +635,7 @@ static esp_err_t ble_mesh_init(void)
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_client_callback(example_ble_mesh_config_client_cb);
     esp_ble_mesh_register_generic_client_callback(example_ble_mesh_generic_client_cb);
+    esp_ble_mesh_register_config_server_callback(example_ble_mesh_config_server_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
@@ -618,7 +643,7 @@ static esp_err_t ble_mesh_init(void)
         return err;
     }
 
-    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, false);
+    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x6, false);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set matching device uuid (err %d)", err);
         return err;
@@ -641,9 +666,59 @@ static esp_err_t ble_mesh_init(void)
     return err;
 }
 
-void initiate_provisioning()
+void provision_with_mac()
 {
-    esp_ble_mesh_provisioner_set_dev_uuid_match(provision_t.macid, sizeof(provision_t.macid), 0x6, true);
+    esp_err_t err = ESP_OK;
+    err = esp_ble_mesh_provisioner_set_dev_uuid_match(provision_t.macid, sizeof(provision_t.macid), 0x6, true);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set match for device uuid!!!");
+    }
+}
+
+void unprovision_with_elemaddr()
+{
+    esp_ble_mesh_node_t *node = NULL;
+    node = esp_ble_mesh_provisioner_get_node_with_addr(unprovision_t.elemnt_addr);
+    if (node == NULL) {
+        ESP_LOGE(TAG, "Failed to get node 0x%04x info", unprovision_t.elemnt_addr);
+        return;
+    }
+
+}
+
+void handle_cloud_packets(enum json_packet_enum json_packet_id)
+{
+    switch(json_packet_id)
+    {
+        case GWY_REG_PACKET:
+            break;
+        case GWY_CONF_PACKET:
+            break;
+        case GWY_UNREG_PACKET:
+            break;
+        case GWY_AC_CONTROL_PACKET:
+            break;
+        case GWY_AC_LOCKING_PACKET:
+            break;
+        case GWY_RECONF_PACKET:
+            break;
+        case NODE_PROV_PACKET:
+            provision_with_mac();
+            break;
+        case NODE_CONF_PACKET:
+            break;
+        case NODE_UNPROV_PACKET:
+            unprovision_with_elemaddr();
+            break;
+        case NODE_AC_CONTROL_PACKET:
+            break;
+        case NODE_AC_LOCKING_PACKET:
+            break;
+        case NODE_RECONF_PACKET:
+            break;
+        default:
+            ESP_LOGE(TAG, "Unknown cloud packet\r\n");
+    }
 }
 
 void mesh_init(void)
