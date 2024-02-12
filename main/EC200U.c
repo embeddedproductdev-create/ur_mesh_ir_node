@@ -1,4 +1,5 @@
 #include "main.h"
+#include "mesh_main.h"
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -167,7 +168,7 @@ void uart_init(void)
 void sendAT_Data(const char* data)
 {
     int err = uart_write_bytes(UART_NUM_1, data, strlen(data));
-    if(err != -1) ESP_LOGI(TAG, "AT Command sent : %s",data);
+    if(err != -1) ;//ESP_LOGI(TAG, "AT Command sent : %s",data);
     else ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
 }
 
@@ -188,7 +189,7 @@ uint8_t check_response(char* response, uint32_t timeout)
 					break;
 				}
 				if(strstr((const char* )data,(const char*)response)){
-					ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
+					// ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
 					for(index=0,j=0; data[index] != '\0'; index++)
 					{
 						if(data[index]=='{' && copy_flag == false)

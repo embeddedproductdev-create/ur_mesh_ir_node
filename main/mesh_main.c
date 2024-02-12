@@ -23,6 +23,9 @@
 
 #include "ble_mesh_example_init.h"
 
+#include "mqtt.h"
+#include "mesh_main.h"
+
 #define TAG "EXAMPLE"
 
 #define LED_OFF             0x0
@@ -242,6 +245,17 @@ static void prov_link_close(esp_ble_mesh_prov_bearer_t bearer, uint8_t reason)
              bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT", reason);
 }
 
+bool is_mac_addr_matching(uint8_t *dev_uuid)
+{
+    for(uint8_t index=0; index<6; index++)
+    {
+        if(provision_t.macid[index]!=dev_uuid[index+2])
+            return false;
+    }
+    printf("MAC addr is matching !!!\n");
+    return true;
+}
+
 static void recv_unprov_adv_pkt(uint8_t dev_uuid[16], uint8_t addr[BD_ADDR_LEN],
                                 esp_ble_mesh_addr_type_t addr_type, uint16_t oob_info,
                                 uint8_t adv_type, esp_ble_mesh_prov_bearer_t bearer)
@@ -265,12 +279,14 @@ static void recv_unprov_adv_pkt(uint8_t dev_uuid[16], uint8_t addr[BD_ADDR_LEN],
     add_dev.bearer = (uint8_t)bearer;
     /* Note: If unprovisioned device adv packets have not been received, we should not add
              device with ADD_DEV_START_PROV_NOW_FLAG set. */
-    err = esp_ble_mesh_provisioner_add_unprov_dev(&add_dev,
-            ADD_DEV_RM_AFTER_PROV_FLAG | ADD_DEV_START_PROV_NOW_FLAG | ADD_DEV_FLUSHABLE_DEV_FLAG);
-    if (err) {
-        ESP_LOGE(TAG, "%s: Add unprovisioned device into queue failed", __func__);
+    if(is_mac_addr_matching(dev_uuid))
+    {
+        err = esp_ble_mesh_provisioner_add_unprov_dev(&add_dev,
+                ADD_DEV_RM_AFTER_PROV_FLAG | ADD_DEV_START_PROV_NOW_FLAG | ADD_DEV_FLUSHABLE_DEV_FLAG);
+        if (err) {
+            ESP_LOGE(TAG, "%s: Add unprovisioned device into queue failed", __func__);
+        }
     }
-
     return;
 }
 
@@ -623,6 +639,11 @@ static esp_err_t ble_mesh_init(void)
     ESP_LOGI(TAG, "BLE Mesh Provisioner initialized");
 
     return err;
+}
+
+void initiate_provisioning()
+{
+    esp_ble_mesh_provisioner_set_dev_uuid_match(provision_t.macid, sizeof(provision_t.macid), 0x6, true);
 }
 
 void mesh_init(void)

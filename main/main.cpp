@@ -177,7 +177,7 @@ void app_main(void)
     // if(pthread_create(&recv_tid, NULL, recv_and_send_task, NULL)!=0){
     //     perror("Error in creating recv_task : ");
     // }
-    // if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-    //     perror("Error in creating LTE_task : ");
-    // }
+    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
+        perror("Error in creating LTE_task : ");
+    }
 }

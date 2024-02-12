@@ -1,7 +1,8 @@
 #ifndef MQTT_H_
 #define MQTT_H_
 
-#include "main.h"
+#include <stdint.h>
+#include <cJSON.h>
 
 #define JSON_PACKET_ID  "JsonPacketID"
 #define MSGSEQNO_STR	"MsgSeqNo"
