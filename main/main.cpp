@@ -6,6 +6,7 @@
 #include <IRac.h>
 #include <IRtext.h>
 #include <IRutils.h>
+#include "mesh_main.h"
 
 
 bool configured = false;
@@ -155,6 +156,51 @@ void *recv_and_send_task(void *args)
     }
 }
 
+void send_prov_packet()
+{
+    bool flag = false;
+    while(!flag)
+    {
+        for(int8_t i=10; i>0; i--)
+        {
+            printf("provisioning in %d seconds ...\r\n",i);
+            delay(1000);
+        }
+        flag = true;
+    }
+    provision_t.gwy_ser_no = 1;
+    provision_t.macid[0] = 0x78;
+    provision_t.macid[1] = 0x21;
+    provision_t.macid[2] = 0x84;
+    provision_t.macid[3] = 0xb8;
+    provision_t.macid[4] = 0xf0;
+    provision_t.macid[5] = 0x56;
+    provision_t.msg_seq_no = 1;
+    provision_t.node_ser_no = 1;
+    strcpy(provision_t.timestamp, "abcd");
+    handle_cloud_packets(NODE_PROV_PACKET);
+}
+
+void send_unprov_packet()
+{
+    bool flag = false;
+    while(!flag)
+    {
+        for(int8_t i=20; i>0; i--)
+        {
+            printf("Unprovisioning in %d seconds ...\r\n",i);
+            delay(1000);
+        }
+        flag = true;
+    }
+    unprovision_t.gwy_ser_no = 1;
+    unprovision_t.elemnt_addr = 0x0005;
+    unprovision_t.msg_seq_no = 1;
+    unprovision_t.node_ser_no = 1;
+    strcpy(unprovision_t.timestamp, "abcd");
+    handle_cloud_packets(NODE_UNPROV_PACKET);
+}
+
 void app_main(void)
 {
     mesh_init();
@@ -177,7 +223,9 @@ void app_main(void)
     // if(pthread_create(&recv_tid, NULL, recv_and_send_task, NULL)!=0){
     //     perror("Error in creating recv_task : ");
     // }
-    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-        perror("Error in creating LTE_task : ");
-    }
+    // if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
+    //     perror("Error in creating LTE_task : ");
+    // }
+    send_prov_packet();
+    send_unprov_packet();
 }

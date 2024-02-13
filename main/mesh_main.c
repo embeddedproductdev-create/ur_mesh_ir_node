@@ -675,14 +675,47 @@ void provision_with_mac()
     }
 }
 
+static void modelCfgSetMsgCommon(esp_ble_mesh_client_common_param_t *common, esp_ble_mesh_node_t *node,
+                                            esp_ble_mesh_model_t *model, uint32_t opcode)
+{
+    common->opcode = opcode;
+    common->model = model;
+    common->ctx.net_idx = prov_key.net_idx;
+    common->ctx.app_idx = prov_key.app_idx;
+    common->ctx.addr = node->unicast_addr;
+    common->ctx.send_ttl = 10;
+    common->ctx.send_rel = true;
+    common->msg_timeout = MSG_TIMEOUT;
+    common->msg_role = MSG_ROLE;
+}
+
 void unprovision_with_elemaddr()
 {
+    esp_err_t err = ESP_OK;
+
     esp_ble_mesh_node_t *node = NULL;
     node = esp_ble_mesh_provisioner_get_node_with_addr(unprovision_t.elemnt_addr);
     if (node == NULL) {
         ESP_LOGE(TAG, "Failed to get node 0x%04x info", unprovision_t.elemnt_addr);
         return;
     }
+
+    esp_ble_mesh_client_common_param_t common = {0};
+    esp_ble_mesh_cfg_client_set_state_t set = {0};
+    ESP_LOGI(TAG, "Before: Node to be unprovisioned- 0x%04x", unprovision_t.elemnt_addr);
+    ESP_LOGI(TAG, "Node to be unprovisioned- 0x%04x", unprovision_t.elemnt_addr);
+    modelCfgSetMsgCommon(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
+
+    err = esp_ble_mesh_config_client_set_state(&common, &set);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to send Node reset command to - 0x%04x!!!", unprovision_t.elemnt_addr);
+        return;
+    } else ESP_LOGI(TAG, "Successfully sent Node reset command to - 0x%04x!!!", unprovision_t.elemnt_addr);
+
+    err = esp_ble_mesh_provisioner_delete_node_with_addr(unprovision_t.elemnt_addr);
+    if (err != ESP_OK) {
+    	ESP_LOGE(TAG, "Failed to delete node with address - 0x%04x", unprovision_t.elemnt_addr);
+    } else ESP_LOGI(TAG, "Successfully deleted node with address 0x%04x from provisioner's DB!!!", unprovision_t.elemnt_addr);
 
 }
 
