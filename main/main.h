@@ -3,12 +3,15 @@
 
 #include <cJSON.h>
 #include <inttypes.h>
+#include <IRremoteESP8266.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+// #include <Wire.h>
+
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_chip_info.h"
@@ -20,12 +23,13 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "mqtt.h"
+#include "read_temperature.h"
 #include "rom/ets_sys.h"
 #include "sdkconfig.h"
-#include <IRremoteESP8266.h>
+
 
 /*Recviver part*/
-#define kRecvPin 34
+#define kRecvPin 38
 #define kBaudRate 115200
 #define kCaptureBufferSize 1024
 #define kTimeout 50
@@ -33,7 +37,7 @@
 #define kTolerancePercentage kTolerance
 
 /*Sending part*/
-#define kSendPin 22
+#define kSendPin 7
 
 #define TAG "UART"
 

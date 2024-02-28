@@ -10,11 +10,11 @@ uint8_t network_flag = 0;
 uint8_t client_flag = 0;
 uint8_t subscribe_flag = 0;
 
-#define TXD_PIN (GPIO_NUM_17)
-#define RXD_PIN (GPIO_NUM_16)
-#define CTS_PIN (GPIO_NUM_4)
-#define RTS_PIN (GPIO_NUM_5)
-#define RETRY_COUNT 5
+#define TXD_PIN (GPIO_NUM_18)
+#define RXD_PIN (GPIO_NUM_17)
+#define CTS_PIN (GPIO_NUM_11)
+#define RTS_PIN (GPIO_NUM_10)
+#define RETRY_COUNT 2
 
 
 void LTE_part()
@@ -105,7 +105,7 @@ void parse_json_packet()
 					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
 					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
 					fill_macid();
-					handle_cloud_packets(json_packet_id);
+					// handle_cloud_packets(json_packet_id);
 				}
 
 				break;

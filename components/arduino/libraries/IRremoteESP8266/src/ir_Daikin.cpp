@@ -605,13 +605,11 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
                          kDaikinSections * (kHeader + kFooter) + kFooter - 1) +
                          offset)
                          {
-    printf("False at 1\r\n");
     return false;
     }
   // Compliance
   if (strict && nbits != kDaikinBits)
   {
-    printf("false at 2\r\n");
     return false;
   }
 
@@ -624,23 +622,19 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
                           kDaikinTolerance, kDaikinMarkExcess, false);
   offset += data_result.used;
   if (data_result.success == false){
-    printf("False at 3\r\n");
     return false; // Fail
   }
   if (data_result.data)
   {
-    printf("False at 4\r\n");
     return false;  // The header bits should be zero.
   }
   // Footer
   if (!matchMark(results->rawbuf[offset++], kDaikinBitMark,
                  kDaikinTolerance, kDaikinMarkExcess)) {
-                  printf("False at 5\r\n");
                   return false;
   }
   if (!matchSpace(results->rawbuf[offset++], kDaikinZeroSpace + kDaikinGap,
                   kDaikinTolerance, kDaikinMarkExcess)) {
-                    printf("False at 6\r\n");
                     return false;
   }
   // Sections
@@ -659,7 +653,6 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
                         section >= kDaikinSections - 1,
                         kDaikinTolerance, kDaikinMarkExcess, false);
     if (used == 0) {
-      printf("False at 7\r\n");
       return false;
     }
     offset += used;
@@ -669,12 +662,10 @@ bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
   if (strict) {
     // Re-check we got the correct size/length due to the way we read the data.
     if (pos * 8 != kDaikinBits) {
-      printf("False at 8\r\n");
       return false;
     }
     // Validate the checksum.
     if (!IRDaikinESP::validChecksum(results->state)) {
-      printf("False at 9\r\n");
       return false;
     }
   }

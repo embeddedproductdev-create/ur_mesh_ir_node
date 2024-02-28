@@ -115,8 +115,8 @@ extern "C" {
 #define SSL_SEC_READ_RESPONSE          "+QSECREAD= 1"
 
 //LTE PINS
-#define GPIO_LTE_RESET	19
-#define GPIO_LTE_ONOFF	23
+#define GPIO_LTE_RESET	46
+#define GPIO_LTE_ONOFF	9
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
 
 extern uint8_t network_flag;

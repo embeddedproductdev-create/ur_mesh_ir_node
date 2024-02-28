@@ -6,8 +6,10 @@
 #include <IRac.h>
 #include <IRtext.h>
 #include <IRutils.h>
-#include "mesh_main.h"
+#include <Wire.h>
+// #include "mesh_main.h"
 
+#define USER_SWITCH 12
 
 bool configured = false;
 bool sending = false;
@@ -113,6 +115,8 @@ void *LTE_task(void *args)
 
 void *recv_and_send_task(void *args)
 {
+    pinMode(USER_SWITCH, INPUT);
+
     while(1)
     {
         vTaskDelay(10);
@@ -136,6 +140,7 @@ void *recv_and_send_task(void *args)
             if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
             if(protocol_detected != UNKNOWN && protocol_detected != UNUSED)
                 configured = true;
+            printf("protocol_detected : %d\n",protocol_detected);
             yield();  // Feed the WDT as the text output can take a while to print.
         #if LEGACY_TIMING_INFO
             // Output legacy RAW timing info of the result.
@@ -152,6 +157,17 @@ void *recv_and_send_task(void *args)
         {
             send_func();
             printf("Protcol Chosen : %s\r\n", protocol_chosen);
+        }
+        if(!digitalRead(USER_SWITCH))
+        {
+            printf("USER_SWITCH IS PRESSED\n");
+            if(ac_control_t.power)
+                ac_control_t.power = false;
+            else
+                ac_control_t.power = true;
+            protocol_detected = DAIKIN216;
+            send_func();
+            delay(1000);
         }
     }
 }
@@ -178,7 +194,7 @@ void send_prov_packet()
     provision_t.msg_seq_no = 1;
     provision_t.node_ser_no = 1;
     strcpy(provision_t.timestamp, "abcd");
-    handle_cloud_packets(NODE_PROV_PACKET);
+    // handle_cloud_packets(NODE_PROV_PACKET);
 }
 
 void send_unprov_packet()
@@ -198,12 +214,12 @@ void send_unprov_packet()
     unprovision_t.msg_seq_no = 1;
     unprovision_t.node_ser_no = 1;
     strcpy(unprovision_t.timestamp, "abcd");
-    handle_cloud_packets(NODE_UNPROV_PACKET);
+    // handle_cloud_packets(NODE_UNPROV_PACKET);
 }
 
 void app_main(void)
 {
-    mesh_init();
+    // mesh_init();
 
     Serial.begin(kBaudRate);
     while(!Serial)
@@ -215,17 +231,20 @@ void app_main(void)
 
     pthread_t recv_tid;
     pthread_t LTE_tid;
+    // pthread_t temperature_read_tid;
 
     ac_daikin216.begin();
     ac_daikin280.begin();
     ac_hitachi296.begin();
 
-    // if(pthread_create(&recv_tid, NULL, recv_and_send_task, NULL)!=0){
-    //     perror("Error in creating recv_task : ");
+    if(pthread_create(&recv_tid, NULL, recv_and_send_task, NULL)!=0){
+        perror("Error in creating recv_task : ");
+    }
+    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
+        perror("Error in creating LTE_task : ");
+    }
+    // if(pthread_create(&temperature_read_tid, NULL, temperature_read, NULL)!=0){
+    //     perror("Error in creating temperature_read_thread : ");
     // }
-    // if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-    //     perror("Error in creating LTE_task : ");
-    // }
-    send_prov_packet();
-    send_unprov_packet();
+
 }

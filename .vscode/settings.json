@@ -1,13 +1,16 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32",
-  "idf.portWin": "COM4",
+  "idf.portWin": "COM6",
   "idf.flashType": "UART",
   "files.associations": {
     "mqtt.h": "c",
     "main.h": "c",
     "mesh_main.h": "c",
     "esp_timer.h": "c",
-    "future": "c"
+    "future": "c",
+    "sdkconfig.h": "c",
+    "ble_mesh_example_init.h": "c",
+    "esp_chip_info.h": "c"
   }
 }

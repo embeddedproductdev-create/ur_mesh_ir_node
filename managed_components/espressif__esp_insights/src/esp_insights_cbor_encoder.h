@@ -1,18 +1,11 @@
-// Copyright 2021 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #pragma once
+
 #include <cbor.h>
 #include <esp_diagnostics_metrics.h>
 #include <esp_diagnostics_variables.h>
@@ -20,6 +13,12 @@
 #include <esp_core_dump.h>
 #endif /* CONFIG_ESP_INSIGHTS_COREDUMP_ENABLE */
 #include <rtc_store.h>
+
+// make tag/group as a outer key and actual keys from it are contained within
+#ifndef CONFIG_ESP_INSIGHTS_META_VERSION_10
+#define TAG_IS_OUTER_KEY 1
+#define NEW_META_STRUCT 1
+#endif
 
 void esp_insights_cbor_encode_diag_begin(void *data, size_t data_size, const char *version);
 void esp_insights_cbor_encode_diag_data_begin(void);

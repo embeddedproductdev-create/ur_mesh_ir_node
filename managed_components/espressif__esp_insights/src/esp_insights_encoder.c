@@ -1,16 +1,9 @@
-// Copyright 2021 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <string.h>
 #include <esp_diagnostics.h>
 #include <esp_diagnostics_metrics.h>
@@ -18,13 +11,22 @@
 
 #include "esp_insights_cbor_encoder.h"
 
+#if CONFIG_ESP_INSIGHTS_META_VERSION_10
 #define INSIGHTS_VERSION_MAJOR           "1"
+#else
+#define INSIGHTS_VERSION_MAJOR           "2"
+#endif
 #define INSIGHTS_VERSION_MINOR           "0"
 #define INSIGHTS_VERSION                 INSIGHTS_VERSION_MAJOR \
                                             "." INSIGHTS_VERSION_MINOR
 
+#if CONFIG_ESP_INSIGHTS_META_VERSION_10
 #define INSIGHTS_META_VERSION_MAJOR      "1"
+#else
+#define INSIGHTS_META_VERSION_MAJOR      "2"
+#endif
 #define INSIGHTS_META_VERSION_MINOR      "0"
+
 #define INSIGHTS_META_VERSION            INSIGHTS_META_VERSION_MAJOR \
                                             "." INSIGHTS_META_VERSION_MINOR
 
@@ -78,7 +80,7 @@ esp_err_t esp_insights_encode_data_begin(void *out_data, size_t out_data_size)
     if (!out_data || !out_data_size) {
         return ESP_ERR_INVALID_ARG;
     }
-    esp_insights_cbor_encode_diag_begin(out_data + TLV_OFFSET, out_data_size - TLV_OFFSET, INSIGHTS_META_VERSION);
+    esp_insights_cbor_encode_diag_begin(out_data + TLV_OFFSET, out_data_size - TLV_OFFSET, INSIGHTS_VERSION);
     esp_insights_cbor_encode_diag_data_begin();
     return ESP_OK;
 }

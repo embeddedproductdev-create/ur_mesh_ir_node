@@ -1,16 +1,9 @@
-// Copyright 2021 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <string.h>
 #include <esp_log.h>
 #include <esp_wifi.h>
@@ -66,7 +59,9 @@
 #define INSIGHTS_READ_BUF_SIZE  (1024)  // read this much data from data store in one go
 
 #define SEND_INSIGHTS_META (CONFIG_DIAG_ENABLE_METRICS || CONFIG_DIAG_ENABLE_VARIABLES)
-#define KEY_LOG_WR_FAIL    "log_wr_fail"
+
+#define TAG_DIAG            "diag"
+#define KEY_LOG_WR_FAIL     "log_wr_fail"
 
 #define DIAG_DATA_STORE_CRC_KEY "rtc_buf_sha"
 #define INSIGHTS_NVS_NAMESPACE "storage"
@@ -422,7 +417,11 @@ static void send_insights_data(void)
     static uint32_t prev_log_write_fail_cnt = 0;
     if (s_insights_data.log_write_fail_cnt > prev_log_write_fail_cnt) {
         prev_log_write_fail_cnt = s_insights_data.log_write_fail_cnt;
+#ifdef CONFIG_ESP_INSIGHTS_META_VERSION_10
         esp_diag_variable_add_uint(KEY_LOG_WR_FAIL, prev_log_write_fail_cnt);
+#else
+        esp_diag_variable_report_uint(TAG_DIAG, KEY_LOG_WR_FAIL, prev_log_write_fail_cnt);
+#endif
     }
 #endif /* CONFIG_DIAG_ENABLE_VARIABLES */
 
