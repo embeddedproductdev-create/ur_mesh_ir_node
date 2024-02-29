@@ -29,7 +29,34 @@
 #define OFFTIMER_STR	"OffTimer"
 #define LOCKING_STR 	"Locking"
 
+#define MQTT_PACKET_BUFF_SIZE 200
+#define LOCATION_STR_LEN 20
+
 /* STRUCTURE DEFINITIONS */
+
+typedef struct mqtt_reset_struct{
+	uint16_t msg_seq_no;
+	uint16_t gwy_ser_no;
+}mqtt_reset_t;
+
+typedef struct gwy_reg_struct{
+	uint16_t msg_seq_no;
+	uint16_t gwy_ser_no;
+	char location[LOCATION_STR_LEN];
+}gwy_reg_t;
+
+typedef struct gwy_unreg_struct{
+	uint16_t msg_seq_no;
+	uint16_t gwy_ser_no;
+	char location[LOCATION_STR_LEN];
+}gwy_unreg_t;
+
+typedef struct reconf_struct{
+	uint16_t msg_seq_no;
+	uint16_t gwy_ser_no;
+	uint16_t node_ser_no;
+	uint16_t elementAddr;
+}reconf_t;
 typedef struct control_struct
 {
 	uint16_t msg_seq_no;
@@ -52,7 +79,7 @@ typedef struct prov_struct{
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
 	uint8_t macid[6];
-	char timestamp[15];
+	char location[LOCATION_STR_LEN];
 }prov_t;
 
 typedef struct unprov_struct{
@@ -60,27 +87,8 @@ typedef struct unprov_struct{
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
 	uint8_t elemnt_addr;
-	char timestamp[15];
+	char location[LOCATION_STR_LEN];
 }unprov_t;
-
-typedef struct gwy_reg_struct{
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	char location[15];
-}gwy_reg_t;
-
-typedef struct gwy_unreg_struct{
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	char location[15];
-}gwy_unreg_t;
-
-typedef struct reconf_struct{
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
-	uint16_t elementAddr;
-}reconf_t;
 
 enum json_packet_enum {
 	GWY_REG_PACKET,
@@ -95,18 +103,48 @@ enum json_packet_enum {
 	NODE_AC_CONTROL_PACKET,
 	NODE_AC_LOCKING_PACKET,
 	NODE_RECONF_PACKET,
+	RESET_MQTT,
 	UNKNOWN_PACKET = 99
 };
 
+enum ERROR_CODES{
+	FAILURE = -1,
+	SUCCESS,
+	INVALID_MSG_SEQ_NO,
+	INVALID_GWY_SER_NO,
+	INVALID_LOCATION_STR,
+	INVALID_POWER_STR,
+	INVALID_MODE_STR,
+	INVALID_FAN_STR,
+	INVALID_TEMP_STR,
+	INVALID_SWING_H_STR,
+	INVALID_SWING_V_STR,
+	INVALID_ONTIMER_STR,
+	INVALID_OFFTIMER_STR,
+	INVALID_LOCKING_STR,
+	INVALID_NODESERNO_STR,
+	INVALID_ELMNT_ADDR_STR,
+	UNKNOWN_ERROR_CODE = 999
+};
+
 /*GLOBAL VARIABLE DECLARATIONS*/
-extern char json_packet[100];
+extern char json_packet[MQTT_PACKET_BUFF_SIZE];
 extern cJSON *json_packet_j;
+
+extern mqtt_reset_t gwy_mqtt_reset_t;
 
 extern gwy_reg_t gwy_registration_t;
 extern gwy_unreg_t gwy_unregistration_t;
+
 extern prov_t provision_t;
 extern unprov_t unprovision_t;
-extern control_t ac_control_t;
-extern reconf_t reconfigure_t;
+
+extern control_t gwy_ac_control_t;
+extern control_t node_ac_control_t;
+
+extern reconf_t node_reconfigure_t;
+extern reconf_t gwy_reconfigure_t;
+
+extern int16_t error_code;
 
 #endif

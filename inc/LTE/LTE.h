@@ -139,6 +139,8 @@ extern bool restart_flag;
 extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;
+extern uint8_t json_packet_id;
+extern char *json_data;
 
 #ifdef __cplusplus
 extern "C" {
@@ -171,6 +173,7 @@ uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report(void);
 void parse_json_packet(void);
 void fill_macid(void);
+int16_t error_check_json();
 
 #ifdef __cplusplus
 }

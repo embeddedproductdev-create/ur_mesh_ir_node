@@ -107,15 +107,15 @@ void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
             return;
         case DAIKIN216:
             strcpy(protocol_chosen, "Daikin216");
-            ac_daikin216.setPower(ac_control_t.power);
-            ac_daikin216.setTemp(ac_control_t.temp);
-            if(ac_control_t.swingH) ac_control_t.swingH = kDaikinSwingOn;
-            ac_daikin216.setSwingHorizontal(ac_control_t.swingH);
-            if(ac_control_t.swingV) ac_control_t.swingV = kDaikinSwingOn;
-            ac_daikin216.setSwingVertical(ac_control_t.swingV);
-            ac_daikin216.setFan(ac_control_t.fan);
+            ac_daikin216.setPower(gwy_ac_control_t.power);
+            ac_daikin216.setTemp(gwy_ac_control_t.temp);
+            if(gwy_ac_control_t.swingH) gwy_ac_control_t.swingH = kDaikinSwingOn;
+            ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
+            if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
+            ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
+            ac_daikin216.setFan(gwy_ac_control_t.fan);
             ac_daikin216.send();
-            printf("Sending Daikin216 with Power = %d\r\n",ac_control_t.power);
+            printf("Sending Daikin216 with Power = %d\r\n",gwy_ac_control_t.power);
             break;
         case DAIKIN200:
             strcpy(protocol_chosen, "Daikin200");
@@ -123,23 +123,23 @@ void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
             return;
         case DAIKIN:
             strcpy(protocol_chosen, "Daikin280");
-            ac_daikin280.setPower(ac_control_t.power);
-            ac_daikin280.setTemp(ac_control_t.temp);
-            if(ac_control_t.swingH) ac_control_t.swingH = kDaikinSwingOn;
-            ac_daikin280.setSwingHorizontal(ac_control_t.swingH);
-            if(ac_control_t.swingV) ac_control_t.swingV = kDaikinSwingOn;
-            ac_daikin280.setSwingVertical(ac_control_t.swingV);
-            ac_daikin280.setFan(ac_control_t.fan);
+            ac_daikin280.setPower(gwy_ac_control_t.power);
+            ac_daikin280.setTemp(gwy_ac_control_t.temp);
+            if(gwy_ac_control_t.swingH) gwy_ac_control_t.swingH = kDaikinSwingOn;
+            ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
+            if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
+            ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
+            ac_daikin280.setFan(gwy_ac_control_t.fan);
             ac_daikin280.send();
             printf("Sending Daikin280\r\n");
             break;
         case HITACHI_AC296:
             strcpy(protocol_chosen, "Hitachi296");
-            ac_hitachi296.setPower(ac_control_t.power);
-            ac_hitachi296.setTemp(ac_control_t.temp);
-            // ac_hitachi296.setSwingHorizontal(ac_control_t.swingH);
-            // ac_hitachi296.setSwingVertical(ac_control_t.swingV);
-            ac_hitachi296.setFan(ac_control_t.fan-3);
+            ac_hitachi296.setPower(gwy_ac_control_t.power);
+            ac_hitachi296.setTemp(gwy_ac_control_t.temp);
+            // ac_hitachi296.setSwingHorizontal(gwy_ac_control_t.swingH);
+            // ac_hitachi296.setSwingVertical(gwy_ac_control_t.swingV);
+            ac_hitachi296.setFan(gwy_ac_control_t.fan-3);
             ac_hitachi296.send();
             printf("Sending Hitachi296\r\n");
             break;

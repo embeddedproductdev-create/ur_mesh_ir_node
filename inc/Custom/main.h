@@ -45,6 +45,9 @@
 #include "../Custom/temperature_sensor.h"
 
 #define TAG "UART"
+#define DEBUG_TAG "[DEBUG] : "
+#define ERROR_TAG "[ERROR] : "
+#define SETUP_TAG "[SETUP] : "
 #define MAJ_VERSION 0
 #define MIN_VERSION 1
 #define BAUD_RATE 115200
