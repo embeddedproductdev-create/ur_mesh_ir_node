@@ -9,14 +9,10 @@
  *
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef LTE_H
 #define LTE_H
 
-#include "../LTE/LTE.h"
+#include "../Custom/main.h"
 
 // General commands
 #define PROMPT					">"
@@ -32,7 +28,7 @@ extern "C" {
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 				2
+#define CLIENT_IDX 				1
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
@@ -131,18 +127,22 @@ extern "C" {
 //LTE PINS
 #define GPIO_LTE_RESET	46
 #define GPIO_LTE_ONOFF	9
-#define TXD_PIN (GPIO_NUM_18)
-#define RXD_PIN (GPIO_NUM_17)
-#define CTS_PIN (GPIO_NUM_11)
-#define RTS_PIN (GPIO_NUM_10)
+#define TXD_PIN 17
+#define RXD_PIN 18
+#define CTS_PIN 11
+#define RTS_PIN 10
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
-#define RETRY_COUNT 2
+#define RETRY_COUNT 5
 
 /* GLOBAL VARIABLES */
 extern bool restart_flag;
 extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* FUNCTION DECLARATIONS */
 void *LTE_task(void *args);

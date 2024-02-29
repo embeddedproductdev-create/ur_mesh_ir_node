@@ -10,13 +10,16 @@
 #include "../../inc/Custom/LED.h"
 
 //Initialization
-uint8_t LED_state = 0;
+uint8_t LED_state = 2;
 
 void LED_initial_setup()
 {
     pinMode(RED_LED_PIN, OUTPUT);
     pinMode(GREEN_LED_PIN, OUTPUT);
     pinMode(BLUE_LED_PIN, OUTPUT);
+    digitalWrite(RED_LED_PIN, HIGH);
+    digitalWrite(GREEN_LED_PIN, HIGH);
+    digitalWrite(BLUE_LED_PIN, HIGH);
 }
 
 /**
@@ -26,18 +29,18 @@ void LED_initial_setup()
  */
 void *LED_task(void *args)
 {
+    LED_initial_setup();
     while(1)
     {
-        LED_initial_setup()
         switch(LED_state)
         {
             case LED_STATE_IDLE:
                 break;
             case LED_STATE_UNREGISTERED:
                 digitalWrite(RED_LED_PIN, HIGH);
-                vTaskDelay(pdMS_TO_TICKS(1000));
+                vTaskDelay(pdMS_TO_TICKS(500));
                 digitalWrite(RED_LED_PIN, LOW);
-                vTaskDelay(pdMS_TO_TICKS(1000));
+                vTaskDelay(pdMS_TO_TICKS(500));
                 break;
             default:
                 printf("Unknown LED state in LED_task function\n");

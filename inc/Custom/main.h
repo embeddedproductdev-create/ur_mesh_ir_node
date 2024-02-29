@@ -7,10 +7,6 @@
  * @copyright Copyright (c) 2024
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef MAIN_H
 #define MAIN_H
 
@@ -25,19 +21,11 @@ extern "C" {
 
 /* Arduino General */
 #include <Arduino.h>
-#include <Wire.h>
-
-/* IR part */
-#include <assert.h>
-#include <IRrecv.h>
-#include <IRremoteESP8266.h>
-#include <IRac.h>
-#include <IRtext.h>
-#include <IRutils.h>
 
 /* MQTT-LTE */
-#include <cJSON.h>
-#include "LTE.h"
+#include "../LTE/CJSON.h"
+#include "../LTE/LTE.h"
+#include "../LTE/mqtt.h"
 
 /* ESP General */
 #include "driver/gpio.h"
@@ -53,17 +41,26 @@ extern "C" {
 #include "sdkconfig.h"
 
 /* Custom */
-#include ""
+#include "../Custom/LED.h"
+#include "../Custom/temperature_sensor.h"
 
 #define TAG "UART"
 #define MAJ_VERSION 0
 #define MIN_VERSION 1
+#define BAUD_RATE 115200
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* FUNCTION DECLARATIONS */
-void app_main(void);
+void app_main();
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+
+
+

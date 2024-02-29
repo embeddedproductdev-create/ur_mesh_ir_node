@@ -12,7 +12,9 @@
     "sdkconfig.h": "c",
     "ble_mesh_example_init.h": "c",
     "esp_chip_info.h": "c",
-    "freertos.h": "c"
+    "freertos.h": "c",
+    "lte.h": "c",
+    "irac.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

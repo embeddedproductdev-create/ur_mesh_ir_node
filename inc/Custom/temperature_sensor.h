@@ -1,13 +1,16 @@
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+/**
+ * @file temperature_sensor.h
+ * @author Kulasekaran (kulasekaran@qmaxsys.com)
+ * @brief This file contains functions and definitions related to Temperature sensor
+ * @version 0.1
+ * @date 2024-02-29
+ * @copyright Copyright (c) 2024
+ */
 
 #ifndef TEMPERATURE_SENSOR_H
 #define TEMPERATURE_SENSOR_H
 
-#include "main.h"
-// #include "Wire.h"
+#include "../Custom/main.h"
 
 /**
  * @brief At hardware the A2, A1 and A0 pins are grounded and as per
@@ -16,13 +19,18 @@ extern "C"
  */
 #define SLAVE_ADDR 0x48
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 /* FUNCTION DECLARATIONS */
 void *temperature_read(void *args);
 void I2C_inital_setup();
 
-
-#endif
-
 #ifdef __cplusplus
 }
 #endif
+
+#endif
+

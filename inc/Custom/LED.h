@@ -7,10 +7,6 @@
  * @copyright Copyright (c) 2024
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #ifndef LED_H
 #define LED_H
 
@@ -29,13 +25,17 @@ enum LED_STATES{
 /* GLOBAL VARIABLES */
 extern uint8_t LED_state;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* FUNCTION DECLARATIONS */
 void *LED_task(void *args);
 void LED_initial_setup();
 
-#endif
-
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 

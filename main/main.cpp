@@ -7,6 +7,8 @@
  * @copyright Copyright (c) 2024
  */
 
+#include "../../inc/IR/main_IR_recv.h"
+#include "../../inc/IR/main_IR_transmit.h"
 #include "../../inc/Custom/main.h"
 
 /**
@@ -16,7 +18,6 @@
  */
 void app_main()
 {
-    // mesh_init();
     Serial.begin(BAUD_RATE);
     while(!Serial)
         delay(50);
@@ -25,7 +26,8 @@ void app_main()
     pthread_t IR_Receiver_tid;
     pthread_t LTE_tid;
     pthread_t LED_tid;
-    // pthread_t temperature_read_tid;
+    pthread_t temperature_sensor_tid;
+    pthread_t button_tid;
 
     if(pthread_create(&IR_Receiver_tid, NULL, IR_receiver_task, NULL)!=0){
         perror("Error in creating recv_task : ");
@@ -33,10 +35,19 @@ void app_main()
     if(pthread_create(&LED_tid, NULL, LED_task, NULL)!=0){
         perror("Error in creating recv_task : ");
     }
-    // if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-    //     perror("Error in creating LTE_task : ");
-    // }
-    // if(pthread_create(&temperature_read_tid, NULL, temperature_read, NULL)!=0){
-    //     perror("Error in creating temperature_read_thread : ");
-    // }
+    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
+        perror("Error in creating LTE_task : ");
+    }
+    if(pthread_create(&temperature_sensor_tid, NULL, temperature_read, NULL)!=0){
+        perror("Error in creating temperature_read_thread : ");
+    }
+    if(pthread_create(&button_tid, NULL, button_task, NULL)!=0){
+        perror("Error in creating button_thread : ");
+    }
+
+    pthread_join(IR_Receiver_tid, NULL);
+    pthread_join(LED_tid, NULL);
+    pthread_join(LTE_tid, NULL);
+    pthread_join(temperature_sensor_tid, NULL);
+    pthread_join(button_tid, NULL);
 }

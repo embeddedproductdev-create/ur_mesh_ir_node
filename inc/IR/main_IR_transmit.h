@@ -7,25 +7,31 @@
  * @copyright Copyright (c) 2024
 */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef MAIN_IR_RECV_H
-#define MAIN_IR_RECV_H
+#ifndef MAIN_IR_TRANSMIT_H
+#define MAIN_IR_TRANSMIT_H
 
 #include "../Custom/main.h"
+#include <assert.h>
+#include <IRrecv.h>
+#include <IRac.h>
+#include <IRtext.h>
+#include <IRutils.h>
+#include <IRremoteESP8266.h>
 
 /* GLOBAL VARIABLES */
 extern bool sending;
 extern bool needtosend;
 
-/* FUNCTION DECLARATIONS */
-void IR_transmit();
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+/* FUNCTION DECLARATIONS */
+
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 

@@ -7,7 +7,8 @@
  * @copyright Copyright (c) 2024
  */
 
-#include "../../inc/IR/main_IR_send.h"
+#include "../../inc/IR/main_IR_transmit.h"
+#include "../../inc/IR/main_IR_recv.h"
 
 #define IR_TRANSMIT_PIN 7
 
@@ -27,7 +28,6 @@ IRVoltas ac_voltas(IR_TRANSMIT_PIN);
  */
 void IR_transmit_setup()
 {
-    pinMode(USER_SWITCH, INPUT);
     ac_daikin216.begin();
     ac_daikin280.begin();
     ac_hitachi296.begin();
@@ -37,7 +37,7 @@ void IR_transmit_setup()
  * @param none
  * @retval none
  */
-void IR_transmit()
+void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
 {
     sending = true;
     switch(protocol_detected)

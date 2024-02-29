@@ -1,8 +1,16 @@
+/**
+ * @file mqtt.h
+ * @author Kulasekaran (kulasekaran@qmaxsys.com)
+ * @brief This file contains variables and definitions related to MQTT
+ * @version 0.1
+ * @date 2024-02-29
+ * @copyright Copyright (c) 2024
+ */
+
 #ifndef MQTT_H_
 #define MQTT_H_
 
-#include <stdint.h>
-#include <cJSON.h>
+#include "../Custom/main.h"
 
 #define JSON_PACKET_ID  "JsonPacketID"
 #define MSGSEQNO_STR	"MsgSeqNo"

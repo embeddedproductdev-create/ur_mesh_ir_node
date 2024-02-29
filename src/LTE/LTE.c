@@ -147,7 +147,7 @@ void parse_json_packet()
 					ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
 					ac_control_t.Locking = cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCKING_STR)->valueint;
 					//Above parsed data needs to be error handled before passing to the send function
-					needtosend = true;
+					// needtosend = true;
 				}
 				break;
 
@@ -162,7 +162,7 @@ void parse_json_packet()
 					reconfigure_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
 					reconfigure_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
 					reconfigure_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-					configured = false;
+					// configured = false;
 				}
 				break;
 
@@ -676,6 +676,8 @@ void establishMQTTConnection()
 					if(subscribe_retry_count > RETRY_COUNT) client_flag = 0;
 					client_connect_retry_count = 0;
 				}
+				else
+					printf("CLIENT CONNECTION FAILED\n");
 			}
 		if(client_connect_retry_count > RETRY_COUNT)
 		{

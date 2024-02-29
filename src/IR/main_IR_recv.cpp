@@ -30,7 +30,7 @@ void *IR_receiver_task(void *args)
     {
         vTaskDelay(10);
         // Check if the IR code has been received.
-        if (irrecv.decode(&results) && !sending) {
+        if (irrecv.decode(&results)) {
             // Display a crude timestamp.;
             uint32_t now = millis();
             printf(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
@@ -61,22 +61,25 @@ void *IR_receiver_task(void *args)
             Serial.println();    // Blank line between entries
             yield();             // Feed the WDT (again)
         }
-        // printf("configured : %d | needtosend : %d | sending : %d\r\n",configured, needtosend, sending);
-        // if(configured && needtosend && !sending)
-        // {
-        //     IR_transmit();
-        //     printf("Protcol Chosen : %s\r\n", protocol_chosen);
-        // }
-        if(!digitalRead(USER_SWITCH))
+    }
+}
+
+/**
+ * @brief Thread that handles the Button press
+ * @param args
+ * @return void*
+ */
+void *button_task(void *args)
+{
+    pinMode(USER_SWITCH, INPUT);
+    protocol_detected = DAIKIN216;
+    while(1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(10));
+        if(!digitalRead(USER_SWITCH)) //Inverted logic as per the schematic
         {
-            printf("USER_SWITCH IS PRESSED\n");
-            if(ac_control_t.power)
-                ac_control_t.power = false;
-            else
-                ac_control_t.power = true;
-            protocol_detected = DAIKIN216;
-            IR_transmit();
-            delay(1000);
+            IR_transmit(protocol_detected, protocol_chosen);
+            vTaskDelay(pdMS_TO_TICKS(10));
         }
     }
 }

@@ -9,7 +9,8 @@
  *
  */
 
-#include "main.h"
+#include "../../inc/Custom/temperature_sensor.h"
+// #include <Wire.h>
 
 /**
  * @brief Function that performs initial I2C setup
@@ -34,6 +35,9 @@ void *temperature_read(void *args)
     // uint16_t temperature_value = 0;
     // float temperature_in_float = 0.0;
     // I2C_inital_setup();
+    // Serial.begin(BAUD_RATE);
+    // while(!Serial)
+    //     delay(50);
     while(1)
     {
     //     Wire.beginTransmission(SLAVE_ADDR); // Begin transmission to the Sensor
