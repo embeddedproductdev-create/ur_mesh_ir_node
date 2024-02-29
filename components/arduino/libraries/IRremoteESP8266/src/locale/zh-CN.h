@@ -459,7 +459,7 @@
 #define D_WARN_BUFFERFULL \
     "警告: 红外编码数组过大(>= %d). " \
     "在解决此问题之前，不应信任此结果. " \
-    "编辑并增加 `kCaptureBufferSize` 变量."
+    "编辑并增加 `RECV_BUFFER_SIZE` 变量."
 #endif  // D_WARN_BUFFERFULL
 
 #endif  // LOCALE_ZH_CN_H_

@@ -3,8 +3,8 @@ extern "C"
 {
 #endif
 
-#ifndef READ_TEMPERATURE_H
-#define READ_TEMPERATURE_H
+#ifndef TEMPERATURE_SENSOR_H
+#define TEMPERATURE_SENSOR_H
 
 #include "main.h"
 // #include "Wire.h"

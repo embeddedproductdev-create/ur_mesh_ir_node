@@ -21,7 +21,7 @@
  *   weird device or circuit, or to make it more usable or practical.
  *   If it works for you. Great. If not, Congratulations on changing/fixing it.
  *
- * An IR detector/demodulator must be connected to the input, kRecvPin.
+ * An IR detector/demodulator must be connected to the input, IR_RECEIVER_PIN.
  * An IR LED circuit must be connected to the output, kIrLedPin.
  *
  * Example circuit diagrams (both are needed):
@@ -62,9 +62,9 @@
 // Note: GPIO 16 won't work on the ESP8266 as it does not have interrupts.
 // Note: GPIO 14 won't work on the ESP32-C3 as it causes the board to reboot.
 #ifdef ARDUINO_ESP32C3_DEV
-const uint16_t kRecvPin = 10;  // 14 on a ESP32-C3 causes a boot loop.
+const uint16_t IR_RECEIVER_PIN = 10;  // 14 on a ESP32-C3 causes a boot loop.
 #else  // ARDUINO_ESP32C3_DEV
-const uint16_t kRecvPin = 14;
+const uint16_t IR_RECEIVER_PIN = 14;
 #endif  // ARDUINO_ESP32C3_DEV
 
 // GPIO to use to control the IR LED circuit. Recommended: 4 (D2).
@@ -72,11 +72,11 @@ const uint16_t kIrLedPin = 4;
 
 // The Serial connection baud rate.
 // NOTE: Make sure you set your Serial Monitor to the same speed.
-const uint32_t kBaudRate = 115200;
+const uint32_t BAUD_RATE = 115200;
 
 // As this program is a special purpose capture/resender, let's use a larger
 // than expected buffer so we can handle very large IR messages.
-const uint16_t kCaptureBufferSize = 1024;  // 1024 == ~511 bits
+const uint16_t RECV_BUFFER_SIZE = 1024;  // 1024 == ~511 bits
 
 // kTimeout is the Nr. of milli-Seconds of no-more-data before we consider a
 // message ended.
@@ -90,7 +90,7 @@ const uint16_t kFrequency = 38000;  // in Hz. e.g. 38kHz.
 // The IR transmitter.
 IRsend irsend(kIrLedPin);
 // The IR receiver.
-IRrecv irrecv(kRecvPin, kCaptureBufferSize, kTimeout, false);
+IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, false);
 // Somewhere to store the captured message.
 decode_results results;
 
@@ -99,14 +99,14 @@ void setup() {
   irrecv.enableIRIn();  // Start up the IR receiver.
   irsend.begin();       // Start up the IR sender.
 
-  Serial.begin(kBaudRate, SERIAL_8N1);
+  Serial.begin(BAUD_RATE, SERIAL_8N1);
   while (!Serial)  // Wait for the serial connection to be establised.
     delay(50);
   Serial.println();
 
   Serial.print("SmartIRRepeater is now running and waiting for IR input "
                "on Pin ");
-  Serial.println(kRecvPin);
+  Serial.println(IR_RECEIVER_PIN);
   Serial.print("and will retransmit it on Pin ");
   Serial.println(kIrLedPin);
 }

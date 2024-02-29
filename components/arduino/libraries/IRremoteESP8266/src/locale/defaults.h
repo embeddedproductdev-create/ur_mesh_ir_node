@@ -1142,7 +1142,7 @@ D_STR_INDIRECT " " D_STR_MODE
 #define D_WARN_BUFFERFULL \
     "WARNING: IR code is too big for buffer (>= %d). " \
     "This result shouldn't be trusted until this is resolved. " \
-    "Edit & increase `kCaptureBufferSize`."
+    "Edit & increase `RECV_BUFFER_SIZE`."
 #endif  // D_WARN_BUFFERFULL
 
 #endif  // LOCALE_DEFAULTS_H_

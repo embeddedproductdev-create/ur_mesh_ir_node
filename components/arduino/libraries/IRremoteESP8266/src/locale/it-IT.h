@@ -153,7 +153,7 @@
     "ATTENZIONE: il codice IR è troppo grande per il buffer (>= %d). " \
     "Non fare affidamento a questi risultati finché questo problema " \
     "non è risolto." \
-    "Modifica e aumenta `kCaptureBufferSize`."
+    "Modifica e aumenta `RECV_BUFFER_SIZE`."
 #endif  // D_WARN_BUFFERFULL
 
 #endif  // LOCALE_IT_IT_H_

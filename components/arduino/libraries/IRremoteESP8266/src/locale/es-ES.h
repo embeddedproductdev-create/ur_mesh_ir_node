@@ -130,7 +130,7 @@
 #define D_WARN_BUFFERFULL \
     "WARNING: Codigo IR es muy grande para el buffer (>= %d). "\
     "Este resultando no debe ser reconocido hasta que esto sea resuelto." \
-    "Edite & incremente `kCaptureBufferSize`."
+    "Edite & incremente `RECV_BUFFER_SIZE`."
 #endif  // D_WARN_BUFFERFULL
 
 #endif  // LOCALE_ES_ES_H_

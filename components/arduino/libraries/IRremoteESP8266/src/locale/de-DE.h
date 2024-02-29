@@ -130,6 +130,6 @@
 #define D_WARN_BUFFERFULL \
     "WARNUNG: IR Code ist zu gross für Buffer (>= %d). " \
     "Dem Resultat sollte nicht vertraut werden bevor das behoben ist. " \
-    "Bearbeite & vergrössere `kCaptureBufferSize`."
+    "Bearbeite & vergrössere `RECV_BUFFER_SIZE`."
 
 #endif  // LOCALE_DE_DE_H_

@@ -1,8 +1,22 @@
+/**
+ * @file LTE.h
+ * @author Kulasekaran (kulasekaran@qmaxsys.com)
+ * @brief This file contains functions and definitons related to LTE communication
+ * @version 0.1
+ * @date 2024-02-29
+ *
+ * @copyright Copyright (c) 2024
+ *
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "main.h"
+#ifndef LTE_H
+#define LTE_H
+
+#include "../LTE/LTE.h"
 
 // General commands
 #define PROMPT					">"
@@ -117,14 +131,22 @@ extern "C" {
 //LTE PINS
 #define GPIO_LTE_RESET	46
 #define GPIO_LTE_ONOFF	9
+#define TXD_PIN (GPIO_NUM_18)
+#define RXD_PIN (GPIO_NUM_17)
+#define CTS_PIN (GPIO_NUM_11)
+#define RTS_PIN (GPIO_NUM_10)
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
+#define RETRY_COUNT 2
 
-extern uint8_t network_flag;
-extern uint8_t client_flag;
-extern uint8_t subscribe_flag;
+/* GLOBAL VARIABLES */
+extern bool restart_flag;
+extern bool network_flag;
+extern bool client_flag;
+extern bool subscribe_flag;
 
 /* FUNCTION DECLARATIONS */
-void LTE_part(void);
+void *LTE_task(void *args);
+void LTE_setup(void);
 void LTE_gpio_configuration(void);
 void establishMQTTConnection(void);
 void resetLte(void);
@@ -152,5 +174,7 @@ void fill_macid(void);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 

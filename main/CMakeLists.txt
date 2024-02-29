@@ -1,5 +1,5 @@
 set(srcs "main.cpp" "EC200U.c"
     "board.c")
 
-idf_component_register(SRCS "${srcs}"
+idf_component_register(SRCS "LED.c" "${srcs}"
 INCLUDE_DIRS  ".")

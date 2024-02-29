@@ -184,6 +184,6 @@
 #define D_WARN_BUFFERFULL \
     "VARNING: IR koden är för stor för att rymmas i bufferminnet (>= %d). " \
     "Detta resultat är inte pålitligt innan problemet är åtgärdat. " \
-    "Redigera och öka `kCaptureBufferSize`."
+    "Redigera och öka `RECV_BUFFER_SIZE`."
 
 #endif  // LOCALE_SV_SE_H_

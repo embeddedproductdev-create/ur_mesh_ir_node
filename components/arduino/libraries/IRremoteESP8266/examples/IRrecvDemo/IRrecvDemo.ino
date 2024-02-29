@@ -3,7 +3,7 @@
  * This is very simple teaching code to show you how to use the library.
  * If you are trying to decode your Infra-Red remote(s) for later replay,
  * use the IRrecvDumpV2.ino (or later) example code instead of this.
- * An IR detector/demodulator must be connected to the input kRecvPin.
+ * An IR detector/demodulator must be connected to the input IR_RECEIVER_PIN.
  * Copyright 2009 Ken Shirriff, http://arcfn.com
  * Example circuit diagram:
  *  https://github.com/crankyoldgit/IRremoteESP8266/wiki#ir-receiving
@@ -26,12 +26,12 @@
 // Note: GPIO 16 won't work on the ESP8266 as it does not have interrupts.
 // Note: GPIO 14 won't work on the ESP32-C3 as it causes the board to reboot.
 #ifdef ARDUINO_ESP32C3_DEV
-const uint16_t kRecvPin = 10;  // 14 on a ESP32-C3 causes a boot loop.
+const uint16_t IR_RECEIVER_PIN = 10;  // 14 on a ESP32-C3 causes a boot loop.
 #else  // ARDUINO_ESP32C3_DEV
-const uint16_t kRecvPin = 14;
+const uint16_t IR_RECEIVER_PIN = 14;
 #endif  // ARDUINO_ESP32C3_DEV
 
-IRrecv irrecv(kRecvPin);
+IRrecv irrecv(IR_RECEIVER_PIN);
 
 decode_results results;
 
@@ -42,7 +42,7 @@ void setup() {
     delay(50);
   Serial.println();
   Serial.print("IRrecvDemo is now running and waiting for IR message on Pin ");
-  Serial.println(kRecvPin);
+  Serial.println(IR_RECEIVER_PIN);
 }
 
 void loop() {

@@ -186,7 +186,7 @@ const uint32_t kMqttReconnectTime = 5000;  // Delay(ms) between reconnect tries.
 // i.e. `false` is better if you can get away with it.
 #define DISABLE_CAPTURE_WHILE_TRANSMITTING true
 // Let's use a larger than normal buffer so we can handle AirCon remote codes.
-const uint16_t kCaptureBufferSize = 1024;
+const uint16_t RECV_BUFFER_SIZE = 1024;
 #if DECODE_AC
 // Some A/C units have gaps in their protocols of ~40ms. e.g. Kelvinator
 // A value this large may swallow repeats of some protocols

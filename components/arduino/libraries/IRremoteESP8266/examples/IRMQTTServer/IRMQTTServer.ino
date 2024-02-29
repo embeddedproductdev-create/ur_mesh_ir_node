@@ -2299,7 +2299,7 @@ void setup(void) {
   }
 #if IR_RX
   if (rx_gpio != kGpioUnused)
-    irrecv = new IRrecv(rx_gpio, kCaptureBufferSize, kCaptureTimeout, true);
+    irrecv = new IRrecv(rx_gpio, RECV_BUFFER_SIZE, kCaptureTimeout, true);
   if (irrecv != NULL) {
 #if DECODE_HASH
     // Ignore messages with less than minimum on or off pulses.

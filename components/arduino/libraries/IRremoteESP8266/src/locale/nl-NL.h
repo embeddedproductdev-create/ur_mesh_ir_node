@@ -131,6 +131,6 @@
 #define D_WARN_BUFFERFULL \
     "WAARSCHUWING: IR-code is te groot voor buffer (>= %d). " \
     "Het resultaat kan niet worden vertrouwd totdat het is verholpen. " \
-    "Wijzig & vergroot `kCaptureBufferSize`."
+    "Wijzig & vergroot `RECV_BUFFER_SIZE`."
 
 #endif  // LOCALE_NL_NL_H_

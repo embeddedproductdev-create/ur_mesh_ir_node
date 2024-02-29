@@ -1,23 +1,28 @@
-#include "main.h"
-#include "mesh_main.h"
+/**
+ * @file LTE.c
+ * @author Kulasekaran (kulasekaran@qmaxsys.com)
+ * @brief This file contains functions related to LTE communication
+ * @version 0.1
+ * @date 2024-02-29
+ * @link https://evelta.com/content/datasheets/027-EC200UCNAA.pdf <-- Hardware design document link
+ * @link https://auroraevernet.ru/upload/iblock/c81/rfhactu9l14ymr9cxt3pebdqxfu39h5v.pdf <-- MQTT AT commands manual
+ * @copyright Copyright (c) 2024
+ */
+
+#include "../../inc/LTE/LTE.h"
 
 #define SUCCESS 1
 #define FAILURE 0
 #define MAX_WAIT_MS  100
 #define BUF_SIZE	2048
 
-uint8_t network_flag = 0;
-uint8_t client_flag = 0;
-uint8_t subscribe_flag = 0;
+//Initialization
+bool restart_flag = false;
+bool network_flag = false;
+bool client_flag = false;
+bool subscribe_flag = false;
 
-#define TXD_PIN (GPIO_NUM_18)
-#define RXD_PIN (GPIO_NUM_17)
-#define CTS_PIN (GPIO_NUM_11)
-#define RTS_PIN (GPIO_NUM_10)
-#define RETRY_COUNT 2
-
-
-void LTE_part()
+void LTE_setup()
 {
 	LTE_gpio_configuration();
 	resetLte();
@@ -627,28 +632,8 @@ void resetLte()
 
 void LTE_gpio_configuration()
 {
-	//zero-initialize the config structure.
-	gpio_config_t o_conf = {};
-	//disable interrupt
-	o_conf.intr_type = GPIO_INTR_DISABLE;
-	//set as output mode
-	o_conf.mode = GPIO_MODE_OUTPUT;
-	//bit mask of the pins that you want to set,e.g.GPIO18/19
-	o_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL;
-	//disable pull-down mode
-	o_conf.pull_down_en = 0;
-	//disable pull-up mode
-	o_conf.pull_up_en = 0;
-	//configure GPIO with the given settings
-	esp_err_t ret_o = gpio_config(&o_conf);
-	if(ret_o == ESP_OK)
-	{
-		ESP_LOGI(TAG, "GPIO output configuration for LTE successful ...\r\n");
-	}
-	else
-	{
-		ESP_LOGI(TAG, "GPIO output configuration for LTE failed with err : %d\r\n", ret_o);
-	}
+	pinMode(GPIO_LTE_RESET, OUTPUT);
+	pinMode(GPIO_LTE_ONOFF, OUTPUT);
 }
 
 void LTE_initialization(void)
@@ -700,5 +685,29 @@ void establishMQTTConnection()
 		network_connect_retry_count = 0;
 		}
 	}
+}
+
+void *LTE_task(void *args)
+{
+    LTE_gpio_configuration();
+    resetLte();
+    LTE_initialization();
+    establishMQTTConnection();
+    while(1)
+    {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        if(network_flag && client_flag && subscribe_flag &&!restart_flag)
+            ReadMessage(CLIENT_IDX);
+        else
+        {
+            printf("NETWORK_FLAG : %d | CLIENT_FLAG : %d | SUBSCRIBE_FLAG : %d",network_flag, client_flag, subscribe_flag);
+            LTE_setup();
+        }
+        if(strlen(json_packet) > 20)
+        {
+            parse_json_packet();
+            strcpy(json_packet, "");
+        }
+    }
 }
 

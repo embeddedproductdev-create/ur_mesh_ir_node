@@ -1,6 +1,6 @@
 /*
  * IRremoteESP8266: IRrecvDumpV3 - dump details of IR codes with IRrecv
- * An IR detector/demodulator must be connected to the input kRecvPin.
+ * An IR detector/demodulator must be connected to the input IR_RECEIVER_PIN.
  *
  * Copyright 2009 Ken Shirriff, http://arcfn.com
  * Copyright 2017-2019 David Conran
@@ -47,9 +47,9 @@
 // Note: GPIO 16 won't work on the ESP8266 as it does not have interrupts.
 // Note: GPIO 14 won't work on the ESP32-C3 as it causes the board to reboot.
 #ifdef ARDUINO_ESP32C3_DEV
-const uint16_t kRecvPin = 10;  // 14 on a ESP32-C3 causes a boot loop.
+const uint16_t IR_RECEIVER_PIN = 10;  // 14 on a ESP32-C3 causes a boot loop.
 #else  // ARDUINO_ESP32C3_DEV
-const uint16_t kRecvPin = 14;
+const uint16_t IR_RECEIVER_PIN = 14;
 #endif  // ARDUINO_ESP32C3_DEV
 
 // The Serial connection baud rate.
@@ -57,11 +57,11 @@ const uint16_t kRecvPin = 14;
 // Try to avoid slow speeds like 9600, as you will miss messages and
 // cause other problems. 115200 (or faster) is recommended.
 // NOTE: Make sure you set your Serial Monitor to the same speed.
-const uint32_t kBaudRate = 115200;
+const uint32_t BAUD_RATE = 115200;
 
 // As this program is a special purpose capture/decoder, let us use a larger
 // than normal buffer so we can handle Air Conditioner remote codes.
-const uint16_t kCaptureBufferSize = 1024;
+const uint16_t RECV_BUFFER_SIZE = 1024;
 
 // kTimeout is the Nr. of milli-Seconds of no-more-data before we consider a
 // message ended.
@@ -130,16 +130,16 @@ const uint8_t kTolerancePercentage = kTolerance;  // kTolerance is normally 25%
 // ==================== end of TUNEABLE PARAMETERS ====================
 
 // Use turn on the save buffer feature for more complete capture coverage.
-IRrecv irrecv(kRecvPin, kCaptureBufferSize, kTimeout, true);
+IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
 decode_results results;  // Somewhere to store the results
 
 // This section of code runs only once at start-up.
 void setup() {
   OTAwifi();  // start default wifi (previously saved on the ESP) for OTA
 #if defined(ESP8266)
-  Serial.begin(kBaudRate, SERIAL_8N1, SERIAL_TX_ONLY);
+  Serial.begin(BAUD_RATE, SERIAL_8N1, SERIAL_TX_ONLY);
 #else  // ESP8266
-  Serial.begin(kBaudRate, SERIAL_8N1);
+  Serial.begin(BAUD_RATE, SERIAL_8N1);
 #endif  // ESP8266
   while (!Serial)  // Wait for the serial connection to be establised.
     delay(50);
@@ -147,7 +147,7 @@ void setup() {
   // packing as we expect and Endianness is as we expect.
   assert(irutils::lowLevelSanityCheck() == 0);
 
-  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", kRecvPin);
+  Serial.printf("\n" D_STR_IRRECVDUMP_STARTUP "\n", IR_RECEIVER_PIN);
   OTAinit();  // setup OTA handlers and show IP
 #if DECODE_HASH
   // Ignore messages with less than minimum on or off pulses.
@@ -166,7 +166,7 @@ void loop() {
     Serial.printf(D_STR_TIMESTAMP " : %06u.%03u\n", now / 1000, now % 1000);
     // Check if we got an IR message that was to big for our capture buffer.
     if (results.overflow)
-      Serial.printf(D_WARN_BUFFERFULL "\n", kCaptureBufferSize);
+      Serial.printf(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
     // Display the library version the message was captured with.
     Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
     // Display the tolerance percentage if it has been change from the default.
