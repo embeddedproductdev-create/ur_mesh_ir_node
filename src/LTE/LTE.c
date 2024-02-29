@@ -24,7 +24,6 @@ bool subscribe_flag = false;
 
 void LTE_setup()
 {
-	LTE_gpio_configuration();
 	resetLte();
 	LTE_initialization();
 	establishMQTTConnection();
@@ -54,124 +53,6 @@ void fill_macid()
 		printf("macid[%d] : %x\r\n",index, provision_t.macid[index]);
 	}
 	printf("\r\n");
-}
-
-/**
- * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
- * @param None
- * @retval None
- */
-void parse_json_packet()
-{
-	json_packet_j = cJSON_Parse(json_packet);
-	if(json_packet_j != NULL)
-	{
-		json_packet_id = cJSON_GetObjectItemCaseSensitive(json_packet_j, JSON_PACKET_ID)->valueint;
-		printf("Json_packet_id : %d\r\n",json_packet_id);
-		switch(json_packet_id)
-		{
-			case GWY_REG_PACKET:
-				printf("Gwy registration packet received\r\n");
-				if(json_packet_j != NULL)
-				{
-					gwy_registration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					gwy_registration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					strcpy(gwy_registration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
-				}
-            	break;
-
-			case GWY_CONF_PACKET:
-				break;
-
-			case GWY_UNREG_PACKET:
-				printf("Gwy unregistration packet received\r\n");
-				if(json_packet_j != NULL)
-				{
-					gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					strcpy(gwy_unregistration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
-				}
-				break;
-
-			case GWY_AC_CONTROL_PACKET:
-				break;
-
-			case GWY_AC_LOCKING_PACKET:
-				break;
-
-			case GWY_RECONF_PACKET:
-				break;
-
-			case NODE_PROV_PACKET:
-				printf("Node Provisioning packet received\r\n");
-				if(json_packet_j != NULL)
-				{
-					provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-					fill_macid();
-					// handle_cloud_packets(json_packet_id);
-				}
-
-				break;
-
-			case NODE_CONF_PACKET:
-				break;
-
-			case NODE_UNPROV_PACKET:
-				printf("Node Unprovisioning packet received\r\n");
-				if(json_packet_j != NULL)
-				{
-					unprovision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					unprovision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					unprovision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-					unprovision_t.elemnt_addr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-				}
-				break;
-
-			case NODE_AC_CONTROL_PACKET:
-				printf("Node AC Control packet received\r\n");
-				if(json_packet_j != NULL)
-				{
-					ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-					ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-					ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
-					strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
-					ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
-					ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
-					ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
-					ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
-					ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
-					ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
-					ac_control_t.Locking = cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCKING_STR)->valueint;
-					//Above parsed data needs to be error handled before passing to the send function
-					// needtosend = true;
-				}
-				break;
-
-			case NODE_AC_LOCKING_PACKET:
-				break;
-
-			case NODE_RECONF_PACKET:
-				printf("Node Reconfigure packet received\r\n");
-				if(json_packet_j != NULL)
-				{
-					reconfigure_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-					reconfigure_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-					reconfigure_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-					reconfigure_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-					// configured = false;
-				}
-				break;
-
-			default:
-				printf("UNKNOWN MQTT PACKET ERROR\r\n");
-		}
-	}
-	else
-		printf("json_packet_j is NULL\r\n");
 }
 
 /**
@@ -214,7 +95,8 @@ uint8_t check_response(char* response, uint32_t timeout)
 				sprintf(check_string, "+QMTSTAT: %d,1", CLIENT_IDX);
 				if(strstr(data, check_string))
 				{
-					establishMQTTConnection();
+					printf("Need to restart the LTE to re-establish MQTT connection\r\n");
+					restart_flag = true;
 					break;
 				}
 				if(strstr((const char* )data,(const char*)response)){
@@ -410,7 +292,7 @@ uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* c
 		sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	    sprintf((char*)transmit_buffer,"%s%d,0,0\r\n",MQTT_CLIENT_CONN_RESPONSE,client_idx);
-		if(check_response(transmit_buffer,10*MAX_WAIT_MS)	==	SUCCESS ){
+		if(check_response(transmit_buffer,2*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Connected client to broker: %s\r\n",username);
 			free(transmit_buffer);
 			client_flag = 1;
@@ -429,7 +311,7 @@ uint8_t MQTT_ClientDisconnect(int client_idx)
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	    sprintf((char*)transmit_buffer,"%s%d,0",MQTT_CLIENT_DISCONN_RESPONSE,client_idx);
-		if(check_response(OK_RESPONSE,300*MAX_WAIT_MS)	==	SUCCESS ){
+		if(check_response(OK_RESPONSE,2*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Disconnected client from broker");
 			free(transmit_buffer);
 			client_flag = 0;
@@ -466,7 +348,7 @@ uint8_t ReadMessage(int client_idx)
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
 		sprintf((char*)transmit_buffer,"%s%d\r\n",READ_MSG_BUFFER ,client_idx);
 	    sendAT_Data((char*)transmit_buffer);
-		if(check_response(OK_RESPONSE,150*MAX_WAIT_MS) == SUCCESS ){
+		if(check_response(OK_RESPONSE,2*MAX_WAIT_MS) == SUCCESS ){
 			free(transmit_buffer);
 			return SUCCESS;
 		}
@@ -628,6 +510,7 @@ void resetLte()
 	gpio_set_level(GPIO_LTE_ONOFF, 1);
 	vTaskDelay(pdMS_TO_TICKS(2500)); //2.5s delay
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
+	ESP_LOGI(TAG, "Resetting LTE complete");
 }
 
 void LTE_gpio_configuration()
@@ -655,7 +538,10 @@ void establishMQTTConnection()
 	uint8_t network_connect_retry_count = 0;
 	uint8_t client_connect_retry_count = 0;
 	uint8_t subscribe_retry_count = 0;
-	while(network_connect_retry_count <= RETRY_COUNT && !network_flag){
+	network_flag = false;
+	client_flag = false;
+	subscribe_flag = false;
+	while(network_connect_retry_count < RETRY_COUNT && !network_flag){
 		vTaskDelay(1);
 		client_connect_retry_count = 0;
 		printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count++);
@@ -664,29 +550,143 @@ void establishMQTTConnection()
 		if(!network_flag) continue;
 		if(ret_val == SUCCESS)
 		{
-			while(client_connect_retry_count <= RETRY_COUNT && !client_flag) {
+			while(client_connect_retry_count < RETRY_COUNT && !client_flag) {
 				subscribe_retry_count = 0;
 				printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count++);
 				if(MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","AC_IR_CONTROL") == SUCCESS)
 				{
-					while(subscribe_retry_count <= RETRY_COUNT && !subscribe_flag) {
+					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
 						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
 						SubscribeTopic(CLIENT_IDX,2,"Control_packet", 0);
 					}
-					if(subscribe_retry_count > RETRY_COUNT) client_flag = 0;
+					if(subscribe_retry_count >= RETRY_COUNT) client_flag = 0;
 					client_connect_retry_count = 0;
 				}
 				else
 					printf("CLIENT CONNECTION FAILED\n");
 			}
-		if(client_connect_retry_count > RETRY_COUNT)
-		{
-			network_flag = false;
-			MQTT_NetworkClose(CLIENT_IDX);
-		}
-		network_connect_retry_count = 0;
+			if(client_connect_retry_count >= RETRY_COUNT)
+			{
+				network_flag = false;
+				MQTT_NetworkClose(CLIENT_IDX);
+				network_connect_retry_count = 0;
+			}
 		}
 	}
+}
+
+/**
+ * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
+ * @param None
+ * @retval None
+ */
+void parse_json_packet()
+{
+	json_packet_j = cJSON_Parse(json_packet);
+	if(json_packet_j != NULL)
+	{
+		json_packet_id = cJSON_GetObjectItemCaseSensitive(json_packet_j, JSON_PACKET_ID)->valueint;
+		printf("Json_packet_id : %d\r\n",json_packet_id);
+	// 	switch(json_packet_id)
+	// 	{
+	// 		case GWY_REG_PACKET:
+	// 			printf("Gwy registration packet received\r\n");
+	// 			if(json_packet_j != NULL)
+	// 			{
+	// 				gwy_registration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+	// 				gwy_registration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+	// 				strcpy(gwy_registration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
+	// 			}
+    //         	break;
+
+	// 		case GWY_CONF_PACKET:
+	// 			break;
+
+	// 		case GWY_UNREG_PACKET:
+	// 			printf("Gwy unregistration packet received\r\n");
+	// 			if(json_packet_j != NULL)
+	// 			{
+	// 				gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+	// 				gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+	// 				strcpy(gwy_unregistration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
+	// 			}
+	// 			break;
+
+	// 		case GWY_AC_CONTROL_PACKET:
+	// 			break;
+
+	// 		case GWY_AC_LOCKING_PACKET:
+	// 			break;
+
+	// 		case GWY_RECONF_PACKET:
+	// 			break;
+
+	// 		case NODE_PROV_PACKET:
+	// 			printf("Node Provisioning packet received\r\n");
+	// 			if(json_packet_j != NULL)
+	// 			{
+	// 				provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+	// 				provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+	// 				provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+	// 				fill_macid();
+	// 			}
+
+	// 			break;
+
+	// 		case NODE_CONF_PACKET:
+	// 			break;
+
+	// 		case NODE_UNPROV_PACKET:
+	// 			printf("Node Unprovisioning packet received\r\n");
+	// 			if(json_packet_j != NULL)
+	// 			{
+	// 				unprovision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+	// 				unprovision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+	// 				unprovision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+	// 				unprovision_t.elemnt_addr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+	// 			}
+	// 			break;
+
+	// 		case NODE_AC_CONTROL_PACKET:
+	// 			printf("Node AC Control packet received\r\n");
+	// 			if(json_packet_j != NULL)
+	// 			{
+	// 				ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+	// 				ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+	// 				ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+	// 				ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+	// 				ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
+	// 				strcpy(ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
+	// 				ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
+	// 				ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
+	// 				ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
+	// 				ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
+	// 				ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
+	// 				ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
+	// 				ac_control_t.Locking = cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCKING_STR)->valueint;
+	// 			}
+	// 			break;
+
+	// 		case NODE_AC_LOCKING_PACKET:
+	// 			break;
+
+	// 		case NODE_RECONF_PACKET:
+	// 			printf("Node Reconfigure packet received\r\n");
+	// 			if(json_packet_j != NULL)
+	// 			{
+	// 				reconfigure_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
+	// 				reconfigure_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
+	// 				reconfigure_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
+	// 				reconfigure_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
+	// 			}
+	// 			break;
+
+	// 		default:
+	// 			printf("UNKNOWN MQTT PACKET ERROR\r\n");
+	// 	}
+	}
+	else
+		printf("json_packet_j is NULL\r\n");
 }
 
 void *LTE_task(void *args)
@@ -697,19 +697,22 @@ void *LTE_task(void *args)
     establishMQTTConnection();
     while(1)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        if(network_flag && client_flag && subscribe_flag &&!restart_flag)
-            ReadMessage(CLIENT_IDX);
-        else
-        {
-            printf("NETWORK_FLAG : %d | CLIENT_FLAG : %d | SUBSCRIBE_FLAG : %d",network_flag, client_flag, subscribe_flag);
-            LTE_setup();
-        }
-        if(strlen(json_packet) > 20)
-        {
-            parse_json_packet();
-            strcpy(json_packet, "");
-        }
+		if(!restart_flag)
+		{
+			printf("Listening for MQTT request ...\r\n");
+			vTaskDelay(pdMS_TO_TICKS(200));
+			ReadMessage(CLIENT_IDX);
+			if(strlen(json_packet) > 20)
+			{
+				parse_json_packet();
+				strcpy(json_packet, "");
+			}
+		}
+		else
+		{
+			LTE_setup();
+			restart_flag = false;
+		}
     }
 }
 

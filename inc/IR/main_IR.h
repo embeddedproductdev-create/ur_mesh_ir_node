@@ -7,8 +7,8 @@
  * @copyright Copyright (c) 2024
  */
 
-#ifndef MAIN_IR_RECV_H
-#define MAIN_IR_RECV_H
+#ifndef MAIN_IR_H
+#define MAIN_IR_H
 
 #include "../Custom/main.h"
 #include <assert.h>
@@ -18,31 +18,33 @@
 #include <IRutils.h>
 #include <IRremoteESP8266.h>
 
+/* RECEIVER */
 #define IR_RECEIVER_PIN 38
 #define RECV_BUFFER_SIZE 1024
 #define kTimeout 50
 #define kMinUnknownSize 12
 #define kTolerancePercentage kTolerance
-#define USER_SWITCH 12
 
-/* GLOBAL VARIABLES */
+/* TRANSMITTER */
+#define USER_SWITCH 12
+#define IR_TRANSMIT_PIN 7
+
+/* GLOBAL VARIABLES - RECEIVER */
 extern bool configured;
 extern char protocol_chosen[15];
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* GLOBAL VARIABLES - TRANSMITTER */
+extern bool sending;
+extern bool needtosend;
 
-/* GLOBAL VARIABLES */
-
-
-/* FUNCTION DECLARATIONS */
+/* FUNCTION DECLARATIONS - RECEIVER */
 void *IR_receiver_task(void *args);
+
+/* FUNCTION DECLARATIONS - TRANMSMITTER */
 void *button_task(void *args);
 void IR_transmit(uint16_t protocol_detected, char *protocol_chosen);
-#ifdef __cplusplus
-}
-#endif
+
+
 
 #endif
 

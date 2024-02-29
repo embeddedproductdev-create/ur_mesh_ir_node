@@ -7,8 +7,7 @@
  * @copyright Copyright (c) 2024
  */
 
-#include "../../inc/IR/main_IR_recv.h"
-#include "../../inc/IR/main_IR_transmit.h"
+#include "../../inc/IR/main_IR.h"
 #include "../../inc/Custom/main.h"
 
 /**

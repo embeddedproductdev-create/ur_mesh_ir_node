@@ -28,7 +28,7 @@
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 				1
+#define CLIENT_IDX 				3
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
