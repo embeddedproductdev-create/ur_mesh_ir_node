@@ -21,6 +21,10 @@ void app_main()
     while(!Serial)
         delay(50);
 
+    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+    ESP_LOGI(DEBUG_TAG, "APPLICATION STARTED : %d.%d",MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+
     #if(IR_RECV_PART_ENABLED)
     pthread_t IR_Receiver_tid;
     if(pthread_create(&IR_Receiver_tid, NULL, IR_receiver_task, NULL)!=0){

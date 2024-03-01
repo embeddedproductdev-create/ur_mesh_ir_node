@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32s3",
-  "idf.portWin": "COM6",
+  "idf.portWin": "COM16",
   "idf.flashType": "UART",
   "files.associations": {
     "mqtt.h": "c",
