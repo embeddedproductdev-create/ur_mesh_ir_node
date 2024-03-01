@@ -28,7 +28,7 @@
 #define INDICATOR_STATE         "AT+CIND=?\r\n"
 #define GET_TIME				"AT+QLTS=2\r\n"
 
-#define CLIENT_IDX 				3
+#define CLIENT_IDX 				4
 
 // UART configuration
 #define SET_DCD					"AT&C=0\r\n"
@@ -54,7 +54,7 @@
 #define SYNC_SCAN_WIFI  		"AT+QWIFISCAN?\r\n"
 
 //MQTT commands
-#define MQTT_VERSION      		"AT+QMTCFG=\"version\","
+#define MQTT_VERSION      		"AT+QMTCFG=\"version\",0,4"
 #define MQTT_PDP	     		"AT+QMTCFG=\"pdpcid\","
 #define ENABLE_SSL           	"AT+QMTCFG=\"ssl\","
 #define MQTT_KEEP_ALIVE   		"AT+QMTCFG=\"keepalive\","
@@ -80,7 +80,7 @@
 #define OK_RESPONSE				  "OK\r\n"
 #define CONNECT_RESPONSE		  "CONNECT\r\n"
 #define INDICATOR_STATE_RESPONSE  "+CIND: "
-#define MQTT_VERSION_RESPONSE     "+QMTCFG:\"version\",3"
+#define MQTT_VERSION_RESPONSE     "+QMTCFG:\"version\",4"
 #define MQTT_SSL_RESPONSE		  "+QMTCFG:\"ssl\",1"
 #define MQTT_KEEP_ALIVE_RESPONSE  "+QMTCFG:\"keepalive\",120"
 #define MQTT_RECV_MODE_RESPONSE   "+QMTCFG:\"recv/mode\",0,0"
@@ -140,7 +140,6 @@ extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;
 extern uint8_t json_packet_id;
-extern char *json_data;
 
 #ifdef __cplusplus
 extern "C" {
@@ -171,9 +170,10 @@ uint8_t MQTT_ClientDisconnect(int client_idx);
 uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
 uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report(void);
-void parse_json_packet(void);
+int16_t parse_json_packet(void);
 void fill_macid(void);
-int16_t error_check_json();
+void error_check_json(uint8_t json_packet_id);
+void reset_mqtt();
 
 #ifdef __cplusplus
 }

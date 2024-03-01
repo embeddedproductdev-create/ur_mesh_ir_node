@@ -14,11 +14,12 @@ bool configured = false;
 IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
 decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
-char protocol_chosen[15] = "";
+char protocol_chosen_str[15] = "";
 
 //Initialization - Transmitter
-bool sending = false;
 bool needtosend = false;
+bool sending = false;
+int16_t protocol_selected_num = UNKNOWN;
 
 IRDaikinESP ac_daikin280(IR_TRANSMIT_PIN);
 IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
@@ -47,7 +48,7 @@ void *IR_receiver_task(void *args)
         if (irrecv.decode(&results)) {
             // Display a crude timestamp.;
             uint32_t now = millis();
-            printf(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
+            // printf(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
             // Check if we got an IR message that was to big for our capture buffer.
             if (results.overflow)
             printf(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
@@ -61,8 +62,11 @@ void *IR_receiver_task(void *args)
             // Display any extra A/C info if we have it.
             String description = IRAcUtils::resultAcToString(&results);
             if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
-            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED)
+            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered)
+            {
                 configured = true;
+                protocol_selected_num = protocol_detected;
+            }
             printf("protocol_detected : %d\n",protocol_detected);
             yield();  // Feed the WDT as the text output can take a while to print.
         #if LEGACY_TIMING_INFO
@@ -87,6 +91,7 @@ void *IR_receiver_task(void *args)
  */
 void IR_transmit_setup()
 {
+    pinMode(IR_TRANSMIT_PIN, OUTPUT);
     ac_daikin216.begin();
     ac_daikin280.begin();
     ac_hitachi296.begin();
@@ -97,16 +102,15 @@ void IR_transmit_setup()
  * @param none
  * @retval none
  */
-void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
+void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
 {
-    sending = true;
-    switch(protocol_detected)
+    switch(protocol_selected_num)
     {
         default:
             printf("Error in choosing the protocol for send\r\n");
             return;
         case DAIKIN216:
-            strcpy(protocol_chosen, "Daikin216");
+            strcpy(protocol_chosen_str, "Daikin216");
             ac_daikin216.setPower(gwy_ac_control_t.power);
             ac_daikin216.setTemp(gwy_ac_control_t.temp);
             if(gwy_ac_control_t.swingH) gwy_ac_control_t.swingH = kDaikinSwingOn;
@@ -114,15 +118,15 @@ void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
             if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
             ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
             ac_daikin216.setFan(gwy_ac_control_t.fan);
+            sending = true;
             ac_daikin216.send();
-            printf("Sending Daikin216 with Power = %d\r\n",gwy_ac_control_t.power);
             break;
         case DAIKIN200:
-            strcpy(protocol_chosen, "Daikin200");
+            strcpy(protocol_chosen_str, "Daikin200");
             printf("\r\n");
             return;
         case DAIKIN:
-            strcpy(protocol_chosen, "Daikin280");
+            strcpy(protocol_chosen_str, "Daikin280");
             ac_daikin280.setPower(gwy_ac_control_t.power);
             ac_daikin280.setTemp(gwy_ac_control_t.temp);
             if(gwy_ac_control_t.swingH) gwy_ac_control_t.swingH = kDaikinSwingOn;
@@ -130,27 +134,30 @@ void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
             if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
             ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
             ac_daikin280.setFan(gwy_ac_control_t.fan);
+            sending = true;
             ac_daikin280.send();
             printf("Sending Daikin280\r\n");
             break;
         case HITACHI_AC296:
-            strcpy(protocol_chosen, "Hitachi296");
+            strcpy(protocol_chosen_str, "Hitachi296");
             ac_hitachi296.setPower(gwy_ac_control_t.power);
             ac_hitachi296.setTemp(gwy_ac_control_t.temp);
             // ac_hitachi296.setSwingHorizontal(gwy_ac_control_t.swingH);
             // ac_hitachi296.setSwingVertical(gwy_ac_control_t.swingV);
             ac_hitachi296.setFan(gwy_ac_control_t.fan-3);
+            sending = true;
             ac_hitachi296.send();
             printf("Sending Hitachi296\r\n");
             break;
         case VOLTAS:
-            strcpy(protocol_chosen, "Voltas");
+            strcpy(protocol_chosen_str, "Voltas");
+            sending = true;
             ac_voltas.send();
             printf("Protcol Chosen Voltas\r\n");
             break;
     }
-    sending = false;
     needtosend = false;
+    sending = false;
 }
 
 /**
@@ -161,13 +168,13 @@ void IR_transmit(uint16_t protocol_detected, char *protocol_chosen)
 void *button_task(void *args)
 {
     pinMode(USER_SWITCH, INPUT);
-    protocol_detected = DAIKIN216;
+    IR_transmit_setup();
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
-        if(!digitalRead(USER_SWITCH)) //Inverted logic as per the schematic
+        if((!digitalRead(USER_SWITCH) || needtosend) && configured) //Inverted logic as per the schematic
         {
-            IR_transmit(protocol_detected, protocol_chosen);
+            IR_transmit(protocol_selected_num, protocol_chosen_str);
             vTaskDelay(pdMS_TO_TICKS(10));
         }
     }

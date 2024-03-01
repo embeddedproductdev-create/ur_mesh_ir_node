@@ -52,6 +52,21 @@
 #define MIN_VERSION 1
 #define BAUD_RATE 115200
 
+#define IR_RECV_PART_ENABLED true
+#define IR_SEND_PART_ENABLED true
+#define TEMPERATURE_SENSOR_PART_ENABLED true
+#define LTE_PART_ENABLED true
+#define BUTTON_PART_ENABLED true
+#define LED_PART_ENABLED true
+
+/* GLOBAL VARIABLES */
+extern bool configured;
+extern bool mqtt_connected;
+extern bool registered;
+extern bool needtosend;
+extern bool sending;
+extern int16_t protocol_selected_num;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -19,17 +19,17 @@
 #define LOCATION_STR    "Location"
 #define ELMNT_ADDR_STR  "ElementAddr"
 #define MAC_ID_STR 		"MacId"
-#define POWER_STR		"power"
-#define MODE_STR		"mode"
-#define FAN_STR			"fan"
-#define TEMP_STR		"temp"
-#define SWING_H_STR		"swingH"
-#define SWING_V_STR		"swingV"
+#define POWER_STR		"Power"
+#define MODE_STR		"Mode"
+#define FAN_STR			"Fan"
+#define TEMP_STR		"Temp"
+#define SWING_H_STR		"SwingH"
+#define SWING_V_STR		"SwingV"
 #define ONTIMER_STR		"OnTimer"
 #define OFFTIMER_STR	"OffTimer"
 #define LOCKING_STR 	"Locking"
 
-#define MQTT_PACKET_BUFF_SIZE 200
+#define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
 
 /* STRUCTURE DEFINITIONS */
@@ -110,6 +110,7 @@ enum json_packet_enum {
 enum ERROR_CODES{
 	FAILURE = -1,
 	SUCCESS,
+	INVALID_JSON_PACKET_ID,
 	INVALID_MSG_SEQ_NO,
 	INVALID_GWY_SER_NO,
 	INVALID_LOCATION_STR,

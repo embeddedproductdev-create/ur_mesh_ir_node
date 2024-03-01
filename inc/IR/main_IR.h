@@ -31,18 +31,16 @@
 
 /* GLOBAL VARIABLES - RECEIVER */
 extern bool configured;
-extern char protocol_chosen[15];
+extern char protocol_chosen_str[15];
 
 /* GLOBAL VARIABLES - TRANSMITTER */
-extern bool sending;
-extern bool needtosend;
 
 /* FUNCTION DECLARATIONS - RECEIVER */
 void *IR_receiver_task(void *args);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
 void *button_task(void *args);
-void IR_transmit(uint16_t protocol_detected, char *protocol_chosen);
+void IR_transmit(uint16_t protocol_detected, char *protocol_chosen_str);
 
 
 

@@ -21,13 +21,13 @@ bool restart_flag = false;
 bool network_flag = false;
 bool client_flag = false;
 bool subscribe_flag = false;
-
+bool mqtt_connected = false;
+bool registered  = false;
 
 int16_t error_code;
 uint8_t json_packet_id = UNKNOWN_PACKET;
 char json_packet[MQTT_PACKET_BUFF_SIZE];
 cJSON *json_packet_j;
-char *json_data;
 
 control_t gwy_ac_control_t;
 control_t node_ac_control_t;
@@ -49,7 +49,7 @@ void LTE_setup()
 void fill_macid()
 {
 	char macid[17];
-	strcpy(macid, cJSON_GetObjectItemCaseSensitive(json_packet_j, MAC_ID_STR)->valuestring);
+	strcpy(macid, cJSON_GetObjectItem(json_packet_j, MAC_ID_STR)->valuestring);
     char hex_char_str[2];
 	for(uint8_t index=0, i=0; index<6; index++, i+=3)
 	{
@@ -94,11 +94,11 @@ uint8_t check_response(char* response, uint32_t timeout)
 		uint8_t index=0,j=0;
 		bool copy_flag = false;
 		char* data = (char*) calloc(BUF_SIZE,sizeof(char));
-		strcpy(json_data, data);
 		uint32_t time = esp_timer_get_time()/1000ULL;
 		while((esp_timer_get_time()/1000ULL) - time < timeout){
 			uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
 			if(length>0){
+				// ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
 				char check_string[30];
 				sprintf(check_string, "+QMTSTAT: %d,1", CLIENT_IDX);
 				if(strstr(data, check_string))
@@ -108,7 +108,6 @@ uint8_t check_response(char* response, uint32_t timeout)
 					break;
 				}
 				if(strstr((const char* )data,(const char*)response)){
-					// ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
 					for(index=0,j=0; data[index] != '\0'; index++)
 					{
 						if(data[index]=='{' && copy_flag == false)
@@ -543,6 +542,7 @@ void LTE_initialization(void)
 
 void establishMQTTConnection()
 {
+	LED_state = LED_STATE_MQTT_NOT_CONNECTED;
 	uint8_t network_connect_retry_count = 0;
 	uint8_t client_connect_retry_count = 0;
 	uint8_t subscribe_retry_count = 0;
@@ -565,7 +565,8 @@ void establishMQTTConnection()
 				{
 					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
 						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
-						SubscribeTopic(CLIENT_IDX,2,"Control_packet", 0);
+						if(SubscribeTopic(CLIENT_IDX,2,"Control_packet", 0)==SUCCESS)
+							mqtt_connected = true;
 					}
 					if(subscribe_retry_count >= RETRY_COUNT) client_flag = 0;
 					client_connect_retry_count = 0;
@@ -587,206 +588,214 @@ void establishMQTTConnection()
  * @brief This function verifies the data integrity of the json packet received
  * before trying to parse it
  * @param none
- * @retval
+ * @retval none
  */
-int16_t error_check_json()
+void error_check_json(uint8_t json_packet_id)
 {
-	json_packet_j = cJSON_Parse(json_packet);
-	if(json_packet_j != NULL)
+	//Check params common in all packets first
+	if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
+	else { error_code = INVALID_MSG_SEQ_NO; return; }
+	if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
+	else { error_code = INVALID_GWY_SER_NO; return; }
+
+	switch(json_packet_id)
 	{
-		json_packet_id = cJSON_GetObjectItemCaseSensitive(json_packet_j, JSON_PACKET_ID)->valueint;
+		case GWY_REG_PACKET:
+		case GWY_UNREG_PACKET:
+			if(cJSON_GetObjectItem(json_packet_j, LOCATION_STR));
+			else { error_code = INVALID_LOCATION_STR; return; }
+			return;
 
-		//Check params common in all packets first
-		if(strstr(json_data, MSGSEQNO_STR));
-		else error_code = INVALID_MSG_SEQ_NO;
+		case GWY_AC_CONTROL_PACKET:
+			if(cJSON_GetObjectItem(json_packet_j, POWER_STR));
+			else { error_code = INVALID_POWER_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, MODE_STR));
+			else { error_code = INVALID_MODE_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, FAN_STR));
+			else { error_code = INVALID_FAN_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
+			else { error_code = INVALID_TEMP_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
+			else { error_code = INVALID_SWING_H_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));
+			else { error_code = INVALID_SWING_V_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_STR));
+			else { error_code = INVALID_ONTIMER_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR));
+			else { error_code = INVALID_OFFTIMER_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, LOCKING_STR));
+			else { error_code = INVALID_LOCKING_STR; return; }
+			return;
 
-		if(strstr(json_data, GWYSERNO_STR));
-		else error_code = INVALID_GWY_SER_NO;
+		case NODE_PROV_PACKET:
+			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
+			else { error_code = INVALID_NODESERNO_STR; return; }
+			return;
 
-		switch(json_packet_id)
-		{
-			case GWY_REG_PACKET:
-			case GWY_UNREG_PACKET:
-				if(strstr(json_data, LOCATION_STR));
-				else error_code = INVALID_LOCATION_STR;
-				return error_code;
+		case NODE_UNPROV_PACKET:
+		case NODE_RECONF_PACKET:
+			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
+			else { error_code = INVALID_NODESERNO_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
+			else { error_code = INVALID_ELMNT_ADDR_STR; return; }
+			return;
 
-			case GWY_AC_CONTROL_PACKET:
-				if(strstr(json_data, POWER_STR));
-				else error_code = INVALID_POWER_STR;
-				if(strstr(json_data, MODE_STR));
-				else error_code = INVALID_MODE_STR;
-				if(strstr(json_data, FAN_STR));
-				else error_code = INVALID_FAN_STR;
-				if(strstr(json_data, TEMP_STR));
-				else error_code = INVALID_TEMP_STR;
-				if(strstr(json_data, SWING_H_STR));
-				else error_code = INVALID_SWING_H_STR;
-				if(strstr(json_data, SWING_V_STR));
-				else error_code = INVALID_SWING_V_STR;
-				if(strstr(json_data, ONTIMER_STR));
-				else error_code = INVALID_ONTIMER_STR;
-				if(strstr(json_data, OFFTIMER_STR));
-				else error_code = INVALID_OFFTIMER_STR;
-				if(strstr(json_data, LOCKING_STR));
-				else error_code = INVALID_LOCKING_STR;
-				return error_code;
+		case NODE_AC_CONTROL_PACKET:
+			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
+			else { error_code = INVALID_NODESERNO_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
+			else { error_code = INVALID_ELMNT_ADDR_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, POWER_STR));
+			else { error_code = INVALID_POWER_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, MODE_STR));
+			else { error_code = INVALID_MODE_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, FAN_STR));
+			else { error_code = INVALID_FAN_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
+			else { error_code = INVALID_TEMP_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
+			else { error_code = INVALID_SWING_H_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));
+			else { error_code = INVALID_SWING_V_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_STR));
+			else { error_code = INVALID_ONTIMER_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR));
+			else { error_code = INVALID_OFFTIMER_STR; return; }
+			if(cJSON_GetObjectItem(json_packet_j, LOCKING_STR));
+			else { error_code = INVALID_LOCKING_STR; return; }
+			return;
 
-			case NODE_PROV_PACKET:
-				if(strstr(json_data, NODESERNO_STR));
-				else error_code = INVALID_NODESERNO_STR;
-				return error_code;
-
-			case NODE_UNPROV_PACKET:
-			case NODE_RECONF_PACKET:
-				if(strstr(json_data, NODESERNO_STR));
-				else error_code = INVALID_NODESERNO_STR;
-				if(strstr(json_data, ELMNT_ADDR_STR));
-				else error_code = INVALID_ELMNT_ADDR_STR;
-				return error_code;
-
-			case NODE_AC_CONTROL_PACKET:
-				if(strstr(json_data, NODESERNO_STR));
-				else error_code = INVALID_NODESERNO_STR;
-				if(strstr(json_data, ELMNT_ADDR_STR));
-				else error_code = INVALID_ELMNT_ADDR_STR;
-				if(strstr(json_data, POWER_STR));
-				else error_code = INVALID_POWER_STR;
-				if(strstr(json_data, MODE_STR));
-				else error_code = INVALID_MODE_STR;
-				if(strstr(json_data, FAN_STR));
-				else error_code = INVALID_FAN_STR;
-				if(strstr(json_data, TEMP_STR));
-				else error_code = INVALID_TEMP_STR;
-				if(strstr(json_data, SWING_H_STR));
-				else error_code = INVALID_SWING_H_STR;
-				if(strstr(json_data, SWING_V_STR));
-				else error_code = INVALID_SWING_V_STR;
-				if(strstr(json_data, ONTIMER_STR));
-				else error_code = INVALID_ONTIMER_STR;
-				if(strstr(json_data, OFFTIMER_STR));
-				else error_code = INVALID_OFFTIMER_STR;
-				if(strstr(json_data, LOCKING_STR));
-				else error_code = INVALID_LOCKING_STR;
-				return error_code;
-		}
+		case RESET_MQTT:
+			return;
 	}
-	return FAILURE;
 }
 
 /**
  * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
  * @param None
- * @retval None
+ * @retval Error code
  */
-void parse_json_packet()
+int16_t parse_json_packet()
 {
-	switch(json_packet_id)
+	error_code = SUCCESS;
+	json_packet_j = cJSON_Parse(json_packet);
+	if((json_packet_j != NULL) && cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID))
 	{
-		case GWY_REG_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
-			if(json_packet_j != NULL)
-			{
-				gwy_registration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_registration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				strcpy(gwy_registration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
-			}
-			break;
-
-		case GWY_UNREG_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
-			if(json_packet_j != NULL)
-			{
-				gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				strcpy(gwy_unregistration_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
-			}
-			break;
-
-		case GWY_AC_CONTROL_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Gwy AC Control packet\r\n");
-			gwy_ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-			gwy_ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-			gwy_ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
-			strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
-			gwy_ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
-			gwy_ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
-			gwy_ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
-			gwy_ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
-			gwy_ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
-			gwy_ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
-			gwy_ac_control_t.Locking = cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCKING_STR)->valueint;
-			break;
-
-		case GWY_RECONF_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
-			gwy_reconfigure_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-			gwy_reconfigure_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-			break;
-
-		case NODE_PROV_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Node Provisioning packet\r\n");
-			if(json_packet_j != NULL)
-			{
-				provision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				provision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				provision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-				strcpy(provision_t.location, cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCATION_STR)->valuestring);
-				fill_macid();
-			}
-			break;
-
-		case NODE_UNPROV_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Node Unprovisioning packet\r\n");
-			if(json_packet_j != NULL)
-			{
-				unprovision_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				unprovision_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				unprovision_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-				unprovision_t.elemnt_addr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-			}
-			break;
-
-		case NODE_AC_CONTROL_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Node AC Control packet\r\n");
-			if(json_packet_j != NULL)
-			{
-				node_ac_control_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				node_ac_control_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				node_ac_control_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-				node_ac_control_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-				node_ac_control_t.power = cJSON_GetObjectItemCaseSensitive(json_packet_j, POWER_STR)->valueint;
-				strcpy(node_ac_control_t.mode_str, cJSON_GetObjectItemCaseSensitive(json_packet_j, MODE_STR)->valuestring);
-				node_ac_control_t.fan = cJSON_GetObjectItemCaseSensitive(json_packet_j, FAN_STR)->valueint;
-				node_ac_control_t.temp = cJSON_GetObjectItemCaseSensitive(json_packet_j, TEMP_STR)->valueint;
-				node_ac_control_t.swingH = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_H_STR)->valueint;
-				node_ac_control_t.swingV = cJSON_GetObjectItemCaseSensitive(json_packet_j, SWING_V_STR)->valueint;
-				node_ac_control_t.OnTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, ONTIMER_STR)->valueint;
-				node_ac_control_t.OffTimer = cJSON_GetObjectItemCaseSensitive(json_packet_j, OFFTIMER_STR)->valueint;
-				node_ac_control_t.Locking = cJSON_GetObjectItemCaseSensitive(json_packet_j, LOCKING_STR)->valueint;
-			}
-			break;
-
-		case NODE_RECONF_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Node Reconfiguration packet\r\n");
-			if(json_packet_j != NULL)
-			{
-				node_reconfigure_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-				node_reconfigure_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-				node_reconfigure_t.node_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, NODESERNO_STR)->valueint;
-				node_reconfigure_t.elementAddr = cJSON_GetObjectItemCaseSensitive(json_packet_j, ELMNT_ADDR_STR)->valueint;
-			}
-			break;
-
-		case RESET_MQTT:
-			gwy_reset_mqtt_t.msg_seq_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, MSGSEQNO_STR)->valueint;
-			gwy_reset_mqtt_t.gwy_ser_no = cJSON_GetObjectItemCaseSensitive(json_packet_j, GWYSERNO_STR)->valueint;
-			ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
-			break;
-
-		default:
-			ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received\r\n");
+		json_packet_id = cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID)->valueint;
 	}
+	else
+	{
+		error_code = INVALID_JSON_PACKET_ID;
+		return error_code;
+	}
+
+	error_check_json(json_packet_id);
+	if(error_code == SUCCESS)
+	{
+		switch(json_packet_id)
+		{
+			case GWY_REG_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
+				gwy_registration_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_registration_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				strcpy(gwy_registration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
+				registered = true;
+				break;
+
+			case GWY_UNREG_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
+				gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				strcpy(gwy_unregistration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
+				registered = false;
+				configured = false;
+				break;
+
+			case GWY_AC_CONTROL_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Gwy AC Control packet\r\n");
+				gwy_ac_control_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_ac_control_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
+				strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
+				gwy_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_STR)->valueint;
+				gwy_ac_control_t.temp = cJSON_GetObjectItem(json_packet_j, TEMP_STR)->valueint;
+				gwy_ac_control_t.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_STR)->valueint;
+				gwy_ac_control_t.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_STR)->valueint;
+				gwy_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_STR)->valueint;
+				gwy_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR)->valueint;
+				gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, LOCKING_STR)->valueint;
+				if(configured) needtosend = true;
+				break;
+
+			case GWY_RECONF_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
+				gwy_reconfigure_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				configured = false;
+				break;
+
+			case NODE_PROV_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Node Provisioning packet\r\n");
+				provision_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				provision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				provision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				strcpy(provision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
+				fill_macid();
+				break;
+
+			case NODE_UNPROV_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Node Unprovisioning packet\r\n");
+				unprovision_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				unprovision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				unprovision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				unprovision_t.elemnt_addr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				break;
+
+			case NODE_AC_CONTROL_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Node AC Control packet\r\n");
+				node_ac_control_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				node_ac_control_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				node_ac_control_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				node_ac_control_t.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				node_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
+				strcpy(node_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
+				node_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_STR)->valueint;
+				node_ac_control_t.temp = cJSON_GetObjectItem(json_packet_j, TEMP_STR)->valueint;
+				node_ac_control_t.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_STR)->valueint;
+				node_ac_control_t.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_STR)->valueint;
+				node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_STR)->valueint;
+				node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR)->valueint;
+				node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, LOCKING_STR)->valueint;
+				break;
+
+			case NODE_RECONF_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Node Reconfiguration packet\r\n");
+				node_reconfigure_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				node_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				node_reconfigure_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				node_reconfigure_t.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				break;
+
+			case RESET_MQTT:
+				ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
+				gwy_reset_mqtt_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_reset_mqtt_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				LED_state = LED_STATE_MQTT_NOT_CONNECTED;
+				reset_mqtt();
+				break;
+
+			default:
+				ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
+		}
+	}
+	return error_code;
+}
+
+void reset_mqtt()
+{
+	registered = false;
+	configured = false;
+	mqtt_connected = false;
 }
 
 void *LTE_task(void *args)
@@ -799,22 +808,23 @@ void *LTE_task(void *args)
     {
 		if(!restart_flag)
 		{
-			printf("Listening for MQTT request ...\r\n");
-			vTaskDelay(pdMS_TO_TICKS(200));
 			ReadMessage(CLIENT_IDX);
-			if(strlen(json_packet) > 20)
+			vTaskDelay(pdMS_TO_TICKS(1));
+			if(strlen(json_packet) > 5)
 			{
-				if(error_check_json() == SUCCESS)
-					parse_json_packet();
+				// ESP_LOGI(DEBUG_TAG, json_packet);
+				printf("JSON_PACKET : %s\n", json_packet);
+				if(parse_json_packet()==SUCCESS);
 				else
 					ESP_LOGI(ERROR_TAG, "Error code : %d", error_code);
-				strcpy(json_packet, "");
+				memset(json_packet, 0, sizeof(json_packet));
 			}
 		}
 		else
 		{
-			LTE_setup();
+			mqtt_connected = false;
 			restart_flag = false;
+			LTE_setup();
 		}
     }
 }
