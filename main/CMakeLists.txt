@@ -3,6 +3,7 @@ set(srcs "main.cpp"
 "../src/Custom/temperature_sensor.c"
 "../src/LTE/LTE.c"
 "../src/IR/main_IR.cpp"
+"../src/Mesh/mesh_main.c"
 )
 
 idf_component_register(SRCS "${srcs}"

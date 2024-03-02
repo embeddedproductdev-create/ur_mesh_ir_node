@@ -59,7 +59,7 @@
 #define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
-#define MESH_PART_ENABLED false
+#define MESH_PART_ENABLED true
 
 
 /* GLOBAL VARIABLES */
@@ -76,7 +76,7 @@ extern "C" {
 
 /* FUNCTION DECLARATIONS */
 void app_main();
-
+void mesh_main_init(void);
 #ifdef __cplusplus
 }
 #endif
