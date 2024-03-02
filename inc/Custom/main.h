@@ -59,6 +59,7 @@
 #define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
+#define MESH_PART_ENABLED false
 
 
 /* GLOBAL VARIABLES */
