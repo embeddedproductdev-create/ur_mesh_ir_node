@@ -1,28 +1,15 @@
-/* main.c - Application main entry point */
-
-/*
- * SPDX-FileCopyrightText: 2017 Intel Corporation
- * SPDX-FileContributor: 2018-2021 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: Apache-2.0
+/**
+ * @file mesh_main.c
+ * @author Adhikesavan (Adhikesavan@qmaxsys.com)
+ * @brief This file contains all ble-mesh related functions
+ * @version 0.1
+ * @date 2024-03-02
+ * @copyright Copyright (c) 2024
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
+#include "../../inc/mesh/mesh_main.h"
 
-#include "esp_log.h"
-#include "nvs_flash.h"
-
-#include "esp_ble_mesh_defs.h"
-#include "esp_ble_mesh_common_api.h"
-#include "esp_ble_mesh_networking_api.h"
-#include "esp_ble_mesh_provisioning_api.h"
-#include "esp_ble_mesh_config_model_api.h"
-#include "esp_ble_mesh_sensor_model_api.h"
-
-//#include "ble_mesh_example_init.h"
-//#include "board.h"
+#include "ble_mesh_example_init.h"
 #include "esp_err.h"
 
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid);
@@ -837,7 +824,7 @@ static void example_ble_mesh_sensor_timeout(uint32_t opcode)
 
     example_ble_mesh_send_sensor_message(opcode);
 }
-int configured=0;
+
 static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t event,
                                               esp_ble_mesh_cfg_server_cb_param_t *param)
 {
@@ -849,7 +836,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.appkey_add.net_idx,
                 param->value.state_change.appkey_add.app_idx);
             ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
-            //configured=1;
+
 
             break;
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
@@ -859,7 +846,6 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.mod_app_bind.app_idx,
                 param->value.state_change.mod_app_bind.company_id,
                 param->value.state_change.mod_app_bind.model_id);
-           // binded=1;
             break;
         case ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD:
             ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD");
@@ -868,9 +854,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.mod_sub_add.sub_addr,
                 param->value.state_change.mod_sub_add.company_id,
                 param->value.state_change.mod_sub_add.model_id);
-            prov=1;
-            configured=1;
-            //configured=1;
+
             break;
         case ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET:
 			ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD");
@@ -879,9 +863,6 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
 				param->value.state_change.mod_sub_add.element_addr,
 				param->value.state_change.mod_sub_add.company_id,
 				param->value.state_change.mod_sub_add.model_id);
-			  //  esp_ble_mesh_cfg_server_cb_param_t params;
-				//example_ble_mesh_send_sensor_status(&params);
-				//configured=1;
 
             break;
         default:
@@ -1216,26 +1197,9 @@ void mesh_main_init(void)
 
     		ESP_LOGE(TAG, "Gpio detected");
     		example_ble_mesh_send_sensor_status(&paramss);
-    		//configured=0;
     		vTaskDelay(pdMS_TO_TICKS(1000));
 
     	}
-    	if(binded){
-    		ESP_LOGE(TAG, "after binding client appidx 0x%04x ", sensor_client.model->pub->app_idx);binded=0;
-    	}
-    	/*if(prov){
-
-    		err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(0x0332, 0,
-    		                                    ESP_BLE_MESH_MODEL_ID_SENSOR_CLI, ESP_BLE_MESH_CID_NVAL);
-    			if (err != ESP_OK) {
-    				ESP_LOGE(TAG, "Failed to bind AppKey to sensor client");
-    			}else{
-    				ESP_LOGE(TAG, "sucess to bind AppKey to sensor client");
-    			}
-
-    			prov=0;
-    	}*/
-
     	vTaskDelay(pdMS_TO_TICKS(100));
     }
     #endif

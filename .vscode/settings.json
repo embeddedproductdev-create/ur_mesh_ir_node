@@ -15,7 +15,9 @@
     "freertos.h": "c",
     "lte.h": "c",
     "irac.h": "c",
-    "system_error": "c"
+    "system_error": "c",
+    "esp_err.h": "c",
+    "esp_ble_mesh_defs.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

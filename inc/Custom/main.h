@@ -27,6 +27,9 @@
 #include "../LTE/LTE.h"
 #include "../LTE/mqtt.h"
 
+/* BLE-MESH */
+#include "../mesh/mesh_main.h"
+
 /* ESP General */
 #include "driver/gpio.h"
 #include "driver/uart.h"
@@ -37,6 +40,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "nvs_flash.h"
 #include "rom/ets_sys.h"
 #include "sdkconfig.h"
 
@@ -76,7 +80,7 @@ extern "C" {
 
 /* FUNCTION DECLARATIONS */
 void app_main();
-void mesh_main_init(void);
+
 #ifdef __cplusplus
 }
 #endif
