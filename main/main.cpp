@@ -9,6 +9,7 @@
 
 #include "../../inc/IR/main_IR.h"
 #include "../../inc/Custom/main.h"
+#include "../../inc/Mesh/ble_mesh_example_init.h"
 
 /**
  * @brief Starting point for the whole program

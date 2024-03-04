@@ -9,12 +9,88 @@
 
 #include "../../inc/mesh/mesh_main.h"
 
-#include "ble_mesh_example_init.h"
+
 #include "esp_err.h"
+/*
+ * SPDX-FileCopyrightText: 2017 Intel Corporation
+ * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-void ble_mesh_get_dev_uuid(uint8_t *dev_uuid);
+#include <stdio.h>
+#include <string.h>
+#include <sdkconfig.h>
 
-esp_err_t bluetooth_init(void);
+#ifdef CONFIG_BT_BLUEDROID_ENABLED
+#include "esp_bt.h"
+#include "esp_bt_main.h"
+#include "esp_bt_device.h"
+#endif
+
+#ifdef CONFIG_BT_NIMBLE_ENABLED
+#include "nimble/nimble_port.h"
+#include "nimble/nimble_port_freertos.h"
+#include "host/ble_hs.h"
+#include "host/util/util.h"
+#include "console/console.h"
+#endif
+
+#include "esp_ble_mesh_defs.h"
+
+#define TAG "EXAMPLE_INIT"
+
+#ifdef CONFIG_BT_BLUEDROID_ENABLED
+void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
+{
+    if (dev_uuid == NULL) {
+        ESP_LOGE(TAG, "%s, Invalid device uuid", __func__);
+        return;
+    }
+
+    /* Copy device address to the device uuid with offset equals to 2 here.
+     * The first two bytes is used for matching device uuid by Provisioner.
+     * And using device address here is to avoid using the same device uuid
+     * by different unprovisioned devices.
+     */
+    memcpy(dev_uuid + 2, esp_bt_dev_get_address(), BD_ADDR_LEN);
+}
+
+esp_err_t bluetooth_init(void)
+{
+    esp_err_t ret;
+
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    ret = esp_bt_controller_init(&bt_cfg);
+    if (ret) {
+        ESP_LOGE(TAG, "%s initialize controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    if (ret) {
+        ESP_LOGE(TAG, "%s enable controller failed", __func__);
+        return ret;
+    }
+    ret = esp_bluedroid_init();
+    if (ret) {
+        ESP_LOGE(TAG, "%s init bluetooth failed", __func__);
+        return ret;
+    }
+    ret = esp_bluedroid_enable();
+    if (ret) {
+        ESP_LOGE(TAG, "%s enable bluetooth failed", __func__);
+        return ret;
+    }
+
+    return ret;
+}
+#endif /* CONFIG_BT_BLUEDROID_ENABLED */
+//void ble_mesh_get_dev_uuid(uint8_t *dev_uuid);
+
+//esp_err_t bluetooth_init(void);
 
 #define TAG "EXAMPLE"
 
@@ -294,11 +370,11 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         return;
     }
 
-    node = esp_ble_mesh_provisioner_get_node_with_addr(param->params->ctx.addr);
+   /* node = esp_ble_mesh_provisioner_get_node_with_addr(param->params->ctx.addr);
     if (!node) {
         ESP_LOGE(TAG, "Node 0x%04x not exists", param->params->ctx.addr);
         return;
-    }
+    }*/
 
     switch (event) {
     case ESP_BLE_MESH_CFG_CLIENT_GET_STATE_EVT:
@@ -307,9 +383,9 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
                 param->status_cb.comp_data_status.composition_data->len);
             example_ble_mesh_parse_node_comp_data(param->status_cb.comp_data_status.composition_data->data,
                 param->status_cb.comp_data_status.composition_data->len);
-            err = esp_ble_mesh_provisioner_store_node_comp_data(param->params->ctx.addr,
+           /* err = esp_ble_mesh_provisioner_store_node_comp_data(param->params->ctx.addr,
                 param->status_cb.comp_data_status.composition_data->data,
-                param->status_cb.comp_data_status.composition_data->len);
+                param->status_cb.comp_data_status.composition_data->len);*/
             if (err != ESP_OK) {
                 ESP_LOGE(TAG, "Failed to store node composition data");
                 break;
@@ -760,7 +836,7 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode)
     esp_ble_mesh_node_t *node = NULL;
     esp_err_t err = ESP_OK;
 
-    node = esp_ble_mesh_provisioner_get_node_with_addr(server_address);
+   // node = esp_ble_mesh_provisioner_get_node_with_addr(server_address);
     if (node == NULL) {
         ESP_LOGE(TAG, "Node 0x%04x not exists", server_address);
         return;

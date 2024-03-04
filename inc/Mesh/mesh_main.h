@@ -9,6 +9,7 @@
 #include "esp_ble_mesh_provisioning_api.h"
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_sensor_model_api.h"
+#include "ble_mesh_example_init.h"
 
 #ifdef __cplusplus
 extern "C"

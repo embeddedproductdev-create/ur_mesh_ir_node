@@ -6,6 +6,7 @@
             "compileCommands": "${workspaceFolder}/build/compile_commands.json",
             "includePath": [
                 "${config:idf.espIdfPath}/components/**",
+                "${config:idf.espIdfPath}/examples**",
                 "${config:idf.espIdfPathWin}/components/**",
                 "${config:idf.espAdfPath}/components/**",
                 "${config:idf.espAdfPathWin}/components/**",
@@ -14,6 +15,7 @@
             "browse": {
                 "path": [
                     "${config:idf.espIdfPath}/components",
+                    "${config:idf.espIdfPath}/examples**",
                     "${config:idf.espIdfPathWin}/components",
                     "${config:idf.espAdfPath}/components/**",
                     "${config:idf.espAdfPathWin}/components/**",

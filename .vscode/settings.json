@@ -17,7 +17,12 @@
     "irac.h": "c",
     "system_error": "c",
     "esp_err.h": "c",
-    "esp_ble_mesh_defs.h": "c"
+    "esp_ble_mesh_defs.h": "c",
+    "esp_ble_mesh_sensor_model_api.h": "c",
+    "esp_ble_mesh_common_api.h": "c",
+    "esp_ble_mesh_networking_api.h": "c",
+    "esp_ble_mesh_provisioning_api.h": "c",
+    "esp_ble_mesh_config_model_api.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

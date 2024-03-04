@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "C:/Users/Computer/workspace/sensor_srv_cli_model_config"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"board.h": "c"
+		}
+	}
+}
