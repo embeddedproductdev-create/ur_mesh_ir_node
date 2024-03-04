@@ -24,6 +24,9 @@ bool subscribe_flag = false;
 bool mqtt_connected = false;
 bool registered  = false;
 
+//sensor model send data when this variable set
+bool send_control_packet = false;
+
 int16_t error_code;
 uint8_t json_packet_id = UNKNOWN_PACKET;
 char json_packet[MQTT_PACKET_BUFF_SIZE];
@@ -766,6 +769,7 @@ int16_t parse_json_packet()
 				node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_STR)->valueint;
 				node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR)->valueint;
 				node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, LOCKING_STR)->valueint;
+				send_control_packet = true;
 				break;
 
 			case NODE_RECONF_PACKET:

@@ -3,6 +3,7 @@
 
 #include "../Custom/main.h"
 
+
 #include "esp_ble_mesh_defs.h"
 #include "esp_ble_mesh_common_api.h"
 #include "esp_ble_mesh_networking_api.h"
@@ -18,6 +19,9 @@ extern "C"
 
 /* FUNCTION DECLARATIONS */
 void mesh_main_init(void);
+
+/* sending data through sensor server model*/
+void *send_data_task(void *args);
 
 #ifdef __cplusplus
 }

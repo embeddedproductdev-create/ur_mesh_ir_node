@@ -700,7 +700,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     return (mpid_len + data_len);
 }
 
-static void example_ble_mesh_send_sensor_status(/*int a*/esp_ble_mesh_sensor_server_cb_param_t *param)
+static void example_ble_mesh_send_sensor_status(/*int a*//*esp_ble_mesh_sensor_server_cb_param_t *param*/)
 {
     uint8_t *status = NULL;
     uint16_t buf_size = 0;
@@ -980,7 +980,7 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
             break;
         case ESP_BLE_MESH_MODEL_OP_SENSOR_GET:
             ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_SENSOR_GET");
-            example_ble_mesh_send_sensor_status(param);
+            example_ble_mesh_send_sensor_status();
             break;
         case ESP_BLE_MESH_MODEL_OP_SENSOR_COLUMN_GET:
             ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_SENSOR_COLUMN_GET");
@@ -1279,4 +1279,20 @@ void mesh_main_init(void)
     	vTaskDelay(pdMS_TO_TICKS(100));
     }
     #endif
+}
+//extern control_struct control_t; 
+//extern control_t node_ac_control;
+void *send_data_task(void *args)
+{
+    
+    while(1)
+    {
+        if(send_control_packet)
+        {   //sensor_states[0].sensor_data.raw_value->data[0] = node_ac_control_.msg_seq_no;
+
+            
+            example_ble_mesh_send_sensor_status();
+            send_control_packet = false;
+        }
+    }
 }

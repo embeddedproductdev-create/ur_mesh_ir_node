@@ -141,6 +141,13 @@ extern bool client_flag;
 extern bool subscribe_flag;
 extern uint8_t json_packet_id;
 
+extern bool send_control_packet;
+//extern control_struct control;
+//extern control_t node_ac_control_t;
+
+extern struct control_struct control;
+extern struct control_struct node_ac_control_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
