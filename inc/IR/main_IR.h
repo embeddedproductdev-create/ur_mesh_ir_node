@@ -26,7 +26,6 @@
 #define kTolerancePercentage kTolerance
 
 /* TRANSMITTER */
-#define USER_SWITCH 12
 #define IR_TRANSMIT_PIN 7
 
 /* GLOBAL VARIABLES - RECEIVER */
@@ -39,10 +38,8 @@ extern char protocol_chosen_str[15];
 void *IR_receiver_task(void *args);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
-void *button_task(void *args);
 void IR_transmit(uint16_t protocol_detected, char *protocol_chosen_str);
-
-
+void IR_transmit_setup();
 
 #endif
 

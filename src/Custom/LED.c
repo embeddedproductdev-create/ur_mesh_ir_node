@@ -32,6 +32,10 @@ void *LED_task(void *args)
     LED_initial_setup();
     while(1)
     {
+        mqtt_connected = true;
+        registered = true;
+        configured = true;
+        protocol_selected_num = 61; // Daikin216
         vTaskDelay(1);
         if(sending)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
@@ -77,11 +81,12 @@ void *LED_task(void *args)
                 break;
 
             case LED_STATE_SENDING_IR_COMMAND:
-                digitalWrite(GREEN_LED_PIN, HIGH);
-                vTaskDelay(pdMS_TO_TICKS(FAST_BLINK_MS));
                 digitalWrite(GREEN_LED_PIN, LOW);
-                vTaskDelay(pdMS_TO_TICKS(FAST_BLINK_MS));
+                digitalWrite(RED_LED_PIN, LOW);
+                digitalWrite(BLUE_LED_PIN, LOW);
+                vTaskDelay(pdMS_TO_TICKS(200));
                 break;
+
             default:
                 printf("Unknown LED state in LED_task function\n");
                 break;

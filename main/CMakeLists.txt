@@ -1,5 +1,6 @@
 set(srcs "main.cpp"
 "../src/Custom/LED.c"
+"../src/Custom/button.c"
 "../src/Custom/temperature_sensor.c"
 "../src/LTE/LTE.c"
 "../src/IR/main_IR.cpp"

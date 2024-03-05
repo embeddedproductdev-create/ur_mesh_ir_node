@@ -1065,7 +1065,6 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
     {
         node_ac_control_t.mode_str[i]= (char*)(store_recv_data[i]);
     }
-    //node_ac_control_t.mode_str =, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
     node_ac_control_t.fan = (store_recv_data[24]);
     node_ac_control_t.temp = (store_recv_data[25]);
     node_ac_control_t.swingH = (bool)(store_recv_data[26]);
@@ -1075,7 +1074,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
     node_ac_control_t.OffTimer = (uint16_t)((store_recv_data[30] << 8) & 0xff00);
     node_ac_control_t.OffTimer |= (uint16_t)(store_recv_data[31]);
     node_ac_control_t.Locking = (bool)(store_recv_data[32]);
-
+    needtosend = true;
 
     switch (event) {
     case ESP_BLE_MESH_SENSOR_CLIENT_GET_STATE_EVT:
@@ -1315,22 +1314,22 @@ void mesh_main_init(void)
 
 void *send_data_task(void *args)
 {
-    
+
     while(1)
-    {   
+    {
         vTaskDelay(pdMS_TO_TICKS(10));
         if(send_control_packet)
-        {   
-            
+        {
+
             /*sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff); 
-            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff); 
-            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power)); 
+            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power));
             for(uint8_t i=0;i<15;i++)
             {
                sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];
@@ -1344,7 +1343,7 @@ void *send_data_task(void *args)
             sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
-            
+
             example_ble_mesh_send_sensor_status();
             vTaskDelay(pdMS_TO_TICKS(10));*/
             node_ac_control_t.msg_seq_no = 1;
@@ -1371,9 +1370,9 @@ void *send_data_task(void *args)
             sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff); 
-            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff); 
-            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power)); 
+            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power));
             for(uint8_t i=0;i<15;i++)
             {
                sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];

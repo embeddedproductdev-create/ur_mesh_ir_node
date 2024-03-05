@@ -16,8 +16,6 @@
  * @param none
  * @retval none
  */
-
-
 void app_main()
 {
     Serial.begin(BAUD_RATE);
@@ -68,8 +66,8 @@ void app_main()
     #endif
 
     #if(MESH_PART_ENABLED)
-    pthread_t send_data;
-    if(pthread_create(&send_data, NULL, send_data_task, NULL)!=0){
+    pthread_t send_data_tid;
+    if(pthread_create(&send_data_tid, NULL, send_data_task, NULL)!=0){
         perror("Error in creating button_thread : ");
     }
     #endif
@@ -95,6 +93,6 @@ void app_main()
     #endif
 
    /**/ #if(MESH_PART_ENABLED)
-    pthread_join(send_data, NULL);
+    pthread_join(send_data_tid, NULL);
     #endif
 }

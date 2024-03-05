@@ -45,8 +45,9 @@
 #include "sdkconfig.h"
 
 /* Custom */
-#include "../Custom/LED.h"
-#include "../Custom/temperature_sensor.h"
+#include "LED.h"
+#include "temperature_sensor.h"
+#include "button.h"
 
 #define TAG "UART"
 #define DEBUG_TAG "[DEBUG] : "
@@ -60,7 +61,7 @@
 #define IR_RECV_LOG_ENABLED true
 #define IR_SEND_PART_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED true
-#define LTE_PART_ENABLED true
+#define LTE_PART_ENABLED false
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true

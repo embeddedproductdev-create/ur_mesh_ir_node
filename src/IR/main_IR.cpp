@@ -27,7 +27,14 @@ IRDaikinESP ac_daikin280(IR_TRANSMIT_PIN);
 IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
 IRHitachiAc296 ac_hitachi296(IR_TRANSMIT_PIN);
 IRVoltas ac_voltas(IR_TRANSMIT_PIN);
-// IRDaikin200 ac_daikin200(IR_TRANSMIT_PIN);
+
+//Initialization - BUTTON
+bool last_button_state = 0;
+bool current_button_state = 0;
+uint32_t pressedTime = 0;
+uint32_t releasedTime = 0;
+uint32_t pressduration = 0;
+bool esp_restart_flag = false;
 
 /**
  * @brief Thread that handles the IR signals received. Detects and sets the IR tranmsmission protocol
@@ -36,6 +43,7 @@ IRVoltas ac_voltas(IR_TRANSMIT_PIN);
  */
 void *IR_receiver_task(void *args)
 {
+    IR_transmit_setup();
     Serial.begin(BAUD_RATE);
     while(!Serial)
         delay(50);
@@ -49,6 +57,8 @@ void *IR_receiver_task(void *args)
     while(1)
     {
         vTaskDelay(1);
+        if(esp_restart_flag)
+            ESP.restart();
         if (irrecv.decode(&results)) {
             #if(IR_RECV_LOG_ENABLED)
                 // Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
@@ -184,61 +194,24 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
 void *button_task(void *args)
 {
     pinMode(USER_SWITCH, INPUT);
-    IR_transmit_setup();
     while(1)
     {
-        vTaskDelay(pdMS_TO_TICKS(10));
-        if(!(digitalRead(USER_SWITCH)))
-        
-        {   send_control_packet=true;    
-           /* node_ac_control_t.msg_seq_no = 1;
-				node_ac_control_t.gwy_ser_no = 2;
-				node_ac_control_t.node_ser_no = 3;
-				node_ac_control_t.elementAddr = 4;
-				node_ac_control_t.power = true;
-				//node_ac_control_t.mode_str ="Cool";
-				node_ac_control_t.fan = 5;
-				node_ac_control_t.temp = 25;
-				node_ac_control_t.swingH = 1;
-				node_ac_control_t.swingV = 1;
-				node_ac_control_t.OnTimer = 0;
-				node_ac_control_t.OffTimer = 0;
-				node_ac_control_t.Locking = 1;
-
-
-            sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff); 
-            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff); 
-            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power)); 
-            for(uint8_t i=0;i<15;i++)
-            {
-               sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];
-            }
-            sensor_states[0].sensor_data.raw_value->data[24] = node_ac_control_t.fan;
-            sensor_states[0].sensor_data.raw_value->data[25] = node_ac_control_t.temp;
-            sensor_states[0].sensor_data.raw_value->data[26] = (uint8_t*)node_ac_control_t.swingH;
-            sensor_states[0].sensor_data.raw_value->data[27] = (uint8_t*)node_ac_control_t.swingV;
-            sensor_states[0].sensor_data.raw_value->data[28] = (uint8_t*)((node_ac_control_t.OnTimer >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[29] = (uint8_t*)((node_ac_control_t.OnTimer) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
-            example_ble_mesh_send_sensor_status();*/
-        }
-            // ESP.restart();
-            //data[0]=
-
-
-        if(needtosend && configured) //Inverted logic as per the schematic
+        vTaskDelay(1);
+        if(!digitalRead(USER_SWITCH)) //button is pressed
         {
-            IR_transmit(protocol_selected_num, protocol_chosen_str);
-            vTaskDelay(pdMS_TO_TICKS(10));
+            pressedTime = esp_timer_get_time();
+            while(!digitalRead(USER_SWITCH)) //Do nothing until button is released
+            {
+                vTaskDelay(1);
+                ;
+            }
+            releasedTime = esp_timer_get_time();
+            if((releasedTime - pressedTime)/1000 > SHORT_PRESS_DURATION_MS)
+                esp_restart_flag = true;
+            else
+                send_control_packet = true;
         }
     }
 }
+
 
