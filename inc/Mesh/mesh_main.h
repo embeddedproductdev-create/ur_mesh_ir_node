@@ -19,7 +19,8 @@ extern "C"
 
 /* FUNCTION DECLARATIONS */
 void mesh_main_init(void);
-
+//void example_ble_mesh_send_sensor_status();
+//extern esp_ble_mesh_sensor_state_t sensor_states[2];
 /* sending data through sensor server model*/
 void *send_data_task(void *args);
 

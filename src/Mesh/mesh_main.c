@@ -692,12 +692,14 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
                            net_buf_simple_add_u8(&sensor_data_0, 12);
                            net_buf_simple_add_u8(&sensor_data_0, 11);*/
      //uint8_t datas[10]={1,1,1,1};
-     data_len=29;
+     data_len=37;
      BT_ERR("data len %d", data_len);
-    memcpy(data, &mpid, mpid_len);
-    memcpy(data + mpid_len,state->sensor_data.raw_value->data, data_len);
+   // memcpy(data, &mpid, mpid_len);
+    //memcpy(data + mpid_len,state->sensor_data.raw_value->data, data_len);
+    memcpy(data ,state->sensor_data.raw_value->data, data_len);
 
-    return (mpid_len + data_len);
+    //return (mpid_len + data_len);
+    return (data_len);
 }
 
 static void example_ble_mesh_send_sensor_status(/*int a*//*esp_ble_mesh_sensor_server_cb_param_t *param*/)
@@ -735,7 +737,7 @@ static void example_ble_mesh_send_sensor_status(/*int a*//*esp_ble_mesh_sensor_s
     }
 
    // status = calloc(1, buf_size);
-    status = calloc(1, 70);
+    status = calloc(1, 80);
     BT_ERR("buff size %d", buf_size);
     if (!status) {
         ESP_LOGE(TAG, "No memory for sensor status!");
@@ -1045,6 +1047,36 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
     	                    param->status_cb.sensor_status.marshalled_sensor_data->len);
 
     }
+    uint8_t store_recv_data[35];
+    for(uint8_t i=0;i<35;i++)
+    {
+        store_recv_data[i]=param->status_cb.sensor_status.marshalled_sensor_data->data[i];
+    }
+    node_ac_control_t.msg_seq_no = (uint16_t)((store_recv_data[0] << 8) & 0xff00);
+    node_ac_control_t.msg_seq_no |= (uint16_t)(store_recv_data[1]);
+    node_ac_control_t.gwy_ser_no = (uint16_t)((store_recv_data[2] << 8) & 0xff00);
+    node_ac_control_t.gwy_ser_no |= (uint16_t)(store_recv_data[3]);
+    node_ac_control_t.node_ser_no = (uint16_t)((store_recv_data[4] << 8) & 0xff00);
+    node_ac_control_t.node_ser_no |= (uint16_t)(store_recv_data[5]);
+    node_ac_control_t.elementAddr = (uint16_t)((store_recv_data[6] << 8) & 0xff00);
+    node_ac_control_t.elementAddr |= (uint16_t)(store_recv_data[7]);
+    node_ac_control_t.power = (bool)(store_recv_data[8]);
+    for(uint8_t i=9;i<24;i++)
+    {
+        node_ac_control_t.mode_str[i]= (char*)(store_recv_data[i]);
+    }
+    //node_ac_control_t.mode_str =, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
+    node_ac_control_t.fan = (store_recv_data[24]);
+    node_ac_control_t.temp = (store_recv_data[25]);
+    node_ac_control_t.swingH = (bool)(store_recv_data[26]);
+    node_ac_control_t.swingV = (bool)(store_recv_data[27]);
+    node_ac_control_t.OnTimer = (uint16_t)((store_recv_data[28] << 8) & 0xff00);
+    node_ac_control_t.OnTimer |= (uint16_t)(store_recv_data[29]);
+    node_ac_control_t.OffTimer = (uint16_t)((store_recv_data[30] << 8) & 0xff00);
+    node_ac_control_t.OffTimer |= (uint16_t)(store_recv_data[31]);
+    node_ac_control_t.Locking = (bool)(store_recv_data[32]);
+
+
     switch (event) {
     case ESP_BLE_MESH_SENSOR_CLIENT_GET_STATE_EVT:
         switch (param->params->opcode) {
@@ -1285,11 +1317,12 @@ void *send_data_task(void *args)
 {
     
     while(1)
-    {
+    {   
+        vTaskDelay(pdMS_TO_TICKS(10));
         if(send_control_packet)
         {   
             
-            sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
+            /*sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
@@ -1312,6 +1345,48 @@ void *send_data_task(void *args)
             sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
             
+            example_ble_mesh_send_sensor_status();
+            vTaskDelay(pdMS_TO_TICKS(10));*/
+            node_ac_control_t.msg_seq_no = 1;
+            node_ac_control_t.gwy_ser_no = 2;
+            node_ac_control_t.node_ser_no = 3;
+            node_ac_control_t.elementAddr = 4;
+            node_ac_control_t.power = true;
+            node_ac_control_t.mode_str[0] ='C';
+            node_ac_control_t.mode_str[1] ='o';
+            node_ac_control_t.mode_str[2] ='o';
+            node_ac_control_t.mode_str[3] ='l';
+            node_ac_control_t.fan = 5;
+            node_ac_control_t.temp = 25;
+            node_ac_control_t.swingH = 1;
+            node_ac_control_t.swingV = 1;
+            node_ac_control_t.OnTimer = 0;
+            node_ac_control_t.OffTimer = 0;
+            node_ac_control_t.Locking = 1;
+
+
+            sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff); 
+            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff); 
+            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power)); 
+            for(uint8_t i=0;i<15;i++)
+            {
+               sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];
+            }
+            sensor_states[0].sensor_data.raw_value->data[24] = node_ac_control_t.fan;
+            sensor_states[0].sensor_data.raw_value->data[25] = node_ac_control_t.temp;
+            sensor_states[0].sensor_data.raw_value->data[26] = (uint8_t*)node_ac_control_t.swingH;
+            sensor_states[0].sensor_data.raw_value->data[27] = (uint8_t*)node_ac_control_t.swingV;
+            sensor_states[0].sensor_data.raw_value->data[28] = (uint8_t*)((node_ac_control_t.OnTimer >> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[29] = (uint8_t*)((node_ac_control_t.OnTimer) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
+            sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
             example_ble_mesh_send_sensor_status();
             send_control_packet = false;
         }

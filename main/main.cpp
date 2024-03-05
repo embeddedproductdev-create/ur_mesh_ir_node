@@ -93,4 +93,8 @@ void app_main()
     #if(BUTTON_PART_ENABLED)
     pthread_join(button_tid, NULL);
     #endif
+
+   /**/ #if(MESH_PART_ENABLED)
+    pthread_join(send_data, NULL);
+    #endif
 }
