@@ -750,9 +750,9 @@ static void example_ble_mesh_send_sensor_status(/*int a*//*esp_ble_mesh_sensor_s
          * Property ID field of the incoming message is omitted, the Marshalled Sensor
          * Data field shall contain data for all device properties within a sensor.
          */
-        for (i = 0; i < ARRAY_SIZE(sensor_states); i++) {
-            length += example_ble_mesh_get_sensor_data(&sensor_states[i], status + length);
-        }
+        //for (i = 0; i < ARRAY_SIZE(sensor_states); i++) {
+            length += example_ble_mesh_get_sensor_data(&sensor_states[0], status + length);
+       // }
         goto send;
 //    }
 
@@ -783,6 +783,7 @@ send:
    //     sensor_server.model->pub->app_idx=0000;
         ESP_LOGE(TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
         ESP_LOGE(TAG, "Node ap idx addr 0x%04x ", sensor_server.model->pub->app_idx);
+        sensor_server.model->pub->retransmit=0;
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
     /*err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
     		ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status);*/
@@ -1362,6 +1363,28 @@ void *send_data_task(void *args)
             node_ac_control_t.OnTimer = 0;
             node_ac_control_t.OffTimer = 0;
             node_ac_control_t.Locking = 1;
+
+            ESP_LOGI(TAG, "node_ac_control_t.msg_seq_no ...%d \r\n",node_ac_control_t.msg_seq_no);
+    
+            ESP_LOGI(TAG, "node_ac_control_t.gwy_ser_no ...%d \r\n",node_ac_control_t.gwy_ser_no);
+            
+            ESP_LOGI(TAG, "node_ac_control_t.node_ser_no ...%d \r\n",node_ac_control_t.node_ser_no);
+            
+            ESP_LOGI(TAG, "node_ac_control_t.elementAddr ...%d \r\n",node_ac_control_t.elementAddr);
+            
+            ESP_LOGI(TAG, "node_ac_control_t.power ...%d \r\n",node_ac_control_t.power);
+            for(uint8_t i=9;i<24;i++)
+            {
+                ESP_LOGI(TAG, "node_ac_control_t.mode_str[0] %c... \r\n",node_ac_control_t.mode_str[i]);
+            }
+            ESP_LOGI(TAG, "node_ac_control_t.fan ...%d \r\n",node_ac_control_t.fan);
+            ESP_LOGI(TAG, "node_ac_control_t.temp ...%d \r\n",node_ac_control_t.temp);
+            ESP_LOGI(TAG, "node_ac_control_t.swingH ...%d \r\n",node_ac_control_t.swingH);
+            ESP_LOGI(TAG, "node_ac_control_t.swingV ...%d \r\n",node_ac_control_t.swingV);
+            ESP_LOGI(TAG, "node_ac_control_t.OnTimer ...%d \r\n",node_ac_control_t.OnTimer);
+            ESP_LOGI(TAG, "node_ac_control_t.OffTimer ...%d \r\n",node_ac_control_t.OffTimer);
+            ESP_LOGI(TAG, "node_ac_control_t.Locking ...%d \r\n",node_ac_control_t.Locking);
+
 
 
             sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
