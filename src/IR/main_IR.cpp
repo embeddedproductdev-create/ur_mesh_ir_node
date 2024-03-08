@@ -57,8 +57,6 @@ void *IR_receiver_task(void *args)
     while(1)
     {
         vTaskDelay(1);
-        if(esp_restart_flag)
-            ESP.restart();
         if (irrecv.decode(&results)) {
             #if(IR_RECV_LOG_ENABLED)
                 // Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);

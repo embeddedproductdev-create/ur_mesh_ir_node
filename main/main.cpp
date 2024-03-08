@@ -9,8 +9,7 @@
 
 #include "../../inc/IR/main_IR.h"
 #include "../../inc/Custom/main.h"
-#include "../../inc/Mesh/ble_mesh_example_init.h"
-
+#include "../../inc/Custom/accesspoint.h"
 /**
  * @brief Starting point for the whole program
  * @param none
@@ -22,9 +21,9 @@ void app_main()
     while(!Serial)
         delay(50);
 
-    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
-    ESP_LOGI(DEBUG_TAG, "APPLICATION STARTED : %d.%d",MAJ_VERSION, MIN_VERSION);
-    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\r\n");
+    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+    printf("APPLICATION STARTED : %d.%d",MAJ_VERSION, MIN_VERSION);
+    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 
     #if(MESH_PART_ENABLED)
     mesh_main_init();
@@ -72,6 +71,13 @@ void app_main()
     }
     #endif
 
+    #if(AP_PART_ENABLED)
+    pthread_t AP_tid;
+    if(pthread_create(&AP_tid, NULL, AP_task, NULL) != 0){
+        perror("Error in creating AP_thread : ");
+    }
+    #endif
+
     #if(IR_RECV_PART_ENABLED)
     pthread_join(IR_Receiver_tid, NULL);
     #endif
@@ -92,7 +98,11 @@ void app_main()
     pthread_join(button_tid, NULL);
     #endif
 
-   /**/ #if(MESH_PART_ENABLED)
+    #if(MESH_PART_ENABLED)
     pthread_join(send_data_tid, NULL);
+    #endif
+
+    #if(AP_PART_ENABLED)
+    pthread_join(AP_tid, NULL);
     #endif
 }

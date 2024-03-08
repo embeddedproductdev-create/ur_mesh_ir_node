@@ -103,7 +103,7 @@ uint8_t check_response(char* response, uint32_t timeout)
 			if(length>0){
 				// ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
 				char check_string[30];
-				sprintf(check_string, "+QMTSTAT: %d,1", CLIENT_IDX);
+				sprintf(check_string, "+QMTSTAT: %d,1", mqtt_client_index);
 				if(strstr(data, check_string))
 				{
 					printf("Need to restart the LTE to re-establish MQTT connection\r\n");
@@ -165,7 +165,7 @@ uint8_t get_loacalTime()
 		return FAILURE;
 }
 
-uint8_t MQTT_Config(uint8_t client_idx,
+uint8_t MQTT_Config(uint8_t mqtt_client_index,
 				  uint8_t enable_ssl, uint8_t SSL_ctx_idx,
 				  uint16_t keep_alive,
 				  uint8_t clean_session,
@@ -173,37 +173,37 @@ uint8_t MQTT_Config(uint8_t client_idx,
 				  uint8_t will_fg, uint8_t will_qos, uint8_t will_retain, char* will_topic, char* will_message)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-//		sprintf((char*)transmit_buffer,"%s%d,%d,%d\r\n",ENABLE_SSL,client_idx,enable_ssl,SSL_ctx_idx);
+//		sprintf((char*)transmit_buffer,"%s%d,%d,%d\r\n",ENABLE_SSL,mqtt_client_index,enable_ssl,SSL_ctx_idx);
 //	    sendAT_Data(transmit_buffer);
 //	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
 //		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
 //			ESP_LOGI(TAG,"SSL Enabled");
 //		}
-		sprintf((char*)transmit_buffer,"%s4,%d\r\n",MQTT_VERSION,client_idx);
+		sprintf((char*)transmit_buffer,"%s4,%d\r\n",MQTT_VERSION,mqtt_client_index);
 		sendAT_Data(transmit_buffer);
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
 		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"MQTT Version set");
 		}
-		sprintf((char*)transmit_buffer,"%s%d,%d\r\n",MQTT_KEEP_ALIVE,client_idx,keep_alive);
+		sprintf((char*)transmit_buffer,"%s%d,%d\r\n",MQTT_KEEP_ALIVE,mqtt_client_index,keep_alive);
 		sendAT_Data(transmit_buffer);
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
 		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Keep_alive time set to %d s",keep_alive);
 		}
-		sprintf((char*)transmit_buffer,"%s%d,%d,%d\r\n",MQTT_RECV_MODE,client_idx,msg_recv_mode,msg_len_enable);
+		sprintf((char*)transmit_buffer,"%s%d,%d,%d\r\n",MQTT_RECV_MODE,mqtt_client_index,msg_recv_mode,msg_len_enable);
 		sendAT_Data(transmit_buffer);
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
 		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Receive mode configured");
 		}
-		sprintf((char*)transmit_buffer,"%s%d,%d,%d,%d,\"%s\",\"%s\"\r\n",MQTT_WILL_CONFIG,client_idx,will_fg,will_qos,will_retain,will_topic,will_message);
+		sprintf((char*)transmit_buffer,"%s%d,%d,%d,%d,\"%s\",\"%s\"\r\n",MQTT_WILL_CONFIG,mqtt_client_index,will_fg,will_qos,will_retain,will_topic,will_message);
 		sendAT_Data(transmit_buffer);
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
 		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Will Parameters configured");
 		}
-		sprintf((char*)transmit_buffer,"%s%d,%d\r\n",CLEAN_SESSION,client_idx,clean_session);
+		sprintf((char*)transmit_buffer,"%s%d,%d\r\n",CLEAN_SESSION,mqtt_client_index,clean_session);
 		sendAT_Data(transmit_buffer);
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
 		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
@@ -213,13 +213,13 @@ uint8_t MQTT_Config(uint8_t client_idx,
 		return SUCCESS;
 }
 
-uint8_t SubscribeTopic(int client_idx, int msgid, char* topic, int qos)
+uint8_t SubscribeTopic(int mqtt_client_index, int msgid, char* topic, int qos)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d,%d,\"%s\",%d\r\n",SUB_TO_TOPIC,client_idx,msgid,topic,qos);
+		sprintf((char*)transmit_buffer,"%s%d,%d,\"%s\",%d\r\n",SUB_TO_TOPIC,mqtt_client_index,msgid,topic,qos);
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,%d,0\r\n",MQTT_SUB_RESPONSE,client_idx,msgid);
+	    sprintf((char*)transmit_buffer,"%s%d,%d,0\r\n",MQTT_SUB_RESPONSE,mqtt_client_index,msgid);
 		if(check_response(MQTT_SUB_RESPONSE,150*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG, "Subscribed to topic:%s\r\n",topic);
 			free(transmit_buffer);
@@ -233,13 +233,13 @@ uint8_t SubscribeTopic(int client_idx, int msgid, char* topic, int qos)
 		return FAILURE;
 }
 
-uint8_t UnsubscribeTopic(int client_idx, int msgid, char* topic)
+uint8_t UnsubscribeTopic(int mqtt_client_index, int msgid, char* topic)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d,%d,\"%s\"\r\n",UNSUB_TO_TOPIC,client_idx,msgid,topic);
+		sprintf((char*)transmit_buffer,"%s%d,%d,\"%s\"\r\n",UNSUB_TO_TOPIC,mqtt_client_index,msgid,topic);
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	   	sprintf((char*)transmit_buffer,"%s%d,%d,0\r\n",MQTT_UNSUB_RESPONSE,client_idx,msgid);
+	   	sprintf((char*)transmit_buffer,"%s%d,%d,0\r\n",MQTT_UNSUB_RESPONSE,mqtt_client_index,msgid);
 		if(check_response(OK_RESPONSE,150*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG, "Unsubscribed from topic:%s\r\n",topic);
 			free(transmit_buffer);
@@ -251,13 +251,13 @@ uint8_t UnsubscribeTopic(int client_idx, int msgid, char* topic)
 		return FAILURE;
 }
 
-int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port)
+int MQTT_NetworkOpen(int mqtt_client_index, char* hostname, uint32_t port)
 {
 	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-	sprintf((char*)transmit_buffer,"%s%d,\"%s\",%ld\r\n",MQTT_NETWORK_OPEN,client_idx,hostname,port);
+	sprintf((char*)transmit_buffer,"%s%d,\"%s\",%ld\r\n",MQTT_NETWORK_OPEN,mqtt_client_index,hostname,port);
 	sendAT_Data((char*)transmit_buffer);
 	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_OPEN_RESPONSE,client_idx);
+	sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_OPEN_RESPONSE,mqtt_client_index);
 	if(check_response(OK_RESPONSE,10*MAX_WAIT_MS)	==	SUCCESS ){
 		ESP_LOGI(TAG, "Connected to network at:%s\r\n",hostname);
 		free(transmit_buffer);
@@ -266,7 +266,7 @@ int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port)
 	}
 	else{
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		sprintf((char*)transmit_buffer,"%s%d,2\r\n",MQTT_NETWORK_OPEN_RESPONSE,client_idx);
+		sprintf((char*)transmit_buffer,"%s%d,2\r\n",MQTT_NETWORK_OPEN_RESPONSE,mqtt_client_index);
 		if(check_response(transmit_buffer,10*MAX_WAIT_MS)	==	SUCCESS ){
 			return 2;
 		}
@@ -277,14 +277,14 @@ int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port)
 	return FAILURE;
 }
 
-uint8_t MQTT_NetworkClose(int client_idx)
+uint8_t MQTT_NetworkClose(int mqtt_client_index)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",MQTT_NETWORK_CLOSE,client_idx);
+		sprintf((char*)transmit_buffer,"%s%d\r\n",MQTT_NETWORK_CLOSE,mqtt_client_index);
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_CLOSE_RESPONSE,client_idx);
-		if(check_response(transmit_buffer,300*MAX_WAIT_MS)	==	SUCCESS ){
+	    sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_CLOSE_RESPONSE,mqtt_client_index);
+		if(check_response(transmit_buffer,3*MAX_WAIT_MS) ==	SUCCESS ){
 			ESP_LOGI(TAG, "Closed MQTT network");
 			free(transmit_buffer);
 			network_flag = 0;
@@ -295,13 +295,13 @@ uint8_t MQTT_NetworkClose(int client_idx)
 		return FAILURE;
 }
 
-uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* clientID)
+uint8_t MQTT_ClientConnect(int mqtt_client_index, char* username, char* passwd, char* clientID)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d,\"%s\",\"%s\",\"%s\"\r\n",MQTT_CLIENT_CONN,client_idx,clientID,username,passwd);
+		sprintf((char*)transmit_buffer,"%s%d,\"%s\",\"%s\",\"%s\"\r\n",MQTT_CLIENT_CONN,mqtt_client_index,clientID,username,passwd);
 		sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,0,0\r\n",MQTT_CLIENT_CONN_RESPONSE,client_idx);
+	    sprintf((char*)transmit_buffer,"%s%d,0,0\r\n",MQTT_CLIENT_CONN_RESPONSE,mqtt_client_index);
 		if(check_response(transmit_buffer,2*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Connected client to broker: %s\r\n",username);
 			free(transmit_buffer);
@@ -314,13 +314,13 @@ uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* c
 		return FAILURE;
 }
 
-uint8_t MQTT_ClientDisconnect(int client_idx)
+uint8_t MQTT_ClientDisconnect(int mqtt_client_index)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",MQTT_CLIENT_DISCONN,client_idx);
+		sprintf((char*)transmit_buffer,"%s%d\r\n",MQTT_CLIENT_DISCONN,mqtt_client_index);
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,0",MQTT_CLIENT_DISCONN_RESPONSE,client_idx);
+	    sprintf((char*)transmit_buffer,"%s%d,0",MQTT_CLIENT_DISCONN_RESPONSE,mqtt_client_index);
 		if(check_response(OK_RESPONSE,2*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Disconnected client from broker");
 			free(transmit_buffer);
@@ -332,14 +332,14 @@ uint8_t MQTT_ClientDisconnect(int client_idx)
 		return FAILURE;
 }
 
-uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic)
+uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
 		char *msg = "Test";
-		sprintf((char*)transmit_buffer,"%s%d,%ld,%d,%d,\"%s\",%d\r\n",PUB_MSG,client_idx,msgid,qos,retain,topic,strlen(msg));
+		sprintf((char*)transmit_buffer,"%s%d,%ld,%d,%d,\"%s\",%d\r\n",PUB_MSG,mqtt_client_index,msgid,qos,retain,topic,strlen(msg));
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,client_idx,msgid);
+	    sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
 		if(check_response(PROMPT,150*MAX_WAIT_MS)	==	SUCCESS ){
 			uart_write_bytes(UART_NUM_1,msg,strlen(msg));
 			if(check_response(transmit_buffer,150*MAX_WAIT_MS)	==	SUCCESS ){
@@ -353,10 +353,10 @@ uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t 
 		return FAILURE;
 }
 
-uint8_t ReadMessage(int client_idx)
+uint8_t ReadMessage(int mqtt_client_index)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",READ_MSG_BUFFER ,client_idx);
+		sprintf((char*)transmit_buffer,"%s%d\r\n",READ_MSG_BUFFER ,mqtt_client_index);
 	    sendAT_Data((char*)transmit_buffer);
 		if(check_response(OK_RESPONSE,2*MAX_WAIT_MS) == SUCCESS ){
 			free(transmit_buffer);
@@ -534,7 +534,7 @@ void LTE_initialization(void)
     uart_init();
     timer_config();
     OT_command("ATE0\r\n");
-    MQTT_Config(CLIENT_IDX,
+    MQTT_Config(mqtt_client_index,
     		1,2,
 			10,
 			1,
@@ -556,19 +556,19 @@ void establishMQTTConnection()
 		vTaskDelay(1);
 		client_connect_retry_count = 0;
 		printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count++);
-		uint8_t ret_val = MQTT_NetworkOpen(CLIENT_IDX,"54.215.188.103",1883);
-		if(ret_val == 2) MQTT_NetworkClose(CLIENT_IDX);
+		uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
+		if(ret_val == 2) MQTT_NetworkClose(mqtt_client_index);
 		if(!network_flag) continue;
 		if(ret_val == SUCCESS)
 		{
 			while(client_connect_retry_count < RETRY_COUNT && !client_flag) {
 				subscribe_retry_count = 0;
 				printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count++);
-				if(MQTT_ClientConnect(CLIENT_IDX,"QmaxSystems","Qmax_mosquitto_!@#","AC_IR_CONTROL") == SUCCESS)
+				if(MQTT_ClientConnect(mqtt_client_index, mqtt_username, mqtt_password, mqtt_tab_name) == SUCCESS)
 				{
 					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
 						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
-						if(SubscribeTopic(CLIENT_IDX,2,"Control_packet", 0)==SUCCESS)
+						if(SubscribeTopic(mqtt_client_index,2,"Control_packet", 0)==SUCCESS)
 							mqtt_connected = true;
 					}
 					if(subscribe_retry_count >= RETRY_COUNT) client_flag = 0;
@@ -580,7 +580,7 @@ void establishMQTTConnection()
 			if(client_connect_retry_count >= RETRY_COUNT)
 			{
 				network_flag = false;
-				MQTT_NetworkClose(CLIENT_IDX);
+				MQTT_NetworkClose(mqtt_client_index);
 				network_connect_retry_count = 0;
 			}
 		}
@@ -812,7 +812,7 @@ void *LTE_task(void *args)
     {
 		if(!restart_flag)
 		{
-			ReadMessage(CLIENT_IDX);
+			ReadMessage(mqtt_client_index);
 			vTaskDelay(pdMS_TO_TICKS(1));
 			if(strlen(json_packet) > 5)
 			{

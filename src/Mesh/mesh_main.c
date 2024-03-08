@@ -8,7 +8,7 @@
  */
 
 #include "../../inc/mesh/mesh_main.h"
-
+#include "../../inc/Mesh/ble_mesh_example_init.h"
 
 #include "esp_err.h"
 /*

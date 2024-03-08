@@ -131,6 +131,15 @@ enum ERROR_CODES{
 /*GLOBAL VARIABLE DECLARATIONS*/
 extern char json_packet[MQTT_PACKET_BUFF_SIZE];
 extern cJSON *json_packet_j;
+extern uint8_t json_packet_id;
+
+extern int16_t error_code;
+extern bool send_control_packet;
+
+extern bool restart_flag;
+extern bool network_flag;
+extern bool client_flag;
+extern bool subscribe_flag;
 
 extern mqtt_reset_t gwy_mqtt_reset_t;
 
@@ -146,6 +155,27 @@ extern control_t node_ac_control_t;
 extern reconf_t node_reconfigure_t;
 extern reconf_t gwy_reconfigure_t;
 
-extern int16_t error_code;
+/* MQTT parameters */
+extern char mqtt_ip_address[16];
+extern uint16_t mqtt_port;
+extern uint8_t mqtt_client_index;
+extern char mqtt_username[30];
+extern char mqtt_password[30];
+extern char mqtt_tab_name[30];
+extern bool mqtt_params_fetched_flag;
+
+/* FUNCTION DECLARATIONS */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int16_t parse_json_packet(void);
+void fill_macid(void);
+void error_check_json(uint8_t json_packet_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -32,9 +32,6 @@ void *LED_task(void *args)
     LED_initial_setup();
     while(1)
     {
-        mqtt_connected = true;
-        registered = true;
-        configured = true;
         protocol_selected_num = 61; // Daikin216
         vTaskDelay(1);
         if(sending)

@@ -135,18 +135,6 @@
 #define RETRY_COUNT 5
 
 /* GLOBAL VARIABLES */
-extern bool restart_flag;
-extern bool network_flag;
-extern bool client_flag;
-extern bool subscribe_flag;
-extern uint8_t json_packet_id;
-
-extern bool send_control_packet;
-//extern control_struct control;
-//extern control_t node_ac_control_t;
-
-//extern struct control_struct control;
-//extern struct control_struct node_ac_control_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -177,9 +165,6 @@ uint8_t MQTT_ClientDisconnect(int client_idx);
 uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
 uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report(void);
-int16_t parse_json_packet(void);
-void fill_macid(void);
-void error_check_json(uint8_t json_packet_id);
 void reset_mqtt();
 
 #ifdef __cplusplus
