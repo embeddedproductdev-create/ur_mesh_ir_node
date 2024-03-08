@@ -84,10 +84,14 @@ void *IR_receiver_task(void *args)
                 const char *result_char_str = (resultToHumanReadableBasic(&results, &protocol_detected)).c_str();
                 ESP_LOGI(DEBUG_TAG, "%s",result_char_str);
                 String description = IRAcUtils::resultAcToString(&results);
-                const char *result_description_char_str = description.c_str();
-                if (description.length()) Serial.println(D_STR_MESGDESC ": " + description);
-                ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
-
+                char result_description_char_str[200];
+                strcpy(result_description_char_str, (char *)description.c_str());
+                if (description.length()) 
+                {
+                    Serial.println(D_STR_MESGDESC ": " + description);
+                    ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
+                    PublishMessage(mqtt_client_index, 2, 1, 0, "lockingfeature", result_description_char_str);
+                }
             #endif
 
             if(protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered)
@@ -205,7 +209,7 @@ void *button_task(void *args)
             }
             releasedTime = esp_timer_get_time();
             if((releasedTime - pressedTime)/1000 > SHORT_PRESS_DURATION_MS)
-                esp_restart_flag = true;
+                ESP.restart();
             else
                 send_control_packet = true;
         }

@@ -12,12 +12,12 @@
 #include "../../inc/Custom/accesspoint.h"
 
 //Initialization
-char mqtt_ip_address[16];
-uint16_t mqtt_port;
-uint8_t mqtt_client_index;
-char mqtt_username[30];
-char mqtt_password[30];
-char mqtt_tab_name[30];
+char mqtt_ip_address[16] = "54.215.188.103";
+uint16_t mqtt_port = 1883;
+uint8_t mqtt_client_index = 2;
+char mqtt_username[30] = "QmaxSystems";
+char mqtt_password[30] = "Qmax_mosquitto_!@#";
+char mqtt_tab_name[30] = "AC_IR_CONTROL";
 bool mqtt_params_fetched_flag = false;
 
 char ap_ssid[30] = "IR_BLE_MESH_AP_testing";

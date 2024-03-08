@@ -258,7 +258,7 @@ int MQTT_NetworkOpen(int mqtt_client_index, char* hostname, uint32_t port)
 	sendAT_Data((char*)transmit_buffer);
 	memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_OPEN_RESPONSE,mqtt_client_index);
-	if(check_response(OK_RESPONSE,10*MAX_WAIT_MS)	==	SUCCESS ){
+	if(check_response(OK_RESPONSE,100)	==	SUCCESS ){
 		ESP_LOGI(TAG, "Connected to network at:%s\r\n",hostname);
 		free(transmit_buffer);
 		network_flag = 1;
@@ -267,7 +267,7 @@ int MQTT_NetworkOpen(int mqtt_client_index, char* hostname, uint32_t port)
 	else{
 		memset(transmit_buffer,'\0',strlen(transmit_buffer));
 		sprintf((char*)transmit_buffer,"%s%d,2\r\n",MQTT_NETWORK_OPEN_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,10*MAX_WAIT_MS)	==	SUCCESS ){
+		if(check_response(transmit_buffer,100)	==	SUCCESS ){
 			return 2;
 		}
 		network_flag = 0;
@@ -284,7 +284,7 @@ uint8_t MQTT_NetworkClose(int mqtt_client_index)
 	    sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	    sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_CLOSE_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,3*MAX_WAIT_MS) ==	SUCCESS ){
+		if(check_response(transmit_buffer,300) ==	SUCCESS ){
 			ESP_LOGI(TAG, "Closed MQTT network");
 			free(transmit_buffer);
 			network_flag = 0;
@@ -332,25 +332,24 @@ uint8_t MQTT_ClientDisconnect(int mqtt_client_index)
 		return FAILURE;
 }
 
-uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic)
+uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic, char* message)
 {
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		char *msg = "Test";
-		sprintf((char*)transmit_buffer,"%s%d,%ld,%d,%d,\"%s\",%d\r\n",PUB_MSG,mqtt_client_index,msgid,qos,retain,topic,strlen(msg));
-	    sendAT_Data((char*)transmit_buffer);
-	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
-		if(check_response(PROMPT,150*MAX_WAIT_MS)	==	SUCCESS ){
-			uart_write_bytes(UART_NUM_1,msg,strlen(msg));
-			if(check_response(transmit_buffer,150*MAX_WAIT_MS)	==	SUCCESS ){
-				ESP_LOGI(TAG,"Published message:%s\r\n",msg);
-				free(transmit_buffer);
-				return SUCCESS;
-			}
+	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
+	sprintf((char*)transmit_buffer,"%s%d,%ld,%d,%d,\"%s\",%d\r\n",PUB_MSG,mqtt_client_index,msgid,qos,retain,topic,strlen(message));
+	sendAT_Data((char*)transmit_buffer);
+	memset(transmit_buffer,'\0',strlen(transmit_buffer));
+	sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
+	if(check_response(PROMPT,150)==SUCCESS ){
+		uart_write_bytes(UART_NUM_1,message,strlen(message));
+		if(check_response(transmit_buffer,150*MAX_WAIT_MS)	==	SUCCESS ){
+			ESP_LOGI(TAG,"Published message:%s\r\n",message);
+			free(transmit_buffer);
+			return SUCCESS;
 		}
-		ESP_LOGI(TAG,"Could not publish message.\r\n");
-		free(transmit_buffer);
-		return FAILURE;
+	}
+	ESP_LOGI(TAG,"Could not publish message.\r\n");
+	free(transmit_buffer);
+	return FAILURE;
 }
 
 uint8_t ReadMessage(int mqtt_client_index)
@@ -552,14 +551,14 @@ void establishMQTTConnection()
 	network_flag = false;
 	client_flag = false;
 	subscribe_flag = false;
-	while(network_connect_retry_count < RETRY_COUNT && !network_flag){
+	while(network_connect_retry_count < RETRY_COUNT && !network_flag)
+	{
 		vTaskDelay(1);
 		client_connect_retry_count = 0;
 		printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count++);
 		uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
 		if(ret_val == 2) MQTT_NetworkClose(mqtt_client_index);
-		if(!network_flag) continue;
-		if(ret_val == SUCCESS)
+		if(network_flag)
 		{
 			while(client_connect_retry_count < RETRY_COUNT && !client_flag) {
 				subscribe_retry_count = 0;
@@ -584,7 +583,10 @@ void establishMQTTConnection()
 				network_connect_retry_count = 0;
 			}
 		}
+		if(network_connect_retry_count == 5 && !network_flag)
+			network_connect_retry_count = 0;
 	}
+	printf("Exiting connection loop ... \n");
 }
 
 /**

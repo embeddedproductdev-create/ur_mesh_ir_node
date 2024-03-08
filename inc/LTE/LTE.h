@@ -162,7 +162,7 @@ int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port);
 uint8_t MQTT_NetworkClose(int client_idx);
 uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* clientID);
 uint8_t MQTT_ClientDisconnect(int client_idx);
-uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic);
+uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic, char *message);
 uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report(void);
 void reset_mqtt();
