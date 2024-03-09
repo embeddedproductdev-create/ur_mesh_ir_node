@@ -8,7 +8,7 @@
  */
 
 #include "../../inc/IR/main_IR.h"
-#include "../../inc/Mesh/mesh_main.h"
+#include "../../inc/LTE/mqtt.h"
 
 
 //Initialization - Receiver
@@ -86,11 +86,11 @@ void *IR_receiver_task(void *args)
                 String description = IRAcUtils::resultAcToString(&results);
                 char result_description_char_str[200];
                 strcpy(result_description_char_str, (char *)description.c_str());
-                if (description.length()) 
+                if (description.length())
                 {
                     Serial.println(D_STR_MESGDESC ": " + description);
                     ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
-                    PublishMessage(mqtt_client_index, 2, 1, 0, "lockingfeature", result_description_char_str);
+                    // add_to_pubmesg_queue(result_description_char_str, publish_topic);
                 }
             #endif
 
@@ -98,6 +98,13 @@ void *IR_receiver_task(void *args)
             {
                 configured = true;
                 protocol_selected_num = protocol_detected;
+                char pubmessage[PUBMESG_LEN];
+                sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d}",
+                    JSON_PACKET_ID, json_packet_id,
+                    GWYSERNO_STR, GWY_SER_NO,
+                    ERROR_CODE_STR, protocol_detected
+                );
+                // add_to_pubmesg_queue(pubmessage, publish_topic);
             }
             printf("protocol_detected : %d\n",protocol_detected);
             yield();

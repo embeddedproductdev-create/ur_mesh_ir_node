@@ -28,9 +28,13 @@
 #define ONTIMER_STR		"OnTimer"
 #define OFFTIMER_STR	"OffTimer"
 #define LOCKING_STR 	"Locking"
+#define ERROR_CODE_STR  "ErrorCode"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
+#define PUBMESG_QUEUE_LIMIT 20
+#define PUBMESG_LEN 300
+#define MQTT_TOPIC_CHAR_LEN 20
 
 /* STRUCTURE DEFINITIONS */
 
@@ -90,6 +94,13 @@ typedef struct unprov_struct{
 	char location[LOCATION_STR_LEN];
 }unprov_t;
 
+struct pub_mesg_struct{
+	char *message;
+	char *topic;
+	struct pub_mesg_struct *next;
+	struct pub_mesg_struct *prev;
+};
+
 enum json_packet_enum {
 	GWY_REG_PACKET,
 	GWY_CONF_PACKET,
@@ -128,7 +139,7 @@ enum ERROR_CODES{
 	UNKNOWN_ERROR_CODE = 999
 };
 
-/*GLOBAL VARIABLE DECLARATIONS*/
+/*GLOBAL VARIABLES */
 extern char json_packet[MQTT_PACKET_BUFF_SIZE];
 extern cJSON *json_packet_j;
 extern uint8_t json_packet_id;
@@ -155,6 +166,15 @@ extern control_t node_ac_control_t;
 extern reconf_t node_reconfigure_t;
 extern reconf_t gwy_reconfigure_t;
 
+extern struct pub_mesg_struct *pubmesg_head_ptr;
+extern struct pub_mesg_struct *pubmesg_tail_ptr;
+
+//SUBSCRIBE TOPICS
+extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
+
+//PUBLISH TOPICS
+extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
+
 /* MQTT parameters */
 extern char mqtt_ip_address[16];
 extern uint16_t mqtt_port;
@@ -163,19 +183,14 @@ extern char mqtt_username[30];
 extern char mqtt_password[30];
 extern char mqtt_tab_name[30];
 extern bool mqtt_params_fetched_flag;
+extern bool publishing_flag;
 
 /* FUNCTION DECLARATIONS */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 int16_t parse_json_packet(void);
 void fill_macid(void);
+int8_t publish_to_mqtt();
+void add_to_pubmesg_queue(char *message, char *topic);
+void remove_from_pubmesg_queue();
 void error_check_json(uint8_t json_packet_id);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

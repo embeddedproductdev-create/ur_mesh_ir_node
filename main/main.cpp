@@ -22,7 +22,7 @@ void app_main()
         delay(50);
 
     printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-    printf("APPLICATION STARTED : %d.%d",MAJ_VERSION, MIN_VERSION);
+    printf("APPLICATION STARTED : %d.%d\n",MAJ_VERSION, MIN_VERSION);
     printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 
     #if(MESH_PART_ENABLED)
@@ -78,6 +78,13 @@ void app_main()
     }
     #endif
 
+    #if (PUBLISHING_ENABLED)
+    pthread_t mqtt_pub_tid;
+    if(pthread_create(&mqtt_pub_tid, NULL, publish_task, NULL) != 0){
+        perror("Error in creating mqtt_publish_thread : ");
+    }
+    #endif
+
     #if(IR_RECV_PART_ENABLED)
     pthread_join(IR_Receiver_tid, NULL);
     #endif
@@ -104,5 +111,9 @@ void app_main()
 
     #if(AP_PART_ENABLED)
     pthread_join(AP_tid, NULL);
+    #endif
+
+    #if(PUBLISHING_ENABLED)
+    pthread_join(mqtt_pub_tid, NULL);
     #endif
 }

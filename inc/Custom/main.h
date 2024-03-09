@@ -66,6 +66,7 @@
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
 #define AP_PART_ENABLED false
+#define PUBLISHING_ENABLED true
 
 
 /* GLOBAL VARIABLES */
@@ -75,6 +76,7 @@ extern bool registered;
 extern bool needtosend;
 extern bool sending;
 extern int16_t protocol_selected_num;
+extern uint16_t GWY_SER_NO;
 
 #ifdef __cplusplus
 extern "C" {

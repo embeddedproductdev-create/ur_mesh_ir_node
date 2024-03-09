@@ -10,6 +10,7 @@
  */
 
 #include "../../inc/LTE/LTE.h"
+#include "../../inc/LTE/mqtt.h"
 
 #define SUCCESS 1
 #define FAILURE 0
@@ -23,6 +24,7 @@ bool client_flag = false;
 bool subscribe_flag = false;
 bool mqtt_connected = false;
 bool registered  = false;
+bool publishing_flag = false;
 
 //sensor model send data when this variable set
 bool send_control_packet = false;
@@ -41,6 +43,16 @@ unprov_t unprovision_t;
 reconf_t gwy_reconfigure_t;
 reconf_t node_reconfigure_t;
 mqtt_reset_t gwy_reset_mqtt_t;
+
+struct pub_mesg_struct *pubmesg_head_ptr = NULL;
+struct pub_mesg_struct *pubmesg_tail_ptr = NULL;
+
+char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
+char publish_topic[MQTT_TOPIC_CHAR_LEN];
+
+uint8_t mqtt_qos = 2; //0 = atmost once | 1 = atleast once | 2 = exactly once
+uint8_t mqtt_retain = 0;
+uint8_t mqtt_msgid = 2;
 
 void LTE_setup()
 {
@@ -341,13 +353,11 @@ uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, u
 	sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
 	if(check_response(PROMPT,150)==SUCCESS ){
 		uart_write_bytes(UART_NUM_1,message,strlen(message));
-		if(check_response(transmit_buffer,150*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Published message:%s\r\n",message);
+		if(check_response(transmit_buffer,150)	==	SUCCESS ){
 			free(transmit_buffer);
 			return SUCCESS;
 		}
 	}
-	ESP_LOGI(TAG,"Could not publish message.\r\n");
 	free(transmit_buffer);
 	return FAILURE;
 }
@@ -567,7 +577,8 @@ void establishMQTTConnection()
 				{
 					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
 						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
-						if(SubscribeTopic(mqtt_client_index,2,"Control_packet", 0)==SUCCESS)
+
+						if(SubscribeTopic(mqtt_client_index,2,subscribe_topic, 0)==SUCCESS)
 							mqtt_connected = true;
 					}
 					if(subscribe_retry_count >= RETRY_COUNT) client_flag = 0;
@@ -682,6 +693,14 @@ void error_check_json(uint8_t json_packet_id)
  */
 int16_t parse_json_packet()
 {
+	/**
+	 * First get the json packet
+	 * convert it to parseable obj using the CJSON_parse function
+	 * Check if that object is null or not, if not null then continue
+	 * try to parse json_packet_id from it. if not null and valid, continue
+	 * then error check other items based on the parsed json_packet_id, if no error, then continue
+	 * No matter what the error code, ack needs to be sent back with details
+	 */
 	error_code = SUCCESS;
 	json_packet_j = cJSON_Parse(json_packet);
 	if((json_packet_j != NULL) && cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID))
@@ -693,6 +712,8 @@ int16_t parse_json_packet()
 		error_code = INVALID_JSON_PACKET_ID;
 		return error_code;
 	}
+
+	char pubmessage[PUBMESG_LEN];
 
 	error_check_json(json_packet_id);
 	if(error_code == SUCCESS)
@@ -794,6 +815,44 @@ int16_t parse_json_packet()
 				ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
 		}
 	}
+	switch(json_packet_id)
+	{
+		case GWY_REG_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_registration_t.msg_seq_no,
+				GWYSERNO_STR, gwy_registration_t.gwy_ser_no,
+				LOCATION_STR, gwy_registration_t.location,
+				ERROR_CODE_STR, error_code);
+			break;
+
+		case GWY_UNREG_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_unregistration_t.msg_seq_no,
+				GWYSERNO_STR, gwy_unregistration_t.gwy_ser_no,
+				LOCATION_STR, gwy_unregistration_t.location,
+				ERROR_CODE_STR, error_code);
+			break;
+
+		case GWY_AC_CONTROL_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_ac_control_t.msg_seq_no,
+				GWYSERNO_STR, gwy_ac_control_t.gwy_ser_no,
+				POWER_STR, gwy_ac_control_t.power,
+				MODE_STR, gwy_ac_control_t.mode_str,
+				FAN_STR, gwy_ac_control_t.fan,
+				TEMP_STR, gwy_ac_control_t.temp,
+				SWING_H_STR, gwy_ac_control_t.swingH,
+				SWING_V_STR, gwy_ac_control_t.swingV,
+				ONTIMER_STR, gwy_ac_control_t.OnTimer,
+				OFFTIMER_STR, gwy_ac_control_t.OffTimer,
+				LOCKING_STR, gwy_ac_control_t.Locking,
+				ERROR_CODE_STR, error_code);
+			break;
+	}
+	add_to_pubmesg_queue(pubmessage, publish_topic);
 	return error_code;
 }
 
@@ -804,17 +863,83 @@ void reset_mqtt()
 	mqtt_connected = false;
 }
 
+/**
+ * @brief Function which contains a queue of data that needs
+ * to be sent back to cloud
+ * @param none
+ * @retval none
+ */
+int8_t publish_to_mqtt()
+{
+	if(PublishMessage(mqtt_client_index, mqtt_msgid, mqtt_qos, mqtt_retain, pubmesg_head_ptr->topic, pubmesg_head_ptr->message)==SUCCESS)
+	{
+		publishing_flag = false;
+		return SUCCESS;
+	}
+	publishing_flag = false;
+	return FAILURE;
+}
+
+void remove_from_pubmesg_queue()
+{
+	if(pubmesg_head_ptr->next == NULL)
+	{
+		printf("removing the last element from the pubmesg queue\n");
+		pubmesg_head_ptr->next = NULL;
+		pubmesg_head_ptr->prev = NULL;
+		pubmesg_head_ptr = NULL;
+		pubmesg_tail_ptr = NULL;
+		return;
+	}
+	pubmesg_head_ptr = pubmesg_head_ptr->next;
+	free(pubmesg_head_ptr->prev);
+	pubmesg_head_ptr->prev = NULL;
+}
+
+void add_to_pubmesg_queue(char *message, char *topic)
+{
+	struct pub_mesg_struct *pubmesg = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
+	if(pubmesg!=NULL)
+	{
+		//Adding very first element to queue
+		if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
+		{
+			printf("Adding first item into the queue\n");
+			pubmesg_head_ptr = pubmesg;
+			pubmesg->prev = NULL;
+		}
+		else
+			pubmesg->prev = pubmesg_tail_ptr;
+		pubmesg->next = NULL;
+		pubmesg_tail_ptr = pubmesg;
+		pubmesg->message = message;
+		pubmesg->topic = topic;
+		printf("MESSAGE IN QUEUE : %s\n",pubmesg_head_ptr->message);
+	}
+	else
+		printf("Error in memory allocation while trying to add to queue ...\n");
+}
+
 void *LTE_task(void *args)
 {
     LTE_gpio_configuration();
     resetLte();
     LTE_initialization();
+	sprintf(subscribe_topic, "%d/commands", GWY_SER_NO);
+	sprintf(publish_topic, "%d/messages", GWY_SER_NO);
     establishMQTTConnection();
     while(1)
     {
 		if(!restart_flag)
 		{
-			ReadMessage(mqtt_client_index);
+			if(pubmesg_head_ptr!=NULL)
+			{
+				publishing_flag = true;
+				if(publish_to_mqtt(pubmesg_head_ptr->topic, pubmesg_head_ptr->message)==SUCCESS)
+					remove_from_pubmesg_queue();
+			}
+			else
+				ReadMessage(mqtt_client_index);
 			vTaskDelay(pdMS_TO_TICKS(1));
 			if(strlen(json_packet) > 5)
 			{
@@ -833,5 +958,21 @@ void *LTE_task(void *args)
 			LTE_setup();
 		}
     }
+}
+
+void *publish_task(void *args)
+{
+	while(1)
+	{
+		vTaskDelay(1);
+		if(mqtt_connected)
+		{
+
+			// PublishMessage(mqtt_client_index, mqtt_msgid, mqtt_qos, mqtt_retain, "IR_PUB_TOPIC", "Hello");
+			// printf("Publishing hello ... \n");
+			sleep(1);
+		}
+	}
+
 }
 

@@ -142,6 +142,7 @@ extern "C" {
 
 /* FUNCTION DECLARATIONS */
 void *LTE_task(void *args);
+void *publish_task(void *args);
 void LTE_setup(void);
 void LTE_gpio_configuration(void);
 void establishMQTTConnection(void);

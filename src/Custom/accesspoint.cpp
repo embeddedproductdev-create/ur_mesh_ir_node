@@ -23,6 +23,8 @@ bool mqtt_params_fetched_flag = false;
 char ap_ssid[30] = "IR_BLE_MESH_AP_testing";
 char ap_password[30] = "12345678";
 
+uint16_t GWY_SER_NO = 1;
+
 /* IP Address details */
 IPAddress local_ip(192,168,1,1);
 IPAddress gateway(192,168,1,1);
