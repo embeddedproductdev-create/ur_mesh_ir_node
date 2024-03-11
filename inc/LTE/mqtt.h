@@ -95,7 +95,7 @@ typedef struct unprov_struct{
 }unprov_t;
 
 struct pub_mesg_struct{
-	char *message;
+	char message[PUBMESG_LEN];
 	char *topic;
 	struct pub_mesg_struct *next;
 	struct pub_mesg_struct *prev;
@@ -144,7 +144,7 @@ extern char json_packet[MQTT_PACKET_BUFF_SIZE];
 extern cJSON *json_packet_j;
 extern uint8_t json_packet_id;
 
-extern int16_t error_code;
+extern int16_t json_ack_err_code;
 extern bool send_control_packet;
 
 extern bool restart_flag;

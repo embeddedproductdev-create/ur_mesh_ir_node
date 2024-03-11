@@ -12,8 +12,8 @@
 #include "../../inc/LTE/LTE.h"
 #include "../../inc/LTE/mqtt.h"
 
-#define SUCCESS 1
-#define FAILURE 0
+#define SUCCESS 0
+#define FAILURE -1
 #define MAX_WAIT_MS  100
 #define BUF_SIZE	2048
 
@@ -29,7 +29,7 @@ bool publishing_flag = false;
 //sensor model send data when this variable set
 bool send_control_packet = false;
 
-int16_t error_code;
+int16_t json_ack_err_code = SUCCESS;
 uint8_t json_packet_id = UNKNOWN_PACKET;
 char json_packet[MQTT_PACKET_BUFF_SIZE];
 cJSON *json_packet_j;
@@ -353,7 +353,7 @@ uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, u
 	sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
 	if(check_response(PROMPT,150)==SUCCESS ){
 		uart_write_bytes(UART_NUM_1,message,strlen(message));
-		if(check_response(transmit_buffer,150)	==	SUCCESS ){
+		if(check_response(transmit_buffer,1500)	==	SUCCESS ){
 			free(transmit_buffer);
 			return SUCCESS;
 		}
@@ -597,7 +597,6 @@ void establishMQTTConnection()
 		if(network_connect_retry_count == 5 && !network_flag)
 			network_connect_retry_count = 0;
 	}
-	printf("Exiting connection loop ... \n");
 }
 
 /**
@@ -610,75 +609,75 @@ void error_check_json(uint8_t json_packet_id)
 {
 	//Check params common in all packets first
 	if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
-	else { error_code = INVALID_MSG_SEQ_NO; return; }
+	else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
 	if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
-	else { error_code = INVALID_GWY_SER_NO; return; }
+	else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
 
 	switch(json_packet_id)
 	{
 		case GWY_REG_PACKET:
 		case GWY_UNREG_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, LOCATION_STR));
-			else { error_code = INVALID_LOCATION_STR; return; }
+			else { json_ack_err_code = INVALID_LOCATION_STR; return; }
 			return;
 
 		case GWY_AC_CONTROL_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, POWER_STR));
-			else { error_code = INVALID_POWER_STR; return; }
+			else { json_ack_err_code = INVALID_POWER_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, MODE_STR));
-			else { error_code = INVALID_MODE_STR; return; }
+			else { json_ack_err_code = INVALID_MODE_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, FAN_STR));
-			else { error_code = INVALID_FAN_STR; return; }
+			else { json_ack_err_code = INVALID_FAN_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
-			else { error_code = INVALID_TEMP_STR; return; }
+			else { json_ack_err_code = INVALID_TEMP_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
-			else { error_code = INVALID_SWING_H_STR; return; }
+			else { json_ack_err_code = INVALID_SWING_H_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));
-			else { error_code = INVALID_SWING_V_STR; return; }
+			else { json_ack_err_code = INVALID_SWING_V_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_STR));
-			else { error_code = INVALID_ONTIMER_STR; return; }
+			else { json_ack_err_code = INVALID_ONTIMER_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR));
-			else { error_code = INVALID_OFFTIMER_STR; return; }
+			else { json_ack_err_code = INVALID_OFFTIMER_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, LOCKING_STR));
-			else { error_code = INVALID_LOCKING_STR; return; }
+			else { json_ack_err_code = INVALID_LOCKING_STR; return; }
 			return;
 
 		case NODE_PROV_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
-			else { error_code = INVALID_NODESERNO_STR; return; }
+			else { json_ack_err_code = INVALID_NODESERNO_STR; return; }
 			return;
 
 		case NODE_UNPROV_PACKET:
 		case NODE_RECONF_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
-			else { error_code = INVALID_NODESERNO_STR; return; }
+			else { json_ack_err_code = INVALID_NODESERNO_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
-			else { error_code = INVALID_ELMNT_ADDR_STR; return; }
+			else { json_ack_err_code = INVALID_ELMNT_ADDR_STR; return; }
 			return;
 
 		case NODE_AC_CONTROL_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
-			else { error_code = INVALID_NODESERNO_STR; return; }
+			else { json_ack_err_code = INVALID_NODESERNO_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
-			else { error_code = INVALID_ELMNT_ADDR_STR; return; }
+			else { json_ack_err_code = INVALID_ELMNT_ADDR_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, POWER_STR));
-			else { error_code = INVALID_POWER_STR; return; }
+			else { json_ack_err_code = INVALID_POWER_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, MODE_STR));
-			else { error_code = INVALID_MODE_STR; return; }
+			else { json_ack_err_code = INVALID_MODE_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, FAN_STR));
-			else { error_code = INVALID_FAN_STR; return; }
+			else { json_ack_err_code = INVALID_FAN_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
-			else { error_code = INVALID_TEMP_STR; return; }
+			else { json_ack_err_code = INVALID_TEMP_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
-			else { error_code = INVALID_SWING_H_STR; return; }
+			else { json_ack_err_code = INVALID_SWING_H_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));
-			else { error_code = INVALID_SWING_V_STR; return; }
+			else { json_ack_err_code = INVALID_SWING_V_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_STR));
-			else { error_code = INVALID_ONTIMER_STR; return; }
+			else { json_ack_err_code = INVALID_ONTIMER_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR));
-			else { error_code = INVALID_OFFTIMER_STR; return; }
+			else { json_ack_err_code = INVALID_OFFTIMER_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, LOCKING_STR));
-			else { error_code = INVALID_LOCKING_STR; return; }
+			else { json_ack_err_code = INVALID_LOCKING_STR; return; }
 			return;
 
 		case RESET_MQTT:
@@ -701,7 +700,7 @@ int16_t parse_json_packet()
 	 * then error check other items based on the parsed json_packet_id, if no error, then continue
 	 * No matter what the error code, ack needs to be sent back with details
 	 */
-	error_code = SUCCESS;
+	json_ack_err_code = SUCCESS;
 	json_packet_j = cJSON_Parse(json_packet);
 	if((json_packet_j != NULL) && cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID))
 	{
@@ -709,14 +708,14 @@ int16_t parse_json_packet()
 	}
 	else
 	{
-		error_code = INVALID_JSON_PACKET_ID;
-		return error_code;
+		json_ack_err_code = INVALID_JSON_PACKET_ID;
+		return json_ack_err_code;
 	}
 
 	char pubmessage[PUBMESG_LEN];
 
 	error_check_json(json_packet_id);
-	if(error_code == SUCCESS)
+	if(json_ack_err_code == SUCCESS)
 	{
 		switch(json_packet_id)
 		{
@@ -815,6 +814,7 @@ int16_t parse_json_packet()
 				ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
 		}
 	}
+	printf("Error code after storing details in structure : %d\n",json_ack_err_code);
 	switch(json_packet_id)
 	{
 		case GWY_REG_PACKET:
@@ -823,7 +823,7 @@ int16_t parse_json_packet()
 				MSGSEQNO_STR, gwy_registration_t.msg_seq_no,
 				GWYSERNO_STR, gwy_registration_t.gwy_ser_no,
 				LOCATION_STR, gwy_registration_t.location,
-				ERROR_CODE_STR, error_code);
+				ERROR_CODE_STR, json_ack_err_code);
 			break;
 
 		case GWY_UNREG_PACKET:
@@ -832,7 +832,7 @@ int16_t parse_json_packet()
 				MSGSEQNO_STR, gwy_unregistration_t.msg_seq_no,
 				GWYSERNO_STR, gwy_unregistration_t.gwy_ser_no,
 				LOCATION_STR, gwy_unregistration_t.location,
-				ERROR_CODE_STR, error_code);
+				ERROR_CODE_STR, json_ack_err_code);
 			break;
 
 		case GWY_AC_CONTROL_PACKET:
@@ -849,11 +849,11 @@ int16_t parse_json_packet()
 				ONTIMER_STR, gwy_ac_control_t.OnTimer,
 				OFFTIMER_STR, gwy_ac_control_t.OffTimer,
 				LOCKING_STR, gwy_ac_control_t.Locking,
-				ERROR_CODE_STR, error_code);
+				ERROR_CODE_STR, json_ack_err_code);
 			break;
 	}
 	add_to_pubmesg_queue(pubmessage, publish_topic);
-	return error_code;
+	return json_ack_err_code;
 }
 
 void reset_mqtt()
@@ -884,7 +884,6 @@ void remove_from_pubmesg_queue()
 {
 	if(pubmesg_head_ptr->next == NULL)
 	{
-		printf("removing the last element from the pubmesg queue\n");
 		pubmesg_head_ptr->next = NULL;
 		pubmesg_head_ptr->prev = NULL;
 		pubmesg_head_ptr = NULL;
@@ -896,25 +895,23 @@ void remove_from_pubmesg_queue()
 	pubmesg_head_ptr->prev = NULL;
 }
 
-void add_to_pubmesg_queue(char *message, char *topic)
+void add_to_pubmesg_queue(char *msg, char *topic)
 {
-	struct pub_mesg_struct *pubmesg = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
-	if(pubmesg!=NULL)
+	struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
+	if(pubmesg_node!=NULL)
 	{
 		//Adding very first element to queue
 		if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
 		{
-			printf("Adding first item into the queue\n");
-			pubmesg_head_ptr = pubmesg;
-			pubmesg->prev = NULL;
+			pubmesg_head_ptr = pubmesg_node;
+			pubmesg_node->prev = NULL;
 		}
 		else
-			pubmesg->prev = pubmesg_tail_ptr;
-		pubmesg->next = NULL;
-		pubmesg_tail_ptr = pubmesg;
-		pubmesg->message = message;
-		pubmesg->topic = topic;
-		printf("MESSAGE IN QUEUE : %s\n",pubmesg_head_ptr->message);
+			pubmesg_node->prev = pubmesg_tail_ptr;
+		pubmesg_node->next = NULL;
+		pubmesg_tail_ptr = pubmesg_node;
+		strcpy(pubmesg_node->message,msg);
+		pubmesg_node->topic = topic;
 	}
 	else
 		printf("Error in memory allocation while trying to add to queue ...\n");
@@ -930,6 +927,7 @@ void *LTE_task(void *args)
     establishMQTTConnection();
     while(1)
     {
+		vTaskDelay(1);
 		if(!restart_flag)
 		{
 			if(pubmesg_head_ptr!=NULL)
@@ -939,16 +937,16 @@ void *LTE_task(void *args)
 					remove_from_pubmesg_queue();
 			}
 			else
-				ReadMessage(mqtt_client_index);
-			vTaskDelay(pdMS_TO_TICKS(1));
-			if(strlen(json_packet) > 5)
 			{
-				// ESP_LOGI(DEBUG_TAG, json_packet);
-				printf("JSON_PACKET : %s\n", json_packet);
-				if(parse_json_packet()==SUCCESS);
-				else
-					ESP_LOGI(ERROR_TAG, "Error code : %d", error_code);
-				memset(json_packet, 0, sizeof(json_packet));
+				ReadMessage(mqtt_client_index);
+				if(strlen(json_packet) > 5)
+				{
+					// ESP_LOGI(DEBUG_TAG, json_packet);
+					if(parse_json_packet()==SUCCESS);
+					else
+						ESP_LOGI(ERROR_TAG, "Error code : %d", json_ack_err_code);
+					memset(json_packet, 0, sizeof(json_packet));
+				}
 			}
 		}
 		else
