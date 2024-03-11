@@ -1276,12 +1276,12 @@ void mesh_main_init(void)
     }
     esp_ble_mesh_cfg_server_cb_param_t paramss;
     //example_ble_mesh_send_sensor_status(&params);
-    sensor_server.model->pub->publish_addr=0x0333;
+   // sensor_server.model->pub->publish_addr=0x0333;
     //ESP_LOGE(TAG, "client appidx 0x%04x ", sensor_client.model->pub->app_idx);
     //ESP_LOGE(TAG, "Node ap idx addr 0x%04x ", sensor_server.model->pub->app_idx);
 
     //sensor_server.model->pub->app_idx=0000;
-    sensor_client.model->pub->app_idx=0x0000;
+    //sensor_client.model->pub->app_idx=0x0000;
     ESP_LOGE(TAG, "after binding client appidx 0x%04x ", sensor_client.model->pub->app_idx);
     #if 0
     while(1)

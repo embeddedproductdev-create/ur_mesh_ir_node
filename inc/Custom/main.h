@@ -64,8 +64,8 @@
 #define LTE_PART_ENABLED false
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED false
-#define MESH_PART_ENABLED false
-#define AP_PART_ENABLED true
+#define MESH_PART_ENABLED true
+#define AP_PART_ENABLED false
 #define PUBLISHING_ENABLED false
 
 
