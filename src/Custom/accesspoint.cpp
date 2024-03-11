@@ -20,8 +20,8 @@ char mqtt_password[30] = "Qmax_mosquitto_!@#";
 char mqtt_tab_name[30] = "AC_IR_CONTROL";
 bool mqtt_params_fetched_flag = false;
 
-char ap_ssid[30] = "IR_BLE_MESH_AP_testing";
-char ap_password[30] = "12345678";
+const char ap_ssid[30] = "AP testing";
+const char ap_password[30] = "12345678";
 
 uint16_t GWY_SER_NO = 1;
 
@@ -30,62 +30,30 @@ IPAddress local_ip(192,168,1,1);
 IPAddress gateway(192,168,1,1);
 IPAddress subnet(255,255,255,0);
 
-WebServer Server(80);
+WebServer server(80);
 
-// HTML & CSS contents which display on web Server
+// HTML & CSS contents which display on web server
 String WEBPAGE = "<!DOCTYPE html>\
 <html>\
 <body>\
-<h1>WEB SERVER HOSTED SUCCESSFULLY;</h1>\
+<h1>My First Web Server with ESP32 - AP Mode &#128522;</h1>\
 </body>\
 </html>";
 
-/**
- * @brief Function that populates the MQTT params from AP to global variables
- * if all was done correclty, then it will end this thread.
- * @param none
- * @retval none
- */
-void handle_mqtt_config()
+void AP_task(void *args)
 {
-    ; //Do something
-}
-
-/**
- * @brief Function that handles the not found case
- * @param none
- * @retval none
- */
-void handle_NotFound()
-{
-    Server.send(404, "text/plain", "Not found");
-}
-
-/**
- * @brief Function that handles when a client connection is established
- * @param none
- * @retval none
- */
-void handle_onConnect()
-{
-    Server.send(200, "text/html", WEBPAGE);
-}
-
-void *AP_task(void *args)
-{
-    //Remove the password parameter to make the AP open
+    configASSERT(((uint32_t) args) == 1);
+    // Create SoftAP
     WiFi.softAP(ap_ssid, ap_password);
     WiFi.softAPConfig(local_ip, gateway, subnet);
 
-    //Setting callback
-    Server.on("/", handle_onConnect);
-    Server.on("/end_mqtt_config",handle_mqtt_config);
-    Server.onNotFound(handle_NotFound);
+    server.begin();
+    delay(100);
 
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(1000));
-        // Server.handleClient();
-        printf("Inside AP thread ... \r\n");
+        printf("Inside AP Task\n");
     }
 }
+

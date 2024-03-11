@@ -6,10 +6,10 @@
 #include <WebServer.h>
 
 /* GLOBAL VARIABLES */
-extern char ap_ssid[30];
-extern char ap_password[30];
+extern const char ap_ssid[30];
+extern const char ap_password[30];
 
 /* FUNCTION DECLARATIONS */
-void *AP_task(void *args);
+void AP_task(void *args);
 
 #endif

@@ -72,10 +72,12 @@ void app_main()
     #endif
 
     #if(AP_PART_ENABLED)
-    pthread_t AP_tid;
-    if(pthread_create(&AP_tid, NULL, AP_task, NULL) != 0){
-        perror("Error in creating AP_thread : ");
-    }
+    BaseType_t xReturned;
+    TaskHandle_t xHandle = NULL;
+    xReturned = xTaskCreate(AP_task, "AccessPoint Task",
+    4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    if(xReturned != pdPASS)
+        perror("Error in taskCreate for AP mode : ");
     #endif
 
     #if (PUBLISHING_ENABLED)
@@ -107,10 +109,6 @@ void app_main()
 
     #if(MESH_PART_ENABLED)
     pthread_join(send_data_tid, NULL);
-    #endif
-
-    #if(AP_PART_ENABLED)
-    pthread_join(AP_tid, NULL);
     #endif
 
     #if(PUBLISHING_ENABLED)
