@@ -1409,6 +1409,9 @@ void *send_data_task(void *args)
             sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
+
+            sensor_server.model->pub->publish_addr=node_ac_control_t.elementAddr;
+
             example_ble_mesh_send_sensor_status();
             send_control_packet = false;
         }
