@@ -77,6 +77,7 @@ set(CORE_SRCS
 set(LIBRARY_SRCS
   libraries/ArduinoOTA/src/ArduinoOTA.cpp
   libraries/AsyncUDP/src/AsyncUDP.cpp
+  libraries/AsyncTCP/src/AsyncTCP.cpp
   libraries/BluetoothSerial/src/BluetoothSerial.cpp
   libraries/BluetoothSerial/src/BTAddress.cpp
   libraries/BluetoothSerial/src/BTAdvertisedDeviceSet.cpp
@@ -87,6 +88,14 @@ set(LIBRARY_SRCS
   libraries/ESP_SR/src/ESP_SR.cpp
   libraries/ESP_SR/src/esp32-hal-sr.c
   libraries/ESPmDNS/src/ESPmDNS.cpp
+  libraries/ESPAsyncWebSrv/src/AsyncEventSource.cpp
+  libraries/ESPAsyncWebSrv/src/AsyncWebSocket.cpp
+  libraries/ESPAsyncWebSrv/src/SPIFFSEditor.cpp
+  libraries/ESPAsyncWebSrv/src/WebAuthentication.cpp
+  libraries/ESPAsyncWebSrv/src/WebHandlers.cpp
+  libraries/ESPAsyncWebSrv/src/WebRequest.cpp
+  libraries/ESPAsyncWebSrv/src/WebResponses.cpp
+  libraries/ESPAsyncWebSrv/src/WebServer.cpp
   libraries/Ethernet/src/ETH.cpp
   libraries/FFat/src/FFat.cpp
   libraries/FS/src/FS.cpp
@@ -179,6 +188,7 @@ set(includedirs
   cores/esp32/
   libraries/ArduinoOTA/src
   libraries/AsyncUDP/src
+  libraries/AsyncTCP/src
   libraries/BLE/src
   libraries/BluetoothSerial/src
   libraries/DNSServer/src
@@ -186,6 +196,7 @@ set(includedirs
   libraries/ESP_I2S/src
   libraries/ESP_SR/src
   libraries/ESP32/src
+  libraries/ESPAsyncWebSrv/src
   libraries/ESPmDNS/src
   libraries/Ethernet/src
   libraries/FFat/src

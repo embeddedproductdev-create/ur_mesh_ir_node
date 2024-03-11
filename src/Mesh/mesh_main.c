@@ -1386,7 +1386,6 @@ void *send_data_task(void *args)
             ESP_LOGI(TAG, "node_ac_control_t.Locking ...%d \r\n",node_ac_control_t.Locking);
 
 
-
             sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);

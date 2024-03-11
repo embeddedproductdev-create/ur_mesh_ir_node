@@ -151,6 +151,7 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
             if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
             ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
             ac_daikin216.setFan(gwy_ac_control_t.fan);
+            // ac_daikin216.setMode(gwy_ac_control_t.mode_str);
             sending = true;
             ac_daikin216.send();
             break;
