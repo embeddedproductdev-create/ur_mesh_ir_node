@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32s3",
-  "idf.portWin": "COM16",
+  "idf.portWin": "COM32",
   "idf.flashType": "UART",
   "files.associations": {
     "mqtt.h": "c",
@@ -25,9 +25,7 @@
     "esp_ble_mesh_config_model_api.h": "c",
     "button.h": "c",
     "accesspoint.h": "c",
-    "typeinfo": "cpp",
-    "*.tcc": "cpp",
-    "regex": "cpp"
+    "btc_ble_mesh_prov.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
