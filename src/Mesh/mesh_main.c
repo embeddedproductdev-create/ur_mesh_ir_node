@@ -11,6 +11,8 @@
 #include "../../inc/Mesh/ble_mesh_example_init.h"
 
 #include "esp_err.h"
+//#include "btc_ble_mesh_prov.h"
+#include "esp_ble_mesh_networking_api.h"
 /*
  * SPDX-FileCopyrightText: 2017 Intel Corporation
  * SPDX-FileCopyrightText: 2021-2022 Espressif Systems (Shanghai) CO LTD
@@ -41,6 +43,9 @@
 #define TAG "EXAMPLE_INIT"
 
 #ifdef CONFIG_BT_BLUEDROID_ENABLED
+
+uint16_t node_address;
+
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
 {
     if (dev_uuid == NULL) {
@@ -784,9 +789,32 @@ send:
         ESP_LOGE(TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
         ESP_LOGE(TAG, "Node ap idx addr 0x%04x ", sensor_server.model->pub->app_idx);
         sensor_server.model->pub->retransmit=0;
+
+    /*    esp_ble_mesh_sensor_server_cb_param_t param;
+        param.ctx.addr=node_address;
+        param.ctx.send_ttl=1;
+        param.ctx.srv_send=true;
+        param.ctx.model=sensor_server.model;
+        param.ctx.app_idx=0;
+        param.ctx.net_idx=0;*/
+        
+
+      /*  err = esp_ble_mesh_client_model_send_msg(sensor_server.model,&param.ctx,
+    		ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status,2,true,ROLE_NODE);*/
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
-    /*err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
+   /* err = esp_ble_mesh_server_model_send_msg(param->model, &param->ctx,
+    		ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status);
+             err = esp_ble_mesh_client_model_send_msg(param->model, &param->ctx,
     		ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status);*/
+            // model publish
+            /*ble_mesh_model_send_msg(model, NULL, opcode, BTC_BLE_MESH_ACT_MODEL_PUBLISH,
+                                   length, data, 0, false, device_role);*/
+            // server
+           /* ble_mesh_model_send_msg(sensor_server.model, NULL, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, BTC_BLE_MESH_ACT_SERVER_MODEL_SEND,
+                                   length, status, 0, true, ROLE_NODE);*/
+            // client
+           /* ble_mesh_model_send_msg(model, ctx, opcode, BTC_BLE_MESH_ACT_CLIENT_MODEL_SEND,
+                                   length, data, msg_timeout, need_rsp, device_role);*/
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send Sensor Status");
     }
@@ -925,6 +953,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.mod_app_bind.app_idx,
                 param->value.state_change.mod_app_bind.company_id,
                 param->value.state_change.mod_app_bind.model_id);
+                node_address=param->value.state_change.mod_app_bind.element_addr;
             break;
         case ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD:
             ESP_LOGI(TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD");
@@ -1024,7 +1053,7 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
         break;
     }
 }
-
+uint8_t data_recieved=0;
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
                                               esp_ble_mesh_sensor_client_cb_param_t *param)
 {
@@ -1049,9 +1078,19 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
 
     }
     uint8_t store_recv_data[35];
+     data_recieved=0;
     for(uint8_t i=0;i<35;i++)
     {
         store_recv_data[i]=param->status_cb.sensor_status.marshalled_sensor_data->data[i];
+        if(store_recv_data[i]!=0xff){
+            data_recieved=1;
+            
+
+        }
+    }
+    if(!data_recieved){
+        ESP_LOGI(TAG, "Ack recieved" );
+        return;
     }
     node_ac_control_t.msg_seq_no = (uint16_t)((store_recv_data[0] << 8) & 0xff00);
     node_ac_control_t.msg_seq_no |= (uint16_t)(store_recv_data[1]);
@@ -1319,6 +1358,13 @@ void *send_data_task(void *args)
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
+        if(data_recieved){
+            for(uint8_t j=0;j<35;j++){
+            sensor_states[0].sensor_data.raw_value->data[j]=0xff;
+            }
+            example_ble_mesh_send_sensor_status();
+            data_recieved=0;
+        }
         if(send_control_packet)
         {
 
@@ -1410,7 +1456,7 @@ void *send_data_task(void *args)
             sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
             sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
 
-            sensor_server.model->pub->publish_addr=node_ac_control_t.elementAddr;
+            //sensor_server.model->pub->publish_addr=node_ac_control_t.elementAddr;
 
             example_ble_mesh_send_sensor_status();
             send_control_packet = false;
