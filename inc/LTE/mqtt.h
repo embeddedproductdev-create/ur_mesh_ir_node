@@ -179,9 +179,9 @@ extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
 extern char mqtt_ip_address[16];
 extern uint16_t mqtt_port;
 extern uint8_t mqtt_client_index;
-extern char mqtt_username[30];
-extern char mqtt_password[30];
-extern char mqtt_tab_name[30];
+extern char mqtt_broker_username[30];
+extern char mqtt_broker_password[30];
+extern char mqtt_broker_tabname[30];
 extern bool mqtt_params_fetched_flag;
 extern bool publishing_flag;
 

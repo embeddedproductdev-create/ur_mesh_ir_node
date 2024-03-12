@@ -573,7 +573,7 @@ void establishMQTTConnection()
 			while(client_connect_retry_count < RETRY_COUNT && !client_flag) {
 				subscribe_retry_count = 0;
 				printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count++);
-				if(MQTT_ClientConnect(mqtt_client_index, mqtt_username, mqtt_password, mqtt_tab_name) == SUCCESS)
+				if(MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_broker_tabname) == SUCCESS)
 				{
 					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
 						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
@@ -928,7 +928,7 @@ void *LTE_task(void *args)
     while(1)
     {
 		vTaskDelay(1);
-		if(!restart_flag)
+		if(!restart_flag && mqtt_params_fetched_flag)
 		{
 			if(pubmesg_head_ptr!=NULL)
 			{
@@ -953,7 +953,8 @@ void *LTE_task(void *args)
 		{
 			mqtt_connected = false;
 			restart_flag = false;
-			LTE_setup();
+			if(mqtt_params_fetched_flag)
+				LTE_setup();
 		}
     }
 }

@@ -12,12 +12,12 @@
 #include "../../inc/Custom/accesspoint.h"
 
 //Initialization
-char mqtt_ip_address[16] = "54.215.188.103";
-uint16_t mqtt_port = 1883;
-uint8_t mqtt_client_index = 2;
-char mqtt_username[30] = "QmaxSystems";
-char mqtt_password[30] = "Qmax_mosquitto_!@#";
-char mqtt_tab_name[30] = "AC_IR_CONTROL";
+char mqtt_ip_address[16];
+uint16_t mqtt_port;
+uint8_t mqtt_client_index;
+char mqtt_broker_username[30];
+char mqtt_broker_password[30];
+char mqtt_broker_tabname[30];
 bool mqtt_params_fetched_flag = false;
 
 mqtt_params_t mqtt_params;
@@ -55,10 +55,30 @@ const char WEBPAGE[] PROGMEM = R"rawliteral(
   </form>
 </body></html>)rawliteral";
 
+const char END_AP_WEBPAGE[] PROGMEM = R"rawliteral(
+  <!DOCTYPE HTML><html><head>
+  <title>Gateway MQTT configuration</title>
+  <h1>Gateway MQTT configuration successful</h1>
+  <h3>Turning off MQTT configuration mode<h3>
+</body></html>
+)rawliteral";
+
+
+/**
+ * @brief Handler for NotFound case
+ * @param request 
+ * @retval none
+ */
 void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
+
+/**
+ * @brief Thread that runs the AP mode for Gateway MQTT configurations
+ * @param args 
+ * @retval none
+ */
 void AP_task(void *args)
 {
     configASSERT(((uint32_t) args) == 1);
@@ -78,8 +98,8 @@ void AP_task(void *args)
     String serverip;
     String serverport;
     String clientindex;
-    String mqttservername;
-    String mqttpassword;
+    String mqttbrokername;
+    String mqttbrokerpassword;
     String mqtttabname;
 
     if (request->hasParam("serverip") &&
@@ -91,27 +111,36 @@ void AP_task(void *args)
       serverip = request->getParam("serverip")->value();
       serverport = request->getParam("port")->value();
       clientindex = request->getParam("clientid")->value();
-      mqttservername = request->getParam("servername")->value();
-      mqttpassword = request->getParam("password")->value();
+      mqttbrokername = request->getParam("servername")->value();
+      mqttbrokerpassword = request->getParam("password")->value();
       mqtttabname = request->getParam("tabname")->value();
+      
+      //Setting the global mqtt values
+      strcpy(mqtt_ip_address, serverip);
+      mqtt_port = atoi(serverport);
+      mqtt_client_index = atoi(clientindex);
+      strcpy(mqtt_broker_username, mqttbrokername);
+      strcpy(mqtt_broker_password, mqttbrokerpassword);
+      strcpy(mqtt_broker_tabname, mqtttabname);
+      
       printf("Server IP : %s\n",serverip.c_str());
       printf("Server Port : %s\n",serverport.c_str());
       printf("Client Index : %s\n",clientindex.c_str());
-      printf("Broker Name : %s\n",mqttservername.c_str());
-      printf("Broker password : %s\n",mqttpassword.c_str());
+      printf("Broker Name : %s\n",mqttbrokername.c_str());
+      printf("Broker password : %s\n",mqttbrokerpassword.c_str());
       printf("Tab Name : %s\n",mqtttabname.c_str());
       mqtt_params_fetched_flag = true;
     }
     else
     {
-      request->send_P(404, "text/html", "Not Enough Parameters.. Redirecting to Homepage in 5 seconds", NULL);
+      request->send_P(404, "text/html", "Not Enough Parameters.. Redirecting to Homepage in 3 seconds", NULL);
       delay(3);
       request->send_P(200, "text/html", WEBPAGE, NULL);
       mqtt_params_fetched_flag = false;
     }
 
     if(mqtt_params_fetched_flag)
-      request->send(200, "text/html", "Parameters fetched successfully");
+      request->send(200, "text/html", END_AP_WEBPAGE);
   });
 
     while(1 && !mqtt_params_fetched_flag)
@@ -119,5 +148,21 @@ void AP_task(void *args)
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
     vTaskDelete(NULL);
+}
+
+/**
+ * @brief Function to create the AP task
+ * @param none
+ * @retval none
+ */
+void create_AP_task()
+{
+  BaseType_t xReturned;
+  TaskHandle_t xHandle = NULL;
+  xReturned = xTaskCreate(AP_task, "AccessPoint Task",
+  4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+  if(xReturned != pdPASS)
+      perror("Error in taskCreate for AP mode : ");
+  #endif
 }
 

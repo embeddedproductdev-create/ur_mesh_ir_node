@@ -28,14 +28,6 @@ IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
 IRHitachiAc296 ac_hitachi296(IR_TRANSMIT_PIN);
 IRVoltas ac_voltas(IR_TRANSMIT_PIN);
 
-//Initialization - BUTTON
-bool last_button_state = 0;
-bool current_button_state = 0;
-uint32_t pressedTime = 0;
-uint32_t releasedTime = 0;
-uint32_t pressduration = 0;
-bool esp_restart_flag = false;
-
 /**
  * @brief Thread that handles the IR signals received. Detects and sets the IR tranmsmission protocol
  * @param args
@@ -56,6 +48,8 @@ void *IR_receiver_task(void *args)
 
     while(1)
     {
+        if(esp_restart_flag)
+            ESP.restart();
         vTaskDelay(1);
         if (irrecv.decode(&results)) {
             #if(IR_RECV_LOG_ENABLED)
@@ -106,7 +100,6 @@ void *IR_receiver_task(void *args)
                 );
                 // add_to_pubmesg_queue(pubmessage, publish_topic);
             }
-            printf("protocol_detected : %d\n",protocol_detected);
             yield();
             Serial.println(resultToSourceCode(&results));
             Serial.println();
@@ -194,34 +187,6 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
     }
     needtosend = false;
     sending = false;
-}
-
-/**
- * @brief Thread that handles the Button press
- * @param args
- * @return void*
- */
-void *button_task(void *args)
-{
-    pinMode(USER_SWITCH, INPUT);
-    while(1)
-    {
-        vTaskDelay(1);
-        if(!digitalRead(USER_SWITCH)) //button is pressed
-        {
-            pressedTime = esp_timer_get_time();
-            while(!digitalRead(USER_SWITCH)) //Do nothing until button is released
-            {
-                vTaskDelay(1);
-                ;
-            }
-            releasedTime = esp_timer_get_time();
-            if((releasedTime - pressedTime)/1000 > SHORT_PRESS_DURATION_MS)
-                ESP.restart();
-            else
-                send_control_packet = true;
-        }
-    }
 }
 
 

@@ -11,15 +11,15 @@
 #define BUTTON_H
 
 #include "main.h"
+#include "accesspoint.h"
 
 #define USER_SWITCH 12
-#define SHORT_PRESS_DURATION_MS 500
-#define LONG_PRESS_DUARTION_MS 1500
+#define LONG_PRESS_1S_MS 1000
 
 /* GLOBAL VARIABLES */
 extern bool esp_restart_flag;
 
 /* FUNCTION DECLARATIONS */
+void clear_mqtt_settings();
 void *button_task(void *args);
-
 #endif

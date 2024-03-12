@@ -17,13 +17,18 @@
  */
 void app_main()
 {
-    Serial.begin(BAUD_RATE);
-    while(!Serial)
-        delay(50);
+    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+    ESP_LOGI(DEBUG_TAG, "APPLICATION STARTED : %d.%d\n",MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 
-    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-    printf("APPLICATION STARTED : %d.%d\n",MAJ_VERSION, MIN_VERSION);
-    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+    #if(AP_PART_ENABLED)
+    create_AP_Task();
+    #endif
+
+    while(!mqtt_params_fetched_flag)
+    {
+        ;//Do nothing until we fetch the mqtt params through the AP Mode
+    }
 
     #if(MESH_PART_ENABLED)
     mesh_main_init();
@@ -69,15 +74,6 @@ void app_main()
     if(pthread_create(&send_data_tid, NULL, send_data_task, NULL)!=0){
         perror("Error in creating button_thread : ");
     }
-    #endif
-
-    #if(AP_PART_ENABLED)
-    BaseType_t xReturned;
-    TaskHandle_t xHandle = NULL;
-    xReturned = xTaskCreate(AP_task, "AccessPoint Task",
-    4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
-    if(xReturned != pdPASS)
-        perror("Error in taskCreate for AP mode : ");
     #endif
 
     #if (PUBLISHING_ENABLED)

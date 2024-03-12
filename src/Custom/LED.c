@@ -36,6 +36,8 @@ void *LED_task(void *args)
         vTaskDelay(1);
         if(sending)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
+        else if(!mqtt_params_fetched_flag)
+            LED_state = LED_STATE_AP_MODE;
         else if(!mqtt_connected)
             LED_state = LED_STATE_MQTT_NOT_CONNECTED;
         if(mqtt_connected && !registered)
@@ -56,6 +58,17 @@ void *LED_task(void *args)
             case LED_STATE_IDLE: //Solid GREEN
                 digitalWrite(GREEN_LED_PIN, LOW);
                 break;
+            
+            case LED_STATE_AP_MODE: // RGB toggle
+                digitalWrite(RED_LED_PIN, LOW);
+                vTaskDelay(SLOW_BLINK_MS);
+                digitalWrite(RED_LED_PIN, HIGH);
+                digitalWrite(GREEN_LED_PIN, LOW);
+                vTaskDelay(SLOW_BLINK_MS);
+                digitalWrite(GREEN_LED_PIN, HIGH);
+                digitalWrite(BLUE_LED_PIN, LOW);
+                vTaskDelay(SLOW_BLINK_MS);
+                digitalWrite(BLUE_LED_PIN, HIGH);
 
             case LED_STATE_MQTT_NOT_CONNECTED: //Solid RED
                 digitalWrite(RED_LED_PIN, LOW);
