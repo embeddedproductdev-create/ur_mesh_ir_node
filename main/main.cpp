@@ -122,6 +122,7 @@ void app_main()
  */
 void create_AP_task()
 {
+  ESP_LOGI(DEBUG_TAG, "Creating AP task\n");
   BaseType_t xReturned;
   TaskHandle_t xHandle = NULL;
   xReturned = xTaskCreate(AP_task, "AccessPoint Task",

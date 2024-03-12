@@ -58,14 +58,14 @@
 #define BAUD_RATE 115200
 
 #define IR_RECV_PART_ENABLED true
-#define IR_RECV_LOG_ENABLED false
+#define IR_RECV_LOG_ENABLED true
 #define IR_SEND_PART_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED false
 #define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
-#define AP_PART_ENABLED false
+#define AP_PART_ENABLED true
 #define PUBLISHING_ENABLED true
 
 

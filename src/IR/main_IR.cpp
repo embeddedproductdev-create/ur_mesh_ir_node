@@ -55,15 +55,15 @@ void *IR_receiver_task(void *args)
         vTaskDelay(1);
         if (irrecv.decode(&results)) {
 
-            #if(IR_RECV_LOG_ENABLED)
-                Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
-                if(results.overflow)
-                    Serial.println(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
-                Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
-                if (kTolerancePercentage != kTolerance)
-                    Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
-            #endif
-            resultToHumanReadableBasic(&results, &protocol_detected);
+            // #if(IR_RECV_LOG_ENABLED)
+            //     // Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
+            //     if(results.overflow);
+            //         // Serial.println(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
+            //     // Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
+            //     if (kTolerancePercentage != kTolerance)
+            //         Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
+            // #endif
+            // resultToHumanReadableBasic(&results, &protocol_detected);
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
@@ -72,7 +72,6 @@ void *IR_receiver_task(void *args)
                 {
                     Serial.println(D_STR_MESGDESC ": " + description);
                     ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
-                    // add_to_pubmesg_queue(result_description_char_str, publish_topic);
                 }
             #endif
 
@@ -80,6 +79,12 @@ void *IR_receiver_task(void *args)
             {
                 configured = true;
                 protocol_selected_num = protocol_detected;
+                char pubmessage[PUBMESG_LEN];
+                sprintf(pubmessage, "%s : %d, %s : %d, %s : %d",
+                JSON_PACKET_ID, 1,
+                GWYSERNO_STR, GWY_SER_NO,
+                ERROR_CODE_STR, json_ack_err_code);
+                add_to_pubmesg_queue(pubmessage, publish_topic);
             }
             if(protocol_detected == protocol_selected_num) //Someone tried to control AC
                 add_to_pubmesg_queue(result_description_char_str, publish_topic);
