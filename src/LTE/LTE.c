@@ -26,9 +26,6 @@ bool mqtt_connected = false;
 bool registered  = false;
 bool publishing_flag = false;
 
-//sensor model send data when this variable set
-bool send_control_packet = false;
-
 int16_t json_ack_err_code = SUCCESS;
 uint8_t json_packet_id = UNKNOWN_PACKET;
 char json_packet[MQTT_PACKET_BUFF_SIZE];
@@ -561,7 +558,7 @@ void establishMQTTConnection()
 	network_flag = false;
 	client_flag = false;
 	subscribe_flag = false;
-	while(network_connect_retry_count < RETRY_COUNT && !network_flag)
+	while(network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag)
 	{
 		vTaskDelay(1);
 		client_connect_retry_count = 0;
@@ -791,7 +788,7 @@ int16_t parse_json_packet()
 				node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_STR)->valueint;
 				node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR)->valueint;
 				node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, LOCKING_STR)->valueint;
-				send_control_packet = true;
+				send_data_to_node = true;
 				break;
 
 			case NODE_RECONF_PACKET:
@@ -806,7 +803,7 @@ int16_t parse_json_packet()
 				ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
 				gwy_reset_mqtt_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_reset_mqtt_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				LED_state = LED_STATE_MQTT_NOT_CONNECTED;
+				LED_state = LED_STATE_AP_MODE;
 				reset_mqtt();
 				break;
 
@@ -851,16 +848,46 @@ int16_t parse_json_packet()
 				LOCKING_STR, gwy_ac_control_t.Locking,
 				ERROR_CODE_STR, json_ack_err_code);
 			break;
+
+		case GWY_RECONF_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d}",
+			JSON_PACKET_ID, json_packet_id,
+			MSGSEQNO_STR, gwy_reconfigure_t.msg_seq_no,
+			GWYSERNO_STR, gwy_reconfigure_t.gwy_ser_no,
+			ERROR_CODE_STR, json_ack_err_code);
 	}
 	add_to_pubmesg_queue(pubmessage, publish_topic);
 	return json_ack_err_code;
 }
 
+/**
+ * @brief Function that stops MQTT communication and starts AP mode
+ * @param none
+ * @retval none
+ */
 void reset_mqtt()
 {
-	registered = false;
-	configured = false;
+    MQTT_NetworkClose(mqtt_client_index);
+    mqtt_params_fetched_flag = false;
 	mqtt_connected = false;
+    clear_mqtt_settings();
+    create_AP_task();
+}
+
+/**
+ * @brief Function to clearoff mqtt settings upon reset MQTT request
+ * @param none
+ * @retval none
+ */
+void clear_mqtt_settings()
+{
+    mqtt_params_fetched_flag = false;
+    mqtt_client_index = 99;
+    mqtt_port = 1;
+    memset(mqtt_ip_address, 0, strlen(mqtt_ip_address));
+    memset(mqtt_broker_username, 0, strlen(mqtt_broker_username));
+    memset(mqtt_broker_password, 0, strlen(mqtt_broker_password));
+    memset(mqtt_broker_tabname, 0, strlen(mqtt_broker_tabname));
 }
 
 /**

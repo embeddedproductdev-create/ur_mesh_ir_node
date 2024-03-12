@@ -65,7 +65,7 @@
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
-#define AP_PART_ENABLED true
+#define AP_PART_ENABLED false
 #define PUBLISHING_ENABLED true
 
 
@@ -77,13 +77,14 @@ extern bool needtosend;
 extern bool sending;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;
+extern bool send_data_to_node;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /* FUNCTION DECLARATIONS */
 void app_main();
+void create_AP_task();
 
 #ifdef __cplusplus
 }

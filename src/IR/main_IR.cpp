@@ -8,6 +8,7 @@
  */
 
 #include "../../inc/IR/main_IR.h"
+#include "../../inc/LTE/LTE.h"
 #include "../../inc/LTE/mqtt.h"
 #include "../../inc/Custom/button.h"
 
@@ -53,34 +54,20 @@ void *IR_receiver_task(void *args)
             ESP.restart();
         vTaskDelay(1);
         if (irrecv.decode(&results)) {
-            #if(IR_RECV_LOG_ENABLED)
-                // Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
-            #endif
-
-            if (results.overflow)
-            {
-                #if(IR_RECV_LOG_ENABLED)
-                // Serial.println(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
-                #endif
-            }
 
             #if(IR_RECV_LOG_ENABLED)
+                Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
+                if(results.overflow)
+                    Serial.println(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
                 Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
+                if (kTolerancePercentage != kTolerance)
+                    Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
             #endif
-
-            if (kTolerancePercentage != kTolerance)
-            {
+            resultToHumanReadableBasic(&results, &protocol_detected);
+            String description = IRAcUtils::resultAcToString(&results);
+            char result_description_char_str[200];
+            strcpy(result_description_char_str, (char *)description.c_str());
             #if(IR_RECV_LOG_ENABLED)
-                Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
-            #endif
-            }
-
-            #if(IR_RECV_LOG_ENABLED)
-                const char *result_char_str = (resultToHumanReadableBasic(&results, &protocol_detected)).c_str();
-                ESP_LOGI(DEBUG_TAG, "%s",result_char_str);
-                String description = IRAcUtils::resultAcToString(&results);
-                char result_description_char_str[200];
-                strcpy(result_description_char_str, (char *)description.c_str());
                 if (description.length())
                 {
                     Serial.println(D_STR_MESGDESC ": " + description);
@@ -93,14 +80,10 @@ void *IR_receiver_task(void *args)
             {
                 configured = true;
                 protocol_selected_num = protocol_detected;
-                char pubmessage[PUBMESG_LEN];
-                sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID, json_packet_id,
-                    GWYSERNO_STR, GWY_SER_NO,
-                    ERROR_CODE_STR, protocol_detected
-                );
-                // add_to_pubmesg_queue(pubmessage, publish_topic);
             }
+            if(protocol_detected == protocol_selected_num) //Someone tried to control AC
+                add_to_pubmesg_queue(result_description_char_str, publish_topic);
+
             yield();
             Serial.println(resultToSourceCode(&results));
             Serial.println();
@@ -121,6 +104,20 @@ void IR_transmit_setup()
     ac_daikin216.begin();
     ac_daikin280.begin();
     ac_hitachi296.begin();
+}
+
+uint8_t get_mode_num()
+{
+    if(strcasecmp(node_ac_control_t.mode_str,"Auto")==0)
+        return kDaikinAuto;
+    else if(strcasecmp(node_ac_control_t.mode_str,"Dry")==0)
+        return kDaikinDry;
+    else if(strcasecmp(node_ac_control_t.mode_str,"Cool")==0)
+        return kDaikinCool;
+    else if(strcasecmp(node_ac_control_t.mode_str,"Heat")==0)
+        return kDaikinHeat;
+    else
+        return kDaikinFan;
 }
 
 /**
@@ -145,7 +142,7 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
             if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
             ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
             ac_daikin216.setFan(gwy_ac_control_t.fan);
-            // ac_daikin216.setMode(gwy_ac_control_t.mode_str);
+            ac_daikin216.setMode(get_mode_num());
             sending = true;
             ac_daikin216.send();
             break;

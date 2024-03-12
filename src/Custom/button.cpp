@@ -12,18 +12,8 @@
 //Initialization - BUTTON
 uint32_t pressedTime = 0;
 uint32_t releasedTime = 0;
+uint32_t pressedduration_ms = 0;
 bool esp_restart_flag = false;
-
-void clear_mqtt_settings()
-{
-    mqtt_params_fetched_flag = false;
-    mqtt_client_index = 99;
-    mqtt_port = 1;
-    memset(mqtt_ip_address, 0, strlen(mqtt_ip_address));
-    memset(mqtt_broker_username, 0, strlen(mqtt_broker_username));
-    memset(mqtt_broker_password, 0, strlen(mqtt_broker_password));
-    memset(mqtt_broker_tabname, 0, strlen(mqtt_broker_tabname));
-}
 
 /**
  * @brief Thread that handles the Button press
@@ -45,13 +35,10 @@ void *button_task(void *args)
                 ;
             }
             releasedTime = esp_timer_get_time();
-            if((releasedTime - pressedTime)/1000 > LONG_PRESS_1S_MS*5 && (releasedTime - pressedTime)/1000 < LONG_PRESS_1S_MS*6)
-            {
-                MQTT_NetworkClose(mqtt_client_index);
-                clear_mqtt_settings();
-                create_AP_task();
-            }
-            else if((releasedTime - pressedTime)/1000 > LONG_PRESS_1S_MS*8)
+            pressedduration_ms = (releasedTime - pressedTime)/1000;
+            if(pressedduration_ms > LONG_PRESS_1S_MS*3 && pressedduration_ms < LONG_PRESS_1S_MS*6)
+                reset_mqtt();
+            else if(pressedduration_ms > LONG_PRESS_1S_MS*8)
                 esp_restart_flag = true;
         }
     }

@@ -166,6 +166,7 @@ uint8_t MQTT_ClientDisconnect(int client_idx);
 uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic, char *message);
 uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report(void);
+void clear_mqtt_settings();
 void reset_mqtt();
 
 #ifdef __cplusplus

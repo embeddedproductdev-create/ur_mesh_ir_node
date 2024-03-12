@@ -58,7 +58,7 @@ void *LED_task(void *args)
             case LED_STATE_IDLE: //Solid GREEN
                 digitalWrite(GREEN_LED_PIN, LOW);
                 break;
-            
+
             case LED_STATE_AP_MODE: // RGB toggle
                 digitalWrite(RED_LED_PIN, LOW);
                 vTaskDelay(SLOW_BLINK_MS);
@@ -69,6 +69,7 @@ void *LED_task(void *args)
                 digitalWrite(BLUE_LED_PIN, LOW);
                 vTaskDelay(SLOW_BLINK_MS);
                 digitalWrite(BLUE_LED_PIN, HIGH);
+                break;
 
             case LED_STATE_MQTT_NOT_CONNECTED: //Solid RED
                 digitalWrite(RED_LED_PIN, LOW);

@@ -11,24 +11,29 @@
 
 #include "../../inc/Custom/accesspoint.h"
 
-//Initialization
-char mqtt_ip_address[16];
-uint16_t mqtt_port;
-uint8_t mqtt_client_index;
-char mqtt_broker_username[30];
-char mqtt_broker_password[30];
-char mqtt_broker_tabname[30];
-bool mqtt_params_fetched_flag = false;
+// Initialization
+// char mqtt_ip_address[16];
+// uint16_t mqtt_port;
+// uint8_t mqtt_client_index;
+// char mqtt_broker_username[30];
+// char mqtt_broker_password[30];
+// char mqtt_broker_tabname[30];
+// bool mqtt_params_fetched_flag = false;
 
-const char ap_ssid[30] = "AP testing";
-const char ap_password[30] = "12345678";
+char mqtt_ip_address[16] = "54.215.188.103";
+uint16_t mqtt_port = 1883;
+uint8_t mqtt_client_index = 3;
+char mqtt_broker_username[30] = "QmaxSystems";
+char mqtt_broker_password[30] = "Qmax_mosquitto_!@#";
+char mqtt_broker_tabname[30] = "AC_IR_CONTROL";
+bool mqtt_params_fetched_flag = true;
 
 uint16_t GWY_SER_NO = 1;
 
 /* IP Address details */
-IPAddress local_ip(192,168,1,1);
-IPAddress gateway(192,168,1,1);
-IPAddress subnet(255,255,255,0);
+IPAddress local_ip(192, 168, 1, 1);
+IPAddress gateway(192, 168, 1, 1);
+IPAddress subnet(255, 255, 255, 0);
 
 AsyncWebServer server(80);
 
@@ -61,73 +66,54 @@ const char END_AP_WEBPAGE[] PROGMEM = R"rawliteral(
 </body></html>
 )rawliteral";
 
-
 /**
  * @brief Handler for NotFound case
- * @param request 
+ * @param request
  * @retval none
  */
-void notFound(AsyncWebServerRequest *request) {
+void notFound(AsyncWebServerRequest *request)
+{
   request->send(404, "text/plain", "Not found");
 }
 
-
 /**
  * @brief Thread that runs the AP mode for Gateway MQTT configurations
- * @param args 
+ * @param args
  * @retval none
  */
 void AP_task(void *args)
 {
-    configASSERT(((uint32_t) args) == 1);
-    nvs_flash_init();
+  configASSERT(((uint32_t)args) == 1);
+  ESP_LOGI(DEBUG_TAG, "Restarted AP_Task\n");
+  nvs_flash_init();
 
-    WiFi.mode(WIFI_AP);
-    WiFi.softAP(ap_ssid, ap_password, 6, 0, 5);
-    WiFi.softAPConfig(local_ip, gateway, subnet);
-    server.begin();
-    delay(100);
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(AP_SSID, AP_PASSWORD, 6, 0, 5);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  server.begin();
+  delay(100);
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/html", WEBPAGE, NULL);
-  });
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send_P(200, "text/html", WEBPAGE, NULL); });
 
-    server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    String serverip;
-    String serverport;
-    String clientindex;
-    String mqttbrokername;
-    String mqttbrokerpassword;
-    String mqtttabname;
-
+  server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
+            {
     if (request->hasParam("serverip") &&
         request->hasParam("port") &&
         request->hasParam("clientid") &&
         request->hasParam("servername") &&
         request->hasParam("password") &&
         request->hasParam("tabname")) {
-      serverip = request->getParam("serverip")->value();
-      serverport = request->getParam("port")->value();
-      clientindex = request->getParam("clientid")->value();
-      mqttbrokername = request->getParam("servername")->value();
-      mqttbrokerpassword = request->getParam("password")->value();
-      mqtttabname = request->getParam("tabname")->value();
-      
-      //Setting the global mqtt values
-      strcpy(mqtt_ip_address, serverip);
-      mqtt_port = atoi(serverport);
-      mqtt_client_index = atoi(clientindex);
-      strcpy(mqtt_broker_username, mqttbrokername);
-      strcpy(mqtt_broker_password, mqttbrokerpassword);
-      strcpy(mqtt_broker_tabname, mqtttabname);
-      
-      printf("Server IP : %s\n",serverip.c_str());
-      printf("Server Port : %s\n",serverport.c_str());
-      printf("Client Index : %s\n",clientindex.c_str());
-      printf("Broker Name : %s\n",mqttbrokername.c_str());
-      printf("Broker password : %s\n",mqttbrokerpassword.c_str());
-      printf("Tab Name : %s\n",mqtttabname.c_str());
+      strcpy(mqtt_ip_address, request->getParam("serverip")->value().c_str());
+      mqtt_port = atoi(request->getParam("port")->value().c_str());
+      mqtt_client_index = atoi(request->getParam("clientid")->value().c_str());
+      strcpy(mqtt_broker_username, request->getParam("servername")->value().c_str());
+      strcpy(mqtt_broker_password, request->getParam("password")->value().c_str());
+      strcpy(mqtt_broker_tabname, request->getParam("tabname")->value().c_str());
+      request->send(200, "text/html", END_AP_WEBPAGE);
+      vTaskDelay(pdMS_TO_TICKS(500)); //Just maybe the website needs to load... We'll remove this later
       mqtt_params_fetched_flag = true;
+      WiFi.mode(WIFI_MODE_STA);
     }
     else
     {
@@ -135,32 +121,11 @@ void AP_task(void *args)
       delay(3);
       request->send_P(200, "text/html", WEBPAGE, NULL);
       mqtt_params_fetched_flag = false;
-    }
+    } });
 
-    if(mqtt_params_fetched_flag)
-      request->send(200, "text/html", END_AP_WEBPAGE);
-  });
-
-    while(1 && !mqtt_params_fetched_flag)
-    {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-    vTaskDelete(NULL);
+  while (1 && !mqtt_params_fetched_flag)
+  {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
+  vTaskDelete(NULL);
 }
-
-/**
- * @brief Function to create the AP task
- * @param none
- * @retval none
- */
-void create_AP_task()
-{
-  BaseType_t xReturned;
-  TaskHandle_t xHandle = NULL;
-  xReturned = xTaskCreate(AP_task, "AccessPoint Task",
-  4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
-  if(xReturned != pdPASS)
-      perror("Error in taskCreate for AP mode : ");
-  #endif
-}
-

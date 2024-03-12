@@ -6,11 +6,12 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebSrv.h>
 
+#define AP_SSID "IR_BLE_Mesh_AP"
+#define AP_PASSWORD "12345678"
+
 /* GLOBAL VARIABLES */
-extern const char ap_ssid[30];
-extern const char ap_password[30];
 
 /* FUNCTION DECLARATIONS */
 void AP_task(void *args);
-void create_AP_task();
+
 #endif

@@ -44,6 +44,9 @@
 
 #ifdef CONFIG_BT_BLUEDROID_ENABLED
 
+//Initialization
+bool send_data_to_node = false;
+
 uint16_t node_address;
 
 void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
@@ -797,7 +800,7 @@ send:
         param.ctx.model=sensor_server.model;
         param.ctx.app_idx=0;
         param.ctx.net_idx=0;*/
-        
+
 
       /*  err = esp_ble_mesh_client_model_send_msg(sensor_server.model,&param.ctx,
     		ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status,2,true,ROLE_NODE);*/
@@ -1084,7 +1087,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
         store_recv_data[i]=param->status_cb.sensor_status.marshalled_sensor_data->data[i];
         if(store_recv_data[i]!=0xff){
             data_recieved=1;
-            
+
 
         }
     }
@@ -1354,10 +1357,61 @@ void mesh_main_init(void)
 
 void *send_data_task(void *args)
 {
-
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
+        if(send_data_to_node)
+        {
+            switch(json_packet_id)
+            {
+                case NODE_PROV_PACKET:
+                    //code dev in progress
+                    break;
+
+                case NODE_UNPROV_PACKET:
+                    sensor_server.model->pub->publish_addr = unprovision_t.elemnt_addr;
+                    //code dev in progress
+                    break;
+
+                case NODE_AC_CONTROL_PACKET:
+                    sensor_server.model->pub->publish_addr=node_ac_control_t.elementAddr;
+                    sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power));
+                    for(uint8_t i=0;i<15;i++)
+                    {
+                    sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];
+                    }
+                    sensor_states[0].sensor_data.raw_value->data[24] = node_ac_control_t.fan;
+                    sensor_states[0].sensor_data.raw_value->data[25] = node_ac_control_t.temp;
+                    sensor_states[0].sensor_data.raw_value->data[26] = (uint8_t*)node_ac_control_t.swingH;
+                    sensor_states[0].sensor_data.raw_value->data[27] = (uint8_t*)node_ac_control_t.swingV;
+                    sensor_states[0].sensor_data.raw_value->data[28] = (uint8_t*)((node_ac_control_t.OnTimer >> 8) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[29] = (uint8_t*)((node_ac_control_t.OnTimer) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
+                    sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
+                    break;
+
+                case NODE_RECONF_PACKET:
+                    sensor_server.model->pub->publish_addr = node_reconfigure_t.elementAddr;
+                    sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_reconfigure_t.msg_seq_no >> 8) & 0x00ff);
+                    break;
+
+                default:
+                    ESP_LOGE(ERROR_TAG, "Unknown JsonPacketId, can't send data to node ... \n");
+                    break;
+            }
+            example_ble_mesh_send_sensor_status();
+            send_data_to_node = false;
+        }
+
         if(data_recieved){
             for(uint8_t j=0;j<35;j++){
             sensor_states[0].sensor_data.raw_value->data[j]=0xff;
@@ -1365,100 +1419,20 @@ void *send_data_task(void *args)
             example_ble_mesh_send_sensor_status();
             data_recieved=0;
         }
-        if(send_control_packet)
+        if(send_data_to_node)
         {
 
-            /*sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power));
-            for(uint8_t i=0;i<15;i++)
-            {
-               sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];
-            }
-            sensor_states[0].sensor_data.raw_value->data[24] = node_ac_control_t.fan;
-            sensor_states[0].sensor_data.raw_value->data[25] = node_ac_control_t.temp;
-            sensor_states[0].sensor_data.raw_value->data[26] = (uint8_t*)node_ac_control_t.swingH;
-            sensor_states[0].sensor_data.raw_value->data[27] = (uint8_t*)node_ac_control_t.swingV;
-            sensor_states[0].sensor_data.raw_value->data[28] = (uint8_t*)((node_ac_control_t.OnTimer >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[29] = (uint8_t*)((node_ac_control_t.OnTimer) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
+
+
+            vTaskDelay(pdMS_TO_TICKS(10));
+
+
+
+
+
 
             example_ble_mesh_send_sensor_status();
-            vTaskDelay(pdMS_TO_TICKS(10));*/
-            node_ac_control_t.msg_seq_no = 1;
-            node_ac_control_t.gwy_ser_no = 2;
-            node_ac_control_t.node_ser_no = 3;
-            node_ac_control_t.elementAddr = 4;
-            node_ac_control_t.power = true;
-            node_ac_control_t.mode_str[0] ='C';
-            node_ac_control_t.mode_str[1] ='o';
-            node_ac_control_t.mode_str[2] ='o';
-            node_ac_control_t.mode_str[3] ='l';
-            node_ac_control_t.fan = 5;
-            node_ac_control_t.temp = 25;
-            node_ac_control_t.swingH = 1;
-            node_ac_control_t.swingV = 1;
-            node_ac_control_t.OnTimer = 0;
-            node_ac_control_t.OffTimer = 0;
-            node_ac_control_t.Locking = 1;
 
-            ESP_LOGI(TAG, "node_ac_control_t.msg_seq_no ...%d \r\n",node_ac_control_t.msg_seq_no);
-    
-            ESP_LOGI(TAG, "node_ac_control_t.gwy_ser_no ...%d \r\n",node_ac_control_t.gwy_ser_no);
-            
-            ESP_LOGI(TAG, "node_ac_control_t.node_ser_no ...%d \r\n",node_ac_control_t.node_ser_no);
-            
-            ESP_LOGI(TAG, "node_ac_control_t.elementAddr ...%d \r\n",node_ac_control_t.elementAddr);
-            
-            ESP_LOGI(TAG, "node_ac_control_t.power ...%d \r\n",node_ac_control_t.power);
-            for(uint8_t i=9;i<24;i++)
-            {
-                ESP_LOGI(TAG, "node_ac_control_t.mode_str[0] %c... \r\n",node_ac_control_t.mode_str[i]);
-            }
-            ESP_LOGI(TAG, "node_ac_control_t.fan ...%d \r\n",node_ac_control_t.fan);
-            ESP_LOGI(TAG, "node_ac_control_t.temp ...%d \r\n",node_ac_control_t.temp);
-            ESP_LOGI(TAG, "node_ac_control_t.swingH ...%d \r\n",node_ac_control_t.swingH);
-            ESP_LOGI(TAG, "node_ac_control_t.swingV ...%d \r\n",node_ac_control_t.swingV);
-            ESP_LOGI(TAG, "node_ac_control_t.OnTimer ...%d \r\n",node_ac_control_t.OnTimer);
-            ESP_LOGI(TAG, "node_ac_control_t.OffTimer ...%d \r\n",node_ac_control_t.OffTimer);
-            ESP_LOGI(TAG, "node_ac_control_t.Locking ...%d \r\n",node_ac_control_t.Locking);
-
-
-            sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_ac_control_t.msg_seq_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[1] = (uint8_t*)(node_ac_control_t.msg_seq_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[2] = (uint8_t*)((node_ac_control_t.gwy_ser_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[3] = (uint8_t*)(node_ac_control_t.gwy_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[4] = (uint8_t*)((node_ac_control_t.node_ser_no >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[5] = (uint8_t*)(node_ac_control_t.node_ser_no & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[6] = (uint8_t*)((node_ac_control_t.elementAddr>> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[7] = (uint8_t*)((node_ac_control_t.elementAddr) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[8] = (uint8_t*)((node_ac_control_t.power));
-            for(uint8_t i=0;i<15;i++)
-            {
-               sensor_states[0].sensor_data.raw_value->data[i+9] = node_ac_control_t.mode_str[i];
-            }
-            sensor_states[0].sensor_data.raw_value->data[24] = node_ac_control_t.fan;
-            sensor_states[0].sensor_data.raw_value->data[25] = node_ac_control_t.temp;
-            sensor_states[0].sensor_data.raw_value->data[26] = (uint8_t*)node_ac_control_t.swingH;
-            sensor_states[0].sensor_data.raw_value->data[27] = (uint8_t*)node_ac_control_t.swingV;
-            sensor_states[0].sensor_data.raw_value->data[28] = (uint8_t*)((node_ac_control_t.OnTimer >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[29] = (uint8_t*)((node_ac_control_t.OnTimer) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[30] = (uint8_t*)((node_ac_control_t.OffTimer >> 8) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[31] = (uint8_t*)((node_ac_control_t.OffTimer) & 0x00ff);
-            sensor_states[0].sensor_data.raw_value->data[32] = (uint8_t*)node_ac_control_t.Locking;
-
-            //sensor_server.model->pub->publish_addr=node_ac_control_t.elementAddr;
-
-            example_ble_mesh_send_sensor_status();
-            send_control_packet = false;
         }
     }
 }

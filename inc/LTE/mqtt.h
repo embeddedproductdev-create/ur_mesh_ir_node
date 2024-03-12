@@ -189,7 +189,17 @@ extern bool publishing_flag;
 int16_t parse_json_packet(void);
 void fill_macid(void);
 int8_t publish_to_mqtt();
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void add_to_pubmesg_queue(char *message, char *topic);
+
+#ifdef __cplusplus
+}
+#endif
+
 void remove_from_pubmesg_queue();
 void error_check_json(uint8_t json_packet_id);
 
