@@ -20,8 +20,6 @@ char mqtt_broker_password[30];
 char mqtt_broker_tabname[30];
 bool mqtt_params_fetched_flag = false;
 
-mqtt_params_t mqtt_params;
-
 const char ap_ssid[30] = "AP testing";
 const char ap_password[30] = "12345678";
 

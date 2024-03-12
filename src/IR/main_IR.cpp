@@ -9,6 +9,7 @@
 
 #include "../../inc/IR/main_IR.h"
 #include "../../inc/LTE/mqtt.h"
+#include "../../inc/Custom/button.h"
 
 
 //Initialization - Receiver
@@ -88,7 +89,7 @@ void *IR_receiver_task(void *args)
                 }
             #endif
 
-            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered)
+            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected)
             {
                 configured = true;
                 protocol_selected_num = protocol_detected;
