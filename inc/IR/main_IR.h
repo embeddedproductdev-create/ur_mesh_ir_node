@@ -29,7 +29,6 @@
 #define IR_TRANSMIT_PIN 7
 
 /* GLOBAL VARIABLES - RECEIVER */
-extern bool configured;
 extern char protocol_chosen_str[15];
 
 /* GLOBAL VARIABLES - TRANSMITTER */
@@ -38,7 +37,7 @@ extern char protocol_chosen_str[15];
 void *IR_receiver_task(void *args);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
-void IR_transmit(uint16_t protocol_detected, char *protocol_chosen_str);
+void IR_transmit(uint16_t protocol_detected);
 void IR_transmit_setup();
 
 #endif

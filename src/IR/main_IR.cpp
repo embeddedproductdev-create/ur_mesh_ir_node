@@ -50,6 +50,8 @@ void *IR_receiver_task(void *args)
 
     while(1)
     {
+        if(needtosend)
+            IR_transmit(protocol_selected_num);
         if(esp_restart_flag)
             ESP.restart();
         vTaskDelay(1);
@@ -63,7 +65,7 @@ void *IR_receiver_task(void *args)
             //     if (kTolerancePercentage != kTolerance)
             //         Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
             // #endif
-            // resultToHumanReadableBasic(&results, &protocol_detected);
+            resultToHumanReadableBasic(&results, &protocol_detected);
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
@@ -85,6 +87,11 @@ void *IR_receiver_task(void *args)
                 GWYSERNO_STR, GWY_SER_NO,
                 ERROR_CODE_STR, json_ack_err_code);
                 add_to_pubmesg_queue(pubmessage, publish_topic);
+            }
+            else
+            {
+                // printf("protocol_detected : %d",protocol_detected)
+                printf("Hello\n");
             }
             if(protocol_detected == protocol_selected_num) //Someone tried to control AC
                 add_to_pubmesg_queue(result_description_char_str, publish_topic);
@@ -130,7 +137,7 @@ uint8_t get_mode_num()
  * @param none
  * @retval none
  */
-void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
+void IR_transmit(uint16_t protocol_selected_num)
 {
     switch(protocol_selected_num)
     {
@@ -150,11 +157,13 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
             ac_daikin216.setMode(get_mode_num());
             sending = true;
             ac_daikin216.send();
+            printf("Sending Daikin216\n");
             break;
 
         case DAIKIN200:
             ESP_LOGI(ERROR_TAG, "Still in Development\r\n");
             strcpy(protocol_chosen_str, "Daikin200");
+            printf("Sending Daikin200\n");
             break;
 
         case DAIKIN:
@@ -169,16 +178,18 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
             sending = true;
             ac_daikin280.send();
             ESP_LOGI(DEBUG_TAG, "Sending Daikin280\r\n");
+            printf("Sending Daikin280\n");
             break;
 
         case HITACHI_AC296:
             strcpy(protocol_chosen_str, "Hitachi296");
-            ac_hitachi296.setPower(gwy_ac_control_t.power);
-            ac_hitachi296.setTemp(gwy_ac_control_t.temp);
-            ac_hitachi296.setFan(gwy_ac_control_t.fan);
+                    ac_hitachi296.setPower(gwy_ac_control_t.power);
+            // ac_hitachi296.setTemp(gwy_ac_control_t.temp);
+            // ac_hitachi296.setFan(gwy_ac_control_t.fan);
             sending = true;
             ac_hitachi296.send();
             ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
+            printf("Sending hitachi296\n");
             break;
 
         case VOLTAS:
@@ -186,6 +197,7 @@ void IR_transmit(uint16_t protocol_selected_num, char *protocol_chosen_str)
             sending = true;
             ac_voltas.send();
             ESP_LOGI(DEBUG_TAG, "Protcol Chosen Voltas\r\n");
+            printf("Sending Voltas\n");
             break;
     }
     needtosend = false;

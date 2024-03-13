@@ -32,7 +32,6 @@ void *LED_task(void *args)
     LED_initial_setup();
     while(1)
     {
-        protocol_selected_num = 61; // Daikin216
         vTaskDelay(1);
         if(sending)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
