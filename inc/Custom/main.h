@@ -10,6 +10,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+//#include "..\..\inc\Mesh\sensor_cli.h"
+
 /* General */
 #include <inttypes.h>
 #include <pthread.h>

@@ -25,7 +25,10 @@
     "esp_ble_mesh_config_model_api.h": "c",
     "button.h": "c",
     "accesspoint.h": "c",
-    "btc_ble_mesh_prov.h": "c"
+    "btc_ble_mesh_prov.h": "c",
+    "sensor_cli.h": "c",
+    "inttypes.h": "c",
+    "string.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
