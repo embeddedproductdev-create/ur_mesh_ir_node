@@ -276,26 +276,7 @@ static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *
     common->msg_timeout = MSG_TIMEOUT;
     common->msg_role = MSG_ROLE;
 }
-#if 0
-static esp_ble_mesh_cfg_srv_t config_server = {
-    .relay = ESP_BLE_MESH_RELAY_ENABLED,
-    .beacon = ESP_BLE_MESH_BEACON_ENABLED,
-#if defined(CONFIG_BLE_MESH_FRIEND)
-    .friend_state = ESP_BLE_MESH_FRIEND_ENABLED,
-#else
-    .friend_state = ESP_BLE_MESH_FRIEND_NOT_SUPPORTED,
-#endif
-#if defined(CONFIG_BLE_MESH_GATT_PROXY_SERVER)
-    .gatt_proxy = ESP_BLE_MESH_GATT_PROXY_ENABLED,
-#else
-    .gatt_proxy = ESP_BLE_MESH_GATT_PROXY_NOT_SUPPORTED,
-#endif
-    .default_ttl = 7,
-    /* 3 transmissions with 20ms interval */
-    .net_transmit = ESP_BLE_MESH_TRANSMIT(2, 20),
-    .relay_retransmit = ESP_BLE_MESH_TRANSMIT(2, 20),
-};
-#else
+
 static esp_ble_mesh_cfg_srv_t config_server = {
     .beacon = ESP_BLE_MESH_BEACON_DISABLED,
 #if defined(CONFIG_BLE_MESH_FRIEND)
@@ -308,7 +289,7 @@ static esp_ble_mesh_cfg_srv_t config_server = {
     .net_transmit = ESP_BLE_MESH_TRANSMIT(2, 20),
     .relay_retransmit = ESP_BLE_MESH_TRANSMIT(2, 20),
 };
-#endif
+
 static esp_ble_mesh_client_t config_client;
 static esp_ble_mesh_client_t sensor_client;
 
