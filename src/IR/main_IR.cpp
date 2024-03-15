@@ -15,10 +15,14 @@
 
 //Initialization - Receiver
 bool configured = false;
+bool teaching_mode = false;
 IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
 decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
 char protocol_chosen_str[15] = "";
+
+uint16_t custom_raw_buffer[NUM_OF_COMMANDS][NUM_OF_VALUES_PER_COMMAND];
+uint8_t custom_raw_buffer_index = 0;
 
 //Initialization - Transmitter
 bool needtosend = false;
@@ -29,13 +33,14 @@ IRDaikinESP ac_daikin280(IR_TRANSMIT_PIN);
 IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
 IRHitachiAc296 ac_hitachi296(IR_TRANSMIT_PIN);
 IRVoltas ac_voltas(IR_TRANSMIT_PIN);
+IRsend custom_ac(IR_TRANSMIT_PIN);
 
 /**
- * @brief Thread that handles the IR signals received. Detects and sets the IR tranmsmission protocol
+ * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
  * @param args
  * @return void*
  */
-void *IR_receiver_task(void *args)
+void IR_receiver_task(void *args)
 {
     IR_transmit_setup();
     Serial.begin(BAUD_RATE);
@@ -55,8 +60,13 @@ void *IR_receiver_task(void *args)
         if(esp_restart_flag)
             ESP.restart();
         vTaskDelay(1);
-        if (irrecv.decode(&results)) {
-
+        if (irrecv.decode(&results))
+        {
+            for(uint16_t index=0; index<583; index++)
+            {
+                printf("%d ",results.rawbuf[index]);
+            }
+            printf("\n");
             // #if(IR_RECV_LOG_ENABLED)
             //     // Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
             //     if(results.overflow);
@@ -65,11 +75,13 @@ void *IR_receiver_task(void *args)
             //     if (kTolerancePercentage != kTolerance)
             //         Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
             // #endif
-            resultToHumanReadableBasic(&results, &protocol_detected);
+            char raw_buf_str[200];
+            strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
             #if(IR_RECV_LOG_ENABLED)
+                ESP_LOGI(DEBUG_TAG, "%s", raw_buf_str);
                 if (description.length())
                 {
                     Serial.println(D_STR_MESGDESC ": " + description);
@@ -77,7 +89,23 @@ void *IR_receiver_task(void *args)
                 }
             #endif
 
-            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected)
+            if(teaching_mode)
+            {
+                for(uint16_t index=0; index<NUM_OF_VALUES_PER_COMMAND; index++)
+                {
+                    custom_raw_buffer[custom_raw_buffer_index][index] = results.rawbuf[index];
+                    printf("{%d} ",custom_raw_buffer[custom_raw_buffer_index][index]);
+                }
+                printf("\n");
+                custom_raw_buffer_index++;
+                if(custom_raw_buffer_index == NUM_OF_COMMANDS)
+                {
+                    teaching_mode = false;
+                    ESP_LOGI(DEBUG_TAG,"End of Teaching mode \n");
+                }
+            }
+
+            if(protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
             {
                 configured = true;
                 protocol_selected_num = protocol_detected;
@@ -88,11 +116,6 @@ void *IR_receiver_task(void *args)
                 ERROR_CODE_STR, json_ack_err_code);
                 add_to_pubmesg_queue(pubmessage, publish_topic);
             }
-            else
-            {
-                // printf("protocol_detected : %d",protocol_detected)
-                printf("Hello\n");
-            }
             if(protocol_detected == protocol_selected_num) //Someone tried to control AC
                 add_to_pubmesg_queue(result_description_char_str, publish_topic);
 
@@ -102,6 +125,7 @@ void *IR_receiver_task(void *args)
             yield();
         }
     }
+    vTaskDelete(NULL);
 }
 
 
@@ -160,6 +184,15 @@ void IR_transmit(uint16_t protocol_selected_num)
             printf("Sending Daikin216\n");
             break;
 
+        case HITACHI_AC296:
+            strcpy(protocol_chosen_str, "Hitachi296");
+            ac_hitachi296.setPower(gwy_ac_control_t.power);
+            ac_hitachi296.setTemp(gwy_ac_control_t.temp);
+            sending=true;
+            ac_hitachi296.send();
+            ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
+            break;
+
         case DAIKIN200:
             ESP_LOGI(ERROR_TAG, "Still in Development\r\n");
             strcpy(protocol_chosen_str, "Daikin200");
@@ -181,27 +214,78 @@ void IR_transmit(uint16_t protocol_selected_num)
             printf("Sending Daikin280\n");
             break;
 
-        case HITACHI_AC296:
-            strcpy(protocol_chosen_str, "Hitachi296");
-                    ac_hitachi296.setPower(gwy_ac_control_t.power);
-            // ac_hitachi296.setTemp(gwy_ac_control_t.temp);
-            // ac_hitachi296.setFan(gwy_ac_control_t.fan);
-            sending = true;
-            ac_hitachi296.send();
-            ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
-            printf("Sending hitachi296\n");
-            break;
-
         case VOLTAS:
+            // strcpy(protocol_chosen_str, "Voltas");
+            // sending = true;
+            // ac_voltas.send();
+            // ESP_LOGI(DEBUG_TAG, "Protcol Chosen Voltas\r\n");
+            // printf("Sending Voltas\n");
             strcpy(protocol_chosen_str, "Voltas");
-            sending = true;
-            ac_voltas.send();
-            ESP_LOGI(DEBUG_TAG, "Protcol Chosen Voltas\r\n");
-            printf("Sending Voltas\n");
+            sending=true;
+            switch(gwy_ac_control_t.temp)
+            {
+                case 20:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 20");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[0],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[8],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 21:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 21");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[1],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[9],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 22:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 22");
+                   if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[2],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[10],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 23:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 23");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[3],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[11],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 24:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 24");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[4],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[12],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 25:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 25");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[5],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[13],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 26:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 26");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[6],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[14],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                case 27:
+                    ESP_LOGI(DEBUG_TAG, "Voltas Protocol - Temperature 27");
+                    if(gwy_ac_control_t.power)
+                        custom_ac.sendRaw(custom_raw_buffer[7],NUM_OF_VALUES_PER_COMMAND, 38);
+                    else
+                        custom_ac.sendRaw(custom_raw_buffer[15],NUM_OF_VALUES_PER_COMMAND, 38);
+                    break;
+                default:
+                    ESP_LOGE(ERROR_TAG, "Unsupported temperature in custom IR transmtit\n");
+            }
             break;
     }
     needtosend = false;
     sending = false;
 }
-
 

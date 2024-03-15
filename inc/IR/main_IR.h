@@ -25,16 +25,21 @@
 #define kMinUnknownSize 12
 #define kTolerancePercentage kTolerance
 
+#define NUM_OF_COMMANDS 16
+#define NUM_OF_VALUES_PER_COMMAND 600
+
 /* TRANSMITTER */
 #define IR_TRANSMIT_PIN 7
 
 /* GLOBAL VARIABLES - RECEIVER */
 extern char protocol_chosen_str[15];
+extern uint16_t custom_raw_buffer[NUM_OF_COMMANDS][NUM_OF_VALUES_PER_COMMAND];
+extern uint8_t custom_raw_buffer_index;
 
 /* GLOBAL VARIABLES - TRANSMITTER */
 
 /* FUNCTION DECLARATIONS - RECEIVER */
-void *IR_receiver_task(void *args);
+void IR_receiver_task(void *args);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
 void IR_transmit(uint16_t protocol_detected);

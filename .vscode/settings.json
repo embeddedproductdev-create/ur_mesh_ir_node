@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32s3",
-  "idf.portWin": "COM16",
+  "idf.portWin": "COM6",
   "idf.flashType": "UART",
   "files.associations": {
     "mqtt.h": "c",
@@ -25,7 +25,18 @@
     "esp_ble_mesh_config_model_api.h": "c",
     "button.h": "c",
     "accesspoint.h": "c",
-    "btc_ble_mesh_prov.h": "c"
+    "btc_ble_mesh_prov.h": "c",
+    "led.h": "c",
+    "string": "cpp",
+    "array": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "unordered_map": "cpp",
+    "unordered_set": "cpp",
+    "vector": "cpp",
+    "string_view": "cpp",
+    "initializer_list": "cpp",
+    "regex": "cpp"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

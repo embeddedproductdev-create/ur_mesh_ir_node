@@ -868,10 +868,13 @@ int16_t parse_json_packet()
 void reset_mqtt()
 {
     MQTT_NetworkClose(mqtt_client_index);
-    mqtt_params_fetched_flag = false;
+	#if(AP_PART_ENABLED)
+		mqtt_params_fetched_flag = false;
+		clear_mqtt_settings();
+		create_AP_task();
+	#endif
 	mqtt_connected = false;
-    clear_mqtt_settings();
-    create_AP_task();
+
 }
 
 /**

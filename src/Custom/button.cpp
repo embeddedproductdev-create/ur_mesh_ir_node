@@ -8,6 +8,7 @@
  */
 
 #include "../../inc/Custom/button.h"
+#include "../../inc/IR/main_IR.h"
 
 //Initialization - BUTTON
 uint32_t pressedTime = 0;
@@ -36,7 +37,13 @@ void *button_task(void *args)
             }
             releasedTime = esp_timer_get_time();
             pressedduration_ms = (releasedTime - pressedTime)/1000;
-            if(pressedduration_ms > LONG_PRESS_1S_MS*3 && pressedduration_ms < LONG_PRESS_1S_MS*6)
+            if(pressedduration_ms < LONG_PRESS_1S_MS) //click
+            {
+                teaching_mode = true;
+                custom_raw_buffer_index = 0; //Resetting the buffer index for storing data from first
+                ESP_LOGI(DEBUG_TAG, "Start of Teaching mode ...\n");
+            }
+            else if(pressedduration_ms > LONG_PRESS_1S_MS*3 && pressedduration_ms < LONG_PRESS_1S_MS*6)
                 reset_mqtt();
             else if(pressedduration_ms > LONG_PRESS_1S_MS*8)
                 esp_restart_flag = true;

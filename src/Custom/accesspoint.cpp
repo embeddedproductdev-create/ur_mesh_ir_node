@@ -12,21 +12,21 @@
 #include "../../inc/Custom/accesspoint.h"
 
 // Initialization
-char mqtt_ip_address[16];
-uint16_t mqtt_port;
-uint8_t mqtt_client_index;
-char mqtt_broker_username[30];
-char mqtt_broker_password[30];
-char mqtt_broker_tabname[30];
-bool mqtt_params_fetched_flag = false;
+// char mqtt_ip_address[16];
+// uint16_t mqtt_port;
+// uint8_t mqtt_client_index;
+// char mqtt_broker_username[30];
+// char mqtt_broker_password[30];
+// char mqtt_broker_tabname[30];
+// bool mqtt_params_fetched_flag = false;
 
-// char mqtt_ip_address[16] = "54.215.188.103";
-// uint16_t mqtt_port = 1883;
-// uint8_t mqtt_client_index = 3;
-// char mqtt_broker_username[30] = "QmaxSystems";
-// char mqtt_broker_password[30] = "Qmax_mosquitto_!@#";
-// char mqtt_broker_tabname[30] = "AC_IR_CONTROL";
-// bool mqtt_params_fetched_flag = true;
+char mqtt_ip_address[16] = "54.215.188.103";
+uint16_t mqtt_port = 1883;
+uint8_t mqtt_client_index = 3;
+char mqtt_broker_username[30] = "QmaxSystems";
+char mqtt_broker_password[30] = "Qmax_mosquitto_!@#";
+char mqtt_broker_tabname[30] = "AC_IR_CONTROL";
+bool mqtt_params_fetched_flag = true;
 
 uint16_t GWY_SER_NO = 1;
 

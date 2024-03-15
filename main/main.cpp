@@ -45,10 +45,13 @@ void app_main()
     #endif
 
     #if(IR_RECV_PART_ENABLED)
-    pthread_t IR_Receiver_tid;
-    if(pthread_create(&IR_Receiver_tid, NULL, IR_receiver_task, NULL)!=0){
-        perror("Error in creating recv_task : ");
-    }
+        ESP_LOGI(DEBUG_TAG, "Creating IR recv task\n");
+        BaseType_t xReturned;
+        TaskHandle_t xHandle = NULL;
+        xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
+                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+        if (xReturned != pdPASS)
+        perror("Error in taskCreate for IR recv task : ");
     #endif
 
     #if(LTE_PART_ENABLED)
@@ -84,10 +87,6 @@ void app_main()
     if(pthread_create(&mqtt_pub_tid, NULL, publish_task, NULL) != 0){
         perror("Error in creating mqtt_publish_thread : ");
     }
-    #endif
-
-    #if(IR_RECV_PART_ENABLED)
-    pthread_join(IR_Receiver_tid, NULL);
     #endif
 
     #if(LED_PART_ENABLED)
