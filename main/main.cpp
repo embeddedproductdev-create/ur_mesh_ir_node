@@ -34,11 +34,11 @@ void app_main()
     create_AP_task();
     #endif
 
-    while(!mqtt_params_fetched_flag)
+   /* while(!mqtt_params_fetched_flag)
     {
         ;//Do nothing until we fetch the mqtt params through the AP Mode (for the very first setup alone)
         vTaskDelay(1);
-    }
+    }*/
 
     #if(MESH_PART_ENABLED)
     mesh_main_init();

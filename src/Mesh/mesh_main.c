@@ -1444,7 +1444,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
 static esp_err_t ble_mesh_init(void)
 {
-    uint8_t match[2] = { 0x32, 0x10 };
+    uint8_t match[8] = { 0xcd, 0xdc,0xff,0xff,0xff,0xff,0xff,0xff };
     esp_err_t err;
 
     prov_key.net_idx = ESP_BLE_MESH_KEY_PRIMARY;
@@ -1455,7 +1455,9 @@ static esp_err_t ble_mesh_init(void)
     esp_ble_mesh_register_config_client_callback(example_ble_mesh_config_client_cb);
     esp_ble_mesh_register_custom_model_callback(example_ble_mesh_custom_model_cb);
     esp_ble_mesh_register_sensor_client_callback(example_ble_mesh_sensor_client_cb);
+    ESP_LOGE(TAG, "esp_ble_mesh_init");
     err = esp_ble_mesh_init(&provision, &composition);
+    ESP_LOGE(TAG, "esp_ble_mesh_init");
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize mesh stack");
         return err;
@@ -1561,7 +1563,8 @@ void mesh_main_init(void)
 
 
 void *send_data_task(void *args)
-{
+{   esp_err_t err;
+    uint8_t match[8] = { 0xcd, 0xdc };
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -1571,6 +1574,15 @@ void *send_data_task(void *args)
             {
                 case NODE_PROV_PACKET:
                     //code dev in progress
+                    for(uint8_t i=2;i<8;i++)
+                    {
+                        match[i]=provision_t.macid[i-2];
+                    }
+                    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(provision_t.macid), 0x0, true);
+                    if (err != ESP_OK) {
+                        ESP_LOGE(TAG, "Failed to set matching device uuid");
+                        return err;
+                    }
                     break;
 
                 case NODE_UNPROV_PACKET:

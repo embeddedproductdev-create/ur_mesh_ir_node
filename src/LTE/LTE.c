@@ -763,6 +763,7 @@ int16_t parse_json_packet()
 				provision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
 				strcpy(provision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
 				fill_macid();
+				send_data_to_node = true;
 				break;
 
 			case NODE_UNPROV_PACKET:
