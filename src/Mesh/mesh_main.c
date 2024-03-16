@@ -998,10 +998,16 @@ esp_err_t bluetooth_init(void)
 #define ESP_BLE_MESH_VND_MODEL_OP_SEND      ESP_BLE_MESH_MODEL_OP_3(0x00, CID_ESP)
 #define ESP_BLE_MESH_VND_MODEL_OP_STATUS    ESP_BLE_MESH_MODEL_OP_3(0x01, CID_ESP)
 
+static struct custom_model{
+    uint16_t dat[20];
+    char str[5];
+
+};
+
 static struct example_info_store {
     uint16_t server_addr;   /* Vendor server unicast address */
     uint16_t vnd_tid;
-    uint16_t dat[30];       /* TID contained in the vendor message */
+    struct custom_model ac;      /* TID contained in the vendor message */
 } store = {
     .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
     .vnd_tid = 0,
@@ -1396,11 +1402,15 @@ void example_ble_mesh_send_vendor_message(bool resend)
         store.vnd_tid++;
     }
 
-    for(uint8_t i=0;i<25;i++){
-        store.dat[i]=0xfc;
+    for(uint8_t i=0;i<20;i++){
+        store.ac.dat[i]=i;
     }
+    store.ac.str[0]='a';
+    store.ac.str[1]='d';
+    store.ac.str[2]='h';
+    store.ac.str[3]='i';
     err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-            sizeof(store.dat), (uint8_t *)&store.dat, MSG_TIMEOUT, true, MSG_ROLE);
+            sizeof(store.ac), (uint8_t *)&store.ac, MSG_TIMEOUT, true, MSG_ROLE);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
         return;
@@ -1444,7 +1454,8 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
 static esp_err_t ble_mesh_init(void)
 {
-    uint8_t match[8] = { 0xcd, 0xdc,0xff,0xff,0xff,0xff,0xff,0xff };
+    //uint8_t match[8] = { 0xcd, 0xdc,0xff,0xff,0xff,0xff,0xff,0xff };
+    uint8_t match[2] = { 0xcd, 0xdc};
     esp_err_t err;
 
     prov_key.net_idx = ESP_BLE_MESH_KEY_PRIMARY;
@@ -1520,15 +1531,15 @@ void mesh_main_init(void)
     }
 
     ble_mesh_get_dev_uuid(dev_uuid);
-    ESP_LOGE(TAG, "Gpio detected");
+    ESP_LOGE(TAG, "Gpio detect");
     esp_ble_mesh_provisioner_add_local_net_key(NULL,0);
-    ESP_LOGE(TAG, "Gpio detected");
+    ESP_LOGE(TAG, "Gpio detect");
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
     }
-    ESP_LOGE(TAG, "Gpio detected");
+    ESP_LOGE(TAG, "Gpio detect");
     esp_ble_mesh_client_common_param_t common = {0};
     esp_ble_mesh_cfg_client_set_state_t set = {0};
     esp_ble_mesh_node_t node ;
@@ -1569,6 +1580,15 @@ void *send_data_task(void *args)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
         if(send_data_to_node)
+        
+        {
+                ESP_LOGE(TAG, "Gpio 15 detected");
+                store.server_addr=5;
+    		example_ble_mesh_send_vendor_message(true);
+            send_data_to_node=false;
+
+        }
+        if(0/*send_data_to_node*/)
         {
             switch(json_packet_id)
             {

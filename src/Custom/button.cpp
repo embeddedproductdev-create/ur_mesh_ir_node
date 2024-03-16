@@ -36,10 +36,13 @@ void *button_task(void *args)
             }
             releasedTime = esp_timer_get_time();
             pressedduration_ms = (releasedTime - pressedTime)/1000;
-            if(pressedduration_ms > LONG_PRESS_1S_MS*3 && pressedduration_ms < LONG_PRESS_1S_MS*6)
-                reset_mqtt();
-            else if(pressedduration_ms > LONG_PRESS_1S_MS*8)
-                esp_restart_flag = true;
+           /* if(pressedduration_ms > LONG_PRESS_1S_MS*3 && pressedduration_ms < LONG_PRESS_1S_MS*6)
+                //reset_mqtt();
+                {*/
+                    printf("button pressed");
+                send_data_to_node=true;
+          /*  else if(pressedduration_ms > LONG_PRESS_1S_MS*8)
+                esp_restart_flag = true;*/
         }
     }
 }
