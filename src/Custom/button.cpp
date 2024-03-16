@@ -41,6 +41,8 @@ void *button_task(void *args)
                 {*/
                     printf("button pressed");
                 send_data_to_node=true;
+
+              
           /*  else if(pressedduration_ms > LONG_PRESS_1S_MS*8)
                 esp_restart_flag = true;*/
         }
