@@ -220,7 +220,7 @@ esp_err_t ble_mesh_nvs_erase(nvs_handle_t handle, const char *key)
 #define PROV_OWN_ADDR       0x0001
 
 #define MSG_SEND_TTL        3
-#define MSG_SEND_REL        false
+#define MSG_SEND_REL        true
 #define MSG_TIMEOUT         0
 #define MSG_ROLE            ROLE_PROVISIONER
 
@@ -1400,12 +1400,12 @@ void example_ble_mesh_send_vendor_message(bool resend)
         store.vnd_tid++;
     }
 
-    err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-            sizeof(store.ac), (uint8_t *)&store.ac, MSG_TIMEOUT, true, MSG_ROLE);
-    if (err != ESP_OK) {
+  /*  err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+            sizeof(store.ac), (uint8_t *)&store.ac, MSG_TIMEOUT, true, MSG_ROLE);*/
+   /* if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
         return;
-    }
+    }*/
 
     mesh_example_info_store(); /* Store proper mesh example info */
 }
@@ -1445,8 +1445,8 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
 static esp_err_t ble_mesh_init(void)
 {
-    //uint8_t match[8] = { 0xcd, 0xdc,0xff,0xff,0xff,0xff,0xff,0xff };
-   uint8_t match[2] = { 0xcd, 0xdc};
+    uint8_t match[8] = { 0xcd, 0xdc,0xff,0xff,0xff,0xff,0xff,0xff };
+    //uint8_t match[2] = { 0xcd, 0xdc};
     esp_err_t err;
 
     prov_key.net_idx = ESP_BLE_MESH_KEY_PRIMARY;
@@ -1546,62 +1546,29 @@ void *send_data_task(void *args)
     uint8_t match[8] = { 0xcd, 0xdc };
     esp_ble_mesh_msg_ctx_t ctx = {0};
     uint32_t opcode;
-   
+    esp_ble_mesh_client_common_param_t common = {0};
+    esp_ble_mesh_cfg_client_set_state_t set = {0};
+    esp_ble_mesh_node_t node ;
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
-        if(send_data_to_node)
+      
         
-        {
-
-            node_ac_control_t.msg_seq_no = 1;
-            node_ac_control_t.gwy_ser_no = 2;
-            node_ac_control_t.node_ser_no = 3;
-            node_ac_control_t.elementAddr = 4;
-            node_ac_control_t.power = true;
-            node_ac_control_t.mode_str[0] ='C';
-            node_ac_control_t.mode_str[1] ='o';
-            node_ac_control_t.mode_str[2] ='o';
-            node_ac_control_t.mode_str[3] ='l';
-            node_ac_control_t.fan = 5;
-            node_ac_control_t.temp = 25;
-            node_ac_control_t.swingH = 1;
-            node_ac_control_t.swingV = 1;
-            node_ac_control_t.OnTimer = 0;
-            node_ac_control_t.OffTimer = 0;
-            node_ac_control_t.Locking = 1;
+        
 
 
-                ESP_LOGE(TAG, "Gpio 15 detected");
-
-                store.vendor_node_ac_control=node_ac_control_t;
-                store.server_addr=5;
+            
                 ctx.net_idx = prov_key.net_idx;
                 ctx.app_idx = prov_key.app_idx;
-                ctx.addr = store.server_addr;
+                
                 ctx.send_ttl = MSG_SEND_TTL;
                 ctx.send_rel = MSG_SEND_REL;
                 opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
 
-                /*if (resend == false) {
-                    store.vnd_tid++;
-                }*/
-
-                /*err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                        sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);*/
-                        err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                        sizeof(node_ac_control_t), (uint8_t *)&node_ac_control_t, MSG_TIMEOUT, true, MSG_ROLE);
-                if (err != ESP_OK) {
-                    ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
-                    
-                }
-
-                 mesh_example_info_store();
+                
             
-    		//example_ble_mesh_send_vendor_message(true);
-            send_data_to_node=false;
 
-        }
+       
         if(send_data_to_node)
         {
             switch(json_packet_id)
@@ -1620,17 +1587,46 @@ void *send_data_task(void *args)
                     break;
 
                 case NODE_UNPROV_PACKET:
-                     unprovision_t.elemnt_addr;
-                    //code dev in progress
+
+                    set.model_app_bind.element_addr = unprovision_t.elemnt_addr;
+                    example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
+                  
+                    set.model_app_bind.model_app_idx = prov_key.app_idx;
+                    
+                    set.model_app_bind.company_id = CID_ESP;
+                    err = esp_ble_mesh_config_client_set_state(&common, &set);
+
+                    
                     break;
 
                 case NODE_AC_CONTROL_PACKET:
-                   
+                    
+                    store.vendor_node_ac_control = node_ac_control_t;
+                    store.server_addr = node_ac_control_t.elementAddr;
+                    ctx.addr = store.server_addr;
+                    err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                        sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);
+                    if (err != ESP_OK) {
+                        ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
+                        
+                    }
+
+                    mesh_example_info_store();
                     break;
 
                 case NODE_RECONF_PACKET:
-                    //sensor_server.model->pub->publish_addr = node_reconfigure_t.elementAddr;
-                    //sensor_states[0].sensor_data.raw_value->data[0] = (uint8_t*)((node_reconfigure_t.msg_seq_no >> 8) & 0x00ff);
+
+                    store.vendor_node_reconfigure_t = node_reconfigure_t;
+                    store.server_addr = node_reconfigure_t.elementAddr;
+                    ctx.addr = store.server_addr;
+                    err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                        sizeof(store.vendor_node_reconfigure_t), (uint8_t *)&store.vendor_node_reconfigure_t, MSG_TIMEOUT, true, MSG_ROLE);
+                    if (err != ESP_OK) {
+                        ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
+                        
+                    }
+
+                    mesh_example_info_store();
                     break;
 
                 default:
