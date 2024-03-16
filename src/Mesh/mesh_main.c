@@ -998,17 +998,14 @@ esp_err_t bluetooth_init(void)
 #define ESP_BLE_MESH_VND_MODEL_OP_SEND      ESP_BLE_MESH_MODEL_OP_3(0x00, CID_ESP)
 #define ESP_BLE_MESH_VND_MODEL_OP_STATUS    ESP_BLE_MESH_MODEL_OP_3(0x01, CID_ESP)
 
-static struct custom_model{
-    uint16_t dat[20];
-    char str[5];
-
-};
 
 static struct example_info_store {
     uint16_t server_addr;   /* Vendor server unicast address */
     uint16_t vnd_tid;
-    struct custom_model ac;
     control_t vendor_node_ac_control;      /* TID contained in the vendor message */
+    prov_t vendor_provision_t;
+    unprov_t vendor_unprovision_t;
+    reconf_t vendor_node_reconfigure_t;
 } store = {
     .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
     .vnd_tid = 0,
@@ -1538,30 +1535,7 @@ void mesh_main_init(void)
     esp_ble_mesh_cfg_client_set_state_t set = {0};
     esp_ble_mesh_node_t node ;
     node.unicast_addr=5;
-   #if 0
-    while(1)
-    {
-    	if(gpio_get_level(15)==1)
-    	{   ESP_LOGE(TAG, "Gpio 15 detected");
-           /*store.server_addr=5;
-    		ESP_LOGE(TAG, "Gpio 15 detected");
-    		example_ble_mesh_send_vendor_message(true);
-    		//configured=0;
-    		vTaskDelay(pdMS_TO_TICKS(1000));*/
-            example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
-            set.model_app_bind.element_addr = 5;
-            set.model_app_bind.model_app_idx = prov_key.app_idx;
-            //set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
-            set.model_app_bind.company_id = CID_ESP;
-            err = esp_ble_mesh_config_client_set_state(&common, &set);
-            vTaskDelay(pdMS_TO_TICKS(1000));
-    	}
-      
-    	
-
-    	vTaskDelay(pdMS_TO_TICKS(100));
-    }
-    #endif
+ 
 }
 
 
@@ -1646,7 +1620,7 @@ void *send_data_task(void *args)
                     break;
 
                 case NODE_UNPROV_PACKET:
-                    sensor_server.model->pub->publish_addr = unprovision_t.elemnt_addr;
+                     unprovision_t.elemnt_addr;
                     //code dev in progress
                     break;
 
