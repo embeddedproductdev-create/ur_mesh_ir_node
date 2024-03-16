@@ -39,23 +39,27 @@
 /* STRUCTURE DEFINITIONS */
 
 typedef struct mqtt_reset_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 }mqtt_reset_t;
 
 typedef struct gwy_reg_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	char location[LOCATION_STR_LEN];
 }gwy_reg_t;
 
 typedef struct gwy_unreg_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	char location[LOCATION_STR_LEN];
 }gwy_unreg_t;
 
 typedef struct reconf_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
@@ -63,6 +67,7 @@ typedef struct reconf_struct{
 }reconf_t;
 typedef struct control_struct
 {
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
@@ -79,6 +84,7 @@ typedef struct control_struct
 }control_t;
 
 typedef struct prov_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
@@ -87,6 +93,7 @@ typedef struct prov_struct{
 }prov_t;
 
 typedef struct unprov_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;

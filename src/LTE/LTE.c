@@ -718,6 +718,7 @@ int16_t parse_json_packet()
 		{
 			case GWY_REG_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
+				gwy_registration_t.json_packet_id = json_packet_id;
 				gwy_registration_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_registration_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				strcpy(gwy_registration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
@@ -726,6 +727,7 @@ int16_t parse_json_packet()
 
 			case GWY_UNREG_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
+				gwy_unregistration_t.json_packet_id = json_packet_id;
 				gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				strcpy(gwy_unregistration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
@@ -735,6 +737,7 @@ int16_t parse_json_packet()
 
 			case GWY_AC_CONTROL_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy AC Control packet\r\n");
+				gwy_ac_control_t.json_packet_id = json_packet_id;
 				gwy_ac_control_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_ac_control_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
@@ -751,6 +754,7 @@ int16_t parse_json_packet()
 
 			case GWY_RECONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
+				gwy_reconfigure_t.json_packet_id = json_packet_id;
 				gwy_reconfigure_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				configured = false;
@@ -758,6 +762,7 @@ int16_t parse_json_packet()
 
 			case NODE_PROV_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Provisioning packet\r\n");
+				provision_t.json_packet_id = json_packet_id;
 				provision_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				provision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				provision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
@@ -768,6 +773,7 @@ int16_t parse_json_packet()
 
 			case NODE_UNPROV_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Unprovisioning packet\r\n");
+				unprovision_t.json_packet_id = json_packet_id;
 				unprovision_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				unprovision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				unprovision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
@@ -776,6 +782,7 @@ int16_t parse_json_packet()
 
 			case NODE_AC_CONTROL_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node AC Control packet\r\n");
+				node_ac_control_t.json_packet_id = json_packet_id;
 				node_ac_control_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				node_ac_control_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				node_ac_control_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
@@ -794,6 +801,7 @@ int16_t parse_json_packet()
 
 			case NODE_RECONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Reconfiguration packet\r\n");
+				node_reconfigure_t.json_packet_id = json_packet_id;
 				node_reconfigure_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				node_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				node_reconfigure_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
@@ -802,6 +810,7 @@ int16_t parse_json_packet()
 
 			case RESET_MQTT:
 				ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
+				gwy_reset_mqtt_t.json_packet_id = json_packet_id;
 				gwy_reset_mqtt_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_reset_mqtt_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				LED_state = LED_STATE_AP_MODE;
