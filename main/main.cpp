@@ -34,21 +34,24 @@ void app_main()
     create_AP_task();
     #endif
 
-   /* while(!mqtt_params_fetched_flag)
+    while(!mqtt_params_fetched_flag)
     {
         ;//Do nothing until we fetch the mqtt params through the AP Mode (for the very first setup alone)
         vTaskDelay(1);
-    }*/
+    }
 
     #if(MESH_PART_ENABLED)
     mesh_main_init();
     #endif
 
     #if(IR_RECV_PART_ENABLED)
-    pthread_t IR_Receiver_tid;
-    if(pthread_create(&IR_Receiver_tid, NULL, IR_receiver_task, NULL)!=0){
-        perror("Error in creating recv_task : ");
-    }
+        ESP_LOGI(DEBUG_TAG, "Creating IR recv task\n");
+        BaseType_t xReturned;
+        TaskHandle_t xHandle = NULL;
+        xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
+                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+        if (xReturned != pdPASS)
+        perror("Error in taskCreate for IR recv task : ");
     #endif
 
     #if(LTE_PART_ENABLED)
@@ -84,10 +87,6 @@ void app_main()
     if(pthread_create(&mqtt_pub_tid, NULL, publish_task, NULL) != 0){
         perror("Error in creating mqtt_publish_thread : ");
     }
-    #endif
-
-    #if(IR_RECV_PART_ENABLED)
-    pthread_join(IR_Receiver_tid, NULL);
     #endif
 
     #if(LED_PART_ENABLED)

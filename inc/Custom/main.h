@@ -10,8 +10,6 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-//#include "..\..\inc\Mesh\sensor_cli.h"
-
 /* General */
 #include <inttypes.h>
 #include <pthread.h>
@@ -63,13 +61,13 @@
 #define IR_RECV_LOG_ENABLED true
 #define IR_SEND_PART_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED false
-#define LTE_PART_ENABLED false
+#define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
 #define AP_PART_ENABLED false
 #define PUBLISHING_ENABLED true
-
+#define TEACHING_PART_ENABLED true
 
 /* GLOBAL VARIABLES */
 extern bool configured;
@@ -77,9 +75,11 @@ extern bool mqtt_connected;
 extern bool registered;
 extern bool needtosend;
 extern bool sending;
+extern bool send_data_to_node;
+extern bool teaching_mode;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;
-extern bool send_data_to_node;
+
 
 #ifdef __cplusplus
 extern "C" {

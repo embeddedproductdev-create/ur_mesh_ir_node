@@ -35,11 +35,13 @@ void *LED_task(void *args)
         vTaskDelay(1);
         if(sending)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
+        else if(teaching_mode)
+            LED_state = LED_STATE_TEACHING_MODE;
         else if(!mqtt_params_fetched_flag)
             LED_state = LED_STATE_AP_MODE;
         else if(!mqtt_connected)
             LED_state = LED_STATE_MQTT_NOT_CONNECTED;
-        if(mqtt_connected && !registered)
+        else if(mqtt_connected && !registered)
             LED_state = LED_STATE_UNREGISTERED;
         else if(mqtt_connected && registered && configured)
             LED_state = LED_STATE_IDLE;
@@ -56,6 +58,13 @@ void *LED_task(void *args)
         {
             case LED_STATE_IDLE: //Solid GREEN
                 digitalWrite(GREEN_LED_PIN, LOW);
+                break;
+
+            case LED_STATE_TEACHING_MODE:
+                digitalWrite(BLUE_LED_PIN, LOW);
+                vTaskDelay(FAST_BLINK_MS);
+                digitalWrite(BLUE_LED_PIN, HIGH);
+                vTaskDelay(FAST_BLINK_MS);
                 break;
 
             case LED_STATE_AP_MODE: // RGB toggle
