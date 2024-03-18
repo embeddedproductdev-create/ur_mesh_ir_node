@@ -29,6 +29,7 @@
 #define OFFTIMER_STR	"OffTimer"
 #define LOCKING_STR 	"Locking"
 #define ERROR_CODE_STR  "ErrorCode"
+#define PUB_CONF_PERIOD_STR "PublishPeriod"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
@@ -101,6 +102,15 @@ typedef struct unprov_struct{
 	char location[LOCATION_STR_LEN];
 }unprov_t;
 
+typedef struct pub_conf_struct{
+	uint8_t json_packet_id;
+	uint16_t msg_seq_no;
+	uint16_t gwy_ser_no;
+	uint16_t node_ser_no;
+	uint8_t elemnt_addr;
+	uint16_t pub_conf_period_in_mins;
+}pub_conf_t;
+
 struct pub_mesg_struct{
 	char message[PUBMESG_LEN];
 	char *topic;
@@ -122,6 +132,8 @@ enum json_packet_enum {
 	NODE_AC_LOCKING_PACKET,
 	NODE_RECONF_PACKET,
 	RESET_MQTT,
+	NODE_PUB_CONF_PACKET,
+	GWY_PUB_CONF_PACKET,
 	UNKNOWN_PACKET = 99
 };
 
@@ -172,6 +184,8 @@ extern control_t node_ac_control_t;
 
 extern reconf_t node_reconfigure_t;
 extern reconf_t gwy_reconfigure_t;
+
+extern pub_conf_t node_pub_conf_t;
 
 extern struct pub_mesg_struct *pubmesg_head_ptr;
 extern struct pub_mesg_struct *pubmesg_tail_ptr;

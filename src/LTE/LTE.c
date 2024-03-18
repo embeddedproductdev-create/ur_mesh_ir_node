@@ -40,6 +40,7 @@ unprov_t unprovision_t;
 reconf_t gwy_reconfigure_t;
 reconf_t node_reconfigure_t;
 mqtt_reset_t gwy_reset_mqtt_t;
+pub_conf_t node_pub_conf_t;
 
 struct pub_mesg_struct *pubmesg_head_ptr = NULL;
 struct pub_mesg_struct *pubmesg_tail_ptr = NULL;
@@ -778,6 +779,7 @@ int16_t parse_json_packet()
 				unprovision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				unprovision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
 				unprovision_t.elemnt_addr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				send_data_to_node = true;
 				break;
 
 			case NODE_AC_CONTROL_PACKET:
@@ -806,7 +808,20 @@ int16_t parse_json_packet()
 				node_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				node_reconfigure_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
 				node_reconfigure_t.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				send_data_to_node = true;
 				break;
+			
+			case NODE_PUB_CONF_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Node Publish configuratoin packet received \r\n");
+				node_pub_conf_t.json_packet_id = json_packet_id;
+				node_pub_conf_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				node_pub_conf_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				node_pub_conf_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				node_pub_conf_t.elemnt_addr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				node_pub_conf_t.pub_conf_period_in_mins = cJSON_GetObjectItem(json_packet_j, PUB_CONF_PERIOD_STR)->valueint;
+				send_data_to_node = true;
+				break;
+
 
 			case RESET_MQTT:
 				ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
@@ -1009,6 +1024,4 @@ void *publish_task(void *args)
 			sleep(1);
 		}
 	}
-
 }
-
