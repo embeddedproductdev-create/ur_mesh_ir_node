@@ -7,14 +7,58 @@
  * @copyright Copyright (c) 2024
  */
 
+/**
+ * Current Button Press types
+ * Single click = Puts the Device into Teaching mode
+ * Double click = Puts the Device into Configuration mode
+ * Long press (3s-6s) = Resets the MQTT connection
+ * Long press (>8s) = Restarts the Device
+ */
+
 #include "../../inc/Custom/button.h"
 #include "../../inc/IR/main_IR.h"
 
 //Initialization - BUTTON
+uint32_t beginTime = 0;
 uint32_t pressedTime = 0;
 uint32_t releasedTime = 0;
 uint32_t pressedduration_ms = 0;
+uint32_t pressed_duration_array[3] = {0,0,0};
+uint8_t pressed_duration_array_index = 0;
 bool esp_restart_flag = false;
+
+void button_logic()
+{
+    if(pressed_duration_array[0]!=0)
+    {
+    if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]==0) //Single press
+    {
+        teaching_mode = true;
+        custom_raw_buffer_index = 0; //Resetting the buffer index for storing data from first
+        ESP_LOGI(DEBUG_TAG, "Start of Teaching mode ...\n");
+    }
+    else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) // Double press
+        configured = false;
+    else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*6) //Button held for 3 to 6 seconds
+        reset_mqtt();
+    else if(pressed_duration_array[0] > ONE_SEC_IN_MS*8) //Button held for 8 seconds straight
+        esp_restart_flag = true;
+    }
+}
+
+void calculate_button_press_time()
+{
+    beginTime = esp_timer_get_time();
+    pressedTime = esp_timer_get_time();
+    while(!digitalRead(USER_SWITCH)) //Do nothing until button is released
+    {
+        vTaskDelay(1);
+        ;
+    }
+    releasedTime = esp_timer_get_time();
+    pressedduration_ms = (releasedTime - pressedTime)/1000;
+    pressed_duration_array[pressed_duration_array_index++] = pressedduration_ms;
+}
 
 /**
  * @brief Thread that handles the Button press
@@ -29,24 +73,18 @@ void *button_task(void *args)
         vTaskDelay(1);
         if(!digitalRead(USER_SWITCH)) //button is pressed
         {
-            pressedTime = esp_timer_get_time();
-            while(!digitalRead(USER_SWITCH)) //Do nothing until button is released
+            calculate_button_press_time();
+            //wait for a second button press within 500ms of first button press
+            while(((esp_timer_get_time()-beginTime)/1000) < HALF_SEC_IN_MS)
             {
-                vTaskDelay(1);
-                ;
+                if(!digitalRead(USER_SWITCH))
+                    calculate_button_press_time();
             }
-            releasedTime = esp_timer_get_time();
-            pressedduration_ms = (releasedTime - pressedTime)/1000;
-            if(pressedduration_ms < LONG_PRESS_1S_MS) //click
-            {
-                teaching_mode = true;
-                custom_raw_buffer_index = 0; //Resetting the buffer index for storing data from first
-                ESP_LOGI(DEBUG_TAG, "Start of Teaching mode ...\n");
-            }
-            else if(pressedduration_ms > LONG_PRESS_1S_MS*3 && pressedduration_ms < LONG_PRESS_1S_MS*6)
-                reset_mqtt();
-            else if(pressedduration_ms > LONG_PRESS_1S_MS*8)
-                esp_restart_flag = true;
         }
+        button_logic();
+
+        //Reset the timings and index
+        pressed_duration_array_index=0;
+        memset(pressed_duration_array, 0, sizeof(pressed_duration_array));
     }
 }

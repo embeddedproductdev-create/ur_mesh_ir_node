@@ -29,6 +29,7 @@
 #define OFFTIMER_STR	"OffTimer"
 #define LOCKING_STR 	"Locking"
 #define ERROR_CODE_STR  "ErrorCode"
+#define PUB_CONF_PERIOD_STR "PublishPeriod"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
@@ -36,26 +37,33 @@
 #define PUBMESG_LEN 300
 #define MQTT_TOPIC_CHAR_LEN 20
 
+#define TEMERATURE_LOWER_LIMIT 18
+#define TEMPERATURE_UPPER_LIMIT 32
+
 /* STRUCTURE DEFINITIONS */
 
 typedef struct mqtt_reset_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 }mqtt_reset_t;
 
 typedef struct gwy_reg_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	char location[LOCATION_STR_LEN];
 }gwy_reg_t;
 
 typedef struct gwy_unreg_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	char location[LOCATION_STR_LEN];
 }gwy_unreg_t;
 
 typedef struct reconf_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
@@ -63,6 +71,7 @@ typedef struct reconf_struct{
 }reconf_t;
 typedef struct control_struct
 {
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
@@ -79,6 +88,7 @@ typedef struct control_struct
 }control_t;
 
 typedef struct prov_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
@@ -87,12 +97,22 @@ typedef struct prov_struct{
 }prov_t;
 
 typedef struct unprov_struct{
+	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
 	uint8_t elemnt_addr;
 	char location[LOCATION_STR_LEN];
 }unprov_t;
+
+typedef struct pub_conf_struct{
+	uint8_t json_packet_id;
+	uint16_t msg_seq_no;
+	uint16_t gwy_ser_no;
+	uint16_t node_ser_no;
+	uint8_t elemnt_addr;
+	uint16_t pub_conf_period_in_mins;
+}pub_conf_t;
 
 struct pub_mesg_struct{
 	char message[PUBMESG_LEN];
@@ -115,6 +135,8 @@ enum json_packet_enum {
 	NODE_AC_LOCKING_PACKET,
 	NODE_RECONF_PACKET,
 	RESET_MQTT,
+	NODE_PUB_CONF_PACKET,
+	GWY_PUB_CONF_PACKET,
 	UNKNOWN_PACKET = 99
 };
 
@@ -136,6 +158,7 @@ enum ERROR_CODES{
 	INVALID_LOCKING_STR,
 	INVALID_NODESERNO_STR,
 	INVALID_ELMNT_ADDR_STR,
+	INVALID_TEMP_VALUE,
 	UNKNOWN_ERROR_CODE = 999
 };
 
@@ -165,6 +188,8 @@ extern control_t node_ac_control_t;
 
 extern reconf_t node_reconfigure_t;
 extern reconf_t gwy_reconfigure_t;
+
+extern pub_conf_t node_pub_conf_t;
 
 extern struct pub_mesg_struct *pubmesg_head_ptr;
 extern struct pub_mesg_struct *pubmesg_tail_ptr;
