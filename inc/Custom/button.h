@@ -14,7 +14,8 @@
 #include "accesspoint.h"
 
 #define USER_SWITCH 12
-#define LONG_PRESS_1S_MS 1000
+#define ONE_SEC_IN_MS 1000
+#define HALF_SEC_IN_MS 500
 
 /* GLOBAL VARIABLES */
 extern bool esp_restart_flag;

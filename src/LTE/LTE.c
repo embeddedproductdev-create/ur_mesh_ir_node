@@ -628,6 +628,12 @@ void error_check_json(uint8_t json_packet_id)
 			else { json_ack_err_code = INVALID_FAN_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
 			else { json_ack_err_code = INVALID_TEMP_STR; return; }
+			uint8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMP_STR)->valueint;
+			if(temperature < TEMERATURE_LOWER_LIMIT || temperature > TEMPERATURE_UPPER_LIMIT)
+			{ 
+				json_ack_err_code = INVALID_TEMP_VALUE; 
+				return;
+			}	
 			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
 			else { json_ack_err_code = INVALID_SWING_H_STR; return; }
 			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));

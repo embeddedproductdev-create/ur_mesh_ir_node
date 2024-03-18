@@ -35,18 +35,18 @@ void *LED_task(void *args)
         vTaskDelay(1);
         if(sending)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
-        else if(teaching_mode)
-            LED_state = LED_STATE_TEACHING_MODE;
         else if(!mqtt_params_fetched_flag)
             LED_state = LED_STATE_AP_MODE;
         else if(!mqtt_connected)
             LED_state = LED_STATE_MQTT_NOT_CONNECTED;
         else if(mqtt_connected && !registered)
             LED_state = LED_STATE_UNREGISTERED;
-        else if(mqtt_connected && registered && configured)
-            LED_state = LED_STATE_IDLE;
+        else if(teaching_mode)
+            LED_state = LED_STATE_TEACHING_MODE;
         else if(mqtt_connected && registered && !configured)
             LED_state = LED_STATE_UNCONFIGURED;
+        else if(mqtt_connected && registered && configured)
+            LED_state = LED_STATE_IDLE;
 
         //LED logics are inverted so HIGH = LOW, LOW = HIGH
         //Turn off LEDs at start
@@ -103,7 +103,7 @@ void *LED_task(void *args)
                 digitalWrite(GREEN_LED_PIN, LOW);
                 digitalWrite(RED_LED_PIN, LOW);
                 digitalWrite(BLUE_LED_PIN, LOW);
-                vTaskDelay(pdMS_TO_TICKS(200));
+                vTaskDelay(pdMS_TO_TICKS(500));
                 break;
 
             default:
