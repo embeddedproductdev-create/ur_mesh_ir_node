@@ -284,6 +284,8 @@ static struct esp_ble_mesh_key
     uint8_t app_key[ESP_BLE_MESH_OCTET16_LEN];
 } prov_key;
 
+prov_det_t provisioned_det={.provisioned=false};
+
 static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
                                             esp_ble_mesh_node_t *node,
                                             esp_ble_mesh_model_t *model, uint32_t opcode)
@@ -836,14 +838,81 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
         break;
     }
 }
+control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
+prov_t vendor_provision_t;
+unprov_t *vendor_unprovision_t;
+reconf_t *vendor_node_reconfigure_t;
+config_t *vendor_node_config_t, node_config_t;
+uint8_t ack_json_id;
+bool send_to_cloud;
+char to_cloud[300];
+static void store_sensor_data(esp_ble_mesh_sensor_client_cb_param_t *param)
+{   char to_cloud[300];
+    printf("json id,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+    switch (param->status_cb.sensor_status.marshalled_sensor_data->data[0])
+    {
+    case NODE_CONF_PACKET:
+        printf("Node conf recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+        vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+        node_config_t = *vendor_node_config_t;
+        ack_json_id = node_config_t.json_pack_id;
 
+        
+        break;
+    case NODE_AC_CONTROL_PACKET:
+        printf("Node AC control ack recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+        vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+        node_ac_control_t = *vendor_node_ac_control_t;
+        ack_json_id = node_ac_control_t.json_packet_id;
+        
+        sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, node_ac_control_t.msg_seq_no,
+				GWYSERNO_STR, node_ac_control_t.gwy_ser_no,
+				POWER_STR, node_ac_control_t.power,
+				MODE_STR, node_ac_control_t.mode_str,
+				FAN_STR, node_ac_control_t.fan,
+				TEMP_STR, node_ac_control_t.temp,
+				SWING_H_STR, node_ac_control_t.swingH,
+				SWING_V_STR, node_ac_control_t.swingV,
+				ONTIMER_STR, node_ac_control_t.OnTimer,
+				OFFTIMER_STR, node_ac_control_t.OffTimer,
+				LOCKING_STR, node_ac_control_t.Locking,
+				ERROR_CODE_STR, json_ack_err_code);
+        add_to_pubmesg_queue(to_cloud, publish_topic);
+
+        break;
+    case NODE_RECONF_PACKET:
+        printf("Node reconf ack recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+        vendor_node_reconfigure_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+        node_reconfigure_t = *vendor_node_reconfigure_t;
+        ack_json_id = node_reconfigure_t.json_packet_id;
+        sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d}",
+			JSON_PACKET_ID, node_reconfigure_t.json_packet_id,
+			MSGSEQNO_STR, node_reconfigure_t.msg_seq_no,
+			GWYSERNO_STR, node_reconfigure_t.gwy_ser_no,
+			ERROR_CODE_STR, json_ack_err_code);
+            add_to_pubmesg_queue(to_cloud, publish_topic);
+        break;
+    case NODE_UNPROV_PACKET:
+        printf("Node unprovisioned ack recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+        vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+        unprovision_t = *vendor_unprovision_t;
+
+        break;
+    default:
+        break;
+    }
+    send_to_cloud = true;
+}
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
                                               esp_ble_mesh_sensor_client_cb_param_t *param)
 {
     esp_ble_mesh_node_t *node = NULL;
 
-    ESP_LOGI(TAG, "Sensor client, event %u, addr 0x%04x", event, param->params->ctx.addr);
-
+    ESP_LOGI(TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
+    // printf("json id,%d",param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+    store_sensor_data(param);
     if (param->error_code)
     {
         ESP_LOGE(TAG, "Send sensor client message failed (err %d)", param->error_code);
@@ -860,6 +929,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
         ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
                            param->status_cb.sensor_status.marshalled_sensor_data->len);
     }
+
     switch (event)
     {
     case ESP_BLE_MESH_SENSOR_CLIENT_GET_STATE_EVT:
@@ -1349,10 +1419,10 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
     esp_ble_mesh_cfg_client_set_state_t set = {0};
     esp_ble_mesh_node_t *node = NULL;
     esp_err_t err;
-
+    provisioned_det.element_address = param->params->ctx.addr;
     ESP_LOGI(TAG, "Config client, err_code %d, event %u, addr 0x%04x, opcode 0x%04" PRIx32,
              param->error_code, event, param->params->ctx.addr, param->params->opcode);
-
+   
     if (param->error_code)
     {
         ESP_LOGE(TAG, "Send config client message failed, opcode 0x%04" PRIx32, param->params->opcode);
@@ -1414,8 +1484,50 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         }
         else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND)
         {
-            ESP_LOGW(TAG, "%s, Provision and config successfully", __func__);
+            uint8_t match[8] = {0xcd, 0xdc};
+            ESP_LOGI(TAG, "%s, Provision and config successfully", __func__);
+            for (uint8_t i = 2; i < 8; i++)
+            {
+                match[i] = 0xff;
+            }
+            err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(provision_t.macid), 0x0, true);
+            //provisioned = 1 
+            provisioned_det.provisioned_node = provision_t;
+            provisioned_det.provisioned = true;
+            ack_json_id = NODE_PROV_PACKET ;
+            send_to_cloud = true;
+            printf("provision %d",provisioned_det.element_address);
+            sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d , %s : %d}",
+
+			JSON_PACKET_ID, provisioned_det.provisioned_node.json_packet_id,
+			MSGSEQNO_STR, provisioned_det.provisioned_node.msg_seq_no,
+			GWYSERNO_STR, provisioned_det.provisioned_node.gwy_ser_no,
+            //MAC_ID_STR, provisioned_det.provisioned_node.macid,
+            ELMNT_ADDR_STR , provisioned_det.element_address,
+			ERROR_CODE_STR, json_ack_err_code);
+            add_to_pubmesg_queue(to_cloud, publish_topic);
+            vTaskDelay(20);
+
         }
+        else if(param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
+        {
+            ESP_LOGI(TAG, " Node reset successfull ");
+            ack_json_id = NODE_UNPROV_PACKET ;
+            send_to_cloud = true;
+
+           
+            sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d , %s : %d}",
+
+			JSON_PACKET_ID, unprovision_t.json_packet_id,
+			MSGSEQNO_STR, unprovision_t.msg_seq_no,
+			GWYSERNO_STR, unprovision_t.gwy_ser_no ,
+            //MAC_ID_STR, provisioned_det.provisioned_node.macid,
+            ELMNT_ADDR_STR , unprovision_t.elemnt_addr,
+			ERROR_CODE_STR, json_ack_err_code);
+            add_to_pubmesg_queue(to_cloud, publish_topic);
+            vTaskDelay(20);
+        }
+        else
         break;
     case ESP_BLE_MESH_CFG_CLIENT_PUBLISH_EVT:
         if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_STATUS)
@@ -1528,7 +1640,8 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         ESP_LOGI(TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
         break;
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
-        ESP_LOGW(TAG, "Client message 0x%06" PRIx32 " timeout", param->client_send_timeout.opcode);
+        // int a=param->model_operation.model->user_data;
+        ESP_LOGW(TAG, "Client message 0x%06" PRIx32 "   timeout  tid 0x%04x", param->client_send_timeout.opcode, store.vnd_tid);
         example_ble_mesh_send_vendor_message(true);
         break;
     default:
@@ -1661,15 +1774,16 @@ void *send_data_task(void *args)
 
         if (send_data_to_node)
         {
+            ESP_LOGI(TAG, "data send to true");
             switch (json_packet_id)
             {
             case NODE_PROV_PACKET:
-                // code dev in progress
+                ESP_LOGI(TAG, "Node provision packet send :");
                 for (uint8_t i = 2; i < 8; i++)
                 {
                     match[i] = provision_t.macid[i - 2];
                 }
-                err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(provision_t.macid), 0x0, true);
+                err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
                 if (err != ESP_OK)
                 {
                     ESP_LOGE(TAG, "Failed to set matching device uuid");
@@ -1678,19 +1792,24 @@ void *send_data_task(void *args)
                 break;
 
             case NODE_UNPROV_PACKET:
-
-                set.model_app_bind.element_addr = unprovision_t.elemnt_addr;
+                ESP_LOGI(TAG, "Node unprovision packet send :");
+                node.unicast_addr = unprovision_t.elemnt_addr;
                 example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
+                set.model_app_bind.element_addr = unprovision_t.elemnt_addr;
+                ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
 
                 set.model_app_bind.model_app_idx = prov_key.app_idx;
 
                 set.model_app_bind.company_id = CID_ESP;
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
-
+                
+                //ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
                 break;
 
             case NODE_AC_CONTROL_PACKET:
+                ESP_LOGI(TAG, "Node AC packet send :");
 
+                // vendor_client.model->user_data= (int)0x75;
                 store.vendor_node_ac_control = node_ac_control_t;
                 store.server_addr = node_ac_control_t.elementAddr;
                 ctx.addr = store.server_addr;
@@ -1705,7 +1824,7 @@ void *send_data_task(void *args)
                 break;
 
             case NODE_RECONF_PACKET:
-
+                ESP_LOGI(TAG, "Node reconfigure packet send :");
                 store.vendor_node_reconfigure_t = node_reconfigure_t;
                 store.server_addr = node_reconfigure_t.elementAddr;
                 ctx.addr = store.server_addr;
