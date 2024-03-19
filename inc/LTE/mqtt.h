@@ -70,6 +70,15 @@ typedef struct gwy_unreg_struct{
 typedef struct reconf_struct{
 	struct base_data_t base_data;
 }reconf_t;
+
+typedef struct config_struct{
+	uint16_t json_pack_id;
+	uint16_t gwy_ser_no;
+	uint16_t node_ser_no;
+	uint8_t elemnt_addr;
+	esp_err_t err;
+}config_t;
+
 typedef struct control_struct
 {
 	struct base_data_t base_data;
@@ -90,6 +99,12 @@ typedef struct prov_struct{
 	struct base_data_t base_data;
 	uint8_t macid[6];
 }prov_t;
+
+typedef struct provisioned_struct{
+	prov_t provisioned_node;
+	uint16_t element_address;
+	bool provisioned; 
+}prov_det_t;
 
 typedef struct unprov_struct{
 	struct base_data_t base_data;
