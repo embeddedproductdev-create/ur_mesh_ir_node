@@ -25,7 +25,7 @@
 #define kMinUnknownSize 12
 #define kTolerancePercentage kTolerance
 
-#define NUM_OF_COMMANDS 16
+#define NUM_OF_COMMANDS 2
 #define NUM_OF_VALUES_PER_COMMAND 600
 
 /* TRANSMITTER */

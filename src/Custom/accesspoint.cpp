@@ -12,7 +12,7 @@
 #include "../../inc/Custom/accesspoint.h"
 
 // Initialization
-#if(AP_MODE_ENABLED)
+#if(AP_PART_ENABLED)
 char mqtt_ip_address[16];
 uint16_t mqtt_port;
 uint8_t mqtt_client_index;
@@ -22,7 +22,7 @@ char mqtt_broker_tabname[30];
 bool mqtt_params_fetched_flag = false;
 #endif
 
-#if(!AP_MODE_ENABLED)
+#if(!AP_PART_ENABLED)
 char mqtt_ip_address[16] = "54.215.188.103";
 uint16_t mqtt_port = 1883;
 uint8_t mqtt_client_index = 3;

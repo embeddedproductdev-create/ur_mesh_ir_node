@@ -19,6 +19,9 @@
  */
 #define SLAVE_ADDR 0x48
 
+/* GLOBAL VARIABLES */
+extern uint8_t measured_temperature;
+
 #ifdef __cplusplus
 extern "C"
 {

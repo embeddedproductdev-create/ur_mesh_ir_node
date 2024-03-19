@@ -39,7 +39,8 @@
     "regex": "cpp",
     "sensor_cli.h": "c",
     "inttypes.h": "c",
-    "string.h": "c"
+    "string.h": "c",
+    "temperature_sensor.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

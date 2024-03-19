@@ -19,9 +19,9 @@
  */
 void app_main()
 {
-    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-    ESP_LOGI(DEBUG_TAG, "APPLICATION STARTED : %d.%d\n",MAJ_VERSION, MIN_VERSION);
-    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGI(DEBUG_TAG, "APPLICATION STARTED : %d.%d",MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
 
     #if(LED_PART_ENABLED)
     pthread_t LED_tid;
@@ -42,6 +42,13 @@ void app_main()
 
     #if(MESH_PART_ENABLED)
     mesh_main_init();
+    #endif
+
+    #if(HEARTBEAT_PART_ENABLED)
+    pthread_t HB_tid;
+    if(pthread_create(&HB_tid, NULL, HeartBeat_task, NULL)!=0){
+        perror("Error in creating HeartBeat_task : ");
+    }
     #endif
 
     #if(IR_RECV_PART_ENABLED)
@@ -87,6 +94,10 @@ void app_main()
     if(pthread_create(&mqtt_pub_tid, NULL, publish_task, NULL) != 0){
         perror("Error in creating mqtt_publish_thread : ");
     }
+    #endif
+
+    #if(HEARTBEAT_PART_ENABLED)
+    pthread_join(HB_tid, NULL);
     #endif
 
     #if(LED_PART_ENABLED)

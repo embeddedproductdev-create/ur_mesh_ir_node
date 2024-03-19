@@ -1,4 +1,5 @@
 set(srcs "main.cpp"
+"../src/Custom/heartbeat.c"
 "../src/Custom/LED.c"
 "../src/Custom/button.cpp"
 "../src/Custom/temperature_sensor.c"

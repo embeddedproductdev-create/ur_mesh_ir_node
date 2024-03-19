@@ -12,6 +12,9 @@
 #include "../../inc/Custom/temperature_sensor.h"
 // #include <Wire.h>
 
+//Initialization
+uint8_t measured_temperature = 0;
+uint32_t lastSentTime = 0;
 /**
  * @brief Function that performs initial I2C setup
  * @param none
@@ -24,6 +27,11 @@ void I2C_inital_setup()
     ;
 }
 
+void get_temperature(uint8_t *temp)
+{
+    *temp = 25;
+}
+
 /**
  * @brief Thread that performs the I2C temperature read communications
  * @param args
@@ -31,36 +39,21 @@ void I2C_inital_setup()
  */
 void *temperature_read(void *args)
 {
-    // uint8_t data_hi = 0, data_lo = 0;
-    // uint16_t temperature_value = 0;
-    // float temperature_in_float = 0.0;
-    // I2C_inital_setup();
-    // Serial.begin(BAUD_RATE);
-    // while(!Serial)
-    //     delay(50);
+    uint32_t timediff = 0;
+    char pubmessage[PUBMESG_LEN];
     while(1)
     {
-    //     Wire.beginTransmission(SLAVE_ADDR); // Begin transmission to the Sensor
-    //     //Ask the particular registers for data
-    //     Wire.write(0X00); //Selecting the Temperature register
-    //     Wire.endTransmission(); // Ends the transmission and transmits the data from the two registers
-
-    //     Wire.requestFrom(SLAVE_ADDR,2); // Request the transmitted two bytes from the two registers
-
-    //     if(Wire.available()<=2) {  //
-    //         data_hi = Wire.read(); // Reads the data from the register
-    //         data_lo = Wire.read();
-    //     }
-    //     printf("Data_hi = %x", data_hi);
-    //     printf("Data_lo = %x", data_lo);
-
-    //     temperature_value |= data_hi;
-    //     temperature_value <<= 8;
-    //     temperature_value |= data_lo;
-    //     printf("Temperature value in int : %d", temperature_value);
-    //     temperature_in_float = *(float *)&temperature_value;
-    //     printf("Temperature value in float : %f", temperature_in_float);
-    vTaskDelay((1));
-    ;
+        //Converting time diff from Usec to Mins
+        timediff = (esp_timer_get_time()-lastSentTime)/60*1000000; 
+        if(timediff > gwy_pub_conf_t.pub_conf_period_in_mins)
+        {
+            lastSentTime = esp_timer_get_time();
+            get_temperature(&measured_temperature);
+            sprintf(pubmessage, "%s : %d, %s : %d, %s : %d",
+            JSON_PACKET_ID, GWY_TEMPERATURE_DATA_PACKET,
+            GWYSERNO_STR, GWY_SER_NO,
+            TEMPERATURE_DATA_STR, measured_temperature);
+            add_to_pubmesg_queue(pubmessage, publish_topic);
+        }
     }
 }

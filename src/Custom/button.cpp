@@ -33,14 +33,18 @@ void button_logic()
     {
     if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]==0) //Single press
     {
+        IR_transmit(DAIKIN216);
+    }
+    else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) // Double press
+    {
+        // configured = false;
         teaching_mode = true;
         custom_raw_buffer_index = 0; //Resetting the buffer index for storing data from first
         ESP_LOGI(DEBUG_TAG, "Start of Teaching mode ...\n");
     }
-    else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) // Double press
-        configured = false;
     else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*6) //Button held for 3 to 6 seconds
-        reset_mqtt();
+        // reset_mqtt();
+        configured = false;
     else if(pressed_duration_array[0] > ONE_SEC_IN_MS*8) //Button held for 8 seconds straight
         esp_restart_flag = true;
     }

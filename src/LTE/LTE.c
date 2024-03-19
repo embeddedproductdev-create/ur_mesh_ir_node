@@ -40,6 +40,7 @@ unprov_t unprovision_t;
 reconf_t gwy_reconfigure_t;
 reconf_t node_reconfigure_t;
 mqtt_reset_t gwy_reset_mqtt_t;
+pub_conf_t gwy_pub_conf_t;
 pub_conf_t node_pub_conf_t;
 
 struct pub_mesg_struct *pubmesg_head_ptr = NULL;
@@ -614,74 +615,87 @@ void error_check_json(uint8_t json_packet_id)
 	switch(json_packet_id)
 	{
 		case GWY_REG_PACKET:
+			if(registered) {json_ack_err_code = GWY_ALREADY_REG; return; }
+			if(cJSON_GetObjectItem(json_packet_j, LOCATION_STR));
+			else { json_ack_err_code = INVALID_LOCATION_STR; return; }
+			return;
+
 		case GWY_UNREG_PACKET:
+			if(!registered) {json_ack_err_code = GWY_ALREADY_UNREG; return; }
 			if(cJSON_GetObjectItem(json_packet_j, LOCATION_STR));
 			else { json_ack_err_code = INVALID_LOCATION_STR; return; }
 			return;
 
 		case GWY_AC_CONTROL_PACKET:
+		case NODE_AC_CONTROL_PACKET:
+			if(json_packet_id == GWY_AC_CONTROL_PACKET)
+			{
+				if(!registered) {json_ack_err_code = GWY_NOT_REG; return;}
+				if(!configured) {json_ack_err_code = GWY_NOT_CONF; return;}
+			}
+			else
+			{
+				if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
+				else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
+			}
 			if(cJSON_GetObjectItem(json_packet_j, POWER_STR));
-			else { json_ack_err_code = INVALID_POWER_STR; return; }
+			else { json_ack_err_code = INVALID_POWER; return; }
 			if(cJSON_GetObjectItem(json_packet_j, MODE_STR));
-			else { json_ack_err_code = INVALID_MODE_STR; return; }
+			else { json_ack_err_code = INVALID_MODE; return; }
 			if(cJSON_GetObjectItem(json_packet_j, FAN_STR));
-			else { json_ack_err_code = INVALID_FAN_STR; return; }
+			else { json_ack_err_code = INVALID_FAN_SPEED; return; }
 			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
-			else { json_ack_err_code = INVALID_TEMP_STR; return; }
+
+			else { json_ack_err_code = INVALID_TEMPERATURE; return; }
 			uint8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMP_STR)->valueint;
-			if(temperature < TEMERATURE_LOWER_LIMIT || temperature > TEMPERATURE_UPPER_LIMIT)
+			if(temperature < TEMPERATURE_LOWER_LIMIT)
 			{ 
-				json_ack_err_code = INVALID_TEMP_VALUE; 
+				json_ack_err_code = EXCEEDING_TEMP_LOWER_LIMIT; 
 				return;
-			}	
+			}
+			if(temperature > TEMPERATURE_UPPER_LIMIT)
+			{
+				json_ack_err_code = EXCEEDING_TEMP_UPPER_LIMIT;
+				return;
+			}
+
 			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
-			else { json_ack_err_code = INVALID_SWING_H_STR; return; }
+			else { json_ack_err_code = INVALID_SWING_H; return; }
 			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));
-			else { json_ack_err_code = INVALID_SWING_V_STR; return; }
+			else { json_ack_err_code = INVALID_SWING_V; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_STR));
-			else { json_ack_err_code = INVALID_ONTIMER_STR; return; }
+			else { json_ack_err_code = INVALID_ONTIMER; return; }
 			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR));
-			else { json_ack_err_code = INVALID_OFFTIMER_STR; return; }
+			else { json_ack_err_code = INVALID_OFFTIMER; return; }
 			if(cJSON_GetObjectItem(json_packet_j, LOCKING_STR));
-			else { json_ack_err_code = INVALID_LOCKING_STR; return; }
+			else { json_ack_err_code = INVALID_LOCKING; return; }
+			
+			if(cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_STR));
+			else { json_ack_err_code = INVALID_TEMP_UPPER_LIMIT; return; }
+			uint8_t temp_upper_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_STR))->valueint;
+			if(temp_upper_limit > TEMPERATURE_UPPER_LIMIT)
+				{ json_ack_err_code = LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT; return; }
+			if(cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_STR));
+			else {json_ack_err_code = INVALID_TEMP_LOWER_LIMIT; return; }
+			uint8_t temp_lower_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_STR))->valueint;
+			if(temp_lower_limit < TEMPERATURE_LOWER_LIMIT)
+				{ json_ack_err_code = LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT; return; }
+			if(temp_lower_limit > temp_upper_limit)
+				{ json_ack_err_code = ILLOGICAL_LOCKING_TEMP_LIMIT; return; }
+
 			return;
 
 		case NODE_PROV_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
-			else { json_ack_err_code = INVALID_NODESERNO_STR; return; }
+			else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
 			return;
 
 		case NODE_UNPROV_PACKET:
 		case NODE_RECONF_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
-			else { json_ack_err_code = INVALID_NODESERNO_STR; return; }
+			else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
-			else { json_ack_err_code = INVALID_ELMNT_ADDR_STR; return; }
-			return;
-
-		case NODE_AC_CONTROL_PACKET:
-			if(cJSON_GetObjectItem(json_packet_j, NODESERNO_STR));
-			else { json_ack_err_code = INVALID_NODESERNO_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
-			else { json_ack_err_code = INVALID_ELMNT_ADDR_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, POWER_STR));
-			else { json_ack_err_code = INVALID_POWER_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, MODE_STR));
-			else { json_ack_err_code = INVALID_MODE_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, FAN_STR));
-			else { json_ack_err_code = INVALID_FAN_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, TEMP_STR));
-			else { json_ack_err_code = INVALID_TEMP_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, SWING_H_STR));
-			else { json_ack_err_code = INVALID_SWING_H_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, SWING_V_STR));
-			else { json_ack_err_code = INVALID_SWING_V_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_STR));
-			else { json_ack_err_code = INVALID_ONTIMER_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR));
-			else { json_ack_err_code = INVALID_OFFTIMER_STR; return; }
-			if(cJSON_GetObjectItem(json_packet_j, LOCKING_STR));
-			else { json_ack_err_code = INVALID_LOCKING_STR; return; }
+			else { json_ack_err_code = INVALID_ELMNT_ADDR; return; }
 			return;
 
 		case RESET_MQTT:
@@ -690,11 +704,85 @@ void error_check_json(uint8_t json_packet_id)
 }
 
 /**
+ * @brief Function that fills the message that needs to be sent as ack to cloud
+ * handles only the Gwy part.
+ * @param none
+ * @retval none
+ */
+void handle_sending_ack_to_cloud()
+{
+	char pubmessage[PUBMESG_LEN];
+	switch(json_packet_id)
+	{
+		case GWY_REG_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_registration_t.base_data.msg_seq_no,
+				GWYSERNO_STR, gwy_registration_t.base_data.gwy_ser_no,
+				LOCATION_STR, gwy_registration_t.base_data.location,
+				ERROR_CODE_STR, json_ack_err_code);
+			break;
+
+		case GWY_UNREG_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_unregistration_t.base_data.msg_seq_no,
+				GWYSERNO_STR, gwy_unregistration_t.base_data.gwy_ser_no,
+				LOCATION_STR, gwy_unregistration_t.base_data.location,
+				ERROR_CODE_STR, json_ack_err_code);
+			break;
+
+		case GWY_AC_CONTROL_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_ac_control_t.base_data.msg_seq_no,
+				GWYSERNO_STR, gwy_ac_control_t.base_data.gwy_ser_no,
+				POWER_STR, gwy_ac_control_t.power,
+				MODE_STR, gwy_ac_control_t.mode_str,
+				FAN_STR, gwy_ac_control_t.fan,
+				TEMP_STR, gwy_ac_control_t.temp,
+				SWING_H_STR, gwy_ac_control_t.swingH,
+				SWING_V_STR, gwy_ac_control_t.swingV,
+				ONTIMER_STR, gwy_ac_control_t.OnTimer,
+				OFFTIMER_STR, gwy_ac_control_t.OffTimer,
+				LOCKING_STR, gwy_ac_control_t.Locking,
+				ERROR_CODE_STR, json_ack_err_code);
+			break;
+
+		case GWY_RECONF_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_reconfigure_t.base_data.msg_seq_no,
+				GWYSERNO_STR, gwy_reconfigure_t.base_data.gwy_ser_no,
+				ERROR_CODE_STR, json_ack_err_code);
+			break;
+
+		case RESET_MQTT:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_reset_mqtt_t.base_data.msg_seq_no,
+				GWYSERNO_STR, gwy_reset_mqtt_t.base_data.gwy_ser_no,
+				ERROR_CODE_STR, json_ack_err_code);
+			break;
+		
+		case GWY_PUB_CONF_PACKET:
+			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, json_packet_id,
+				MSGSEQNO_STR, gwy_pub_conf_t.base_data.msg_seq_no,
+				GWYSERNO_STR, gwy_pub_conf_t.base_data.gwy_ser_no,
+				PUB_CONF_PERIOD_STR, gwy_pub_conf_t.pub_conf_period_in_mins,
+				ERROR_CODE_STR, json_ack_err_code);
+			break;
+	}
+	add_to_pubmesg_queue(pubmessage, publish_topic);
+}
+
+/**
  * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
  * @param None
  * @retval Error code
  */
-int16_t parse_json_packet()
+void parse_json_packet()
 {
 	/**
 	 * First get the json packet
@@ -713,10 +801,8 @@ int16_t parse_json_packet()
 	else
 	{
 		json_ack_err_code = INVALID_JSON_PACKET_ID;
-		return json_ack_err_code;
+		return;
 	}
-
-	char pubmessage[PUBMESG_LEN];
 
 	error_check_json(json_packet_id);
 	if(json_ack_err_code == SUCCESS)
@@ -725,28 +811,32 @@ int16_t parse_json_packet()
 		{
 			case GWY_REG_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
-				gwy_registration_t.json_packet_id = json_packet_id;
-				gwy_registration_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_registration_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				strcpy(gwy_registration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
+				gwy_registration_t.base_data.json_packet_id = json_packet_id;
+				gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_registration_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
 				registered = true;
 				break;
 
 			case GWY_UNREG_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
-				gwy_unregistration_t.json_packet_id = json_packet_id;
-				gwy_unregistration_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_unregistration_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				strcpy(gwy_unregistration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
+				gwy_unregistration_t.base_data.json_packet_id = json_packet_id;
+				gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_unregistration_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
 				registered = false;
 				configured = false;
 				break;
 
 			case GWY_AC_CONTROL_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy AC Control packet\r\n");
-				gwy_ac_control_t.json_packet_id = json_packet_id;
-				gwy_ac_control_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_ac_control_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				//filling the default values for temp up and low limit
+				gwy_ac_control_t.TempLowLimit = TEMPERATURE_LOWER_LIMIT;
+				gwy_ac_control_t.TempUpLimit = TEMPERATURE_UPPER_LIMIT;
+
+				gwy_ac_control_t.base_data.json_packet_id = json_packet_id;
+				gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_ac_control_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
 				strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
 				gwy_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_STR)->valueint;
@@ -756,45 +846,56 @@ int16_t parse_json_packet()
 				gwy_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_STR)->valueint;
 				gwy_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR)->valueint;
 				gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, LOCKING_STR)->valueint;
+				gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_STR)->valueint;
+				gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_STR)->valueint;
 				if(configured) needtosend = true;
+				else ESP_LOGE(ERROR_TAG, "Gwy not configured yet, Can't control AC\r\n");
 				break;
 
 			case GWY_RECONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
-				gwy_reconfigure_t.json_packet_id = json_packet_id;
-				gwy_reconfigure_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				gwy_reconfigure_t.base_data.json_packet_id = json_packet_id;
+				gwy_reconfigure_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_reconfigure_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				configured = false;
+				break;
+
+			case GWY_PUB_CONF_PACKET:
+				ESP_LOGI(DEBUG_TAG, "Gwy Publish configuration packet\r\n");
+				gwy_pub_conf_t.base_data.json_packet_id = json_packet_id;
+				gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_pub_conf_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				gwy_pub_conf_t.pub_conf_period_in_mins = cJSON_GetObjectItem(json_packet_j, PUB_CONF_PERIOD_STR)->valueint;
 				break;
 
 			case NODE_PROV_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Provisioning packet\r\n");
-				provision_t.json_packet_id = json_packet_id;
-				provision_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				provision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				provision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
-				strcpy(provision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
+				provision_t.base_data.json_packet_id = json_packet_id;
+				provision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				provision_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				provision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				strcpy(provision_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
 				fill_macid();
 				send_data_to_node = true;
 				break;
 
 			case NODE_UNPROV_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Unprovisioning packet\r\n");
-				unprovision_t.json_packet_id = json_packet_id;
-				unprovision_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				unprovision_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				unprovision_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
-				unprovision_t.elemnt_addr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				unprovision_t.base_data.json_packet_id = json_packet_id;
+				unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				unprovision_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				unprovision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				unprovision_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
 				send_data_to_node = true;
 				break;
 
 			case NODE_AC_CONTROL_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node AC Control packet\r\n");
-				node_ac_control_t.json_packet_id = json_packet_id;
-				node_ac_control_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				node_ac_control_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				node_ac_control_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
-				node_ac_control_t.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				node_ac_control_t.base_data.json_packet_id = json_packet_id;
+				node_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				node_ac_control_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				node_ac_control_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				node_ac_control_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
 				node_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
 				strcpy(node_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
 				node_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_STR)->valueint;
@@ -804,26 +905,28 @@ int16_t parse_json_packet()
 				node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_STR)->valueint;
 				node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_STR)->valueint;
 				node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, LOCKING_STR)->valueint;
+				node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_STR)->valueint;
+				node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_STR)->valueint;
 				send_data_to_node = true;
 				break;
 
 			case NODE_RECONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Reconfiguration packet\r\n");
-				node_reconfigure_t.json_packet_id = json_packet_id;
-				node_reconfigure_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				node_reconfigure_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				node_reconfigure_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
-				node_reconfigure_t.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				node_reconfigure_t.base_data.json_packet_id = json_packet_id;
+				node_reconfigure_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				node_reconfigure_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				node_reconfigure_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				node_reconfigure_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
 				send_data_to_node = true;
 				break;
 			
 			case NODE_PUB_CONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Node Publish configuratoin packet received \r\n");
-				node_pub_conf_t.json_packet_id = json_packet_id;
-				node_pub_conf_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				node_pub_conf_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				node_pub_conf_t.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
-				node_pub_conf_t.elemnt_addr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
+				node_pub_conf_t.base_data.json_packet_id = json_packet_id;
+				node_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				node_pub_conf_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				node_pub_conf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
+				node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
 				node_pub_conf_t.pub_conf_period_in_mins = cJSON_GetObjectItem(json_packet_j, PUB_CONF_PERIOD_STR)->valueint;
 				send_data_to_node = true;
 				break;
@@ -831,11 +934,19 @@ int16_t parse_json_packet()
 
 			case RESET_MQTT:
 				ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
-				gwy_reset_mqtt_t.json_packet_id = json_packet_id;
-				gwy_reset_mqtt_t.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
-				gwy_reset_mqtt_t.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				LED_state = LED_STATE_AP_MODE;
-				reset_mqtt();
+				gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
+				gwy_reset_mqtt_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
+				gwy_reset_mqtt_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
+				#if(AP_PART_ENABLED)
+					LED_state = LED_STATE_AP_MODE;
+					reset_mqtt();
+				#endif
+				#if(!AP_PART_ENABLED)
+					ESP_LOGE(ERROR_TAG, "AP mode is not enabled. So skipping rest of MQTT\r\n");
+				#endif
+				break;
+			
+			case HEARTBEAT_CONF_PACKET:
 				break;
 
 			default:
@@ -843,52 +954,7 @@ int16_t parse_json_packet()
 		}
 	}
 	printf("Error code after storing details in structure : %d\n",json_ack_err_code);
-	switch(json_packet_id)
-	{
-		case GWY_REG_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
-				JSON_PACKET_ID, json_packet_id,
-				MSGSEQNO_STR, gwy_registration_t.msg_seq_no,
-				GWYSERNO_STR, gwy_registration_t.gwy_ser_no,
-				LOCATION_STR, gwy_registration_t.location,
-				ERROR_CODE_STR, json_ack_err_code);
-			break;
-
-		case GWY_UNREG_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
-				JSON_PACKET_ID, json_packet_id,
-				MSGSEQNO_STR, gwy_unregistration_t.msg_seq_no,
-				GWYSERNO_STR, gwy_unregistration_t.gwy_ser_no,
-				LOCATION_STR, gwy_unregistration_t.location,
-				ERROR_CODE_STR, json_ack_err_code);
-			break;
-
-		case GWY_AC_CONTROL_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID, json_packet_id,
-				MSGSEQNO_STR, gwy_ac_control_t.msg_seq_no,
-				GWYSERNO_STR, gwy_ac_control_t.gwy_ser_no,
-				POWER_STR, gwy_ac_control_t.power,
-				MODE_STR, gwy_ac_control_t.mode_str,
-				FAN_STR, gwy_ac_control_t.fan,
-				TEMP_STR, gwy_ac_control_t.temp,
-				SWING_H_STR, gwy_ac_control_t.swingH,
-				SWING_V_STR, gwy_ac_control_t.swingV,
-				ONTIMER_STR, gwy_ac_control_t.OnTimer,
-				OFFTIMER_STR, gwy_ac_control_t.OffTimer,
-				LOCKING_STR, gwy_ac_control_t.Locking,
-				ERROR_CODE_STR, json_ack_err_code);
-			break;
-
-		case GWY_RECONF_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d}",
-			JSON_PACKET_ID, json_packet_id,
-			MSGSEQNO_STR, gwy_reconfigure_t.msg_seq_no,
-			GWYSERNO_STR, gwy_reconfigure_t.gwy_ser_no,
-			ERROR_CODE_STR, json_ack_err_code);
-	}
-	add_to_pubmesg_queue(pubmessage, publish_topic);
-	return json_ack_err_code;
+	handle_sending_ack_to_cloud();
 }
 
 /**
@@ -1003,9 +1069,7 @@ void *LTE_task(void *args)
 				if(strlen(json_packet) > 5)
 				{
 					// ESP_LOGI(DEBUG_TAG, json_packet);
-					if(parse_json_packet()==SUCCESS);
-					else
-						ESP_LOGI(ERROR_TAG, "Error code : %d", json_ack_err_code);
+					parse_json_packet();
 					memset(json_packet, 0, sizeof(json_packet));
 				}
 			}

@@ -28,8 +28,11 @@
 #define ONTIMER_STR		"OnTimer"
 #define OFFTIMER_STR	"OffTimer"
 #define LOCKING_STR 	"Locking"
-#define ERROR_CODE_STR  "ErrorCode"
 #define PUB_CONF_PERIOD_STR "PublishPeriod"
+#define TEMP_LOW_LIMIT_STR "TempLowLimit"
+#define TEMP_UP_LIMIT_STR "TempUpLimit"
+#define ERROR_CODE_STR  "ErrorCode" 
+#define TEMPERATURE_DATA_STR "MeasuredTemperature"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
@@ -37,45 +40,39 @@
 #define PUBMESG_LEN 300
 #define MQTT_TOPIC_CHAR_LEN 20
 
-#define TEMERATURE_LOWER_LIMIT 18
+#define TEMPERATURE_LOWER_LIMIT 18
 #define TEMPERATURE_UPPER_LIMIT 32
 
 /* STRUCTURE DEFINITIONS */
 
-typedef struct mqtt_reset_struct{
+struct base_data_t{
 	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
+	uint16_t node_ser_no;
+	uint16_t elementAddr;
+	uint16_t error_code;
+	char location[LOCATION_STR_LEN];
+};
+
+typedef struct mqtt_reset_struct{
+	struct base_data_t base_data;
 }mqtt_reset_t;
 
 typedef struct gwy_reg_struct{
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	char location[LOCATION_STR_LEN];
+	struct base_data_t base_data;
 }gwy_reg_t;
 
 typedef struct gwy_unreg_struct{
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	char location[LOCATION_STR_LEN];
+	struct base_data_t base_data;
 }gwy_unreg_t;
 
 typedef struct reconf_struct{
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
-	uint16_t elementAddr;
+	struct base_data_t base_data;
 }reconf_t;
 typedef struct control_struct
 {
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
-	uint16_t elementAddr;
+	struct base_data_t base_data;
 	bool power;
 	char mode_str[15];
 	uint8_t fan;
@@ -85,34 +82,32 @@ typedef struct control_struct
 	uint16_t OnTimer;
 	uint16_t OffTimer;
 	bool Locking;
+	uint8_t TempUpLimit;
+	uint8_t TempLowLimit;
 }control_t;
 
 typedef struct prov_struct{
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
+	struct base_data_t base_data;
 	uint8_t macid[6];
-	char location[LOCATION_STR_LEN];
 }prov_t;
 
 typedef struct unprov_struct{
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
-	uint8_t elemnt_addr;
-	char location[LOCATION_STR_LEN];
+	struct base_data_t base_data;
 }unprov_t;
 
 typedef struct pub_conf_struct{
-	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
-	uint8_t elemnt_addr;
+	struct base_data_t base_data;
 	uint16_t pub_conf_period_in_mins;
 }pub_conf_t;
+
+typedef struct temperature_data_struct{
+	struct base_data_t base_data;
+	uint8_t measured_temperature;
+}temperature_data_t;
+
+typedef struct HB_data_struct{
+	struct base_data_t base_data;
+}HB_data_t;
 
 struct pub_mesg_struct{
 	char message[PUBMESG_LEN];
@@ -128,37 +123,68 @@ enum json_packet_enum {
 	GWY_AC_CONTROL_PACKET,
 	GWY_AC_LOCKING_PACKET,
 	GWY_RECONF_PACKET,
+	GWY_TEMPERATURE_DATA_PACKET,
+	GWY_PUB_CONF_PACKET,
 	NODE_PROV_PACKET,
 	NODE_CONF_PACKET,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
 	NODE_AC_LOCKING_PACKET,
 	NODE_RECONF_PACKET,
-	RESET_MQTT,
+	NODE_TEMPERATURE_DATA_PACKET,
 	NODE_PUB_CONF_PACKET,
-	GWY_PUB_CONF_PACKET,
+	RESET_MQTT,
+	HEARTBEAT_PACKET_TO_CLOUD,
+	HEARTBEAT_CONF_PACKET,
 	UNKNOWN_PACKET = 99
 };
 
 enum ERROR_CODES{
+
+	//Basic
 	FAILURE = -1,
 	SUCCESS,
 	INVALID_JSON_PACKET_ID,
 	INVALID_MSG_SEQ_NO,
 	INVALID_GWY_SER_NO,
+	INVALID_NODE_SER_NO,
 	INVALID_LOCATION_STR,
-	INVALID_POWER_STR,
-	INVALID_MODE_STR,
-	INVALID_FAN_STR,
-	INVALID_TEMP_STR,
-	INVALID_SWING_H_STR,
-	INVALID_SWING_V_STR,
-	INVALID_ONTIMER_STR,
-	INVALID_OFFTIMER_STR,
-	INVALID_LOCKING_STR,
-	INVALID_NODESERNO_STR,
-	INVALID_ELMNT_ADDR_STR,
-	INVALID_TEMP_VALUE,
+	NODE_TIMEOUT,
+
+	//Gwy Registration & Unregistration
+	GWY_ALREADY_REG = 100,
+	GWY_ALREADY_UNREG,
+
+	//Node Prov & Unprov
+	NODE_ALREADY_PROV = 200,
+	NODE_ALREADY_UNPROV,
+	
+	//Gwy AC config & Node AC config
+	//Gwy AC reconf & Node AC reconf
+	GWY_ALREADY_UNCONF = 300,
+	NODE_ALREADY_UNCONF,
+
+	//Gwy AC control & Node AC control
+	GWY_NOT_REG = 400,
+	GWY_NOT_CONF,
+	INVALID_POWER,
+	INVALID_MODE,
+	INVALID_FAN_SPEED,
+	INVALID_TEMPERATURE,
+	INVALID_SWING_H,
+	INVALID_SWING_V,
+	INVALID_ONTIMER,
+	INVALID_OFFTIMER,
+	INVALID_LOCKING,
+	INVALID_TEMP_UPPER_LIMIT,
+	INVALID_TEMP_LOWER_LIMIT,
+	LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT,
+	LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT,
+	ILLOGICAL_LOCKING_TEMP_LIMIT,
+	INVALID_ELMNT_ADDR,
+	EXCEEDING_TEMP_LOWER_LIMIT,
+	EXCEEDING_TEMP_UPPER_LIMIT,
+
 	UNKNOWN_ERROR_CODE = 999
 };
 
@@ -186,9 +212,19 @@ extern unprov_t unprovision_t;
 extern control_t gwy_ac_control_t;
 extern control_t node_ac_control_t;
 
+extern reconf_t node_conf_t;
+extern reconf_t gwy_conf_t;
+
 extern reconf_t node_reconfigure_t;
 extern reconf_t gwy_reconfigure_t;
 
+extern temperature_data_t gwy_temperature_data_t;
+extern temperature_data_t node_temperature_data_t;
+
+extern HB_data_t gwy_HB_data_t;
+extern HB_data_t node_HB_data_t;
+
+extern pub_conf_t gwy_pub_conf_t;
 extern pub_conf_t node_pub_conf_t;
 
 extern struct pub_mesg_struct *pubmesg_head_ptr;
@@ -211,9 +247,10 @@ extern bool mqtt_params_fetched_flag;
 extern bool publishing_flag;
 
 /* FUNCTION DECLARATIONS */
-int16_t parse_json_packet(void);
+void parse_json_packet(void);
 void fill_macid(void);
 int8_t publish_to_mqtt();
+void handle_sending_ack_to_cloud();
 
 #ifdef __cplusplus
 extern "C" {

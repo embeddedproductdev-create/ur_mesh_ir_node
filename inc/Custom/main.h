@@ -48,6 +48,7 @@
 /* Custom */
 #include "LED.h"
 #include "temperature_sensor.h"
+#include "heartbeat.h"
 
 #define TAG "UART"
 #define DEBUG_TAG "[DEBUG] : "
@@ -60,7 +61,7 @@
 #define IR_RECV_PART_ENABLED true
 #define IR_RECV_LOG_ENABLED true
 #define IR_SEND_PART_ENABLED true
-#define TEMPERATURE_SENSOR_PART_ENABLED false
+#define TEMPERATURE_SENSOR_PART_ENABLED true
 #define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
@@ -68,6 +69,7 @@
 #define AP_PART_ENABLED false
 #define PUBLISHING_ENABLED true
 #define TEACHING_PART_ENABLED true
+#define HEARTBEAT_PART_ENABLED true
 
 /* GLOBAL VARIABLES */
 extern bool configured;

@@ -36,7 +36,30 @@ IRVoltas ac_voltas(IR_TRANSMIT_PIN);
 IRsend custom_ac(IR_TRANSMIT_PIN);
 
 /**
+ * @brief Function that deals with the locking feature
+ * If locking is enabled, then it checks if the set temperature was within locking limits, if not it will
+ * set the ac back to prev state.
+ * If locking is not enabled, then it will send ack to cloud to let user know that someone controlled AC with remote
+ * @param result_description_char_str - String containing info about AC remote control
+ * @retval none
+ */
+void locking_feature(char *result_description_char_str)
+{
+    uint8_t temperature = 0;
+    if(protocol_detected == protocol_selected_num) //Someone tried to control AC
+    {
+        if(temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit)
+        {
+            //Someone controlled the AC using remote with exceeding temperature limits
+            IR_transmit(protocol_selected_num);
+        }
+        add_to_pubmesg_queue(result_description_char_str, publish_topic);
+    }
+}
+
+/**
  * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
+ * also takes care of the IR transmission part.
  * @param args
  * @return void*
  */
@@ -52,7 +75,6 @@ void IR_receiver_task(void *args)
     irrecv.setUnknownThreshold(kMinUnknownSize);
     irrecv.setTolerance(kTolerancePercentage);
     irrecv.enableIRIn();
-
     while(1)
     {
         if(needtosend)
@@ -62,19 +84,6 @@ void IR_receiver_task(void *args)
         vTaskDelay(1);
         if (irrecv.decode(&results))
         {
-            for(uint16_t index=0; index<583; index++)
-            {
-                printf("%d ",results.rawbuf[index]);
-            }
-            printf("\n");
-            // #if(IR_RECV_LOG_ENABLED)
-            //     // Serial.println(D_STR_TIMESTAMP " : %06lu.%03lu\n", now / 1000, now % 1000);
-            //     if(results.overflow);
-            //         // Serial.println(D_WARN_BUFFERFULL "\n", RECV_BUFFER_SIZE);
-            //     // Serial.println(D_STR_LIBRARY "   : v" _IRREMOTEESP8266_VERSION_STR "\n");
-            //     if (kTolerancePercentage != kTolerance)
-            //         Serial.printf(D_STR_TOLERANCE " : %d%%\n", kTolerancePercentage);
-            // #endif
             char raw_buf_str[200];
             strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
             String description = IRAcUtils::resultAcToString(&results);
@@ -91,17 +100,19 @@ void IR_receiver_task(void *args)
 
             if(teaching_mode)
             {
-                for(uint16_t index=0; index<NUM_OF_VALUES_PER_COMMAND; index++)
+                if(custom_raw_buffer_index != NUM_OF_COMMANDS)
                 {
-                    custom_raw_buffer[custom_raw_buffer_index][index] = results.rawbuf[index];
-                    printf("{%d} ",custom_raw_buffer[custom_raw_buffer_index][index]);
+                    for(uint16_t i=0;i<600;i++)
+                    {
+                        custom_raw_buffer[custom_raw_buffer_index][i] = results.rawbuf[i];
+                    }
+                    custom_raw_buffer_index++;
+
                 }
-                printf("\n");
-                custom_raw_buffer_index++;
-                if(custom_raw_buffer_index == NUM_OF_COMMANDS)
+                else
                 {
-                    teaching_mode = false;
                     ESP_LOGI(DEBUG_TAG,"End of Teaching mode \n");
+                    teaching_mode = false;
                 }
             }
 
@@ -111,17 +122,13 @@ void IR_receiver_task(void *args)
                 protocol_selected_num = protocol_detected;
                 char pubmessage[PUBMESG_LEN];
                 sprintf(pubmessage, "%s : %d, %s : %d, %s : %d",
-                JSON_PACKET_ID, 1,
+                JSON_PACKET_ID, GWY_CONF_PACKET,
                 GWYSERNO_STR, GWY_SER_NO,
                 ERROR_CODE_STR, json_ack_err_code);
                 add_to_pubmesg_queue(pubmessage, publish_topic);
             }
-            if(protocol_detected == protocol_selected_num) //Someone tried to control AC
-                add_to_pubmesg_queue(result_description_char_str, publish_topic);
-
-            yield();
-            Serial.println(resultToSourceCode(&results));
-            Serial.println();
+            if(gwy_ac_control_t.Locking)
+                locking_feature(result_description_char_str);
             yield();
         }
     }
@@ -140,6 +147,7 @@ void IR_transmit_setup()
     ac_daikin216.begin();
     ac_daikin280.begin();
     ac_hitachi296.begin();
+    custom_ac.begin();
 }
 
 uint8_t get_mode_num()
@@ -170,18 +178,36 @@ void IR_transmit(uint16_t protocol_selected_num)
             break;
 
         case DAIKIN216:
-            strcpy(protocol_chosen_str, "Daikin216");
-            ac_daikin216.setPower(gwy_ac_control_t.power);
-            ac_daikin216.setTemp(gwy_ac_control_t.temp);
-            if(gwy_ac_control_t.swingH) gwy_ac_control_t.swingH = kDaikinSwingOn;
-            ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
-            if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
-            ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
-            ac_daikin216.setFan(gwy_ac_control_t.fan);
-            ac_daikin216.setMode(get_mode_num());
-            sending = true;
-            ac_daikin216.send();
             printf("Sending Daikin216\n");
+            strcpy(protocol_chosen_str, "Daikin216");
+            // ac_daikin216.setPower(gwy_ac_control_t.power);
+            // ac_daikin216.setTemp(gwy_ac_control_t.temp);
+            // if(gwy_ac_control_t.swingH) gwy_ac_control_t.swingH = kDaikinSwingOn;
+            // ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
+            // if(gwy_ac_control_t.swingV) gwy_ac_control_t.swingV = kDaikinSwingOn;
+            // ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
+            // ac_daikin216.setFan(gwy_ac_control_t.fan);
+            // ac_daikin216.setMode(get_mode_num());
+            // sending = true;
+            // ac_daikin216.send();
+            // printf("Sending Daikin216\n");
+            // ac_daikin216.send();
+            // sleep(2);
+            for(uint16_t i=0; i<600; i++)
+            {
+                printf("%d ",custom_raw_buffer[0][i]);
+            }
+            printf("\n");
+            sending=true;
+            custom_ac.sendRaw(custom_raw_buffer[0],NUM_OF_VALUES_PER_COMMAND, 41);
+            sleep(2);
+            for(uint16_t i=0; i<600; i++)
+            {
+                printf("%d ",custom_raw_buffer[1][i]);
+            }
+            printf("\n");
+            custom_ac.sendRaw(custom_raw_buffer[1],NUM_OF_VALUES_PER_COMMAND, 41);
+            sleep(2);
             break;
 
         case HITACHI_AC296:

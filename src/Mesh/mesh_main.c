@@ -1679,7 +1679,7 @@ void *send_data_task(void *args)
 
             case NODE_UNPROV_PACKET:
 
-                set.model_app_bind.element_addr = unprovision_t.elemnt_addr;
+                set.model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
                 example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
 
                 set.model_app_bind.model_app_idx = prov_key.app_idx;
@@ -1692,7 +1692,7 @@ void *send_data_task(void *args)
             case NODE_AC_CONTROL_PACKET:
 
                 store.vendor_node_ac_control = node_ac_control_t;
-                store.server_addr = node_ac_control_t.elementAddr;
+                store.server_addr = node_ac_control_t.base_data.elementAddr;
                 ctx.addr = store.server_addr;
                 err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
                                                          sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);
@@ -1707,7 +1707,7 @@ void *send_data_task(void *args)
             case NODE_RECONF_PACKET:
 
                 store.vendor_node_reconfigure_t = node_reconfigure_t;
-                store.server_addr = node_reconfigure_t.elementAddr;
+                store.server_addr = node_reconfigure_t.base_data.elementAddr;
                 ctx.addr = store.server_addr;
                 err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
                                                          sizeof(store.vendor_node_reconfigure_t), (uint8_t *)&store.vendor_node_reconfigure_t, MSG_TIMEOUT, true, MSG_ROLE);
