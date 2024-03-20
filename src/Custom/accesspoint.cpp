@@ -32,8 +32,6 @@ char mqtt_broker_tabname[30] = "AC_IR_CONTROL";
 bool mqtt_params_fetched_flag = true;
 #endif
 
-uint16_t GWY_SER_NO = 1;
-
 /* IP Address details */
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);

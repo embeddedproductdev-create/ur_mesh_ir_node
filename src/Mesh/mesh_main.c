@@ -65,12 +65,15 @@
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_sensor_model_api.h"
 
-// #include "ble_mesh_example_init.h"
-// #include "board.h"
-
-#define TAG "EXAMPLE"
-
-#define TAG "EXAMPLE_NVS"
+control_t *vendor_node_ac_control_t;
+control_t *vendor_node_ac_locking_t;
+prov_t vendor_provision_t;
+unprov_t *vendor_unprovision_t;
+reconf_t *vendor_node_reconf_t;
+reconf_t *vendor_node_config_t, node_conf_t;
+temperature_data_t *vendor_node_temperature_data_t;
+HB_data_t *vendor_node_HB_data_t;
+pub_conf_t *vendor_node_pub_conf_t;
 
 #define NVS_NAME "mesh_example"
 
@@ -257,14 +260,6 @@ esp_err_t ble_mesh_nvs_erase(nvs_handle_t handle, const char *key)
 #define SENSOR_PROPERTY_ID_0 0x0056 /* Present Indoor Ambient Temperature */
 #define SENSOR_PROPERTY_ID_1 0x005B /* Present Outdoor Ambient Temperature */
 
-/* The characteristic of the two device properties is "Temperature 8", which is
- * used to represent a measure of temperature with a unit of 0.5 degree Celsius.
- * Minimum value: -64.0, maximum value: 63.5.
- * A value of 0xFF represents 'value is not known'.
- */
-static int8_t indoor_temp = 40;  /* Indoor temperature is 20 Degrees Celsius */
-static int8_t outdoor_temp = 60; /* Outdoor temperature is 30 Degrees Celsius */
-
 #define SENSOR_POSITIVE_TOLERANCE ESP_BLE_MESH_SENSOR_UNSPECIFIED_POS_TOLERANCE
 #define SENSOR_NEGATIVE_TOLERANCE ESP_BLE_MESH_SENSOR_UNSPECIFIED_NEG_TOLERANCE
 #define SENSOR_SAMPLE_FUNCTION ESP_BLE_MESH_SAMPLE_FUNC_UNSPECIFIED
@@ -284,8 +279,6 @@ static struct esp_ble_mesh_key
     uint8_t app_key[ESP_BLE_MESH_OCTET16_LEN];
 } prov_key;
 
-prov_det_t provisioned_det={.provisioned=false};
-
 static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
                                             esp_ble_mesh_node_t *node,
                                             esp_ble_mesh_model_t *model, uint32_t opcode)
@@ -300,19 +293,6 @@ static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *
     common->msg_timeout = MSG_TIMEOUT;
     common->msg_role = MSG_ROLE;
 }
-
-static esp_ble_mesh_cfg_srv_t config_server = {
-    .beacon = ESP_BLE_MESH_BEACON_DISABLED,
-#if defined(CONFIG_BLE_MESH_FRIEND)
-    .friend_state = ESP_BLE_MESH_FRIEND_ENABLED,
-#else
-    .friend_state = ESP_BLE_MESH_FRIEND_NOT_SUPPORTED,
-#endif
-    .default_ttl = 7,
-    /* 3 transmissions with 20ms interval */
-    .net_transmit = ESP_BLE_MESH_TRANSMIT(2, 20),
-    .relay_retransmit = ESP_BLE_MESH_TRANSMIT(2, 20),
-};
 
 static esp_ble_mesh_client_t config_client;
 static esp_ble_mesh_client_t sensor_client;
@@ -838,72 +818,71 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
         break;
     }
 }
-control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
-prov_t vendor_provision_t;
-unprov_t *vendor_unprovision_t;
-reconf_t *vendor_node_reconfigure_t;
-config_t *vendor_node_config_t, node_config_t;
-uint8_t ack_json_id;
-bool send_to_cloud;
-char to_cloud[300];
-static void store_sensor_data(esp_ble_mesh_sensor_client_cb_param_t *param)
-{   char to_cloud[300];
-    printf("json id,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-    switch (param->status_cb.sensor_status.marshalled_sensor_data->data[0])
+
+static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t *param)
+{
+    uint8_t recvd_json_id = param->status_cb.sensor_status.marshalled_sensor_data->data[0];
+    switch (recvd_json_id)
     {
-    case NODE_CONF_PACKET:
-        printf("Node conf recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-        vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-        node_config_t = *vendor_node_config_t;
-        ack_json_id = node_config_t.json_pack_id;
+        default:
+            ESP_LOGE(ERROR_TAG, "Unknown JSON PACKET ID recvd from Node\r\n");
+            return;
 
+        case NODE_PROV_PACKET:
+            vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            provision_t = *vendor_provision_t;
+            ESP_LOGI(DEBUG_TAG, "NODE PROV ACK | SENDER : %d",provision_t.base_data.elementAddr);
+            break;
 
-        break;
-    case NODE_AC_CONTROL_PACKET:
-        printf("Node AC control ack recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-        vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-        node_ac_control_t = *vendor_node_ac_control_t;
-        ack_json_id = node_ac_control_t.json_packet_id;
+        case NODE_UNPROV_PACKET:
+            vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            unprovision_t = *vendor_unprovision_t;
+            ESP_LOGI(DEBUG_TAG, "NODE UNPROV ACK | SENDER : %d",unprovision_t.base_data.elementAddr);
+            break;
 
-        sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID, json_packet_id,
-				MSGSEQNO_STR, node_ac_control_t.msg_seq_no,
-				GWYSERNO_STR, node_ac_control_t.gwy_ser_no,
-				POWER_STR, node_ac_control_t.power,
-				MODE_STR, node_ac_control_t.mode_str,
-				FAN_STR, node_ac_control_t.fan,
-				TEMP_STR, node_ac_control_t.temp,
-				SWING_H_STR, node_ac_control_t.swingH,
-				SWING_V_STR, node_ac_control_t.swingV,
-				ONTIMER_STR, node_ac_control_t.OnTimer,
-				OFFTIMER_STR, node_ac_control_t.OffTimer,
-				LOCKING_STR, node_ac_control_t.Locking,
-				ERROR_CODE_STR, json_ack_err_code);
-        add_to_pubmesg_queue(to_cloud, publish_topic);
+        case NODE_CONF_PACKET:
+            vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_conf_t = *vendor_node_config_t;
+            ESP_LOGI(DEBUG_TAG, "NODE CONF ACK | SENDER : %d",node_conf_t.base_data.elementAddr);
+            break;
 
-        break;
-    case NODE_RECONF_PACKET:
-        printf("Node reconf ack recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-        vendor_node_reconfigure_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-        node_reconfigure_t = *vendor_node_reconfigure_t;
-        ack_json_id = node_reconfigure_t.json_packet_id;
-        sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d}",
-			JSON_PACKET_ID, node_reconfigure_t.json_packet_id,
-			MSGSEQNO_STR, node_reconfigure_t.msg_seq_no,
-			GWYSERNO_STR, node_reconfigure_t.gwy_ser_no,
-			ERROR_CODE_STR, json_ack_err_code);
-            add_to_pubmesg_queue(to_cloud, publish_topic);
-        break;
-    case NODE_UNPROV_PACKET:
-        printf("Node unprovisioned ack recieved :,%d", param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-        vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-        unprovision_t = *vendor_unprovision_t;
+        case NODE_RECONF_PACKET:
+            vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_reconf_t = *vendor_node_reconf_t;
+            ESP_LOGI(DEBUG_TAG, "NODE RECONF ACK | SENDER : %d",node_reconf_t.base_data.elementAddr);
+            break;
 
-        break;
-    default:
-        break;
+        case NODE_AC_CONTROL_PACKET:
+            vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_ac_control_t = *vendor_node_ac_control_t;
+            ESP_LOGI(DEBUG_TAG, "NODE AC CONTROL ACK | SENDER : %d",node_ac_control_t.base_data.elementAddr);
+            break;
+
+        case NODE_AC_LOCKING_PACKET:
+            vendor_node_ac_locking_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_locking_t = *vendor_node_ac_locking_t;
+            ESP_LOGI(DEBUG_TAG, "NODE AC LOCKING ACK | SENDER : %d",node_ac_locking_t.base_data.elementAddr);
+            break;
+
+        case NODE_TEMPERATURE_DATA_PACKET:
+            vendor_node_temperature_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_temperature_data_t = *vendor_node_temperature_data_t;
+            ESP_LOGI(DEBUG_TAG, "NODE TEMPERATURE DATA ACK | SENDER : %d", node_temperature_data_t.base_data.elementAddr);
+            break;
+
+        case NODE_HB_PACKET:
+            vendor_node_HB_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_HB_data_t = *vendor_node_HB_data_t;
+            ESP_LOGI(DEBUG_TAG, "NODE HB ACK | SENDER : %d",node_HB_data_t.base_data.elementAddr);
+            break;
+
+        case NODE_PUB_CONF_PACKET:
+            vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            node_pub_conf_t = *vendor_node_pub_conf_t;
+            ESP_LOGI(DEBUG_TAG, "NODE PUB CONF ACK | SENDER : %d",node_pub_conf_t.base_data.elementAddr);
+            break;
     }
-    send_to_cloud = true;
+    handle_sending_ack_to_cloud(recvd_json_id);
 }
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
                                               esp_ble_mesh_sensor_client_cb_param_t *param)
@@ -912,7 +891,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
 
     ESP_LOGI(TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
     // printf("json id,%d",param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-    store_sensor_data(param);
+    store_data_to_node_structures(param);
     if (param->error_code)
     {
         ESP_LOGE(TAG, "Send sensor client message failed (err %d)", param->error_code);
@@ -1121,8 +1100,6 @@ esp_err_t bluetooth_init(void)
 
 // esp_err_t bluetooth_init(void);
 
-#define TAG "EXAMPLE"
-
 #define ESP_BLE_MESH_VND_MODEL_ID_CLIENT 0x0000
 #define ESP_BLE_MESH_VND_MODEL_ID_SERVER 0x0001
 
@@ -1136,7 +1113,7 @@ static struct example_info_store
     control_t vendor_node_ac_control; /* TID contained in the vendor message */
     prov_t vendor_provision_t;
     unprov_t vendor_unprovision_t;
-    reconf_t vendor_node_reconfigure_t;
+    reconf_t vendor_node_reconf_t;
 } store = {
     .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
     .vnd_tid = 0,
@@ -1419,7 +1396,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
     esp_ble_mesh_cfg_client_set_state_t set = {0};
     esp_ble_mesh_node_t *node = NULL;
     esp_err_t err;
-    provisioned_det.element_address = param->params->ctx.addr;
+
     ESP_LOGI(TAG, "Config client, err_code %d, event %u, addr 0x%04x, opcode 0x%04" PRIx32,
              param->error_code, event, param->params->ctx.addr, param->params->opcode);
 
@@ -1491,44 +1468,15 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
                 match[i] = 0xff;
             }
             err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(provision_t.macid), 0x0, true);
-            //provisioned = 1
-            provisioned_det.provisioned_node = provision_t;
-            provisioned_det.provisioned = true;
-            ack_json_id = NODE_PROV_PACKET ;
-            send_to_cloud = true;
-            printf("provision %d",provisioned_det.element_address);
-            sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d , %s : %d}",
-
-			JSON_PACKET_ID, provisioned_det.provisioned_node.json_packet_id,
-			MSGSEQNO_STR, provisioned_det.provisioned_node.msg_seq_no,
-			GWYSERNO_STR, provisioned_det.provisioned_node.gwy_ser_no,
-            //MAC_ID_STR, provisioned_det.provisioned_node.macid,
-            ELMNT_ADDR_STR , provisioned_det.element_address,
-			ERROR_CODE_STR, json_ack_err_code);
-            add_to_pubmesg_queue(to_cloud, publish_topic);
             vTaskDelay(20);
-
         }
-        else if(param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
+        else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
         {
             ESP_LOGI(TAG, " Node reset successfull ");
-            ack_json_id = NODE_UNPROV_PACKET ;
-            send_to_cloud = true;
-
-
-            sprintf(to_cloud, "{%s : %d, %s : %d, %s : %d, %s : %d , %s : %d}",
-
-			JSON_PACKET_ID, unprovision_t.json_packet_id,
-			MSGSEQNO_STR, unprovision_t.msg_seq_no,
-			GWYSERNO_STR, unprovision_t.gwy_ser_no ,
-            //MAC_ID_STR, provisioned_det.provisioned_node.macid,
-            ELMNT_ADDR_STR , unprovision_t.elemnt_addr,
-			ERROR_CODE_STR, json_ack_err_code);
-            add_to_pubmesg_queue(to_cloud, publish_topic);
             vTaskDelay(20);
         }
         else
-        break;
+            break;
     case ESP_BLE_MESH_CFG_CLIENT_PUBLISH_EVT:
         if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_COMPOSITION_DATA_STATUS)
         {
@@ -1787,7 +1735,7 @@ void *send_data_task(void *args)
                 if (err != ESP_OK)
                 {
                     ESP_LOGE(TAG, "Failed to set matching device uuid");
-                    return err;
+                    return;
                 }
                 break;
 
@@ -1803,7 +1751,7 @@ void *send_data_task(void *args)
                 set.model_app_bind.company_id = CID_ESP;
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
 
-                //ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
+                // ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
                 break;
 
             case NODE_AC_CONTROL_PACKET:
@@ -1825,11 +1773,11 @@ void *send_data_task(void *args)
 
             case NODE_RECONF_PACKET:
                 ESP_LOGI(TAG, "Node reconfigure packet send :");
-                store.vendor_node_reconfigure_t = node_reconfigure_t;
-                store.server_addr = node_reconfigure_t.base_data.elementAddr;
+                store.vendor_node_reconf_t = node_reconf_t;
+                store.server_addr = node_reconf_t.base_data.elementAddr;
                 ctx.addr = store.server_addr;
                 err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                                                         sizeof(store.vendor_node_reconfigure_t), (uint8_t *)&store.vendor_node_reconfigure_t, MSG_TIMEOUT, true, MSG_ROLE);
+                                                         sizeof(store.vendor_node_reconf_t), (uint8_t *)&store.vendor_node_reconf_t, MSG_TIMEOUT, true, MSG_ROLE);
                 if (err != ESP_OK)
                 {
                     ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);

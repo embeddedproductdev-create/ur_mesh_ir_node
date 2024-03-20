@@ -33,7 +33,7 @@ void *HeartBeat_task(void *args)
         {
             lastSentTime = esp_timer_get_time();
             sprintf(pubmessage, "%s : %d, %s : %d",
-            JSON_PACKET_ID, HEARTBEAT_PACKET_TO_CLOUD,
+            JSON_PACKET_ID, GWY_HB_PACKET,
             GWYSERNO_STR, GWY_SER_NO);
             add_to_pubmesg_queue(pubmessage, publish_topic);
         }

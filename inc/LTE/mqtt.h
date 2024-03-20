@@ -31,7 +31,7 @@
 #define PUB_CONF_PERIOD_STR "PublishPeriod"
 #define TEMP_LOW_LIMIT_STR "TempLowLimit"
 #define TEMP_UP_LIMIT_STR "TempUpLimit"
-#define ERROR_CODE_STR  "ErrorCode" 
+#define ERROR_CODE_STR  "ErrorCode"
 #define TEMPERATURE_DATA_STR "MeasuredTemperature"
 
 #define MQTT_PACKET_BUFF_SIZE 500
@@ -71,14 +71,6 @@ typedef struct reconf_struct{
 	struct base_data_t base_data;
 }reconf_t;
 
-typedef struct config_struct{
-	uint16_t json_pack_id;
-	uint16_t gwy_ser_no;
-	uint16_t node_ser_no;
-	uint8_t elemnt_addr;
-	esp_err_t err;
-}config_t;
-
 typedef struct control_struct
 {
 	struct base_data_t base_data;
@@ -99,12 +91,6 @@ typedef struct prov_struct{
 	struct base_data_t base_data;
 	uint8_t macid[6];
 }prov_t;
-
-typedef struct provisioned_struct{
-	prov_t provisioned_node;
-	uint16_t element_address;
-	bool provisioned; 
-}prov_det_t;
 
 typedef struct unprov_struct{
 	struct base_data_t base_data;
@@ -132,6 +118,8 @@ struct pub_mesg_struct{
 };
 
 enum json_packet_enum {
+
+	/* GWY PACKETS */
 	GWY_REG_PACKET,
 	GWY_CONF_PACKET,
 	GWY_UNREG_PACKET,
@@ -140,7 +128,10 @@ enum json_packet_enum {
 	GWY_RECONF_PACKET,
 	GWY_TEMPERATURE_DATA_PACKET,
 	GWY_PUB_CONF_PACKET,
-	NODE_PROV_PACKET,
+	GWY_HB_PACKET,
+
+	/* NODE PACKETS */
+	NODE_PROV_PACKET=100,
 	NODE_CONF_PACKET,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
@@ -148,9 +139,12 @@ enum json_packet_enum {
 	NODE_RECONF_PACKET,
 	NODE_TEMPERATURE_DATA_PACKET,
 	NODE_PUB_CONF_PACKET,
-	RESET_MQTT,
-	HEARTBEAT_PACKET_TO_CLOUD,
+	NODE_HB_PACKET,
+
+	/* MISC PACKETS */
+	RESET_MQTT=200,
 	HEARTBEAT_CONF_PACKET,
+
 	UNKNOWN_PACKET = 99
 };
 
@@ -173,7 +167,7 @@ enum ERROR_CODES{
 	//Node Prov & Unprov
 	NODE_ALREADY_PROV = 200,
 	NODE_ALREADY_UNPROV,
-	
+
 	//Gwy AC config & Node AC config
 	//Gwy AC reconf & Node AC reconf
 	GWY_ALREADY_UNCONF = 300,
@@ -216,7 +210,7 @@ extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;
 
-extern mqtt_reset_t gwy_mqtt_reset_t;
+extern mqtt_reset_t gwy_reset_mqtt_t;
 
 extern gwy_reg_t gwy_registration_t;
 extern gwy_unreg_t gwy_unregistration_t;
@@ -225,13 +219,15 @@ extern prov_t provision_t;
 extern unprov_t unprovision_t;
 
 extern control_t gwy_ac_control_t;
+extern control_t gwy_locking_t;
 extern control_t node_ac_control_t;
+extern control_t node_locking_t;
 
 extern reconf_t node_conf_t;
 extern reconf_t gwy_conf_t;
 
-extern reconf_t node_reconfigure_t;
-extern reconf_t gwy_reconfigure_t;
+extern reconf_t node_reconf_t;
+extern reconf_t gwy_reconf_t;
 
 extern temperature_data_t gwy_temperature_data_t;
 extern temperature_data_t node_temperature_data_t;
@@ -265,7 +261,7 @@ extern bool publishing_flag;
 void parse_json_packet(void);
 void fill_macid(void);
 int8_t publish_to_mqtt();
-void handle_sending_ack_to_cloud();
+void handle_sending_ack_to_cloud(uint8_t json_id);
 
 #ifdef __cplusplus
 extern "C" {

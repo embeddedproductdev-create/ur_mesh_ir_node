@@ -12,6 +12,56 @@
 #include "../../inc/Custom/accesspoint.h"
 #include "../../inc/Custom/button.h"
 
+//Initialization
+uint16_t GWY_SER_NO = 1;
+
+//Initializing Global Structures
+control_t gwy_ac_control_t;
+control_t gwy_locking_t;
+control_t node_ac_control_t;
+control_t node_locking_t;
+gwy_reg_t gwy_registration_t;
+gwy_unreg_t gwy_unregistration_t;
+prov_t provision_t;
+unprov_t unprovision_t;
+reconf_t gwy_reconf_t;
+reconf_t node_reconf_t;
+mqtt_reset_t gwy_reset_mqtt_t;
+pub_conf_t gwy_pub_conf_t;
+pub_conf_t node_pub_conf_t;
+
+/**
+ * @brief Function that initializes the members of global strucutres with
+ * values that will probably never changes
+ * For examples, GWY SER NO is never going to change
+ * For example, the JSON PACKET ID is never going to change
+ * So we need to assign these members, values during the runtime
+ * @param none
+ * @retval none
+ */
+void init_structures()
+{
+    /* GWY_SER_NO */
+    gwy_registration_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_unregistration_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_reconf_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_ac_control_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_locking_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_reset_mqtt_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
+
+    /* JSON PACKET IDs */
+    gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
+    gwy_unregistration_t.base_data.json_packet_id = GWY_UNREG_PACKET;
+    gwy_conf_t.base_data.json_packet_id = GWY_CONF_PACKET;
+    gwy_reconf_t.base_data.json_packet_id = GWY_RECONF_PACKET;
+    gwy_ac_control_t.base_data.json_packet_id = GWY_AC_CONTROL_PACKET;
+    gwy_locking_t.base_data.json_packet_id = GWY_AC_LOCKING_PACKET;
+    gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
+    gwy_pub_conf_t.base_data.json_packet_id = GWY_PUB_CONF_PACKET;
+}
+
 /**
  * @brief Starting point for the whole program
  * @param none
@@ -29,6 +79,8 @@ void app_main()
         perror("Error in creating recv_task : ");
     }
     #endif
+
+    init_structures();
 
     #if(AP_PART_ENABLED)
     create_AP_task();
