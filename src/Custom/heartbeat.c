@@ -16,13 +16,17 @@ uint32_t HBFreqInSec = 5;
 
 static void publish_HB_cb(void* arg)
 {
-    ESP_LOGI(DEBUG_TAG, "Sending Gwy Heartbeat Ackr\r\n");
-    char pubmessage[PUBMESG_LEN];
-    sprintf(pubmessage, "%s : %d, %s : %s, %s : %d",
-    JSON_PACKET_ID, GWY_HB_PACKET,
-    JSON_ACK_NAME, GWY_HB_ACK,
-    GWYSERNO_STR, GWY_SER_NO);
-    add_to_pubmesg_queue(pubmessage, publish_topic);
+    if(registered)
+    {
+        ESP_LOGI(DEBUG_TAG, "Sending Gwy Heartbeat Ack\r\n");
+        char pubmessage[PUBMESG_LEN];
+        sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
+        JSON_PACKET_ID, GWY_HB_PACKET,
+        JSON_ACK_NAME, GWY_HB_ACK,
+        JSON_ACK_SEQ_NO, gwy_HB_data_t.base_data.ack_seq_no++,
+        GWYSERNO_STR, GWY_SER_NO);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
+    }
 }
 
 /**

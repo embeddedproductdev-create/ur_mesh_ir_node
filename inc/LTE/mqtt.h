@@ -15,6 +15,7 @@
 /* JSON PACKET KEY STRINGS */
 #define JSON_PACKET_ID "JsonPacketID"
 #define JSON_ACK_NAME "JsonAckName"
+#define JSON_ACK_SEQ_NO "JsonAckSeqNo"
 #define MSGSEQNO_STR "MsgSeqNo"
 #define GWYSERNO_STR "GwySerNo"
 #define NODESERNO_STR "NodeSerNo"
@@ -73,6 +74,7 @@ struct base_data_t
 {
 	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
+	uint16_t ack_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
 	uint16_t elementAddr;

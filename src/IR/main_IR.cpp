@@ -45,15 +45,19 @@ IRsend custom_ac(IR_TRANSMIT_PIN);
  */
 void locking_feature(char *result_description_char_str)
 {
-    uint8_t temperature = 0;
-    if(protocol_detected == protocol_selected_num) //Someone tried to control AC
+    if(registered)
     {
-        if(temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit)
+        ESP_LOGI(DEBUG_TAG, "Sending Gwy Locking feature ack\r\n");
+        uint8_t temperature = 0;
+        if(protocol_detected == protocol_selected_num) //Someone tried to control AC
         {
-            //Someone controlled the AC using remote with exceeding temperature limits
-            IR_transmit(protocol_selected_num);
+            if(temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit)
+            {
+                //Someone controlled the AC using remote with exceeding temperature limits
+                IR_transmit(protocol_selected_num);
+            }
+            add_to_pubmesg_queue(result_description_char_str, publish_topic);
         }
-        add_to_pubmesg_queue(result_description_char_str, publish_topic);
     }
 }
 
@@ -112,10 +116,12 @@ void IR_receiver_task(void *args)
                 configured = true;
                 protocol_selected_num = protocol_detected;
                 char pubmessage[PUBMESG_LEN];
-                sprintf(pubmessage, "%s : %d, %s : %d, %s : %d",
+                sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
                 JSON_PACKET_ID, GWY_CONF_PACKET,
+                JSON_ACK_NAME, GWY_CONF_ACK,
                 GWYSERNO_STR, GWY_SER_NO,
                 ERROR_CODE_STR, json_ack_err_code);
+                ESP_LOGI(DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
                 add_to_pubmesg_queue(pubmessage, publish_topic);
             }
             if(protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking)

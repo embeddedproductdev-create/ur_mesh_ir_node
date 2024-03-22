@@ -66,7 +66,6 @@
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
 #define AP_PART_ENABLED false
-#define PUBLISHING_ENABLED true
 #define TEACHING_PART_ENABLED true
 #define HEARTBEAT_PART_ENABLED true
 

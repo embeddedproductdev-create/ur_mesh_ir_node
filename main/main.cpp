@@ -39,10 +39,10 @@ HB_data_t node_HB_data_t;
 
 /**
  * @brief Function that initializes the members of global strucutres with
- * values that will probably never changes
+ * values that will never changes
  * For examples, GWY SER NO is never going to change
  * For example, the JSON PACKET ID is never going to change
- * So we need to assign these members, values during the runtime
+ * So it's better to initialize them with values at the start of application
  * @param none
  * @retval none
  */
@@ -140,7 +140,6 @@ void app_main()
     #endif
 
     #if(IR_RECV_PART_ENABLED)
-        ESP_LOGI(DEBUG_TAG, "Creating IR recv task\n");
         BaseType_t xReturned;
         TaskHandle_t xHandle = NULL;
         xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
@@ -177,13 +176,6 @@ void app_main()
     }
     #endif
 
-    #if (PUBLISHING_ENABLED)
-    pthread_t mqtt_pub_tid;
-    if(pthread_create(&mqtt_pub_tid, NULL, publish_task, NULL) != 0){
-        perror("Error in creating mqtt_publish_thread : ");
-    }
-    #endif
-
     #if(HEARTBEAT_PART_ENABLED)
     pthread_join(HB_tid, NULL);
     #endif
@@ -206,10 +198,6 @@ void app_main()
 
     #if(MESH_PART_ENABLED)
     pthread_join(send_data_tid, NULL);
-    #endif
-
-    #if(PUBLISHING_ENABLED)
-    pthread_join(mqtt_pub_tid, NULL);
     #endif
 }
 

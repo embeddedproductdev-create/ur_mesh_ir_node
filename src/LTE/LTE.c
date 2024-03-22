@@ -698,9 +698,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 	{
 		case GWY_REG_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reg Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
 				JSON_PACKET_ID, GWY_REG_PACKET,
 				JSON_ACK_NAME, GWY_REG_ACK,
+				JSON_ACK_SEQ_NO, gwy_registration_t.base_data.ack_seq_no++,
 				MSGSEQNO_STR, gwy_registration_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				LOCATION_STR, gwy_registration_t.base_data.location,
@@ -739,7 +740,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case GWY_RECONF_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reconf Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %ss, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, GWY_RECONF_PACKET,
 				JSON_ACK_NAME, GWY_RECONF_ACK,
 				MSGSEQNO_STR, gwy_reconf_t.base_data.msg_seq_no,
@@ -749,9 +750,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case GWY_AC_LOCKING_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Locking Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, GWY_AC_LOCKING_PACKET,
 				JSON_ACK_NAME, GWY_LOCKING_ACK,
+				JSON_ACK_SEQ_NO, gwy_locking_t.base_data.ack_seq_no++,
 				MSGSEQNO_STR, gwy_locking_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				POWER_STR, gwy_locking_t.power,
@@ -815,9 +817,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case NODE_CONF_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Node Conf Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, NODE_CONF_PACKET,
 				JSON_ACK_NAME, NODE_CONF_ACK,
+				JSON_ACK_SEQ_NO, node_conf_t.base_data.ack_seq_no++,
 				GWYSERNO_STR, GWY_SER_NO,
 				NODESERNO_STR, node_conf_t.base_data.node_ser_no,
 				ELMNT_ADDR_STR, node_conf_t.base_data.elementAddr,
@@ -857,9 +860,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case NODE_AC_LOCKING_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Node Ac Locking Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, NODE_AC_LOCKING_PACKET,
 				JSON_ACK_NAME, NODE_LOCKING_ACK,
+				JSON_ACK_SEQ_NO, node_locking_t.base_data.ack_seq_no++,
 				MSGSEQNO_STR, node_locking_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				NODESERNO_STR, node_locking_t.base_data.elementAddr,
@@ -877,9 +881,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case NODE_TEMPERATURE_DATA_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Node Temperature data Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, NODE_TEMPERATURE_DATA_PACKET,
 				JSON_ACK_NAME, NODE_TEMPERATURE_DATA_ACK,
+				JSON_ACK_SEQ_NO, node_temperature_data_t.base_data.ack_seq_no++,
 				GWYSERNO_STR, GWY_SER_NO,
 				NODESERNO_STR, node_temperature_data_t.base_data.node_ser_no,
 				ELMNT_ADDR_STR, node_temperature_data_t.base_data.elementAddr,
@@ -888,9 +893,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case NODE_HB_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Node Heartbeat Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, NODE_HB_PACKET,
 				JSON_ACK_NAME, NODE_HB_ACK,
+				JSON_ACK_SEQ_NO, node_HB_data_t.base_data.ack_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				NODESERNO_STR, node_HB_data_t.base_data.node_ser_no,
 				ELMNT_ADDR_STR, node_HB_data_t.base_data.elementAddr);
@@ -1140,31 +1146,54 @@ void remove_from_pubmesg_queue()
 	pubmesg_head_ptr->prev = NULL;
 }
 
+/**
+ * @brief Function that adds messages to the pubmesg queue. These will be published one by one to
+ * cloud by a handler function. If successfully published, they will be removed from the queue.
+ * @param msg The message to be published to cloud
+ * @param topic The topic to which the message needs to be published
+ * @warning This process is not threadsafe. Need to implement it as threadsafe.
+ */
 void add_to_pubmesg_queue(char *msg, char *topic)
 {
-	if(registered && mqtt_connected)
+	if(pubmesg_head_ptr!=NULL)
 	{
-		struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
-		if(pubmesg_node!=NULL)
+		uint16_t msg_count = 1;
+		struct pub_mesg_struct *ptr = pubmesg_head_ptr;
+		ESP_LOGI(DEBUG_TAG, "Current Queue : ");
+		while(ptr!=NULL)
 		{
-			//Adding very first element to queue
-			if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
-			{
-				pubmesg_head_ptr = pubmesg_node;
-				pubmesg_node->prev = NULL;
-			}
-			else
-				pubmesg_node->prev = pubmesg_tail_ptr;
-			pubmesg_node->next = NULL;
-			pubmesg_tail_ptr = pubmesg_node;
-			strcpy(pubmesg_node->message,msg);
-			pubmesg_node->topic = topic;
+			ESP_LOGI(DEBUG_TAG, "\t%d) %s",msg_count, ptr->message);
+			ptr = ptr->next;
+			msg_count++;
+		}
+		printf("\n");
+	}
+	struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
+	if(pubmesg_node!=NULL)
+	{
+		//Adding very first element to queue
+		if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
+		{
+			printf("Adding the first element into queue ... \n");
+			pubmesg_head_ptr = pubmesg_node;
+			pubmesg_node->prev = NULL;
 		}
 		else
-			printf("Error in memory allocation while trying to add to queue ...\n");
+			pubmesg_node->prev = pubmesg_tail_ptr;
+		pubmesg_node->next = NULL;
+		pubmesg_tail_ptr = pubmesg_node;
+		strcpy(pubmesg_node->message,msg);
+		pubmesg_node->topic = topic;
 	}
+	else
+		printf("Error in memory allocation while trying to add to queue ...\n");
 }
 
+/**
+ * @brief Thread that takes care of MQTT-LTE communication
+ * @param args 
+ * @return void* 
+ */
 void *LTE_task(void *args)
 {
     LTE_gpio_configuration();
@@ -1203,19 +1232,4 @@ void *LTE_task(void *args)
 				LTE_setup();
 		}
     }
-}
-
-void *publish_task(void *args)
-{
-	while(1)
-	{
-		vTaskDelay(1);
-		if(mqtt_connected)
-		{
-
-			// PublishMessage(mqtt_client_index, mqtt_msgid, mqtt_qos, mqtt_retain, "IR_PUB_TOPIC", "Hello");
-			// printf("Publishing hello ... \n");
-			sleep(1);
-		}
-	}
 }
