@@ -332,7 +332,7 @@ uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, u
 	sendAT_Data((char*)transmit_buffer);
 	memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
-	if(check_response(PROMPT,150)==SUCCESS ){
+	if(check_response(PROMPT,1500)==SUCCESS ){
 		uart_write_bytes(UART_NUM_1,message,strlen(message));
 		if(check_response(transmit_buffer,1500)	==	SUCCESS ){
 			free(transmit_buffer);
@@ -697,8 +697,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 	switch(json_id)
 	{
 		case GWY_REG_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reg Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
 				JSON_PACKET_ID, GWY_REG_PACKET,
+				JSON_ACK_NAME, GWY_REG_ACK,
 				MSGSEQNO_STR, gwy_registration_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				LOCATION_STR, gwy_registration_t.base_data.location,
@@ -706,8 +708,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 			break;
 
 		case GWY_UNREG_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy Unreg Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
 				JSON_PACKET_ID, GWY_UNREG_PACKET,
+				JSON_ACK_NAME, GWY_UNREG_ACK,
 				MSGSEQNO_STR, gwy_unregistration_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				LOCATION_STR, gwy_unregistration_t.base_data.location,
@@ -715,8 +719,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 			break;
 
 		case GWY_AC_CONTROL_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Control Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, GWY_AC_CONTROL_PACKET,
+				JSON_ACK_NAME, GWY_AC_CONTROL_ACK,
 				MSGSEQNO_STR, gwy_ac_control_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				POWER_STR, gwy_ac_control_t.power,
@@ -732,20 +738,39 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 			break;
 
 		case GWY_RECONF_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d}",
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reconf Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, GWY_RECONF_PACKET,
+				JSON_ACK_NAME, GWY_RECONF_ACK,
 				MSGSEQNO_STR, gwy_reconf_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				ERROR_CODE_STR, json_ack_err_code);
 			break;
 
 		case GWY_AC_LOCKING_PACKET:
-			ESP_LOGE(ERROR_TAG, "CODE_DEV_IN_PROGRESS");
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Locking Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, GWY_AC_LOCKING_PACKET,
+				JSON_ACK_NAME, GWY_LOCKING_ACK,
+				MSGSEQNO_STR, gwy_locking_t.base_data.msg_seq_no,
+				GWYSERNO_STR, GWY_SER_NO,
+				POWER_STR, gwy_locking_t.power,
+				MODE_STR, gwy_locking_t.mode_str,
+				FAN_STR, gwy_locking_t.fan,
+				TEMP_STR, gwy_locking_t.temp,
+				SWING_H_STR, gwy_locking_t.swingH,
+				SWING_V_STR, gwy_locking_t.swingV,
+				ONTIMER_STR, gwy_locking_t.OnTimer,
+				OFFTIMER_STR, gwy_locking_t.OffTimer,
+				LOCKING_STR, gwy_locking_t.Locking,
+				ERROR_CODE_STR, gwy_locking_t.base_data.error_code);
 			break;
 
 		case GWY_PUB_CONF_PACKET:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy Pub conf Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, GWY_PUB_CONF_PACKET,
+				JSON_ACK_NAME, GWY_PUB_CONF_ACK,
 				MSGSEQNO_STR, gwy_pub_conf_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				PUB_CONF_PERIOD_STR, gwy_pub_conf_t.pub_conf_period_in_mins,
@@ -753,36 +778,123 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 			break;
 
 		case RESET_MQTT:
-			sprintf(pubmessage, "{%s : %d, %s : %d, %s : %d, %s : %d}",
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reset MQTT Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID, RESET_MQTT,
+				JSON_ACK_NAME, GWY_RESET_MQTT_ACK, 
 				MSGSEQNO_STR, gwy_reset_mqtt_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
 				ERROR_CODE_STR, json_ack_err_code);
 			break;
 
 		case NODE_PROV_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Node Prov Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+				JSON_PACKET_ID, NODE_PROV_PACKET,
+				JSON_ACK_NAME, NODE_PROV_ACK,
+				MSGSEQNO_STR, provision_t.base_data.msg_seq_no,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, provision_t.base_data.node_ser_no,
+				ELMNT_ADDR_STR, provision_t.base_data.elementAddr,
+				LOCATION_STR, provision_t.base_data.location,
+				ERROR_CODE_STR, provision_t.base_data.error_code);
 			break;
 
 		case NODE_UNPROV_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Gwy Unprov Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+				JSON_PACKET_ID, NODE_UNPROV_PACKET,
+				JSON_ACK_NAME, NODE_UNPROV_ACK,
+				MSGSEQNO_STR, unprovision_t.base_data.msg_seq_no,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, unprovision_t.base_data.node_ser_no,
+				ELMNT_ADDR_STR, unprovision_t.base_data.elementAddr,
+				LOCATION_STR, unprovision_t.base_data.location,
+				ERROR_CODE_STR, unprovision_t.base_data.error_code);
 			break;
 
 		case NODE_CONF_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Node Conf Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, NODE_CONF_PACKET,
+				JSON_ACK_NAME, NODE_CONF_ACK,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, node_conf_t.base_data.node_ser_no,
+				ELMNT_ADDR_STR, node_conf_t.base_data.elementAddr,
+				ERROR_CODE_STR, node_conf_t.base_data.error_code);
 			break;
 
 		case NODE_RECONF_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Node Reconf Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, NODE_RECONF_PACKET,
+				JSON_ACK_NAME, NODE_RECONF_ACK,
+				MSGSEQNO_STR, node_reconf_t.base_data.msg_seq_no,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, node_reconf_t.base_data.elementAddr,
+				ERROR_CODE_STR, node_reconf_t.base_data.error_code);
 			break;
 
 		case NODE_AC_CONTROL_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Node AC Control Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, NODE_AC_CONTROL_PACKET,
+				JSON_ACK_NAME, NODE_AC_CONTROL_ACK,
+				MSGSEQNO_STR, node_ac_control_t.base_data.msg_seq_no,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, node_ac_control_t.base_data.elementAddr,
+				POWER_STR, node_ac_control_t.power,
+				MODE_STR, node_ac_control_t.mode_str,
+				FAN_STR, node_ac_control_t.fan,
+				TEMP_STR, node_ac_control_t.temp,
+				SWING_H_STR, node_ac_control_t.swingH,
+				SWING_V_STR, node_ac_control_t.swingV,
+				ONTIMER_STR, node_ac_control_t.OnTimer,
+				OFFTIMER_STR, node_ac_control_t.OffTimer,
+				LOCKING_STR, node_ac_control_t.Locking,
+				ERROR_CODE_STR, node_ac_control_t.base_data.error_code);
 			break;
 
 		case NODE_AC_LOCKING_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Node Ac Locking Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, NODE_AC_LOCKING_PACKET,
+				JSON_ACK_NAME, NODE_LOCKING_ACK,
+				MSGSEQNO_STR, node_locking_t.base_data.msg_seq_no,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, node_locking_t.base_data.elementAddr,
+				POWER_STR, node_locking_t.power,
+				MODE_STR, node_locking_t.mode_str,
+				FAN_STR, node_locking_t.fan,
+				TEMP_STR, node_locking_t.temp,
+				SWING_H_STR, node_locking_t.swingH,
+				SWING_V_STR, node_locking_t.swingV,
+				ONTIMER_STR, node_locking_t.OnTimer,
+				OFFTIMER_STR, node_locking_t.OffTimer,
+				LOCKING_STR, node_locking_t.Locking,
+				ERROR_CODE_STR, node_locking_t.base_data.error_code);
 			break;
 
 		case NODE_TEMPERATURE_DATA_PACKET:
+			ESP_LOGI(DEBUG_TAG, "Sending Node Temperature data Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, NODE_TEMPERATURE_DATA_PACKET,
+				JSON_ACK_NAME, NODE_TEMPERATURE_DATA_ACK,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, node_temperature_data_t.base_data.node_ser_no,
+				ELMNT_ADDR_STR, node_temperature_data_t.base_data.elementAddr,
+				TEMPERATURE_DATA_STR, node_temperature_data_t.measured_temperature);
 			break;
 
 		case NODE_HB_PACKET:
-			break:
+			ESP_LOGI(DEBUG_TAG, "Sending Node Heartbeat Ack\r\n");
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d}",
+				JSON_PACKET_ID, NODE_HB_PACKET,
+				JSON_ACK_NAME, NODE_HB_ACK,
+				GWYSERNO_STR, GWY_SER_NO,
+				NODESERNO_STR, node_HB_data_t.base_data.node_ser_no,
+				ELMNT_ADDR_STR, node_HB_data_t.base_data.elementAddr);
+			break;
 
 
 	}
@@ -823,7 +935,6 @@ void parse_json_packet()
 		{
 			case GWY_REG_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
-				gwy_registration_t.base_data.json_packet_id = json_packet_id;
 				gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_registration_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
@@ -832,7 +943,6 @@ void parse_json_packet()
 
 			case GWY_UNREG_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
-				gwy_unregistration_t.base_data.json_packet_id = json_packet_id;
 				gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_unregistration_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_STR)->valuestring);
@@ -845,8 +955,6 @@ void parse_json_packet()
 				//filling the default values for temp up and low limit
 				gwy_ac_control_t.TempLowLimit = TEMPERATURE_LOWER_LIMIT;
 				gwy_ac_control_t.TempUpLimit = TEMPERATURE_UPPER_LIMIT;
-
-				gwy_ac_control_t.base_data.json_packet_id = json_packet_id;
 				gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_ac_control_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
@@ -866,7 +974,6 @@ void parse_json_packet()
 
 			case GWY_RECONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
-				gwy_reconf_t.base_data.json_packet_id = json_packet_id;
 				gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_reconf_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				configured = false;
@@ -874,7 +981,6 @@ void parse_json_packet()
 
 			case GWY_PUB_CONF_PACKET:
 				ESP_LOGI(DEBUG_TAG, "Gwy Publish configuration packet\r\n");
-				gwy_pub_conf_t.base_data.json_packet_id = json_packet_id;
 				gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_pub_conf_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				gwy_pub_conf_t.pub_conf_period_in_mins = cJSON_GetObjectItem(json_packet_j, PUB_CONF_PERIOD_STR)->valueint;
@@ -1036,24 +1142,27 @@ void remove_from_pubmesg_queue()
 
 void add_to_pubmesg_queue(char *msg, char *topic)
 {
-	struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
-	if(pubmesg_node!=NULL)
+	if(registered && mqtt_connected)
 	{
-		//Adding very first element to queue
-		if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
+		struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
+		if(pubmesg_node!=NULL)
 		{
-			pubmesg_head_ptr = pubmesg_node;
-			pubmesg_node->prev = NULL;
+			//Adding very first element to queue
+			if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
+			{
+				pubmesg_head_ptr = pubmesg_node;
+				pubmesg_node->prev = NULL;
+			}
+			else
+				pubmesg_node->prev = pubmesg_tail_ptr;
+			pubmesg_node->next = NULL;
+			pubmesg_tail_ptr = pubmesg_node;
+			strcpy(pubmesg_node->message,msg);
+			pubmesg_node->topic = topic;
 		}
 		else
-			pubmesg_node->prev = pubmesg_tail_ptr;
-		pubmesg_node->next = NULL;
-		pubmesg_tail_ptr = pubmesg_node;
-		strcpy(pubmesg_node->message,msg);
-		pubmesg_node->topic = topic;
+			printf("Error in memory allocation while trying to add to queue ...\n");
 	}
-	else
-		printf("Error in memory allocation while trying to add to queue ...\n");
 }
 
 void *LTE_task(void *args)

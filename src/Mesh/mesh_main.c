@@ -67,10 +67,10 @@
 
 control_t *vendor_node_ac_control_t;
 control_t *vendor_node_ac_locking_t;
-prov_t vendor_provision_t;
+prov_t *vendor_provision_t;
 unprov_t *vendor_unprovision_t;
 reconf_t *vendor_node_reconf_t;
-reconf_t *vendor_node_config_t, node_conf_t;
+reconf_t *vendor_node_config_t;
 temperature_data_t *vendor_node_temperature_data_t;
 HB_data_t *vendor_node_HB_data_t;
 pub_conf_t *vendor_node_pub_conf_t;
@@ -861,7 +861,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_AC_LOCKING_PACKET:
             vendor_node_ac_locking_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_locking_t = *vendor_node_ac_locking_t;
-            ESP_LOGI(DEBUG_TAG, "NODE AC LOCKING ACK | SENDER : %d",node_ac_locking_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE AC LOCKING ACK | SENDER : %d",node_locking_t.base_data.elementAddr);
             break;
 
         case NODE_TEMPERATURE_DATA_PACKET:
@@ -1735,29 +1735,22 @@ void *send_data_task(void *args)
                 if (err != ESP_OK)
                 {
                     ESP_LOGE(TAG, "Failed to set matching device uuid");
-                    return;
                 }
                 break;
 
             case NODE_UNPROV_PACKET:
                 ESP_LOGI(TAG, "Node unprovision packet send :");
-                node.unicast_addr = unprovision_t.elemnt_addr;
+                node.unicast_addr = unprovision_t.base_data.elementAddr;
                 example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
-                set.model_app_bind.element_addr = unprovision_t.elemnt_addr;
+                set.model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
                 ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
-
                 set.model_app_bind.model_app_idx = prov_key.app_idx;
-
                 set.model_app_bind.company_id = CID_ESP;
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
-
-                // ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
                 break;
 
             case NODE_AC_CONTROL_PACKET:
                 ESP_LOGI(TAG, "Node AC packet send :");
-
-                // vendor_client.model->user_data= (int)0x75;
                 store.vendor_node_ac_control = node_ac_control_t;
                 store.server_addr = node_ac_control_t.base_data.elementAddr;
                 ctx.addr = store.server_addr;
@@ -1790,16 +1783,7 @@ void *send_data_task(void *args)
                 ESP_LOGE(ERROR_TAG, "Unknown JsonPacketId, can't send data to node ... \n");
                 break;
             }
-            // example_ble_mesh_send_sensor_status();
             send_data_to_node = false;
         }
-
-        /* if(data_recieved){
-             for(uint8_t j=0;j<35;j++){
-            // sensor_states[0].sensor_data.raw_value->data[j]=0xff;
-             }
-             //example_ble_mesh_send_sensor_status();
-             //data_recieved=0;
-         }*/
     }
 }

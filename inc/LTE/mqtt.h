@@ -12,30 +12,54 @@
 
 #include "../Custom/main.h"
 
-#define JSON_PACKET_ID  "JsonPacketID"
-#define MSGSEQNO_STR	"MsgSeqNo"
-#define GWYSERNO_STR	"GwySerNo"
-#define NODESERNO_STR	"NodeSerNo"
-#define LOCATION_STR    "Location"
-#define ELMNT_ADDR_STR  "ElementAddr"
-#define MAC_ID_STR 		"MacId"
-#define POWER_STR		"Power"
-#define MODE_STR		"Mode"
-#define FAN_STR			"Fan"
-#define TEMP_STR		"Temp"
-#define SWING_H_STR		"SwingH"
-#define SWING_V_STR		"SwingV"
-#define ONTIMER_STR		"OnTimer"
-#define OFFTIMER_STR	"OffTimer"
-#define LOCKING_STR 	"Locking"
+/* JSON PACKET KEY STRINGS */
+#define JSON_PACKET_ID "JsonPacketID"
+#define JSON_ACK_NAME "JsonAckName"
+#define MSGSEQNO_STR "MsgSeqNo"
+#define GWYSERNO_STR "GwySerNo"
+#define NODESERNO_STR "NodeSerNo"
+#define LOCATION_STR "Location"
+#define ELMNT_ADDR_STR "ElementAddr"
+#define MAC_ID_STR "MacId"
+#define POWER_STR "Power"
+#define MODE_STR "Mode"
+#define FAN_STR "Fan"
+#define TEMP_STR "Temp"
+#define SWING_H_STR "SwingH"
+#define SWING_V_STR "SwingV"
+#define ONTIMER_STR "OnTimer"
+#define OFFTIMER_STR "OffTimer"
+#define LOCKING_STR "Locking"
 #define PUB_CONF_PERIOD_STR "PublishPeriod"
 #define TEMP_LOW_LIMIT_STR "TempLowLimit"
 #define TEMP_UP_LIMIT_STR "TempUpLimit"
-#define ERROR_CODE_STR  "ErrorCode"
+#define ERROR_CODE_STR "ErrorCode"
 #define TEMPERATURE_DATA_STR "MeasuredTemperature"
+
+/* JSON ACK NAMES */
+#define GWY_REG_ACK "Gwy Registration Ack"
+#define GWY_UNREG_ACK "Gwy Unregistration Ack"
+#define GWY_CONF_ACK "Gwy Configuration Ack"
+#define GWY_RECONF_ACK "Gwy Reconfiguration Ack"
+#define GWY_AC_CONTROL_ACK "Gwy AC Control Ack"
+#define GWY_LOCKING_ACK "Gwy Locking Feature Ack"
+#define GWY_HB_ACK "Gwy Heartbeat Ack"
+#define GWY_TEMPERATURE_DATA_ACK "Gwy Temperature Data Ack"
+#define GWY_PUB_CONF_ACK "Gwy Publish Configuration Ack"
+#define GWY_RESET_MQTT_ACK "Gwy Reset MQTT Ack"
+#define NODE_PROV_ACK "Node Provisioning Ack"
+#define NODE_UNPROV_ACK "Node Unprovisioing Ack"
+#define NODE_CONF_ACK "Node Configuration Ack"
+#define NODE_RECONF_ACK "Node Reconfiguration Ack"
+#define NODE_AC_CONTROL_ACK "Node AC Control Ack"
+#define NODE_LOCKING_ACK "Node Locking Feature Ack"
+#define NODE_HB_ACK "Node Heartbeat Ack"
+#define NODE_TEMPERATURE_DATA_ACK "Node Temperature Data Ack"
+#define NODE_PUB_CONF_ACK "Node Publish Configuration Ack"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
+#define MQTT_PACKET_NAME_LEN 40
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 300
 #define MQTT_TOPIC_CHAR_LEN 20
@@ -45,31 +69,37 @@
 
 /* STRUCTURE DEFINITIONS */
 
-struct base_data_t{
+struct base_data_t
+{
 	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint16_t gwy_ser_no;
 	uint16_t node_ser_no;
 	uint16_t elementAddr;
 	uint16_t error_code;
+	char ack_name[MQTT_PACKET_NAME_LEN];
 	char location[LOCATION_STR_LEN];
 };
 
-typedef struct mqtt_reset_struct{
+typedef struct mqtt_reset_struct
+{
 	struct base_data_t base_data;
-}mqtt_reset_t;
+} mqtt_reset_t;
 
-typedef struct gwy_reg_struct{
+typedef struct gwy_reg_struct
+{
 	struct base_data_t base_data;
-}gwy_reg_t;
+} gwy_reg_t;
 
-typedef struct gwy_unreg_struct{
+typedef struct gwy_unreg_struct
+{
 	struct base_data_t base_data;
-}gwy_unreg_t;
+} gwy_unreg_t;
 
-typedef struct reconf_struct{
+typedef struct reconf_struct
+{
 	struct base_data_t base_data;
-}reconf_t;
+} reconf_t;
 
 typedef struct control_struct
 {
@@ -85,39 +115,46 @@ typedef struct control_struct
 	bool Locking;
 	uint8_t TempUpLimit;
 	uint8_t TempLowLimit;
-}control_t;
+} control_t;
 
-typedef struct prov_struct{
+typedef struct prov_struct
+{
 	struct base_data_t base_data;
 	uint8_t macid[6];
-}prov_t;
+} prov_t;
 
-typedef struct unprov_struct{
+typedef struct unprov_struct
+{
 	struct base_data_t base_data;
-}unprov_t;
+} unprov_t;
 
-typedef struct pub_conf_struct{
+typedef struct pub_conf_struct
+{
 	struct base_data_t base_data;
 	uint16_t pub_conf_period_in_mins;
-}pub_conf_t;
+} pub_conf_t;
 
-typedef struct temperature_data_struct{
+typedef struct temperature_data_struct
+{
 	struct base_data_t base_data;
 	uint8_t measured_temperature;
-}temperature_data_t;
+} temperature_data_t;
 
-typedef struct HB_data_struct{
+typedef struct HB_data_struct
+{
 	struct base_data_t base_data;
-}HB_data_t;
+} HB_data_t;
 
-struct pub_mesg_struct{
+struct pub_mesg_struct
+{
 	char message[PUBMESG_LEN];
 	char *topic;
 	struct pub_mesg_struct *next;
 	struct pub_mesg_struct *prev;
 };
 
-enum json_packet_enum {
+enum json_packet_enum
+{
 
 	/* GWY PACKETS */
 	GWY_REG_PACKET,
@@ -131,7 +168,7 @@ enum json_packet_enum {
 	GWY_HB_PACKET,
 
 	/* NODE PACKETS */
-	NODE_PROV_PACKET=100,
+	NODE_PROV_PACKET = 100,
 	NODE_CONF_PACKET,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
@@ -142,15 +179,16 @@ enum json_packet_enum {
 	NODE_HB_PACKET,
 
 	/* MISC PACKETS */
-	RESET_MQTT=200,
+	RESET_MQTT = 200,
 	HEARTBEAT_CONF_PACKET,
 
 	UNKNOWN_PACKET = 99
 };
 
-enum ERROR_CODES{
+enum ERROR_CODES
+{
 
-	//Basic
+	// Basic
 	FAILURE = -1,
 	SUCCESS,
 	INVALID_JSON_PACKET_ID,
@@ -160,20 +198,20 @@ enum ERROR_CODES{
 	INVALID_LOCATION_STR,
 	NODE_TIMEOUT,
 
-	//Gwy Registration & Unregistration
+	// Gwy Registration & Unregistration
 	GWY_ALREADY_REG = 100,
 	GWY_ALREADY_UNREG,
 
-	//Node Prov & Unprov
+	// Node Prov & Unprov
 	NODE_ALREADY_PROV = 200,
 	NODE_ALREADY_UNPROV,
 
-	//Gwy AC config & Node AC config
-	//Gwy AC reconf & Node AC reconf
+	// Gwy AC config & Node AC config
+	// Gwy AC reconf & Node AC reconf
 	GWY_ALREADY_UNCONF = 300,
 	NODE_ALREADY_UNCONF,
 
-	//Gwy AC control & Node AC control
+	// Gwy AC control & Node AC control
 	GWY_NOT_REG = 400,
 	GWY_NOT_CONF,
 	INVALID_POWER,
@@ -241,10 +279,10 @@ extern pub_conf_t node_pub_conf_t;
 extern struct pub_mesg_struct *pubmesg_head_ptr;
 extern struct pub_mesg_struct *pubmesg_tail_ptr;
 
-//SUBSCRIBE TOPICS
+// SUBSCRIBE TOPICS
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 
-//PUBLISH TOPICS
+// PUBLISH TOPICS
 extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 /* MQTT parameters */
@@ -264,10 +302,11 @@ int8_t publish_to_mqtt();
 void handle_sending_ack_to_cloud(uint8_t json_id);
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-void add_to_pubmesg_queue(char *message, char *topic);
+	void add_to_pubmesg_queue(char *message, char *topic);
 
 #ifdef __cplusplus
 }

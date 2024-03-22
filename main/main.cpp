@@ -16,19 +16,26 @@
 uint16_t GWY_SER_NO = 1;
 
 //Initializing Global Structures
-control_t gwy_ac_control_t;
-control_t gwy_locking_t;
-control_t node_ac_control_t;
-control_t node_locking_t;
 gwy_reg_t gwy_registration_t;
 gwy_unreg_t gwy_unregistration_t;
-prov_t provision_t;
-unprov_t unprovision_t;
+reconf_t gwy_conf_t;
 reconf_t gwy_reconf_t;
-reconf_t node_reconf_t;
+control_t gwy_ac_control_t;
+control_t gwy_locking_t;
 mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
+temperature_data_t gwy_temperature_data_t;
+HB_data_t gwy_HB_data_t;
+
+prov_t provision_t;
+unprov_t unprovision_t;
+reconf_t node_conf_t;
+reconf_t node_reconf_t;
+control_t node_ac_control_t;
+control_t node_locking_t;
 pub_conf_t node_pub_conf_t;
+temperature_data_t node_temperature_data_t;
+HB_data_t node_HB_data_t;
 
 /**
  * @brief Function that initializes the members of global strucutres with
@@ -41,7 +48,7 @@ pub_conf_t node_pub_conf_t;
  */
 void init_structures()
 {
-    /* GWY_SER_NO */
+    /* GWY SER NO */
     gwy_registration_t.base_data.gwy_ser_no = GWY_SER_NO;
     gwy_unregistration_t.base_data.gwy_ser_no = GWY_SER_NO;
     gwy_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
@@ -50,8 +57,10 @@ void init_structures()
     gwy_locking_t.base_data.gwy_ser_no = GWY_SER_NO;
     gwy_reset_mqtt_t.base_data.gwy_ser_no = GWY_SER_NO;
     gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_temperature_data_t.base_data.gwy_ser_no = GWY_SER_NO;
+    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
 
-    /* JSON PACKET IDs */
+    /* GWY - JSON PACKET IDs */
     gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
     gwy_unregistration_t.base_data.json_packet_id = GWY_UNREG_PACKET;
     gwy_conf_t.base_data.json_packet_id = GWY_CONF_PACKET;
@@ -60,6 +69,31 @@ void init_structures()
     gwy_locking_t.base_data.json_packet_id = GWY_AC_LOCKING_PACKET;
     gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
     gwy_pub_conf_t.base_data.json_packet_id = GWY_PUB_CONF_PACKET;
+    gwy_temperature_data_t.base_data.json_packet_id = GWY_TEMPERATURE_DATA_PACKET;
+    gwy_HB_data_t.base_data.json_packet_id = GWY_HB_PACKET;
+    
+    /* NODE - JSON PACKET IDs */
+    provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
+    unprovision_t.base_data.json_packet_id = NODE_UNPROV_PACKET;
+    node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
+    node_reconf_t.base_data.json_packet_id = NODE_RECONF_PACKET;
+    node_ac_control_t.base_data.json_packet_id = NODE_AC_CONTROL_PACKET;
+    node_locking_t.base_data.json_packet_id = NODE_AC_LOCKING_PACKET;
+    node_pub_conf_t.base_data.json_packet_id = NODE_PUB_CONF_PACKET;
+    node_temperature_data_t.base_data.json_packet_id = NODE_TEMPERATURE_DATA_PACKET;
+    node_HB_data_t.base_data.json_packet_id = NODE_HB_PACKET;
+
+    /* JSON ACK NAMES */
+    strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK);
+    strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK);
+    strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK);
+    strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK);
+    strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK);
+    strcpy(gwy_locking_t.base_data.ack_name, GWY_LOCKING_ACK);
+    strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK);
+    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK);
+    strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK);
+    strcpy(gwy_HB_data_t.base_data.ack_name, GWY_HB_ACK);
 }
 
 /**
@@ -97,9 +131,11 @@ void app_main()
     #endif
 
     #if(HEARTBEAT_PART_ENABLED)
+    if(esp_timer_init()!=ESP_OK)
+        perror("Error in Initializing timer : ");
     pthread_t HB_tid;
-    if(pthread_create(&HB_tid, NULL, HeartBeat_task, NULL)!=0){
-        perror("Error in creating HeartBeat_task : ");
+    if(pthread_create(&HB_tid, NULL, HB_task, NULL)!=0){
+        perror("Error in creating HB_task : ");
     }
     #endif
 

@@ -12,9 +12,12 @@
 #include "../../inc/Custom/temperature_sensor.h"
 // #include <Wire.h>
 
+
+
 //Initialization
 uint8_t measured_temperature = 0;
-uint32_t lastSentTime = 0;
+uint32_t TempDataFreqSec = 10;
+
 /**
  * @brief Function that performs initial I2C setup
  * @param none
@@ -32,6 +35,19 @@ void get_temperature(uint8_t *temp)
     *temp = 25;
 }
 
+static void publish_temperature_cb(void *arg)
+{
+    ESP_LOGI(DEBUG_TAG, "Sending GWY Temperature Ack\r\n");
+    get_temperature(&measured_temperature);
+    char pubmessage[PUBMESG_LEN];
+    sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
+    JSON_PACKET_ID, GWY_TEMPERATURE_DATA_PACKET,
+    JSON_ACK_NAME, GWY_TEMPERATURE_DATA_ACK,
+    GWYSERNO_STR, GWY_SER_NO,
+    TEMPERATURE_DATA_STR, measured_temperature);
+    add_to_pubmesg_queue(pubmessage, publish_topic);
+}
+
 /**
  * @brief Thread that performs the I2C temperature read communications
  * @param args
@@ -39,21 +55,18 @@ void get_temperature(uint8_t *temp)
  */
 void *temperature_read(void *args)
 {
-    uint32_t timediff = 0;
-    char pubmessage[PUBMESG_LEN];
+    const esp_timer_create_args_t periodic_timer_args = {
+        .callback = &publish_temperature_cb,
+        .name = "Temperature_data_timer"
+    };
+    esp_timer_handle_t temp_publish_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &temp_publish_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, TempDataFreqSec*1000000));
     while(1)
     {
-        //Converting time diff from Usec to Mins
-        timediff = (esp_timer_get_time()-lastSentTime)/60*1000000; 
-        if(timediff > gwy_pub_conf_t.pub_conf_period_in_mins)
-        {
-            lastSentTime = esp_timer_get_time();
-            get_temperature(&measured_temperature);
-            sprintf(pubmessage, "%s : %d, %s : %d, %s : %d",
-            JSON_PACKET_ID, GWY_TEMPERATURE_DATA_PACKET,
-            GWYSERNO_STR, GWY_SER_NO,
-            TEMPERATURE_DATA_STR, measured_temperature);
-            add_to_pubmesg_queue(pubmessage, publish_topic);
-        }
+        ;
+        vTaskDelay(1);
     }
+    ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
+    ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
 }

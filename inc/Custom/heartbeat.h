@@ -1,7 +1,7 @@
 /**
  * @file heartbeat.h
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
- * @brief This file contains all definitions and MACROS related to 
+ * @brief This file contains all definitions and MACROS related to
  * sending heartbeat messages to the cloud to let it know if
  * a device is alive or not
  * @version 0.1
@@ -17,7 +17,14 @@
 /* GLOBAL VARIABLES */
 extern uint32_t HBFreqInSecs;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 /* FUNCTION DECLARATIONS */
-void *HeartBeat_task(void *args);
+void *HB_task(void *args);
+#ifdef __cplusplus
+}
+#endif
 
 #endif

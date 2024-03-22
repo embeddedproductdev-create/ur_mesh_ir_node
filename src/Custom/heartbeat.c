@@ -12,8 +12,18 @@
 #include "../../inc/Custom/heartbeat.h"
 
 //Initialization
-uint32_t HBFreqInSecs = 5;
-uint32_t lastSentTime = 0;
+uint32_t HBFreqInSec = 5;
+
+static void publish_HB_cb(void* arg)
+{
+    ESP_LOGI(DEBUG_TAG, "Sending Gwy Heartbeat Ackr\r\n");
+    char pubmessage[PUBMESG_LEN];
+    sprintf(pubmessage, "%s : %d, %s : %s, %s : %d",
+    JSON_PACKET_ID, GWY_HB_PACKET,
+    JSON_ACK_NAME, GWY_HB_ACK,
+    GWYSERNO_STR, GWY_SER_NO);
+    add_to_pubmesg_queue(pubmessage, publish_topic);
+}
 
 /**
  * @brief Thread that takes care of sending HB messages periodically
@@ -21,21 +31,20 @@ uint32_t lastSentTime = 0;
  * @param args
  * @return void*
  */
-void *HeartBeat_task(void *args)
+void *HB_task(void *args)
 {
-    uint32_t timediff = 0;
-    char pubmessage[PUBMESG_LEN];
+    const esp_timer_create_args_t periodic_timer_args = {
+        .callback = &publish_HB_cb,
+        .name = "HB_Timer"
+    };
+    esp_timer_handle_t hb_publish_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &hb_publish_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(hb_publish_timer, HBFreqInSec*1000000));
     while(1)
     {
-        //Converting time diff from Usec to sec
-        timediff = (esp_timer_get_time() - lastSentTime)/1000000;
-        if(timediff > HBFreqInSecs)
-        {
-            lastSentTime = esp_timer_get_time();
-            sprintf(pubmessage, "%s : %d, %s : %d",
-            JSON_PACKET_ID, GWY_HB_PACKET,
-            GWYSERNO_STR, GWY_SER_NO);
-            add_to_pubmesg_queue(pubmessage, publish_topic);
-        }
+        vTaskDelay(1);
+        ;
     }
+    ESP_ERROR_CHECK(esp_timer_delete(hb_publish_timer));
+    ESP_ERROR_CHECK(esp_timer_delete(hb_publish_timer));
 }
