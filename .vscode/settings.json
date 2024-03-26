@@ -40,7 +40,8 @@
     "sensor_cli.h": "c",
     "inttypes.h": "c",
     "string.h": "c",
-    "temperature_sensor.h": "c"
+    "temperature_sensor.h": "c",
+    "arduino.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
