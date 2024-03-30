@@ -31,11 +31,11 @@
 #define ONTIMER_STR "OnTimer"
 #define OFFTIMER_STR "OffTimer"
 #define LOCKING_STR "Locking"
-#define PUB_CONF_PERIOD_STR "PublishPeriod"
 #define TEMP_LOW_LIMIT_STR "TempLowLimit"
 #define TEMP_UP_LIMIT_STR "TempUpLimit"
 #define ERROR_CODE_STR "ErrorCode"
-#define TEMPERATURE_DATA_STR "MeasuredTemperature"
+#define TEMPERATURE_DATA_STR "Temperature"
+#define PUBLISH_PERIOD_STR "PublishPeriodSec"
 
 /* JSON ACK NAMES */
 #define GWY_REG_ACK "Gwy Registration Ack"
@@ -57,6 +57,7 @@
 #define NODE_HB_ACK "Node Heartbeat Ack"
 #define NODE_TEMPERATURE_DATA_ACK "Node Temperature Data Ack"
 #define NODE_PUB_CONF_ACK "Node Publish Configuration Ack"
+#define HB_PUB_CONF_ACK "HeartBeat Publish Configuration Ack"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
@@ -133,7 +134,7 @@ typedef struct unprov_struct
 typedef struct pub_conf_struct
 {
 	struct base_data_t base_data;
-	uint16_t pub_conf_period_in_mins;
+	uint16_t pub_conf_period_in_sec;
 } pub_conf_t;
 
 typedef struct temperature_data_struct
@@ -146,6 +147,12 @@ typedef struct HB_data_struct
 {
 	struct base_data_t base_data;
 } HB_data_t;
+
+typedef struct HB_conf_struct
+{
+	struct base_data_t base_data;
+	uint16_t pub_conf_period_in_sec;
+} HB_conf_t;
 
 struct pub_mesg_struct
 {
@@ -233,6 +240,9 @@ enum ERROR_CODES
 	EXCEEDING_TEMP_LOWER_LIMIT,
 	EXCEEDING_TEMP_UPPER_LIMIT,
 
+	// HeartBeat
+	INVALID_PUBLISH_PERIOD = 500,
+
 	UNKNOWN_ERROR_CODE = 999
 };
 
@@ -280,6 +290,8 @@ extern pub_conf_t node_pub_conf_t;
 extern struct pub_mesg_struct *pubmesg_head_ptr;
 extern struct pub_mesg_struct *pubmesg_tail_ptr;
 
+extern struct HB_conf_t HB_pub_conf_t;
+
 // SUBSCRIBE TOPICS
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 
@@ -299,21 +311,7 @@ extern bool publishing_flag;
 /* FUNCTION DECLARATIONS */
 void parse_json_packet(void);
 void fill_macid(void);
-int8_t publish_to_mqtt();
 void handle_sending_ack_to_cloud(uint8_t json_id);
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-	void add_to_pubmesg_queue(char *message, char *topic);
-
-#ifdef __cplusplus
-}
-#endif
-
-void remove_from_pubmesg_queue();
 void error_check_json(uint8_t json_packet_id);
 
 #endif
