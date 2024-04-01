@@ -483,12 +483,6 @@ uint8_t OT_command(char* cmd){
 	return FAILURE;
 }
 
-
-
-static void timer_callback(void* arg)
-{
-}
-
 void timer_config()
 {
 	const esp_timer_create_args_t timer_args = {
@@ -591,6 +585,8 @@ void error_check_json(uint8_t json_packet_id)
 	//Check params common in all packets first
 	if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
 	else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
+	if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR));
+	else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
 	if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
 	else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
 
@@ -775,7 +771,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 				JSON_ACK_NAME, GWY_PUB_CONF_ACK,
 				MSGSEQNO_STR, gwy_pub_conf_t.base_data.msg_seq_no,
 				GWYSERNO_STR, GWY_SER_NO,
-				PUB_CONF_PERIOD_STR, gwy_pub_conf_t.pub_conf_period_in_mins,
+				PUBLISH_PERIOD_STR, gwy_pub_conf_t.pub_conf_period_in_sec,
 				ERROR_CODE_STR, json_ack_err_code);
 			break;
 
@@ -989,7 +985,7 @@ void parse_json_packet()
 				ESP_LOGI(DEBUG_TAG, "Gwy Publish configuration packet\r\n");
 				gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR)->valueint;
 				gwy_pub_conf_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
-				gwy_pub_conf_t.pub_conf_period_in_mins = cJSON_GetObjectItem(json_packet_j, PUB_CONF_PERIOD_STR)->valueint;
+				gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR)->valueint;
 				break;
 
 			case NODE_PROV_PACKET:
@@ -1051,7 +1047,7 @@ void parse_json_packet()
 				node_pub_conf_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				node_pub_conf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODESERNO_STR)->valueint;
 				node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR)->valueint;
-				node_pub_conf_t.pub_conf_period_in_mins = cJSON_GetObjectItem(json_packet_j, PUB_CONF_PERIOD_STR)->valueint;
+				node_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR)->valueint;
 				send_data_to_node = true;
 				break;
 
@@ -1129,64 +1125,6 @@ int8_t publish_to_mqtt()
 	}
 	publishing_flag = false;
 	return FAILURE;
-}
-
-void remove_from_pubmesg_queue()
-{
-	if(pubmesg_head_ptr->next == NULL)
-	{
-		pubmesg_head_ptr->next = NULL;
-		pubmesg_head_ptr->prev = NULL;
-		pubmesg_head_ptr = NULL;
-		pubmesg_tail_ptr = NULL;
-		return;
-	}
-	pubmesg_head_ptr = pubmesg_head_ptr->next;
-	free(pubmesg_head_ptr->prev);
-	pubmesg_head_ptr->prev = NULL;
-}
-
-/**
- * @brief Function that adds messages to the pubmesg queue. These will be published one by one to
- * cloud by a handler function. If successfully published, they will be removed from the queue.
- * @param msg The message to be published to cloud
- * @param topic The topic to which the message needs to be published
- * @warning This process is not threadsafe. Need to implement it as threadsafe.
- */
-void add_to_pubmesg_queue(char *msg, char *topic)
-{
-	if(pubmesg_head_ptr!=NULL)
-	{
-		uint16_t msg_count = 1;
-		struct pub_mesg_struct *ptr = pubmesg_head_ptr;
-		ESP_LOGI(DEBUG_TAG, "Current Queue : ");
-		while(ptr!=NULL)
-		{
-			ESP_LOGI(DEBUG_TAG, "\t%d) %s",msg_count, ptr->message);
-			ptr = ptr->next;
-			msg_count++;
-		}
-		printf("\n");
-	}
-	struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
-	if(pubmesg_node!=NULL)
-	{
-		//Adding very first element to queue
-		if(pubmesg_head_ptr == NULL && pubmesg_tail_ptr == NULL)
-		{
-			printf("Adding the first element into queue ... \n");
-			pubmesg_head_ptr = pubmesg_node;
-			pubmesg_node->prev = NULL;
-		}
-		else
-			pubmesg_node->prev = pubmesg_tail_ptr;
-		pubmesg_node->next = NULL;
-		pubmesg_tail_ptr = pubmesg_node;
-		strcpy(pubmesg_node->message,msg);
-		pubmesg_node->topic = topic;
-	}
-	else
-		printf("Error in memory allocation while trying to add to queue ...\n");
 }
 
 /**
