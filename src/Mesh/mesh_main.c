@@ -1450,7 +1450,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_app_idx = prov_key.app_idx;
             set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
             set.model_app_bind.company_id = CID_ESP;
-           // err = esp_ble_mesh_config_client_set_state(&common, &set);
+            err = esp_ble_mesh_config_client_set_state(&common, &set);
             set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
             set.model_app_bind.company_id = 0xffff;
             err = esp_ble_mesh_config_client_set_state(&common, &set);

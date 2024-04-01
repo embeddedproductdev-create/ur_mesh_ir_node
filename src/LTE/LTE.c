@@ -483,7 +483,6 @@ uint8_t OT_command(char* cmd){
 	return FAILURE;
 }
 
-
 void resetLte()
 {
 	ESP_LOGI(TAG, "Resetting LTE !!!");
@@ -571,12 +570,10 @@ void establishMQTTConnection()
 void error_check_json(uint8_t json_packet_id)
 {
 	//Check params common in all packets first
-	// if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
-	// else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
-	// if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR));
-	// else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
-	// if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
-	// else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
+	if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
+	else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
+	if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
+	else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
 
 	switch(json_packet_id)
 	{
@@ -662,6 +659,13 @@ void error_check_json(uint8_t json_packet_id)
 			else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
 			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_STR));
 			else { json_ack_err_code = INVALID_ELMNT_ADDR; return; }
+			return;
+		
+		case GWY_PUB_CONF_PACKET:
+		case NODE_PUB_CONF_PACKET:
+		case HEARTBEAT_CONF_PACKET:
+			if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR));
+			else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
 			return;
 
 		case RESET_MQTT:
