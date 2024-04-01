@@ -1450,8 +1450,11 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_app_idx = prov_key.app_idx;
             set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
             set.model_app_bind.company_id = CID_ESP;
-            err = esp_ble_mesh_config_client_set_state(&common, &set);
+           // err = esp_ble_mesh_config_client_set_state(&common, &set);
             set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+            set.model_app_bind.company_id = 0xffff;
+            err = esp_ble_mesh_config_client_set_state(&common, &set);
+            set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SETUP_SRV;
             set.model_app_bind.company_id = CID_ESP;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
             if (err != ESP_OK)
@@ -1517,10 +1520,17 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
             set.model_app_bind.company_id = CID_ESP;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
+            set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+            set.model_app_bind.company_id = CID_ESP;
+            err = esp_ble_mesh_config_client_set_state(&common, &set);
+            set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SETUP_SRV;
+            set.model_app_bind.company_id = CID_ESP;
+            err = esp_ble_mesh_config_client_set_state(&common, &set);
             if (err != ESP_OK)
             {
                 ESP_LOGE(TAG, "Failed to send Config Model App Bind");
             }
+            ESP_LOGE(TAG, "Failed to send Config Model App Bind");
             break;
         default:
             break;
@@ -1707,7 +1717,7 @@ void *send_data_task(void *args)
     esp_ble_mesh_msg_ctx_t ctx = {0};
     uint32_t opcode;
     esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_cfg_client_set_state_t set = {0};
+    esp_ble_mesh_cfg_client_set_state_t set_rst = {0},set_hb = {0},set_pub_conf = {0};
     esp_ble_mesh_node_t node;
     while (1)
     {
@@ -1742,11 +1752,11 @@ void *send_data_task(void *args)
                 ESP_LOGI(TAG, "Node unprovision packet send :");
                 node.unicast_addr = unprovision_t.base_data.elementAddr;
                 example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
-                set.model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
-                ESP_LOGI(TAG, " addr to unprov%d", set.model_app_bind.element_addr);
-                set.model_app_bind.model_app_idx = prov_key.app_idx;
-                set.model_app_bind.company_id = CID_ESP;
-                err = esp_ble_mesh_config_client_set_state(&common, &set);
+                set_rst .model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
+                ESP_LOGI(TAG, " addr to unprov%d", set_rst .model_app_bind.element_addr);
+                set_rst .model_app_bind.model_app_idx = prov_key.app_idx;
+                set_rst .model_app_bind.company_id = CID_ESP;
+                err = esp_ble_mesh_config_client_set_state(&common, &set_rst );
                 break;
 
             case NODE_AC_CONTROL_PACKET:
@@ -1777,6 +1787,51 @@ void *send_data_task(void *args)
                 }
 
                 mesh_example_info_store();
+                break;
+                
+            case NODE_HB_PACKET:
+                // uint16_t dst;              not     /*!< Destination address for Heartbeat messages */
+                // uint8_t  count;            mis     /*!< Number of Heartbeat messages to be sent */
+                // uint8_t  period;           mis      /*!< Period for sending Heartbeat messages */
+                // uint8_t  ttl;              mis     /*!< TTL to be used when sending Heartbeat messages */
+                // uint16_t feature;          dont know     /*!< Bit field indicating features that trigger Heartbeat messages when changed */
+                // uint16_t net_idx;          not     /*!< NetKey Index */
+                ESP_LOGI(TAG, "Node pub configure packet send :");
+                node.unicast_addr = unprovision_t.base_data.elementAddr;
+                example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET);
+                set_hb.heartbeat_pub_set.dst = 1;
+                ESP_LOGI(TAG, " addr to unprov%d", set_hb.heartbeat_pub_set.dst);
+                set_hb.model_app_bind.model_app_idx = prov_key.app_idx;
+                set_hb.model_app_bind.company_id = CID_ESP;
+                err = esp_ble_mesh_config_client_set_state(&common, &set_hb);
+                break;
+
+            case NODE_PUB_CONF_PACKET:
+                // uint16_t element_addr;          /*!< The element address */
+                // uint16_t publish_addr;          /*!< Value of the publish address */
+                // uint16_t publish_app_idx;       /*!< Index of the application key */
+                // bool     cred_flag;             /*!< Value of the Friendship Credential Flag */
+                // uint8_t  publish_ttl;           /*!< Default TTL value for the publishing messages */
+                // uint8_t  publish_period;        /*!< Period for periodic status publishing */
+                // uint8_t  publish_retransmit;    /*!< Number of retransmissions and number of 50-millisecond steps between retransmissions */
+                // uint16_t model_id;              /*!< The model id */
+                // uint16_t company_id;            /*!< The company id, if not a vendor model, shall set to 0xFFFF */
+
+                ESP_LOGI(TAG, "Node pub configure packet send :");
+                node.unicast_addr = 6;//unprovision_t.base_data.elementAddr;
+                example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
+                set_pub_conf.model_pub_set.element_addr =  6;//node.unicast_addr;
+                set_pub_conf.model_pub_set.publish_addr = 1;
+                set_pub_conf.model_pub_set.publish_app_idx = 0;
+                set_pub_conf.model_pub_set.cred_flag = false;
+                set_pub_conf.model_pub_set.publish_ttl = 10;
+                set_pub_conf.model_pub_set.publish_period = 70;
+                 set_pub_conf.model_pub_set.publish_retransmit = 0;
+                set_pub_conf.model_pub_set.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+                set_pub_conf.model_pub_set.company_id = 0xffff;
+
+                err = esp_ble_mesh_config_client_set_state(&common, &set_pub_conf);
+                ESP_LOGI(TAG, "err err: %d",err);
                 break;
 
             default:

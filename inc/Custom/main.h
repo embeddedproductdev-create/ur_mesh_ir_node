@@ -64,10 +64,10 @@
 #define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
-#define MESH_PART_ENABLED false
+#define MESH_PART_ENABLED true
 #define AP_PART_ENABLED false
 #define TEACHING_PART_ENABLED true
-#define HEARTBEAT_PART_ENABLED true
+#define HEARTBEAT_PART_ENABLED false
 
 /* GLOBAL VARIABLES */
 extern bool configured;

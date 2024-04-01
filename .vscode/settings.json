@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32s3",
-  "idf.portWin": "COM6",
+  "idf.portWin": "COM15",
   "idf.flashType": "UART",
   "files.associations": {
     "mqtt.h": "c",
@@ -41,7 +41,9 @@
     "inttypes.h": "c",
     "string.h": "c",
     "temperature_sensor.h": "c",
-    "arduino.h": "c"
+    "arduino.h": "c",
+    "bitset": "c",
+    "set": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
