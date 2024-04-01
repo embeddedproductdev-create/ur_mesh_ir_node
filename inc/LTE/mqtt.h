@@ -290,7 +290,7 @@ extern pub_conf_t node_pub_conf_t;
 extern struct pub_mesg_struct *pubmesg_head_ptr;
 extern struct pub_mesg_struct *pubmesg_tail_ptr;
 
-extern struct HB_conf_t HB_pub_conf_t;
+extern HB_conf_t  HB_pub_conf_t;
 
 // SUBSCRIBE TOPICS
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];

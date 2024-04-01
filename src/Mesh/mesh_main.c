@@ -1521,10 +1521,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.company_id = CID_ESP;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
             set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
-            set.model_app_bind.company_id = CID_ESP;
-            err = esp_ble_mesh_config_client_set_state(&common, &set);
-            set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SETUP_SRV;
-            set.model_app_bind.company_id = CID_ESP;
+            set.model_app_bind.company_id = 0xffff;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
             if (err != ESP_OK)
             {
@@ -1740,6 +1737,7 @@ void *send_data_task(void *args)
                 for (uint8_t i = 2; i < 8; i++)
                 {
                     match[i] = provision_t.macid[i - 2];
+                    ESP_LOGI(TAG, "Node provision mac id  : %0x",match[i]);
                 }
                 err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
                 if (err != ESP_OK)
@@ -1818,9 +1816,9 @@ void *send_data_task(void *args)
                 // uint16_t company_id;            /*!< The company id, if not a vendor model, shall set to 0xFFFF */
 
                 ESP_LOGI(TAG, "Node pub configure packet send :");
-                node.unicast_addr = 6;//unprovision_t.base_data.elementAddr;
+                node.unicast_addr =  node_pub_conf_t.base_data.elementAddr;
                 example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
-                set_pub_conf.model_pub_set.element_addr =  6;//node.unicast_addr;
+                set_pub_conf.model_pub_set.element_addr = node.unicast_addr;
                 set_pub_conf.model_pub_set.publish_addr = 1;
                 set_pub_conf.model_pub_set.publish_app_idx = 0;
                 set_pub_conf.model_pub_set.cred_flag = false;

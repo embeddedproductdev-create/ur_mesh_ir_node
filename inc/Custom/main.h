@@ -49,6 +49,7 @@
 #include "LED.h"
 #include "temperature_sensor.h"
 #include "heartbeat.h"
+#include "queue.h"
 
 #define TAG "UART"
 #define DEBUG_TAG "[DEBUG] : "

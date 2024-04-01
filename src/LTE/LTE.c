@@ -483,17 +483,6 @@ uint8_t OT_command(char* cmd){
 	return FAILURE;
 }
 
-void timer_config()
-{
-	const esp_timer_create_args_t timer_args = {
-	            .callback = &timer_callback,
-	            .name = "timer"
-	    };
-
-	    esp_timer_handle_t periodic_timer;
-	    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &periodic_timer));
-	    ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, 500000));
-}
 
 void resetLte()
 {
@@ -516,7 +505,6 @@ void LTE_gpio_configuration()
 void LTE_initialization(void)
 {
     uart_init();
-    timer_config();
     OT_command("ATE0\r\n");
     MQTT_Config(mqtt_client_index,
     		1,2,
@@ -583,12 +571,12 @@ void establishMQTTConnection()
 void error_check_json(uint8_t json_packet_id)
 {
 	//Check params common in all packets first
-	if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
-	else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
-	if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR));
-	else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
-	if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
-	else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
+	// if(cJSON_GetObjectItem(json_packet_j, MSGSEQNO_STR));
+	// else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
+	// if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR));
+	// else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
+	// if(cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR));
+	// else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
 
 	switch(json_packet_id)
 	{
