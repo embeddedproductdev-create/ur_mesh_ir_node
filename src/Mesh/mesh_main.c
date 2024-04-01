@@ -270,8 +270,13 @@ static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN] = {0xdd, 0xdd};
 static uint16_t server_address = ESP_BLE_MESH_ADDR_UNASSIGNED;
 static uint16_t sensor_prop_id;
 
-uint8_t binded = 0, prov = 0;
+esp_ble_mesh_client_common_param_t common = {0};
+esp_ble_mesh_cfg_client_set_state_t set = {0};
+esp_ble_mesh_node_t *node = NULL;
+esp_err_t err;
 
+uint8_t binded = 0, prov = 0;
+bool Bind_fl = false;
 static struct esp_ble_mesh_key
 {
     uint16_t net_idx;
@@ -832,6 +837,16 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             provision_t = *vendor_provision_t;
             ESP_LOGI(DEBUG_TAG, "NODE PROV ACK | SENDER : %d",provision_t.base_data.elementAddr);
+            if(Bind_fl == true)
+            {
+                example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+                set.model_app_bind.element_addr = node->unicast_addr;
+                set.model_app_bind.model_app_idx = prov_key.app_idx;
+                set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+                set.model_app_bind.company_id = 0xffff;
+                err = esp_ble_mesh_config_client_set_state(&common, &set);
+                Bind_fl = false;
+            }
             break;
 
         case NODE_UNPROV_PACKET:
@@ -891,7 +906,17 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
 
     ESP_LOGI(TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
     // printf("json id,%d",param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
+    //if( param->status_cb.sensor_status.marshalled_sensor_data->data[0]!=64 || first != true){
     store_data_to_node_structures(param);
+   // }
+    // else{
+    //     example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+    //     set.model_app_bind.element_addr = node->unicast_addr;
+    //     set.model_app_bind.model_app_idx = prov_key.app_idx;
+    //     set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+    //     set.model_app_bind.company_id = 0xffff;
+    //     err = esp_ble_mesh_config_client_set_state(&common, &set);
+    // }
     if (param->error_code)
     {
         ESP_LOGE(TAG, "Send sensor client message failed (err %d)", param->error_code);
@@ -1343,6 +1368,9 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     case ESP_BLE_MESH_NODE_ADD_LOCAL_NET_KEY_COMP_EVT:
         ESP_LOGI(TAG, "ESP_BLE_MESH_NODE_ADD_LOCAL_NET_KEY_COMP_EVT, err_code %d", param->node_add_net_key_comp.err_code);
         break;
+    case ESP_BLE_MESH_NODE_BIND_APP_KEY_TO_MODEL_COMP_EVT:
+        ESP_LOGE(TAG, "ESP_BLE_MESH_NODE_BIND_APP_KEY_TO_MODEL_COMP_EVT");
+        break;
     default:
         break;
     }
@@ -1392,10 +1420,10 @@ static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t 
 static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t event,
                                               esp_ble_mesh_cfg_client_cb_param_t *param)
 {
-    esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_cfg_client_set_state_t set = {0};
-    esp_ble_mesh_node_t *node = NULL;
-    esp_err_t err;
+    // esp_ble_mesh_client_common_param_t common = {0};
+    // esp_ble_mesh_cfg_client_set_state_t set = {0};
+    // esp_ble_mesh_node_t *node = NULL;
+    // esp_err_t err;
 
     ESP_LOGI(TAG, "Config client, err_code %d, event %u, addr 0x%04x, opcode 0x%04" PRIx32,
              param->error_code, event, param->params->ctx.addr, param->params->opcode);
@@ -1451,12 +1479,15 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
             set.model_app_bind.company_id = CID_ESP;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
-            set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
-            set.model_app_bind.company_id = 0xffff;
-            err = esp_ble_mesh_config_client_set_state(&common, &set);
-            set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SETUP_SRV;
-            set.model_app_bind.company_id = CID_ESP;
-            err = esp_ble_mesh_config_client_set_state(&common, &set);
+            // vTaskDelay(5000);
+            // ESP_LOGE(TAG, "Delay over");
+            // example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+            // set.model_app_bind.element_addr = node->unicast_addr;
+            // set.model_app_bind.model_app_idx = prov_key.app_idx;
+            // set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+            // set.model_app_bind.company_id = 0xffff;
+            // err = esp_ble_mesh_config_client_set_state(&common, &set);
+        
             if (err != ESP_OK)
             {
                 ESP_LOGE(TAG, "Failed to send Config Model App Bind");
@@ -1744,6 +1775,7 @@ void *send_data_task(void *args)
                 {
                     ESP_LOGE(TAG, "Failed to set matching device uuid");
                 }
+                Bind_fl = true;
                 break;
 
             case NODE_UNPROV_PACKET:
