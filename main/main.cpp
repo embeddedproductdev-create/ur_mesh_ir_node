@@ -73,7 +73,6 @@ void init_structures()
     gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
     gwy_pub_conf_t.base_data.json_packet_id = GWY_PUB_CONF_PACKET;
     gwy_temperature_data_t.base_data.json_packet_id = GWY_TEMPERATURE_DATA_PACKET;
-    gwy_HB_data_t.base_data.json_packet_id = GWY_HB_PACKET;
 
     /* NODE - JSON PACKET IDs */
     provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
@@ -84,9 +83,6 @@ void init_structures()
     node_locking_t.base_data.json_packet_id = NODE_AC_LOCKING_PACKET;
     node_pub_conf_t.base_data.json_packet_id = NODE_PUB_CONF_PACKET;
     node_temperature_data_t.base_data.json_packet_id = NODE_TEMPERATURE_DATA_PACKET;
-    node_HB_data_t.base_data.json_packet_id = NODE_HB_PACKET;
-
-    HB_pub_conf_t.base_data.json_packet_id = HEARTBEAT_CONF_PACKET;
 
     /* JSON ACK NAMES */
     strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK);

@@ -48,7 +48,6 @@
 /* Custom */
 #include "LED.h"
 #include "temperature_sensor.h"
-#include "heartbeat.h"
 #include "queue.h"
 
 #define TAG "UART"
@@ -68,7 +67,6 @@
 #define MESH_PART_ENABLED true
 #define AP_PART_ENABLED false
 #define TEACHING_PART_ENABLED true
-#define HEARTBEAT_PART_ENABLED false
 
 /* GLOBAL VARIABLES */
 extern bool configured;

@@ -885,12 +885,6 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             ESP_LOGI(DEBUG_TAG, "NODE TEMPERATURE DATA ACK | SENDER : %d", node_temperature_data_t.base_data.elementAddr);
             break;
 
-        case NODE_HB_PACKET:
-            vendor_node_HB_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            node_HB_data_t = *vendor_node_HB_data_t;
-            ESP_LOGI(DEBUG_TAG, "NODE HB ACK | SENDER : %d",node_HB_data_t.base_data.elementAddr);
-            break;
-
         case NODE_PUB_CONF_PACKET:
             vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_pub_conf_t = *vendor_node_pub_conf_t;
@@ -1817,23 +1811,6 @@ void *send_data_task(void *args)
                 }
 
                 mesh_example_info_store();
-                break;
-                
-            case NODE_HB_PACKET:
-                // uint16_t dst;              not     /*!< Destination address for Heartbeat messages */
-                // uint8_t  count;            mis     /*!< Number of Heartbeat messages to be sent */
-                // uint8_t  period;           mis      /*!< Period for sending Heartbeat messages */
-                // uint8_t  ttl;              mis     /*!< TTL to be used when sending Heartbeat messages */
-                // uint16_t feature;          dont know     /*!< Bit field indicating features that trigger Heartbeat messages when changed */
-                // uint16_t net_idx;          not     /*!< NetKey Index */
-                ESP_LOGI(TAG, "Node pub configure packet send :");
-                node.unicast_addr = unprovision_t.base_data.elementAddr;
-                example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET);
-                set_hb.heartbeat_pub_set.dst = 1;
-                ESP_LOGI(TAG, " addr to unprov%d", set_hb.heartbeat_pub_set.dst);
-                set_hb.model_app_bind.model_app_idx = prov_key.app_idx;
-                set_hb.model_app_bind.company_id = CID_ESP;
-                err = esp_ble_mesh_config_client_set_state(&common, &set_hb);
                 break;
 
             case NODE_PUB_CONF_PACKET:

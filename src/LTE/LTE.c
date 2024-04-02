@@ -663,7 +663,6 @@ void error_check_json(uint8_t json_packet_id)
 		
 		case GWY_PUB_CONF_PACKET:
 		case NODE_PUB_CONF_PACKET:
-		case HEARTBEAT_CONF_PACKET:
 			if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_STR));
 			else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
 			return;
@@ -878,19 +877,6 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 				ELMNT_ADDR_STR, node_temperature_data_t.base_data.elementAddr,
 				TEMPERATURE_DATA_STR, node_temperature_data_t.measured_temperature);
 			break;
-
-		case NODE_HB_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Node Heartbeat Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID, NODE_HB_PACKET,
-				JSON_ACK_NAME, NODE_HB_ACK,
-				JSON_ACK_SEQ_NO, node_HB_data_t.base_data.ack_seq_no,
-				GWYSERNO_STR, GWY_SER_NO,
-				NODESERNO_STR, node_HB_data_t.base_data.node_ser_no,
-				ELMNT_ADDR_STR, node_HB_data_t.base_data.elementAddr);
-			break;
-
-
 	}
 	add_to_pubmesg_queue(pubmessage, publish_topic);
 }
@@ -1056,9 +1042,6 @@ void parse_json_packet()
 				#if(!AP_PART_ENABLED)
 					ESP_LOGE(ERROR_TAG, "AP mode is not enabled. So skipping rest of MQTT\r\n");
 				#endif
-				break;
-
-			case HEARTBEAT_CONF_PACKET:
 				break;
 
 			default:
