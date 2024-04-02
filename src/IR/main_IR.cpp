@@ -170,88 +170,24 @@ void IR_transmit(uint16_t protocol_selected_num)
     default:
         printf("Error in choosing the protocol for send\r\n");
         break;
-
-    // For teaching mode purpose
+        
     case DAIKIN216:
-        switch (gwy_ac_control_t.temp)
-        {
-        case 20:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 20");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[0], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[8], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 21:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 21");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[1], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[9], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 22:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 22");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[2], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[10], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 23:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 23");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[3], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[11], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 24:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 24");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[4], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[12], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 25:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 25");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[5], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[13], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 26:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 26");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[6], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[14], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        case 27:
-            ESP_LOGI(DEBUG_TAG, "Daikin Protocol - Temperature 27");
-            if (gwy_ac_control_t.power)
-                custom_ac.sendRaw(custom_raw_buffer[7], NUM_OF_VALUES_PER_COMMAND, 38);
-            else
-                custom_ac.sendRaw(custom_raw_buffer[15], NUM_OF_VALUES_PER_COMMAND, 38);
-            break;
-        default:
-            ESP_LOGE(ERROR_TAG, "Unsupported temperature in custom IR transmtit\n");
-        }
+        printf("Sending Daikin216\n");
+        strcpy(protocol_chosen_str, "Daikin216");
+        ac_daikin216.setPower(gwy_ac_control_t.power);
+        ac_daikin216.setTemp(gwy_ac_control_t.temp);
+        if (gwy_ac_control_t.swingH)
+            gwy_ac_control_t.swingH = kDaikinSwingOn;
+        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
+        if (gwy_ac_control_t.swingV)
+            gwy_ac_control_t.swingV = kDaikinSwingOn;
+        ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikin216.setFan(gwy_ac_control_t.fan);
+        ac_daikin216.setMode(get_mode_num_daikin216());
+        sending = true;
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin216\r\n");
+        ac_daikin216.send();
         break;
-        // case DAIKIN216:
-        //     printf("Sending Daikin216\n");
-        //     strcpy(protocol_chosen_str, "Daikin216");
-        //     ac_daikin216.setPower(gwy_ac_control_t.power);
-        //     ac_daikin216.setTemp(gwy_ac_control_t.temp);
-        //     if (gwy_ac_control_t.swingH)
-        //         gwy_ac_control_t.swingH = kDaikinSwingOn;
-        //     ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
-        //     if (gwy_ac_control_t.swingV)
-        //         gwy_ac_control_t.swingV = kDaikinSwingOn;
-        //     ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
-        //     ac_daikin216.setFan(gwy_ac_control_t.fan);
-        //     ac_daikin216.setMode(get_mode_num_daikin216());
-        //     sending = true;
-        //     ESP_LOGI(DEBUG_TAG, "Sending Daikin216\r\n");
-        //     ac_daikin216.send();
-        //     break;
 
     case HITACHI_AC296:
         strcpy(protocol_chosen_str, "Hitachi296");
@@ -285,8 +221,11 @@ void IR_transmit(uint16_t protocol_selected_num)
 
     case VOLTAS:
         ESP_LOGE(ERROR_TAG, "Still in Development\r\n");
+        ac_voltas.setPower(gwy_ac_control_t.power);
+        ac_voltas.send();
         strcpy(protocol_chosen_str, "Daikin");
         break;
+
     }
     needtosend = false;
     sending = false;
