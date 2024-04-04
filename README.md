@@ -1,19 +1,19 @@
 
 
-#IR BLE Mesh AC Control 
+# IR BLE Mesh AC Control 
 ---
-PROJECT HEAD : K.N.Singh
-PROJECT DONE FOR : Unimation Robotics
-CONTRIBUTORS : Kulasekaran, Adhikesavan, Umamaheswari
+ - PROJECT MANAGER : K.N.Singh
+ - PROJECT DONE FOR : Unimation Robotics
+ - CONTRIBUTORS : Kulasekaran, Adhikesavan, Umamaheswari
 
-#Project Description
+# Project Description
 ---
-This project's goal is to develop a BLE Mesh based system that can be used to remotely control Air conditioners at public places. 
+This project's goal is to develop a BLE Mesh based system that can be used to remotely control Air conditioners
 
 ## Prerequisites & Stack used: 
 ---
 - Espressif SDK
-- Arduino Environment
+- Arduino
 - BLE Mesh
 - IRremoteESP8266 Library
 - EC200U LTE communication
