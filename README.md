@@ -2,9 +2,9 @@
 
 # IR BLE Mesh AC Control 
 ---
- - PROJECT MANAGER : K.N.Singh
- - PROJECT DONE FOR : Unimation Robotics
- - CONTRIBUTORS : Kulasekaran, Adhikesavan, Umamaheswari
+ - Project Manager : K.N.Singh
+ - Project Done For : Unimation Robotics
+ - Contributors : Kulasekaran, Adhikesavan, Umamaheswari
 
 # Project Description
 ---
