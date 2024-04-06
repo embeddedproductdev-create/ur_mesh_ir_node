@@ -102,6 +102,8 @@ typedef struct gwy_unreg_struct
 typedef struct reconf_struct
 {
 	struct base_data_t base_data;
+	struct reconf_struct *next;
+	struct reconf_struct *prev;
 } reconf_t;
 
 typedef struct control_struct
@@ -119,23 +121,31 @@ typedef struct control_struct
 	bool Locking;
 	uint8_t TempUpLimit;
 	uint8_t TempLowLimit;
+	struct control_struct *next;
+	struct control_struct *prev;
 } control_t;
 
 typedef struct prov_struct
 {
 	struct base_data_t base_data;
 	uint8_t macid[6];
+	struct prov_struct *next;
+	struct prov_struct *prev;
 } prov_t;
 
 typedef struct unprov_struct
 {
 	struct base_data_t base_data;
+	struct unprov_struct *next;
+	struct unprov_struct *prev;
 } unprov_t;
 
 typedef struct pub_conf_struct
 {
 	struct base_data_t base_data;
 	uint16_t pub_conf_period_in_sec;
+	struct pub_conf_struct *next;
+	struct pub_conf_struct *prev;
 } pub_conf_t;
 
 typedef struct temperature_data_struct
@@ -143,17 +153,6 @@ typedef struct temperature_data_struct
 	struct base_data_t base_data;
 	uint8_t measured_temperature;
 } temperature_data_t;
-
-typedef struct HB_data_struct
-{
-	struct base_data_t base_data;
-} HB_data_t;
-
-typedef struct HB_conf_struct
-{
-	struct base_data_t base_data;
-	uint16_t pub_conf_period_in_sec;
-} HB_conf_t;
 
 struct pub_mesg_struct
 {
@@ -165,7 +164,6 @@ struct pub_mesg_struct
 
 enum json_packet_enum
 {
-
 	/* GWY PACKETS */
 	GWY_REG_PACKET,
 	GWY_CONF_PACKET,
@@ -254,50 +252,83 @@ enum Modes
 };
 
 /*GLOBAL VARIABLES */
+
+/*json*/
 extern char json_packet[MQTT_PACKET_BUFF_SIZE];
 extern cJSON *json_packet_j;
 extern uint8_t json_packet_id;
-
 extern int16_t json_ack_err_code;
-extern bool send_control_packet;
 
+/*flags*/
+extern bool send_control_packet;
 extern bool restart_flag;
 extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;
 
-extern mqtt_reset_t gwy_reset_mqtt_t;
+/*===============GWY====================*/
 
+/*gwy registration & unregistration*/
 extern gwy_reg_t gwy_registration_t;
 extern gwy_unreg_t gwy_unregistration_t;
 
-extern prov_t provision_t;
-extern unprov_t unprovision_t;
-
-extern control_t gwy_ac_control_t;
-extern control_t gwy_locking_t;
-extern control_t node_ac_control_t;
-extern control_t node_locking_t;
-
-extern reconf_t node_conf_t;
+/*gwy ac remote configuration*/
 extern reconf_t gwy_conf_t;
 
-extern reconf_t node_reconf_t;
+/*gwy ac remote reconfiguration*/
 extern reconf_t gwy_reconf_t;
 
+/*gwy ac control and ac locking*/
+extern control_t gwy_ac_control_t;
+extern control_t gwy_locking_t;
+
+/*gwy temperature data*/
 extern temperature_data_t gwy_temperature_data_t;
+
+/*gwy publish configuration*/
+extern pub_conf_t gwy_pub_conf_t;
+
+/*reset mqtt*/
+extern mqtt_reset_t gwy_reset_mqtt_t;
+
+/*===============NODE====================*/
+
+/*node provision*/
+extern prov_t provision_t;
+extern prov_t *prov_queue_head;
+extern prov_t *prov_queue_tail;
+
+/*node Unprovision*/
+extern unprov_t unprovision_t;
+extern unprov_t *unprov_queue_head;
+extern unprov_t *unprov_queue_tail;
+
+/*node ac control*/
+extern control_t node_ac_control_t;
+extern control_t *node_ac_control_queue_head;
+extern control_t *node_ac_control_queue_tail;
+
+/*node ac locking*/
+extern control_t node_locking_t;
+
+/*node ac remote reconfiguration*/
+extern reconf_t node_reconf_t;
+extern reconf_t *node_reconf_queue_head;
+extern reconf_t *node_reconf_queue_tail;
+
+/*node temperature data*/
 extern temperature_data_t node_temperature_data_t;
 
-extern HB_data_t gwy_HB_data_t;
-extern HB_data_t node_HB_data_t;
-
-extern pub_conf_t gwy_pub_conf_t;
+/*node publish configuration*/
 extern pub_conf_t node_pub_conf_t;
+extern pub_conf_t *node_pub_conf_queue_head;
+extern pub_conf_t *node_pub_conf_queue_tail;
 
-extern struct pub_mesg_struct *pubmesg_head_ptr;
-extern struct pub_mesg_struct *pubmesg_tail_ptr;
+/*===================================*/
 
-extern HB_conf_t  HB_pub_conf_t;
+/*pubmesg*/
+extern struct pub_mesg_struct *pubmesg_head;
+extern struct pub_mesg_struct *pubmesg_tail;
 
 // SUBSCRIBE TOPICS
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];

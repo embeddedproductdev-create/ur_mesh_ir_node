@@ -72,7 +72,6 @@ unprov_t *vendor_unprovision_t;
 reconf_t *vendor_node_reconf_t;
 reconf_t *vendor_node_config_t;
 temperature_data_t *vendor_node_temperature_data_t;
-HB_data_t *vendor_node_HB_data_t;
 pub_conf_t *vendor_node_pub_conf_t;
 
 #define NVS_NAME "mesh_example"
@@ -857,8 +856,8 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
 
         case NODE_CONF_PACKET:
             vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            node_conf_t = *vendor_node_config_t;
-            ESP_LOGI(DEBUG_TAG, "NODE CONF ACK | SENDER : %d",node_conf_t.base_data.elementAddr);
+            node_reconf_t = *vendor_node_config_t;
+            ESP_LOGI(DEBUG_TAG, "NODE CONF ACK | SENDER : %d",node_reconf_t.base_data.elementAddr);
             break;
 
         case NODE_RECONF_PACKET:

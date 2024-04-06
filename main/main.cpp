@@ -25,19 +25,33 @@ control_t gwy_locking_t;
 mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
 temperature_data_t gwy_temperature_data_t;
-HB_data_t gwy_HB_data_t;
 
 prov_t provision_t;
-unprov_t unprovision_t;
-reconf_t node_conf_t;
-reconf_t node_reconf_t;
-control_t node_ac_control_t;
-control_t node_locking_t;
-pub_conf_t node_pub_conf_t;
-temperature_data_t node_temperature_data_t;
-HB_data_t node_HB_data_t;
+prov_t *prov_queue_head;
+prov_t *prov_queue_tail;
 
-HB_conf_t HB_pub_conf_t;
+unprov_t unprovision_t;
+unprov_t *unprov_queue_head;
+unprov_t *unprov_queue_tail;
+
+reconf_t node_conf_t;
+
+reconf_t node_reconf_t;
+reconf_t *node_reconf_queue_head;
+reconf_t *node_reconf_queue_tail;
+
+control_t node_ac_control_t;
+control_t *node_ac_control_queue_head;
+control_t *node_ac_control_queue_tail;
+
+control_t node_locking_t;
+
+pub_conf_t node_pub_conf_t;
+pub_conf_t *node_pub_conf_queue_head;
+pub_conf_t *node_pub_conf_queue_tail;
+
+temperature_data_t node_temperature_data_t;
+
 
 /**
  * @brief Function that initializes the members of global strucutres with
@@ -61,7 +75,6 @@ void init_structures()
     gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
     gwy_temperature_data_t.base_data.gwy_ser_no = GWY_SER_NO;
     gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    HB_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
 
     /* GWY - JSON PACKET IDs */
     gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
@@ -94,8 +107,6 @@ void init_structures()
     strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK);
     strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK);
     strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK);
-    strcpy(gwy_HB_data_t.base_data.ack_name, GWY_HB_ACK);
-    strcpy(HB_pub_conf_t.base_data.ack_name, HB_PUB_CONF_ACK);
 }
 
 /**
