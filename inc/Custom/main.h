@@ -31,6 +31,8 @@
 #include "../mesh/mesh_main.h"
 
 /* ESP General */
+#include "driver/adc.h"
+#include "driver/i2c.h"
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "esp_chip_info.h"
@@ -60,7 +62,7 @@
 
 #define IR_RECV_PART_ENABLED true
 #define IR_RECV_LOG_ENABLED true
-#define TEMPERATURE_SENSOR_PART_ENABLED false
+#define TEMPERATURE_SENSOR_PART_ENABLED true
 #define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true

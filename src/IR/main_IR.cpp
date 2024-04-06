@@ -323,7 +323,12 @@ void IR_transmit(uint16_t protocol_selected_num)
         sending = true;
         ac_hitachi296.send();
         ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
+        ESP_LOGI(DEBUG_TAG, "Power : %d\n",gwy_ac_control_t.power);
+        ESP_LOGI(DEBUG_TAG, "Temperature : %d\n",gwy_ac_control_t.temp);
+        ESP_LOGI(DEBUG_TAG, "Fan Speed : %d\n",gwy_ac_control_t.fan);
+        ESP_LOGI(DEBUG_TAG, "Mode : %d\n",ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         break;
+        
     case HITACHI_AC:
         strcpy(protocol_chosen_str, "HitachiAc224");
         ac_hitachi224.setPower(gwy_ac_control_t.power);

@@ -44,7 +44,9 @@
     "arduino.h": "c",
     "bitset": "c",
     "set": "c",
-    "compare": "c"
+    "compare": "c",
+    "adc.h": "c",
+    "gpio.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

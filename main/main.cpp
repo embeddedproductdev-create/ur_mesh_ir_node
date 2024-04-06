@@ -169,10 +169,7 @@ void app_main()
     #endif
 
     #if(TEMPERATURE_SENSOR_PART_ENABLED)
-    pthread_t temperature_sensor_tid;
-    if(pthread_create(&temperature_sensor_tid, NULL, temperature_read, NULL)!=0){
-        perror("Error in creating temperature_read_thread : ");
-    }
+    create_Temperature_data_publish_timer();
     #endif
 
     #if(BUTTON_PART_ENABLED)
@@ -199,10 +196,6 @@ void app_main()
 
     #if(LTE_PART_ENABLED)
     pthread_join(LTE_tid, NULL);
-    #endif
-
-    #if(TEMPERATURE_SENSOR_PART_ENABLED)
-    pthread_join(temperature_sensor_tid, NULL);
     #endif
 
     #if(BUTTON_PART_ENABLED)
