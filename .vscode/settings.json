@@ -43,7 +43,8 @@
     "temperature_sensor.h": "c",
     "arduino.h": "c",
     "bitset": "c",
-    "set": "c"
+    "set": "c",
+    "compare": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
