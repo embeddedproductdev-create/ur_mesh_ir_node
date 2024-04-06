@@ -881,6 +881,15 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 	add_to_pubmesg_queue(pubmessage, publish_topic);
 }
 
+void get_mode_value()
+{
+	if(strcasecmp(gwy_ac_control_t.mode_str, "Auto") == 0) gwy_ac_control_t.mode_val = AUTO;
+	else if(strcasecmp(gwy_ac_control_t.mode_str, "Cool") == 0) gwy_ac_control_t.mode_val = COOL;
+	else if(strcasecmp(gwy_ac_control_t.mode_str, "Dry") == 0) gwy_ac_control_t.mode_val = DRY;
+	else if(strcasecmp(gwy_ac_control_t.mode_str, "Heat") == 0) gwy_ac_control_t.mode_val = HEAT;
+	else if(strcasecmp(gwy_ac_control_t.mode_str, "Fan") == 0) gwy_ac_control_t.mode_val = FAN;
+}
+
 /**
  * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
  * @param None
@@ -939,6 +948,7 @@ void parse_json_packet()
 				gwy_ac_control_t.base_data.gwy_ser_no = cJSON_GetObjectItem(json_packet_j, GWYSERNO_STR)->valueint;
 				gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_STR)->valueint;
 				strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_STR)->valuestring);
+				get_mode_value();
 				gwy_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_STR)->valueint;
 				gwy_ac_control_t.temp = cJSON_GetObjectItem(json_packet_j, TEMP_STR)->valueint;
 				gwy_ac_control_t.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_STR)->valueint;

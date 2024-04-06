@@ -167,6 +167,7 @@ uint8_t ReadMessage(int client_idx);
 uint8_t Error_Report(void);
 void clear_mqtt_settings();
 void reset_mqtt();
+void get_mode_value();
 
 #ifdef __cplusplus
 }

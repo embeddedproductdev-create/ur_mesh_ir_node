@@ -109,6 +109,7 @@ typedef struct control_struct
 	struct base_data_t base_data;
 	bool power;
 	char mode_str[15];
+	uint8_t mode_val;
 	uint8_t fan;
 	uint8_t temp;
 	bool swingH;
@@ -241,6 +242,15 @@ enum ERROR_CODES
 	INVALID_PUBLISH_PERIOD = 500,
 
 	UNKNOWN_ERROR_CODE = 999
+};
+
+enum Modes
+{
+	AUTO,
+	COOL,
+	HEAT,
+	DRY,
+	FAN
 };
 
 /*GLOBAL VARIABLES */

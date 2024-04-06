@@ -15,6 +15,7 @@
 // Initialization - Receiver
 bool configured = false;
 bool teaching_mode = false;
+bool teaching_mode_done =false;
 IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
 decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
@@ -30,10 +31,32 @@ int16_t protocol_selected_num = UNKNOWN;
 
 IRDaikinESP ac_daikin280(IR_TRANSMIT_PIN);
 IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
+IRDaikin2 ac_daikin2(IR_TRANSMIT_PIN);
+IRDaikin160 ac_daikin160(IR_TRANSMIT_PIN);
+IRDaikin176 ac_daikin176(IR_TRANSMIT_PIN);
+IRDaikin64 ac_daikinac64(IR_TRANSMIT_PIN);
+IRDaikin152 ac_daikin152(IR_TRANSMIT_PIN);
+IRDaikin128 ac_daikin128(IR_TRANSMIT_PIN);
 IRHitachiAc296 ac_hitachi296(IR_TRANSMIT_PIN);
+IRHitachiAc ac_hitachi224(IR_TRANSMIT_PIN);
+IRHitachiAc1 ac_hitachi104(IR_TRANSMIT_PIN);
+IRHitachiAc424 ac_hitachi424(IR_TRANSMIT_PIN);
+IRHitachiAc344 ac_hitachi344(IR_TRANSMIT_PIN);
+IRHitachiAc264 ac_hitachi264(IR_TRANSMIT_PIN);
 IRVoltas ac_voltas(IR_TRANSMIT_PIN);
 IRsend custom_ac(IR_TRANSMIT_PIN);
-
+IRSamsungAc ac_samsung(IR_TRANSMIT_PIN);
+IRHaierAC ac_haier(IR_TRANSMIT_PIN);
+IRHaierAC176 ac_haier176(IR_TRANSMIT_PIN);
+IRHaierAC160 ac_haier160(IR_TRANSMIT_PIN);
+IRLgAc ac_lg(IR_TRANSMIT_PIN);
+IRToshibaAC ac_toshiba(IR_TRANSMIT_PIN);
+IRCarrierAc64 ac_carrier64(IR_TRANSMIT_PIN);
+IRMitsubishi112 ac_mitsubishi112(IR_TRANSMIT_PIN);
+IRMitsubishi136 ac_mitsubishi136(IR_TRANSMIT_PIN);
+IRMitsubishiAC ac_mitsubishi144(IR_TRANSMIT_PIN);
+IRMitsubishiHeavy88Ac ac_mitsubishi88(IR_TRANSMIT_PIN);
+IRMitsubishiHeavy152Ac ac_mitsubishi152(IR_TRANSMIT_PIN);
 /**
  * @brief Function that deals with the locking feature
  * If locking is enabled, then it checks if the set temperature was within locking limits, if not it will
@@ -79,7 +102,7 @@ void IR_receiver_task(void *args)
         if (esp_restart_flag)
             ESP.restart();
         vTaskDelay(1);
-        if (irrecv.decode(&results))
+        if (irrecv.decode(&results) && !teaching_mode_done && true)
         {
             char raw_buf_str[200];
             strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
@@ -91,7 +114,6 @@ void IR_receiver_task(void *args)
             if (description.length())
                 ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
 #endif
-
             if (teaching_mode)
             {
                 if (custom_raw_buffer_index < NUM_OF_COMMANDS)
@@ -104,11 +126,11 @@ void IR_receiver_task(void *args)
                     if(custom_raw_buffer_index == NUM_OF_COMMANDS)
                     {
                         ESP_LOGI(DEBUG_TAG, "End of Teaching mode \n");
+                        teaching_mode_done = true;
                         teaching_mode = false;
                     }
                 }
             }
-
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
             {
                 configured = true;
@@ -140,29 +162,34 @@ void IR_transmit_setup()
     pinMode(IR_TRANSMIT_PIN, OUTPUT);
     ac_daikin216.begin();
     ac_daikin280.begin();
+    ac_daikin2.begin();
+    ac_daikin160.begin();
+    ac_daikin176.begin();
+    ac_daikinac64.begin();
+    ac_daikin152.begin();
+    ac_daikin128.begin();
     ac_hitachi296.begin();
+    ac_hitachi224.begin();
+    ac_hitachi104.begin();
+    ac_hitachi424.begin();
+    ac_hitachi344.begin();
+    ac_hitachi264.begin();
+    ac_voltas.begin();
+    ac_samsung.begin();
+    ac_haier.begin();
+    ac_haier176.begin();
+    ac_haier160.begin();
+    ac_lg.begin();
+    ac_toshiba.begin();
+    ac_carrier64.begin();
+    ac_mitsubishi112.begin();
+    ac_mitsubishi136.begin();
+    ac_mitsubishi144.begin();
+    ac_mitsubishi88.begin();
+    ac_mitsubishi152.begin();
     custom_ac.begin();
 }
 
-uint8_t get_mode_num_daikin216()
-{
-    if (strcasecmp(node_ac_control_t.mode_str, "Auto") == 0)
-        return kDaikinAuto;
-    else if (strcasecmp(node_ac_control_t.mode_str, "Dry") == 0)
-        return kDaikinDry;
-    else if (strcasecmp(node_ac_control_t.mode_str, "Cool") == 0)
-        return kDaikinCool;
-    else if (strcasecmp(node_ac_control_t.mode_str, "Heat") == 0)
-        return kDaikinHeat;
-    else
-        return kDaikinFan;
-}
-
-/**
- * @brief Function that handles the IR transmission part
- * @param none
- * @retval none
- */
 void IR_transmit(uint16_t protocol_selected_num)
 {
     switch (protocol_selected_num)
@@ -170,37 +197,9 @@ void IR_transmit(uint16_t protocol_selected_num)
     default:
         printf("Error in choosing the protocol for send\r\n");
         break;
-        
-    case DAIKIN216:
-        printf("Sending Daikin216\n");
-        strcpy(protocol_chosen_str, "Daikin216");
-        ac_daikin216.setPower(gwy_ac_control_t.power);
-        ac_daikin216.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
-            gwy_ac_control_t.swingH = kDaikinSwingOn;
-        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
-        if (gwy_ac_control_t.swingV)
-            gwy_ac_control_t.swingV = kDaikinSwingOn;
-        ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin216.setFan(gwy_ac_control_t.fan);
-        ac_daikin216.setMode(get_mode_num_daikin216());
-        sending = true;
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin216\r\n");
-        ac_daikin216.send();
-        break;
-
-    case HITACHI_AC296:
-        strcpy(protocol_chosen_str, "Hitachi296");
-        ac_hitachi296.setPower(gwy_ac_control_t.power);
-        ac_hitachi296.setTemp(gwy_ac_control_t.temp);
-        sending = true;
-        ac_hitachi296.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
-        break;
 
     case DAIKIN200:
-        ESP_LOGI(ERROR_TAG, "Still in Development\r\n");
-        strcpy(protocol_chosen_str, "Daikin200");
+        ESP_LOGI(DEBUG_TAG, "Sending Raw\r\n");
         break;
 
     case DAIKIN:
@@ -214,19 +213,354 @@ void IR_transmit(uint16_t protocol_selected_num)
             gwy_ac_control_t.swingV = kDaikinSwingOn;
         ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
         ac_daikin280.setFan(gwy_ac_control_t.fan);
+        ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
+        ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
+        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin280.send();
         ESP_LOGI(DEBUG_TAG, "Sending Daikin280\r\n");
+        break;  
+
+    case DAIKIN216:
+        strcpy(protocol_chosen_str, "Daikin216");
+        ac_daikin216.setPower(gwy_ac_control_t.power);
+        ac_daikin216.setTemp(gwy_ac_control_t.temp);
+        if (gwy_ac_control_t.swingH)
+            gwy_ac_control_t.swingH = kDaikinSwingOn;
+        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
+        if (gwy_ac_control_t.swingV)
+            gwy_ac_control_t.swingV = kDaikinSwingOn;
+        ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikin216.setFan(gwy_ac_control_t.fan);
+        ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin216.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin216\r\n");
         break;
 
+    case DAIKIN2:
+        strcpy(protocol_chosen_str, "Daikin2");
+        ac_daikin2.setPower(gwy_ac_control_t.power);
+        ac_daikin2.setTemp(gwy_ac_control_t.temp);
+        if (gwy_ac_control_t.swingH)    ac_daikin2.setSwingHorizontal(kDaikin2SwingHAuto);
+        else ac_daikin2.setSwingHorizontal(kDaikin2SwingHOff);
+        if (gwy_ac_control_t.swingV)   ac_daikin2.setSwingVertical(kDaikin2SwingVAuto);
+        else ac_daikin2.setSwingVertical(kDaikin2SwingVOff);
+        ac_daikin2.setFan(gwy_ac_control_t.fan);
+        ac_daikin2.enableOffTimer(gwy_ac_control_t.OffTimer);
+        ac_daikin2.enableOnTimer(gwy_ac_control_t.OnTimer);
+        ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin2.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin2\r\n");
+        break;
+    case DAIKIN160:
+        strcpy(protocol_chosen_str, "Daikin160");
+        ac_daikin160.setPower(gwy_ac_control_t.power);
+        ac_daikin160.setTemp(gwy_ac_control_t.temp);
+        if (gwy_ac_control_t.swingV)   ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
+        ac_daikin160.setFan(gwy_ac_control_t.fan);
+        ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin160.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin160\r\n");
+        break;
+    case DAIKIN176:
+        strcpy(protocol_chosen_str, "Daikin176");
+        ac_daikin176.setPower(gwy_ac_control_t.power);
+        ac_daikin176.setTemp(gwy_ac_control_t.temp);
+        if (gwy_ac_control_t.swingH)    ac_daikin176.setSwingHorizontal(kDaikin176SwingHAuto);
+        else ac_daikin176.setSwingHorizontal(kDaikin176SwingHOff);      
+        ac_daikin176.setFan(gwy_ac_control_t.fan);
+        ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin176.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin176\r\n");
+        break;
+    case DAIKIN64:
+        strcpy(protocol_chosen_str, "Daikin64");
+        ac_daikinac64.setPowerToggle(gwy_ac_control_t.power);
+        ac_daikinac64.setTemp(gwy_ac_control_t.temp);
+        ac_daikinac64.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikinac64.setFan(gwy_ac_control_t.fan);
+        ac_daikinac64.setOnTime(gwy_ac_control_t.OffTimer);
+        ac_daikinac64.setOffTime(gwy_ac_control_t.OnTimer);
+        ac_daikinac64.setMode(ac_daikinac64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikinac64.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin64\r\n");
+        break;
+    case DAIKIN152:
+        strcpy(protocol_chosen_str, "Daikin152");
+        ac_daikin152.setPower(gwy_ac_control_t.power);
+        ac_daikin152.setTemp(gwy_ac_control_t.temp);
+        ac_daikin152.setSwingV(gwy_ac_control_t.swingV);
+        ac_daikin152.setFan(gwy_ac_control_t.fan);
+        ac_daikin152.setMode(ac_daikin152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin152.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin152\r\n");
+        break;
+    case DAIKIN128:
+        strcpy(protocol_chosen_str, "Daikin128");
+        ac_daikin128.setPowerToggle(gwy_ac_control_t.power);
+        ac_daikin128.setTemp(gwy_ac_control_t.temp);
+        ac_daikin128.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikin128.setFan(gwy_ac_control_t.fan);
+        ac_daikin128.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_daikin128.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin128.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Daikin128\r\n");
+        break;
+    case HITACHI_AC296:
+        strcpy(protocol_chosen_str, "Hitachi296");
+        ac_hitachi296.setPower(gwy_ac_control_t.power);
+        ac_hitachi296.setTemp(gwy_ac_control_t.temp);
+        ac_hitachi296.setFan(gwy_ac_control_t.fan);
+        ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_hitachi296.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
+        break;
+    case HITACHI_AC:
+        strcpy(protocol_chosen_str, "HitachiAc224");
+        ac_hitachi224.setPower(gwy_ac_control_t.power);
+        ac_hitachi224.setTemp(gwy_ac_control_t.temp);
+        ac_hitachi224.setFan(gwy_ac_control_t.fan);
+        ac_hitachi224.setSwingHorizontal(gwy_ac_control_t.swingH);
+        ac_hitachi224.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_hitachi224.setMode(ac_hitachi224.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_hitachi224.send();
+        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc224\r\n");
+        break;
+    case HITACHI_AC1:
+        strcpy(protocol_chosen_str, "HitachiAc104");
+        ac_hitachi104.setPower(gwy_ac_control_t.power);
+        ac_hitachi104.setTemp(gwy_ac_control_t.temp);
+        ac_hitachi104.setFan(gwy_ac_control_t.fan);
+        ac_hitachi104.setSwingH(gwy_ac_control_t.swingH);
+        ac_hitachi104.setSwingV(gwy_ac_control_t.swingV);
+        ac_hitachi104.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_hitachi104.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_hitachi104.setMode(ac_hitachi104.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_hitachi104.send();
+        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc104\r\n");
+        break;
+    case HITACHI_AC424:
+        strcpy(protocol_chosen_str, "HitachiAc424");
+        ac_hitachi424.setPower(gwy_ac_control_t.power);
+        ac_hitachi424.setTemp(gwy_ac_control_t.temp);
+        ac_hitachi424.setFan(gwy_ac_control_t.fan);
+        ac_hitachi424.setSwingVToggle(gwy_ac_control_t.swingV);
+        ac_hitachi424.setMode(ac_hitachi424.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_hitachi424.send();
+        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc424\r\n");
+        break;
+    case HITACHI_AC344:
+        strcpy(protocol_chosen_str, "HitachiAc344");
+        ac_hitachi344.setSwingH(gwy_ac_control_t.swingH);
+        ac_hitachi344.setSwingV(gwy_ac_control_t.swingV);
+        sending = true;
+        ac_hitachi344.send();
+        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc344\r\n");
+        break;
+    case HITACHI_AC264:
+        strcpy(protocol_chosen_str, "HitachiAc264");
+        ac_hitachi264.setFan(gwy_ac_control_t.fan);
+        sending = true;
+        ac_hitachi264.send();
+        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc264\r\n");
+        break;
+    
     case VOLTAS:
-        ESP_LOGE(ERROR_TAG, "Still in Development\r\n");
+        strcpy(protocol_chosen_str, "Voltas");
         ac_voltas.setPower(gwy_ac_control_t.power);
+        ac_voltas.setTemp(gwy_ac_control_t.temp);
+        ac_voltas.setSwingH(gwy_ac_control_t.swingH);
+        ac_voltas.setSwingV(gwy_ac_control_t.swingV);
+        ac_voltas.setFan(gwy_ac_control_t.fan);
+        ac_voltas.setOffTime(gwy_ac_control_t.OffTimer);
+        ac_voltas.setOnTime(gwy_ac_control_t.OnTimer);
+        ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
         ac_voltas.send();
-        strcpy(protocol_chosen_str, "Daikin");
+        ESP_LOGI(DEBUG_TAG, "Sending Voltas\n");
         break;
-
+    case SAMSUNG_AC:
+        strcpy(protocol_chosen_str, "Samsung");
+        ac_samsung.setPower(gwy_ac_control_t.power);
+        ac_samsung.setTemp(gwy_ac_control_t.temp);
+        ac_samsung.setSwingH(gwy_ac_control_t.swingH);
+        ac_samsung.setSwing(gwy_ac_control_t.swingV);
+        ac_samsung.setFan(gwy_ac_control_t.fan);
+        ac_samsung.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_samsung.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_samsung.setMode(ac_samsung.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_samsung.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Samsung\n");
+        break;
+    case HAIER_AC:
+        strcpy(protocol_chosen_str, "Haier");
+        //Regarding Power on/off and horizontal swing control we don't have library support 
+        ac_haier.setTemp(gwy_ac_control_t.temp);
+        ac_haier.setSwingV(gwy_ac_control_t.swingV);
+        ac_haier.setFan(gwy_ac_control_t.fan);
+        ac_haier.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_haier.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_haier.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Haier\n");
+        break;
+    case HAIER_AC176:
+        strcpy(protocol_chosen_str, "Haier176");
+        ac_haier176.setPower(gwy_ac_control_t.power);
+        ac_haier176.setTemp(gwy_ac_control_t.temp);
+        ac_haier176.setSwingH(gwy_ac_control_t.swingH);
+        ac_haier176.setSwingV(gwy_ac_control_t.swingV);
+        ac_haier176.setFan(gwy_ac_control_t.fan);
+        ac_haier176.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_haier176.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_haier176.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Haier176\n");
+        break;
+    case HAIER_AC160:
+        //Regarding horizontal swing we don't have library support
+        strcpy(protocol_chosen_str, "Haier160");
+        ac_haier160.setPower(gwy_ac_control_t.power);
+        ac_haier160.setTemp(gwy_ac_control_t.temp);
+        ac_haier160.setSwingV(gwy_ac_control_t.swingV);
+        ac_haier160.setFan(gwy_ac_control_t.fan);
+        ac_haier160.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_haier160.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_haier160.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Haier160\n");
+        break;
+    case CARRIER_AC64:
+    //Regarding horizontal swing we don't have library support
+        strcpy(protocol_chosen_str, "CarrierAC64");
+        ac_carrier64.setPower(gwy_ac_control_t.power);
+        ac_carrier64.setTemp(gwy_ac_control_t.temp);
+        ac_carrier64.setSwingV(gwy_ac_control_t.swingV);
+        ac_carrier64.setFan(gwy_ac_control_t.fan);
+        ac_carrier64.setOffTimer(gwy_ac_control_t.OffTimer);
+        ac_carrier64.setOnTimer(gwy_ac_control_t.OnTimer);
+        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_carrier64.send();
+        ESP_LOGI(DEBUG_TAG, "Sending CarrierAC64\n");
+        break;
+    case LG:
+        //Regarding on/off timer we don't have library support
+        strcpy(protocol_chosen_str, "LG");
+        ac_lg.setPower(gwy_ac_control_t.power);
+        ac_lg.setTemp(gwy_ac_control_t.temp);
+        ac_lg.setSwingH(gwy_ac_control_t.swingH);
+        ac_lg.setSwingV(gwy_ac_control_t.swingV);
+        ac_lg.setFan(gwy_ac_control_t.fan);
+        ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_lg.send();
+        ESP_LOGI(DEBUG_TAG, "Sending LG\n");
+        break;
+    case TOSHIBA_AC:
+        //Regarding on/off timer we don't have library support
+        strcpy(protocol_chosen_str, "Toshiba");
+        ac_toshiba.setPower(gwy_ac_control_t.power);
+        ac_toshiba.setTemp(gwy_ac_control_t.temp);
+        ac_toshiba.setFan(gwy_ac_control_t.fan);
+        if(gwy_ac_control_t.swingV||gwy_ac_control_t.swingH){
+            /*Library seems like they only do swing on/off so that only i am having an
+            condition check for both horizontal and vertical*/
+            ac_toshiba.setSwing(kToshibaAcSwingOn);
+        }
+        else{
+            ac_toshiba.setSwing(kToshibaAcSwingOff);
+        }
+        ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_toshiba.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Toshiba\n");
+        break;
+    case MITSUBISHI112:
+    //Regarding on/off timer we don't have library support
+        strcpy(protocol_chosen_str, "Mitsubishi112");
+        ac_mitsubishi112.setPower(gwy_ac_control_t.power);
+        ac_mitsubishi112.setTemp(gwy_ac_control_t.temp);
+        ac_mitsubishi112.setSwingH(gwy_ac_control_t.swingH);
+        ac_mitsubishi112.setSwingV(gwy_ac_control_t.swingV);
+        ac_mitsubishi112.setFan(gwy_ac_control_t.fan);
+        ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_mitsubishi112.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Mitsubishi112\n");
+        break;
+    case MITSUBISHI136:
+    //Regarding on/off timer and horizontal swing we don't have library support
+        strcpy(protocol_chosen_str, "Mitsubishi136");
+        ac_mitsubishi136.setPower(gwy_ac_control_t.power);
+        ac_mitsubishi136.setTemp(gwy_ac_control_t.temp);
+        if(gwy_ac_control_t.swingV){
+            ac_mitsubishi136.setSwingV(kMitsubishi136SwingVAuto);
+        }
+        ac_mitsubishi136.setFan(gwy_ac_control_t.fan);
+        ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_mitsubishi136.send();
+        ESP_LOGI(DEBUG_TAG, "Sending Mitsubishi136\n");
+        break;
+    case MITSUBISHI_AC:
+    //Regarding on/off timer and  swing we don't have library support
+        strcpy(protocol_chosen_str, "MitsubishiAc");
+        ac_mitsubishi144.setPower(gwy_ac_control_t.power);
+        ac_mitsubishi144.setTemp(gwy_ac_control_t.temp);
+        ac_mitsubishi144.setFan(gwy_ac_control_t.fan);
+        ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_mitsubishi144.send();
+        ESP_LOGI(DEBUG_TAG, "Sending MitsubishiAc\n");
+        break;
+    case MITSUBISHI_HEAVY_88:
+    //Regarding on/off timer we don't have library support
+        strcpy(protocol_chosen_str, "MitsubisiHvy88");
+        ac_mitsubishi88.setPower(gwy_ac_control_t.power);
+        ac_mitsubishi88.setTemp(gwy_ac_control_t.temp);
+        ac_mitsubishi88.setFan(gwy_ac_control_t.fan);
+        if(gwy_ac_control_t.swingH) ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
+        else    ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
+        if(gwy_ac_control_t.swingV) ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
+        else ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVOff);
+        ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_mitsubishi88.send();
+        ESP_LOGI(DEBUG_TAG, "Sending MitsubishiHeavy88\n");
+        break;
+    case MITSUBISHI_HEAVY_152:
+    //Regarding on/off timer we don't have library support
+        strcpy(protocol_chosen_str, "MitsbisiHvy152");
+        ac_mitsubishi152.setPower(gwy_ac_control_t.power);
+        ac_mitsubishi152.setTemp(gwy_ac_control_t.temp);
+        ac_mitsubishi152.setFan(gwy_ac_control_t.fan);
+        if(gwy_ac_control_t.swingH) ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
+        else    ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
+        if(gwy_ac_control_t.swingV) ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
+        else ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88SwingVOff);
+        ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_mitsubishi152.send();
+        ESP_LOGI(DEBUG_TAG, "Sending MitsubishiHeavy152\n");
+        break;
     }
     needtosend = false;
-    sending = false;
+    sending = false;    
 }
