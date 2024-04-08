@@ -9,6 +9,33 @@
 
 #include "../../inc/Custom/queue.h"
 
+void search_node_pub_conf_queue(uint16_t messageNum)
+{
+	char pubmessage[PUBMESG_LEN];
+	pub_conf_t *traverser = node_pub_conf_queue_head;
+	while(traverser != NULL)
+	{
+		if(traverser->base_data.msg_seq_no == messageNum)
+		{
+			if(esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) //10s
+			{
+				traverser->base_data.error_code = NODE_TIMEOUT;
+				sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
+					JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
+					MSG_SEQ_NO_KEY, traverser->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, GWY_SER_NO,
+					NODE_SER_NO_KEY, traverser->base_data.node_ser_no,
+					ELMNT_ADDR_KEY, traverser->base_data.elementAddr,
+					PUBLISH_PERIOD_KEY, traverser->pub_conf_period_in_sec,
+					ERROR_CODE_KEY, traverser->base_data.error_code);
+				add_to_pubmesg_queue(pubmessage, publish_topic);
+			}
+		}
+		traverser = traverser->next;
+	}
+}
+
 void remove_from_node_pub_conf_queue()
 {
 	if(node_pub_conf_queue_head == NULL)
@@ -46,6 +73,31 @@ void add_to_node_pub_conf_queue()
 		node_pub_conf_queue_tail->next->prev = node_pub_conf_queue_tail;
 		node_pub_conf_queue_tail->next->next = NULL;
 		node_pub_conf_queue_tail = pub_conf_node;
+	}
+}
+
+void search_node_reconf_queue(uint16_t messageNum)
+{
+	char pubmessage[PUBMESG_LEN];
+	reconf_t *traverser = node_reconf_queue_head;
+	while(traverser != NULL)
+	{
+		if(traverser->base_data.msg_seq_no == messageNum)
+		{
+			if(esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) //10s
+			{
+				traverser->base_data.error_code = NODE_TIMEOUT;
+				sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
+					JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
+					MSG_SEQ_NO_KEY, traverser->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, GWY_SER_NO,
+					NODE_SER_NO_KEY, traverser->base_data.elementAddr,
+					ERROR_CODE_KEY, traverser->base_data.error_code);
+				add_to_pubmesg_queue(pubmessage, publish_topic);
+			}
+		}
+		traverser = traverser->next;
 	}
 }
 
@@ -89,6 +141,42 @@ void add_to_node_reconf_queue()
 	}
 }
 
+void search_node_control_queue(uint16_t messageNum)
+{
+	char pubmessage[PUBMESG_LEN];
+	control_t *traverser = node_ac_control_queue_head;
+	while(traverser != NULL)
+	{
+		if(traverser->base_data.msg_seq_no == messageNum)
+		{
+			if(esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) //10s
+			{
+				traverser->base_data.error_code = NODE_TIMEOUT;
+				sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
+					JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK,
+					MSG_SEQ_NO_KEY, traverser->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, GWY_SER_NO,
+					NODE_SER_NO_KEY, traverser->base_data.elementAddr,
+					POWER_KEY, traverser->power,
+					MODE_KEY, traverser->mode_str,
+					FAN_SPEED_KEY, traverser->fan,
+					TEMPERATURE_KEY, traverser->temp,
+					SWING_H_KEY, traverser->swingH,
+					SWING_V_KEY, traverser->swingV,
+					ONTIMER_KEY, traverser->OnTimer,
+					OFFTIMER_KEY, traverser->OffTimer,
+					AC_LOCKING_KEY, traverser->Locking,
+					TEMP_UP_LIMIT_KEY, traverser->TempUpLimit,
+					TEMP_LOW_LIMIT_KEY, traverser->TempLowLimit,
+					ERROR_CODE_KEY, traverser->base_data.error_code);
+				add_to_pubmesg_queue(pubmessage, publish_topic);
+			}
+		}
+		traverser = traverser->next;
+	}
+}
+
 void remove_from_node_control_queue()
 {
 	if(node_ac_control_queue_head == NULL)
@@ -129,6 +217,33 @@ void add_to_node_control_queue()
 	}
 }
 
+void search_unprov_queue(uint16_t messageNum)
+{
+	char pubmessage[PUBMESG_LEN];
+	unprov_t *traverser = unprov_queue_head;
+	while(traverser != NULL)
+	{
+		if(traverser->base_data.msg_seq_no == messageNum)
+		{
+			if(esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) //10s
+			{
+				traverser->base_data.error_code = NODE_TIMEOUT;
+				sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
+					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
+					MSG_SEQ_NO_KEY, traverser->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, GWY_SER_NO,
+					NODE_SER_NO_KEY, traverser->base_data.node_ser_no,
+					ELMNT_ADDR_KEY, traverser->base_data.elementAddr,
+					LOCATION_KEY, traverser->base_data.location,
+					ERROR_CODE_KEY, traverser->base_data.error_code);
+				add_to_pubmesg_queue(pubmessage, publish_topic);
+			}
+		}
+		traverser = traverser->next;
+	}
+}
+
 void remove_from_unprov_queue()
 {
 	if(unprov_queue_head == NULL)
@@ -166,6 +281,33 @@ void add_to_unprov_queue()
 		unprov_queue_tail->next->prev = unprov_queue_tail;
 		unprov_queue_tail->next->next = NULL;
 		unprov_queue_tail = unprov_node;
+	}
+}
+
+void search_prov_queue(uint16_t messageNum)
+{
+	char pubmessage[PUBMESG_LEN];
+	prov_t *traverser = prov_queue_head;
+	while(traverser != NULL)
+	{
+		if(traverser->base_data.msg_seq_no == messageNum)
+		{
+			if(esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) //10s
+			{
+				traverser->base_data.error_code = NODE_TIMEOUT;
+				sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
+					JSON_ACK_NAME_KEY, NODE_PROV_ACK,
+					MSG_SEQ_NO_KEY, traverser->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, GWY_SER_NO,
+					NODE_SER_NO_KEY, traverser->base_data.node_ser_no,
+					ELMNT_ADDR_KEY, traverser->base_data.elementAddr,
+					LOCATION_KEY, traverser->base_data.location,
+					ERROR_CODE_KEY, traverser->base_data.error_code);
+				add_to_pubmesg_queue(pubmessage, publish_topic);
+			}
+		}
+		traverser = traverser->next;
 	}
 }
 
