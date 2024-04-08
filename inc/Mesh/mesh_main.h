@@ -22,10 +22,11 @@ extern "C"
 
 /* FUNCTION DECLARATIONS */
 void mesh_main_init(void);
-//void example_ble_mesh_send_sensor_status();
-//extern esp_ble_mesh_sensor_state_t sensor_states[2];
-/* sending data through sensor server model*/
-void *send_data_task(void *args);
+void send_prov_packet_to_node(prov_t *prov_packet);
+void send_unprov_packet_to_node(unprov_t *unprov_packet);
+void send_reconf_packet_to_node(reconf_t *reconf_packet);
+void send_ac_control_packet_to_node(control_t *control_packet);
+void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet);
 
 #ifdef __cplusplus
 }

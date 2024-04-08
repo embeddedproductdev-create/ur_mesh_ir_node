@@ -29,6 +29,7 @@ extern "C"
     void add_to_node_reconf_queue();
     void remove_from_node_pub_conf_queue();
     void add_to_node_pub_conf_queue();
+    void *queue_handler(void *args);
 #ifdef __cplusplus
 }
 #endif

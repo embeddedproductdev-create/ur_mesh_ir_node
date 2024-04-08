@@ -3332,15 +3332,15 @@ bool sendClimate(const String topic_prefix, const bool retain,
     success &= sendString(topic_prefix + KEY_COMMAND, command_str, retain);
   }
 #ifdef MQTT_CLIMATE_HA_MODE
-  String mode_str = IRac::opmodeToString(next.mode, MQTT_CLIMATE_HA_MODE);
+  String MODE_KEY = IRac::opmodeToString(next.mode, MQTT_CLIMATE_HA_MODE);
 #else  // MQTT_CLIMATE_HA_MODE
-  String mode_str = IRac::opmodeToString(next.mode);
+  String MODE_KEY = IRac::opmodeToString(next.mode);
 #endif  // MQTT_CLIMATE_HA_MODE
 #if MQTT_CLIMATE_HA_MODE
   // Home Assistant want's these two bound together.
   if (prev.power != next.power || prev.mode != next.mode || forceMQTT) {
     success &= sendBool(topic_prefix + KEY_POWER, next.power, retain);
-    if (!next.power) mode_str = kOffStr;
+    if (!next.power) MODE_KEY = kOffStr;
 #else  // MQTT_CLIMATE_HA_MODE
   // In non-Home Assistant mode, power and mode are not bound together.
   if (prev.power != next.power || forceMQTT) {
@@ -3351,9 +3351,9 @@ bool sendClimate(const String topic_prefix, const bool retain,
 #endif  // MQTT_CLIMATE_HA_MODE
     // I don't know why, but the modes need to be lower case to work with
     // Home Assistant & Google Home.
-    mode_str.toLowerCase();
+    MODE_KEY.toLowerCase();
 
-    success &= sendString(topic_prefix + KEY_MODE, mode_str, retain);
+    success &= sendString(topic_prefix + KEY_MODE, MODE_KEY, retain);
     diff = true;
   }
   if (prev.degrees != next.degrees || forceMQTT) {

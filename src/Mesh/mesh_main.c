@@ -835,7 +835,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_PROV_PACKET:
             vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             provision_t = *vendor_provision_t;
-            ESP_LOGI(DEBUG_TAG, "NODE PROV ACK | SENDER : %d",provision_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE PROV ACK | FROM ELEMADDR : %d",provision_t.base_data.elementAddr);
             if(Bind_fl == true)
             {
                 example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
@@ -851,43 +851,43 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_UNPROV_PACKET:
             vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             unprovision_t = *vendor_unprovision_t;
-            ESP_LOGI(DEBUG_TAG, "NODE UNPROV ACK | SENDER : %d",unprovision_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d",unprovision_t.base_data.elementAddr);
             break;
 
         case NODE_CONF_PACKET:
             vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_reconf_t = *vendor_node_config_t;
-            ESP_LOGI(DEBUG_TAG, "NODE CONF ACK | SENDER : %d",node_reconf_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d",node_reconf_t.base_data.elementAddr);
             break;
 
         case NODE_RECONF_PACKET:
             vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_reconf_t = *vendor_node_reconf_t;
-            ESP_LOGI(DEBUG_TAG, "NODE RECONF ACK | SENDER : %d",node_reconf_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d",node_reconf_t.base_data.elementAddr);
             break;
 
         case NODE_AC_CONTROL_PACKET:
             vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_ac_control_t = *vendor_node_ac_control_t;
-            ESP_LOGI(DEBUG_TAG, "NODE AC CONTROL ACK | SENDER : %d",node_ac_control_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d",node_ac_control_t.base_data.elementAddr);
             break;
 
         case NODE_AC_LOCKING_PACKET:
             vendor_node_ac_locking_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_locking_t = *vendor_node_ac_locking_t;
-            ESP_LOGI(DEBUG_TAG, "NODE AC LOCKING ACK | SENDER : %d",node_locking_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE AC LOCKING ACK | FROM ELEMADDR : %d",node_locking_t.base_data.elementAddr);
             break;
 
         case NODE_TEMPERATURE_DATA_PACKET:
             vendor_node_temperature_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_temperature_data_t = *vendor_node_temperature_data_t;
-            ESP_LOGI(DEBUG_TAG, "NODE TEMPERATURE DATA ACK | SENDER : %d", node_temperature_data_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE TEMPERATURE DATA ACK | FROM ELEMADDR : %d", node_temperature_data_t.base_data.elementAddr);
             break;
 
         case NODE_PUB_CONF_PACKET:
             vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             node_pub_conf_t = *vendor_node_pub_conf_t;
-            ESP_LOGI(DEBUG_TAG, "NODE PUB CONF ACK | SENDER : %d",node_pub_conf_t.base_data.elementAddr);
+            ESP_LOGI(DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d",node_pub_conf_t.base_data.elementAddr);
             break;
     }
     handle_sending_ack_to_cloud(recvd_json_id);
@@ -1558,15 +1558,12 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
 void example_ble_mesh_send_vendor_message(bool resend)
 {
     esp_ble_mesh_msg_ctx_t ctx = {0};
-    uint32_t opcode;
-    esp_err_t err;
-
     ctx.net_idx = prov_key.net_idx;
     ctx.app_idx = prov_key.app_idx;
     ctx.addr = store.server_addr;
     ctx.send_ttl = MSG_SEND_TTL;
     ctx.send_rel = MSG_SEND_REL;
-    opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
+    uint32_t opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
 
     if (resend == false)
     {
@@ -1717,126 +1714,115 @@ void mesh_main_init(void)
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
     }
     ESP_LOGE(TAG, "Gpio detect");
-    esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_cfg_client_set_state_t set = {0};
-    esp_ble_mesh_node_t node;
-    node.unicast_addr = 5;
 }
 
-void *send_data_task(void *args)
+esp_err_t err;
+uint32_t opcode;
+void send_prov_packet_to_node(prov_t *prov_packet)
 {
-    esp_err_t err;
     uint8_t match[8] = {0xcd, 0xdc};
-    esp_ble_mesh_msg_ctx_t ctx = {0};
-    uint32_t opcode;
-    esp_ble_mesh_client_common_param_t common = {0};
-    esp_ble_mesh_cfg_client_set_state_t set_rst = {0},set_hb = {0},set_pub_conf = {0};
-    esp_ble_mesh_node_t node;
-    while (1)
+    ESP_LOGI(TAG, "Node provision packet send :");
+    for (uint8_t i = 2; i < 8; i++)
     {
-        vTaskDelay(pdMS_TO_TICKS(10));
-
-        ctx.net_idx = prov_key.net_idx;
-        ctx.app_idx = prov_key.app_idx;
-
-        ctx.send_ttl = MSG_SEND_TTL;
-        ctx.send_rel = MSG_SEND_REL;
-        opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
-
-        if (send_data_to_node)
-        {
-            ESP_LOGI(TAG, "data send to true");
-            switch (json_packet_id)
-            {
-            case NODE_PROV_PACKET:
-                ESP_LOGI(TAG, "Node provision packet send :");
-                for (uint8_t i = 2; i < 8; i++)
-                {
-                    match[i] = provision_t.macid[i - 2];
-                    ESP_LOGI(TAG, "Node provision mac id  : %0x",match[i]);
-                }
-                err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
-                if (err != ESP_OK)
-                {
-                    ESP_LOGE(TAG, "Failed to set matching device uuid");
-                }
-                Bind_fl = true;
-                break;
-
-            case NODE_UNPROV_PACKET:
-                ESP_LOGI(TAG, "Node unprovision packet send :");
-                node.unicast_addr = unprovision_t.base_data.elementAddr;
-                example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
-                set_rst .model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
-                ESP_LOGI(TAG, " addr to unprov%d", set_rst .model_app_bind.element_addr);
-                set_rst .model_app_bind.model_app_idx = prov_key.app_idx;
-                set_rst .model_app_bind.company_id = CID_ESP;
-                err = esp_ble_mesh_config_client_set_state(&common, &set_rst );
-                break;
-
-            case NODE_AC_CONTROL_PACKET:
-                ESP_LOGI(TAG, "Node AC packet send :");
-                store.vendor_node_ac_control = node_ac_control_t;
-                store.server_addr = node_ac_control_t.base_data.elementAddr;
-                ctx.addr = store.server_addr;
-                err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                                                         sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);
-                if (err != ESP_OK)
-                {
-                    ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
-                }
-
-                mesh_example_info_store();
-                break;
-
-            case NODE_RECONF_PACKET:
-                ESP_LOGI(TAG, "Node reconfigure packet send :");
-                store.vendor_node_reconf_t = node_reconf_t;
-                store.server_addr = node_reconf_t.base_data.elementAddr;
-                ctx.addr = store.server_addr;
-                err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                                                         sizeof(store.vendor_node_reconf_t), (uint8_t *)&store.vendor_node_reconf_t, MSG_TIMEOUT, true, MSG_ROLE);
-                if (err != ESP_OK)
-                {
-                    ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
-                }
-
-                mesh_example_info_store();
-                break;
-
-            case NODE_PUB_CONF_PACKET:
-                // uint16_t element_addr;          /*!< The element address */
-                // uint16_t publish_addr;          /*!< Value of the publish address */
-                // uint16_t publish_app_idx;       /*!< Index of the application key */
-                // bool     cred_flag;             /*!< Value of the Friendship Credential Flag */
-                // uint8_t  publish_ttl;           /*!< Default TTL value for the publishing messages */
-                // uint8_t  publish_period;        /*!< Period for periodic status publishing */
-                // uint8_t  publish_retransmit;    /*!< Number of retransmissions and number of 50-millisecond steps between retransmissions */
-                // uint16_t model_id;              /*!< The model id */
-                // uint16_t company_id;            /*!< The company id, if not a vendor model, shall set to 0xFFFF */
-
-                ESP_LOGI(TAG, "Node pub configure packet send :");
-                node.unicast_addr =  node_pub_conf_t.base_data.elementAddr;
-                example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
-                set_pub_conf.model_pub_set.element_addr = node.unicast_addr;
-                set_pub_conf.model_pub_set.publish_addr = 1;
-                set_pub_conf.model_pub_set.publish_app_idx = 0;
-                set_pub_conf.model_pub_set.cred_flag = false;
-                set_pub_conf.model_pub_set.publish_ttl = 10;
-                set_pub_conf.model_pub_set.publish_period = 70;
-                 set_pub_conf.model_pub_set.publish_retransmit = 0;
-                set_pub_conf.model_pub_set.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
-                set_pub_conf.model_pub_set.company_id = 0xffff;
-
-                err = esp_ble_mesh_config_client_set_state(&common, &set_pub_conf);
-                ESP_LOGI(TAG, "err err: %d",err);
-                break;
-
-            default:
-                ESP_LOGE(ERROR_TAG, "Unknown JsonPacketId, can't send data to node ... \n");
-                break;
-            }
-            send_data_to_node = false;
-        }
+        match[i] = provision_t.macid[i - 2];
+        ESP_LOGI(TAG, "Node provision mac id  : %0x",match[i]);
     }
+    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to set matching device uuid");
+    }
+    Bind_fl = true;
+    remove_from_prov_queue();
+}
+
+void send_unprov_packet_to_node(unprov_t *unprov_packet)
+{
+    esp_ble_mesh_cfg_client_set_state_t set_rst = {0},set_hb = {0},set_pub_conf = {0};
+    esp_ble_mesh_client_common_param_t common = {0};
+    esp_ble_mesh_node_t node;
+    ESP_LOGI(TAG, "Node unprovision packet send :");
+    node.unicast_addr = unprovision_t.base_data.elementAddr;
+    example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
+    set_rst .model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
+    ESP_LOGI(TAG, " addr to unprov%d", set_rst .model_app_bind.element_addr);
+    set_rst .model_app_bind.model_app_idx = prov_key.app_idx;
+    set_rst .model_app_bind.company_id = CID_ESP;
+    err = esp_ble_mesh_config_client_set_state(&common, &set_rst );
+    remove_from_unprov_queue();
+}
+
+void send_reconf_packet_to_node(reconf_t *reconf_packet)
+{
+    opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
+    esp_ble_mesh_msg_ctx_t ctx = {0};
+    ctx.net_idx = prov_key.net_idx;
+    ctx.app_idx = prov_key.app_idx;
+    ctx.send_ttl = MSG_SEND_TTL;
+    ctx.send_rel = MSG_SEND_REL;
+    ESP_LOGI(TAG, "Node reconfigure packet send :");
+    store.vendor_node_reconf_t = node_reconf_t;
+    store.server_addr = node_reconf_t.base_data.elementAddr;
+    ctx.addr = store.server_addr;
+    err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                                                sizeof(store.vendor_node_reconf_t), (uint8_t *)&store.vendor_node_reconf_t, MSG_TIMEOUT, true, MSG_ROLE);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
+    }
+    mesh_example_info_store();
+    remove_from_node_reconf_queue();
+}
+
+void send_ac_control_packet_to_node(control_t *control_packet)
+{
+    opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
+    esp_ble_mesh_msg_ctx_t ctx = {0};
+    ctx.net_idx = prov_key.net_idx;
+    ctx.app_idx = prov_key.app_idx;
+    ctx.send_ttl = MSG_SEND_TTL;
+    ctx.send_rel = MSG_SEND_REL;
+    ESP_LOGI(TAG, "Node AC packet send :");
+    store.vendor_node_ac_control = node_ac_control_t;
+    store.server_addr = node_ac_control_t.base_data.elementAddr;
+    ctx.addr = store.server_addr;
+    err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                                                sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);
+    if (err != ESP_OK)
+    {
+        ESP_LOGE(TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
+    }
+    mesh_example_info_store();
+    remove_from_node_control_queue();
+}
+
+void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
+{
+    // uint16_t element_addr;          /*!< The element address */
+    // uint16_t publish_addr;          /*!< Value of the publish address */
+    // uint16_t publish_app_idx;       /*!< Index of the application key */
+    // bool     cred_flag;             /*!< Value of the Friendship Credential Flag */
+    // uint8_t  publish_ttl;           /*!< Default TTL value for the publishing messages */
+    // uint8_t  publish_period;        /*!< Period for periodic status publishing */
+    // uint8_t  publish_retransmit;    /*!< Number of retransmissions and number of 50-millisecond steps between retransmissions */
+    // uint16_t model_id;              /*!< The model id */
+    // uint16_t company_id;            /*!< The company id, if not a vendor model, shall set to 0xFFFF */
+    esp_ble_mesh_node_t node;
+    esp_ble_mesh_cfg_client_set_state_t set_rst = {0},set_hb = {0},set_pub_conf = {0};
+    esp_ble_mesh_client_common_param_t common = {0};
+    ESP_LOGI(TAG, "Node pub configure packet send :");
+    node.unicast_addr =  node_pub_conf_t.base_data.elementAddr;
+    example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
+    set_pub_conf.model_pub_set.element_addr = node.unicast_addr;
+    set_pub_conf.model_pub_set.publish_addr = 1;
+    set_pub_conf.model_pub_set.publish_app_idx = 0;
+    set_pub_conf.model_pub_set.cred_flag = false;
+    set_pub_conf.model_pub_set.publish_ttl = 10;
+    set_pub_conf.model_pub_set.publish_period = 70;
+    set_pub_conf.model_pub_set.publish_retransmit = 0;
+    set_pub_conf.model_pub_set.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+    set_pub_conf.model_pub_set.company_id = 0xffff;
+    err = esp_ble_mesh_config_client_set_state(&common, &set_pub_conf);
+    ESP_LOGI(TAG, "err err: %d",err);
+    remove_from_node_pub_conf_queue();
 }

@@ -133,10 +133,10 @@ static void publish_temperature_cb(void *arg)
         read_analog_temperature(&measured_temperature);
         char pubmessage[PUBMESG_LEN];
         sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
-        JSON_PACKET_ID, GWY_TEMPERATURE_DATA_PACKET,
-        JSON_ACK_NAME, GWY_TEMPERATURE_DATA_ACK,
-        GWYSERNO_STR, GWY_SER_NO,
-        TEMPERATURE_DATA_STR, measured_temperature);
+        JSON_PACKET_ID_KEY, GWY_TEMPERATURE_DATA_PACKET,
+        JSON_ACK_NAME_KEY, GWY_TEMPERATURE_DATA_ACK,
+        GWY_SER_NO_KEY, GWY_SER_NO,
+        TEMPERATURE_DATA_KEY, measured_temperature);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
 }

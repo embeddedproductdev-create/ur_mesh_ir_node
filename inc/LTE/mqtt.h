@@ -13,29 +13,29 @@
 #include "../Custom/main.h"
 
 /* JSON PACKET KEY STRINGS */
-#define JSON_PACKET_ID "JsonPacketID"
-#define JSON_ACK_NAME "JsonAckName"
-#define JSON_ACK_SEQ_NO "JsonAckSeqNo"
-#define MSGSEQNO_STR "MsgSeqNo"
-#define GWYSERNO_STR "GwySerNo"
-#define NODESERNO_STR "NodeSerNo"
-#define LOCATION_STR "Location"
-#define ELMNT_ADDR_STR "ElementAddr"
-#define MAC_ID_STR "MacId"
-#define POWER_STR "Power"
-#define MODE_STR "Mode"
-#define FAN_STR "Fan"
-#define TEMP_STR "Temp"
-#define SWING_H_STR "SwingH"
-#define SWING_V_STR "SwingV"
-#define ONTIMER_STR "OnTimer"
-#define OFFTIMER_STR "OffTimer"
-#define LOCKING_STR "Locking"
-#define TEMP_LOW_LIMIT_STR "TempLowLimit"
-#define TEMP_UP_LIMIT_STR "TempUpLimit"
-#define ERROR_CODE_STR "ErrorCode"
-#define TEMPERATURE_DATA_STR "Temperature"
-#define PUBLISH_PERIOD_STR "PublishPeriodSec"
+#define JSON_PACKET_ID_KEY "JsonPacketID"
+#define JSON_ACK_NAME_KEY "JsonAckName"
+#define JSON_ACK_SEQ_NO_KEY "JsonAckSeqNo"
+#define MSG_SEQ_NO_KEY "MsgSeqNo"
+#define GWY_SER_NO_KEY "GwySerNo"
+#define NODE_SER_NO_KEY "NodeSerNo"
+#define LOCATION_KEY "Location"
+#define ELMNT_ADDR_KEY "ElementAddr"
+#define MAC_ID_KEY "MacId"
+#define POWER_KEY "Power"
+#define MODE_KEY "Mode"
+#define FAN_SPEED_KEY "Fan"
+#define TEMPERATURE_KEY "Temp"
+#define SWING_H_KEY "SwingH"
+#define SWING_V_KEY "SwingV"
+#define ONTIMER_KEY "OnTimer"
+#define OFFTIMER_KEY "OffTimer"
+#define AC_LOCKING_KEY "Locking"
+#define TEMP_LOW_LIMIT_KEY "TempLowLimit"
+#define TEMP_UP_LIMIT_KEY "TempUpLimit"
+#define ERROR_CODE_KEY "ErrorCode"
+#define TEMPERATURE_DATA_KEY "Temperature"
+#define PUBLISH_PERIOD_KEY "PublishPeriodSec"
 
 /* JSON ACK NAMES */
 #define GWY_REG_ACK "Gwy Registration Ack"
@@ -44,7 +44,6 @@
 #define GWY_RECONF_ACK "Gwy Reconfiguration Ack"
 #define GWY_AC_CONTROL_ACK "Gwy AC Control Ack"
 #define GWY_LOCKING_ACK "Gwy Locking Feature Ack"
-#define GWY_HB_ACK "Gwy Heartbeat Ack"
 #define GWY_TEMPERATURE_DATA_ACK "Gwy Temperature Data Ack"
 #define GWY_PUB_CONF_ACK "Gwy Publish Configuration Ack"
 #define GWY_RESET_MQTT_ACK "Gwy Reset MQTT Ack"
@@ -54,13 +53,11 @@
 #define NODE_RECONF_ACK "Node Reconfiguration Ack"
 #define NODE_AC_CONTROL_ACK "Node AC Control Ack"
 #define NODE_LOCKING_ACK "Node Locking Feature Ack"
-#define NODE_HB_ACK "Node Heartbeat Ack"
 #define NODE_TEMPERATURE_DATA_ACK "Node Temperature Data Ack"
 #define NODE_PUB_CONF_ACK "Node Publish Configuration Ack"
-#define HB_PUB_CONF_ACK "HeartBeat Publish Configuration Ack"
 
 #define MQTT_PACKET_BUFF_SIZE 500
-#define LOCATION_STR_LEN 20
+#define LOCATION_KEY_LEN 20
 #define MQTT_PACKET_NAME_LEN 40
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 300
@@ -77,11 +74,14 @@ struct base_data_t
 	uint16_t msg_seq_no;
 	uint16_t ack_seq_no;
 	uint16_t gwy_ser_no;
+	char gwy_ser_no_str[9];
 	uint16_t node_ser_no;
+	char node_ser_no_str[7];
 	uint16_t elementAddr;
 	uint16_t error_code;
+	uint32_t request_in_time_us;
 	char ack_name[MQTT_PACKET_NAME_LEN];
-	char location[LOCATION_STR_LEN];
+	char location[LOCATION_KEY_LEN];
 };
 
 typedef struct mqtt_reset_struct
@@ -131,6 +131,10 @@ typedef struct prov_struct
 	uint8_t macid[6];
 	struct prov_struct *next;
 	struct prov_struct *prev;
+	uint8_t appkey[16];
+	uint8_t netkey[16];
+	uint8_t appindex;
+	uint8_t netindex;
 } prov_t;
 
 typedef struct unprov_struct
@@ -148,7 +152,7 @@ typedef struct pub_conf_struct
 	struct pub_conf_struct *prev;
 } pub_conf_t;
 
-typedef struct temperature_data_struct
+typedef struct TEMPERATURE_DATA_KEYuct
 {
 	struct base_data_t base_data;
 	uint8_t measured_temperature;
@@ -195,11 +199,11 @@ enum ERROR_CODES
 	// Basic
 	FAILURE = -1,
 	SUCCESS,
-	INVALID_JSON_PACKET_ID,
+	INVALID_JSON_PACKET_ID_KEY,
 	INVALID_MSG_SEQ_NO,
 	INVALID_GWY_SER_NO,
 	INVALID_NODE_SER_NO,
-	INVALID_LOCATION_STR,
+	INVALID_LOCATION_KEY,
 	NODE_TIMEOUT,
 
 	// Gwy Registration & Unregistration
@@ -236,7 +240,7 @@ enum ERROR_CODES
 	EXCEEDING_TEMP_LOWER_LIMIT,
 	EXCEEDING_TEMP_UPPER_LIMIT,
 
-	// HeartBeat
+	//Publish Configuration
 	INVALID_PUBLISH_PERIOD = 500,
 
 	UNKNOWN_ERROR_CODE = 999
@@ -327,8 +331,8 @@ extern pub_conf_t *node_pub_conf_queue_tail;
 /*===================================*/
 
 /*pubmesg*/
-extern struct pub_mesg_struct *pubmesg_head;
-extern struct pub_mesg_struct *pubmesg_tail;
+extern struct pub_mesg_struct *pubmesg_queue_head;
+extern struct pub_mesg_struct *pubmesg_queue_tail;
 
 // SUBSCRIBE TOPICS
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];

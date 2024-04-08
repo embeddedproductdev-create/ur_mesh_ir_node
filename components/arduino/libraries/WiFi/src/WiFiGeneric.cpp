@@ -247,7 +247,7 @@ esp_err_t set_esp_interface_dns(esp_interface_t interface, IPAddress main_dns=IP
 }
 
 #if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_VERBOSE
-static const char * auth_mode_str(int authmode)
+static const char * auth_MODE_KEY(int authmode)
 {
     switch (authmode) {
     case WIFI_AUTH_OPEN:
@@ -350,14 +350,14 @@ static void _arduino_event_cb(void* arg, esp_event_base_t event_base, int32_t ev
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_AUTHMODE_CHANGE) {
     	#if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_VERBOSE
             wifi_event_sta_authmode_change_t * event = (wifi_event_sta_authmode_change_t*)event_data;
-    	    log_v("STA Auth Mode Changed: From: %s, To: %s", auth_mode_str(event->old_mode), auth_mode_str(event->new_mode));
+    	    log_v("STA Auth Mode Changed: From: %s, To: %s", auth_MODE_KEY(event->old_mode), auth_MODE_KEY(event->new_mode));
         #endif
     	arduino_event.event_id = ARDUINO_EVENT_WIFI_STA_AUTHMODE_CHANGE;
     	memcpy(&arduino_event.event_info.wifi_sta_authmode_change, event_data, sizeof(wifi_event_sta_authmode_change_t));
     } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_CONNECTED) {
     	#if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_VERBOSE
             wifi_event_sta_connected_t * event = (wifi_event_sta_connected_t*)event_data;
-    	    log_v("STA Connected: SSID: %s, BSSID: " MACSTR ", Channel: %u, Auth: %s", event->ssid, MAC2STR(event->bssid), event->channel, auth_mode_str(event->authmode));
+    	    log_v("STA Connected: SSID: %s, BSSID: " MACSTR ", Channel: %u, Auth: %s", event->ssid, MAC2STR(event->bssid), event->channel, auth_MODE_KEY(event->authmode));
         #endif
     	arduino_event.event_id = ARDUINO_EVENT_WIFI_STA_CONNECTED;
     	memcpy(&arduino_event.event_info.wifi_sta_connected, event_data, sizeof(wifi_event_sta_connected_t));

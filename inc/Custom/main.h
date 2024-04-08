@@ -76,7 +76,6 @@ extern bool mqtt_connected;
 extern bool registered;
 extern bool needtosend;
 extern bool sending;
-extern bool send_data_to_node;
 extern bool teaching_mode;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;

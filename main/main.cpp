@@ -124,10 +124,18 @@ void app_main()
     pthread_t LED_tid;
     if(pthread_create(&LED_tid, NULL, LED_task, NULL)!=0){
         perror("Error in creating recv_task : ");
+        exit(FAILURE);
     }
     #endif
 
     init_structures();
+
+    //Queue part
+    pthread_t queue_tid;
+    if(pthread_create(&queue_tid, NULL, queue_handler, NULL)!=0){
+        perror("Error in creating queue_handler_task : ");
+        exit(FAILURE);
+    }
 
     #if(AP_PART_ENABLED)
     create_AP_task();
@@ -143,28 +151,23 @@ void app_main()
     mesh_main_init();
     #endif
 
-    #if(HEARTBEAT_PART_ENABLED)
-    if(esp_timer_init()!=ESP_OK)
-        perror("Error in Initializing timer : ");
-    pthread_t HB_tid;
-    if(pthread_create(&HB_tid, NULL, HB_task, NULL)!=0){
-        perror("Error in creating HB_task : ");
-    }
-    #endif
-
     #if(IR_RECV_PART_ENABLED)
         BaseType_t xReturned;
         TaskHandle_t xHandle = NULL;
         xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
                                 4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
         if (xReturned != pdPASS)
-        perror("Error in taskCreate for IR recv task : ");
+        {
+            perror("Error in taskCreate for IR recv task : ");
+            exit(FAILURE);
+        }
     #endif
 
     #if(LTE_PART_ENABLED)
     pthread_t LTE_tid;
     if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
         perror("Error in creating LTE_task : ");
+        exit(FAILURE);
     }
     #endif
 
@@ -176,18 +179,8 @@ void app_main()
     pthread_t button_tid;
     if(pthread_create(&button_tid, NULL, button_task, NULL)!=0){
         perror("Error in creating button_thread : ");
+        exit(FAILURE);
     }
-    #endif
-
-    #if(MESH_PART_ENABLED)
-    pthread_t send_data_tid;
-    if(pthread_create(&send_data_tid, NULL, send_data_task, NULL)!=0){
-        perror("Error in creating button_thread : ");
-    }
-    #endif
-
-    #if(HEARTBEAT_PART_ENABLED)
-    pthread_join(HB_tid, NULL);
     #endif
 
     #if(LED_PART_ENABLED)
@@ -202,9 +195,7 @@ void app_main()
     pthread_join(button_tid, NULL);
     #endif
 
-    #if(MESH_PART_ENABLED)
-    pthread_join(send_data_tid, NULL);
-    #endif
+    pthread_join(queue_tid, NULL);
 }
 
 /**

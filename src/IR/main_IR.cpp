@@ -44,7 +44,6 @@ IRHitachiAc424 ac_hitachi424(IR_TRANSMIT_PIN);
 IRHitachiAc344 ac_hitachi344(IR_TRANSMIT_PIN);
 IRHitachiAc264 ac_hitachi264(IR_TRANSMIT_PIN);
 IRVoltas ac_voltas(IR_TRANSMIT_PIN);
-IRsend custom_ac(IR_TRANSMIT_PIN);
 IRSamsungAc ac_samsung(IR_TRANSMIT_PIN);
 IRHaierAC ac_haier(IR_TRANSMIT_PIN);
 IRHaierAC176 ac_haier176(IR_TRANSMIT_PIN);
@@ -57,6 +56,8 @@ IRMitsubishi136 ac_mitsubishi136(IR_TRANSMIT_PIN);
 IRMitsubishiAC ac_mitsubishi144(IR_TRANSMIT_PIN);
 IRMitsubishiHeavy88Ac ac_mitsubishi88(IR_TRANSMIT_PIN);
 IRMitsubishiHeavy152Ac ac_mitsubishi152(IR_TRANSMIT_PIN);
+IRsend ac_custom(IR_TRANSMIT_PIN);
+
 /**
  * @brief Function that deals with the locking feature
  * If locking is enabled, then it checks if the set temperature was within locking limits, if not it will
@@ -137,10 +138,10 @@ void IR_receiver_task(void *args)
                 protocol_selected_num = protocol_detected;
                 char pubmessage[PUBMESG_LEN];
                 sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
-                        JSON_PACKET_ID, GWY_CONF_PACKET,
-                        JSON_ACK_NAME, GWY_CONF_ACK,
-                        GWYSERNO_STR, GWY_SER_NO,
-                        ERROR_CODE_STR, json_ack_err_code);
+                        JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
+                        JSON_ACK_NAME_KEY, GWY_CONF_ACK,
+                        GWY_SER_NO_KEY, GWY_SER_NO,
+                        ERROR_CODE_KEY, json_ack_err_code);
                 ESP_LOGI(DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
                 add_to_pubmesg_queue(pubmessage, publish_topic);
             }
@@ -187,7 +188,7 @@ void IR_transmit_setup()
     ac_mitsubishi144.begin();
     ac_mitsubishi88.begin();
     ac_mitsubishi152.begin();
-    custom_ac.begin();
+    ac_custom.begin();
 }
 
 void IR_transmit(uint16_t protocol_selected_num)

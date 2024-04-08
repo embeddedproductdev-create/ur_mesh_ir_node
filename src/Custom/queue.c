@@ -211,17 +211,17 @@ void add_to_prov_queue()
 
 void remove_from_pubmesg_queue()
 {
-	if(pubmesg_head->next == NULL)
+	if(pubmesg_queue_head->next == NULL)
 	{
-		pubmesg_head->next = NULL;
-		pubmesg_head->prev = NULL;
-		pubmesg_head = NULL;
-		pubmesg_tail = NULL;
+		pubmesg_queue_head->next = NULL;
+		pubmesg_queue_head->prev = NULL;
+		pubmesg_queue_head = NULL;
+		pubmesg_queue_tail = NULL;
 		return;
 	}
-	pubmesg_head = pubmesg_head->next;
-	free(pubmesg_head->prev);
-	pubmesg_head->prev = NULL;
+	pubmesg_queue_head = pubmesg_queue_head->next;
+	free(pubmesg_queue_head->prev);
+	pubmesg_queue_head->prev = NULL;
 }
 
 /**
@@ -241,16 +241,61 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 	}
 	strcpy(pubmesg_node->message,msg);
 	pubmesg_node->topic = topic;
-	if(pubmesg_head == NULL)
+	if(pubmesg_queue_head == NULL)
 	{
-		pubmesg_head = pubmesg_tail = pubmesg_node;
+		pubmesg_queue_head = pubmesg_queue_tail = pubmesg_node;
 		pubmesg_node->prev = pubmesg_node->next = NULL;
 	}
 	else
 	{
-		pubmesg_tail->next = pubmesg_node;
-		pubmesg_tail->next->prev = pubmesg_tail;
-		pubmesg_tail->next->next = NULL;
-		pubmesg_tail = pubmesg_node;
+		pubmesg_queue_tail->next = pubmesg_node;
+		pubmesg_queue_tail->next->prev = pubmesg_queue_tail;
+		pubmesg_queue_tail->next->next = NULL;
+		pubmesg_queue_tail = pubmesg_node;
+	}
+}
+
+/**
+ * @brief Thread that takes care of handling all queues throught out the code 
+ * We have the following queues across the application. We can call it a queue or LinkedLists.
+ * They are actually Doubly linked lists with structures as node. 
+ *  - Provision List
+ *  - Unprovision List
+ *  - Node Reconfiguration List
+ *  - Node AC control List
+ *  - Node Publish configuration List
+ *  - Publish Message List
+ * @param args 
+ * @return void* 
+ */
+void *queue_handler(void *args)
+{
+	while(1)
+	{
+		vTaskDelay(1);
+		if(prov_queue_head != NULL)
+		{
+			send_prov_packet_to_node(prov_queue_head);
+		}
+		if(unprov_queue_head != NULL)
+		{
+			send_unprov_packet_to_node(unprov_queue_head);
+		}
+		if(node_reconf_queue_head != NULL)
+		{
+			send_reconf_packet_to_node(node_reconf_queue_head);
+		}	
+		if(node_ac_control_queue_head != NULL)
+		{
+			send_ac_control_packet_to_node(node_ac_control_queue_head);
+		}
+		if(node_pub_conf_queue_head != NULL)
+		{
+			send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+		}
+		if(pubmesg_queue_head != NULL)
+		{
+			
+		}
 	}
 }
