@@ -80,7 +80,6 @@ extern bool teaching_mode;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
