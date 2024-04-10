@@ -53,63 +53,6 @@ pub_conf_t *node_pub_conf_queue_tail;
 
 temperature_data_t node_temperature_data_t;
 
-
-/**
- * @brief Function that initializes the members of global strucutres with
- * values that will never changes
- * For examples, GWY SER NO is never going to change
- * For example, the JSON PACKET ID is never going to change
- * So it's better to initialize them with values at the start of application
- * @param none
- * @retval none
- */
-void init_structures()
-{
-    /* GWY SER NO */
-    gwy_registration_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_unregistration_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_reconf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_ac_control_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_locking_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_reset_mqtt_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_temperature_data_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-
-    /* GWY - JSON PACKET IDs */
-    gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
-    gwy_unregistration_t.base_data.json_packet_id = GWY_UNREG_PACKET;
-    gwy_conf_t.base_data.json_packet_id = GWY_CONF_PACKET;
-    gwy_reconf_t.base_data.json_packet_id = GWY_RECONF_PACKET;
-    gwy_ac_control_t.base_data.json_packet_id = GWY_AC_CONTROL_PACKET;
-    gwy_locking_t.base_data.json_packet_id = GWY_AC_LOCKING_PACKET;
-    gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
-    gwy_pub_conf_t.base_data.json_packet_id = GWY_PUB_CONF_PACKET;
-    gwy_temperature_data_t.base_data.json_packet_id = GWY_TEMPERATURE_DATA_PACKET;
-
-    /* NODE - JSON PACKET IDs */
-    provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
-    unprovision_t.base_data.json_packet_id = NODE_UNPROV_PACKET;
-    node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
-    node_reconf_t.base_data.json_packet_id = NODE_RECONF_PACKET;
-    node_ac_control_t.base_data.json_packet_id = NODE_AC_CONTROL_PACKET;
-    node_locking_t.base_data.json_packet_id = NODE_AC_LOCKING_PACKET;
-    node_pub_conf_t.base_data.json_packet_id = NODE_PUB_CONF_PACKET;
-    node_temperature_data_t.base_data.json_packet_id = NODE_TEMPERATURE_DATA_PACKET;
-
-    /* JSON ACK NAMES */
-    strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK);
-    strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK);
-    strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK);
-    strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK);
-    strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK);
-    strcpy(gwy_locking_t.base_data.ack_name, GWY_LOCKING_ACK);
-    strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK);
-    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK);
-    strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK);
-}
-
 void fill_gwy_ser_no_str()
 {
     strcpy(GWY_SER_NO_IN_STRING, "GWY");
@@ -144,8 +87,8 @@ void app_main()
     }
     #endif
 
-    init_structures();
     fill_gwy_ser_no_str();
+    init_structures();
 
     //Queue part
     pthread_t queue_tid;

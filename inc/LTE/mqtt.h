@@ -38,6 +38,8 @@
 #define ERROR_CODE_KEY "ErrorCode"
 #define TEMPERATURE_DATA_KEY "Temperature"
 #define PUBLISH_PERIOD_KEY "PublishPeriodSec"
+#define STARTING_TEMPERATURE_KEY "StartingTemp"
+#define ENDING_TEMPERATURE_KEY "EndingTemp"
 
 /* JSON ACK NAMES */
 #define GWY_REG_ACK "Gwy Registration Ack"
@@ -49,6 +51,8 @@
 #define GWY_TEMPERATURE_DATA_ACK "Gwy Temperature Data Ack"
 #define GWY_PUB_CONF_ACK "Gwy Publish Configuration Ack"
 #define GWY_RESET_MQTT_ACK "Gwy Reset MQTT Ack"
+#define GWY_TEACHING_MODE_START_ACK "Gwy Teaching Mode Start Ack"
+#define GWY_TEACHING_MODE_END_ACK "Gwy Teaching Mode End Ack"
 #define NODE_PROV_ACK "Node Provisioning Ack"
 #define NODE_UNPROV_ACK "Node Unprovisioing Ack"
 #define NODE_CONF_ACK "Node Configuration Ack"
@@ -57,6 +61,8 @@
 #define NODE_LOCKING_ACK "Node Locking Feature Ack"
 #define NODE_TEMPERATURE_DATA_ACK "Node Temperature Data Ack"
 #define NODE_PUB_CONF_ACK "Node Publish Configuration Ack"
+#define NODE_TEACHING_MODE_START_ACK "Node Teaching Mode Start Ack"
+#define NODE_TEACHING_MODE_END_ACK "Node Teaching Mode End Ack"
 
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_KEY_LEN 20
@@ -70,7 +76,6 @@
 #define TEMPERATURE_UPPER_LIMIT 32
 
 /* STRUCTURE DEFINITIONS */
-
 struct base_data_t
 {
 	uint8_t json_packet_id;
@@ -128,6 +133,15 @@ typedef struct control_struct
 	struct control_struct *prev;
 } control_t;
 
+typedef struct teaching_mode_struct
+{
+	struct base_data_t base_data;
+	uint8_t starting_temperature;
+	uint8_t ending_temperature;
+	struct teaching_mode_struct *next;
+	struct teaching_mode_struct *prev;
+}teaching_mode_t;
+
 typedef struct prov_struct
 {
 	struct base_data_t base_data;
@@ -181,6 +195,7 @@ enum json_packet_enum
 	GWY_TEMPERATURE_DATA_PACKET,
 	GWY_PUB_CONF_PACKET,
 	RESET_MQTT,
+	GWY_TEACHING_MODE_START_PACKET,
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
@@ -191,6 +206,7 @@ enum json_packet_enum
 	NODE_RECONF_PACKET,
 	NODE_TEMPERATURE_DATA_PACKET,
 	NODE_PUB_CONF_PACKET,
+	NODE_TEACHING_MODE_START_PACKET,
 
 	/* MISC PACKETS */
 	UNKNOWN_PACKET = 99
@@ -248,6 +264,10 @@ enum ERROR_CODES
 	//Publish Configuration
 	INVALID_PUBLISH_PERIOD = 500,
 
+	//Teaching Mode
+	INVALID_STARTING_TEMPERATURE = 600,
+	INVALID_ENDING_TEMPERATURE,
+
 	UNKNOWN_ERROR_CODE = 999
 };
 
@@ -300,12 +320,18 @@ extern pub_conf_t gwy_pub_conf_t;
 /*reset mqtt*/
 extern mqtt_reset_t gwy_reset_mqtt_t;
 
+/*teaching mode*/
+extern teaching_mode_t gwy_teaching_mode_t;
+
 /*===============NODE====================*/
 
 /*node provision*/
 extern prov_t provision_t;
 extern prov_t *prov_queue_head;
 extern prov_t *prov_queue_tail;
+
+/*node ac remote configuration*/
+extern reconf_t node_conf_t;
 
 /*node Unprovision*/
 extern unprov_t unprovision_t;
@@ -332,6 +358,9 @@ extern temperature_data_t node_temperature_data_t;
 extern pub_conf_t node_pub_conf_t;
 extern pub_conf_t *node_pub_conf_queue_head;
 extern pub_conf_t *node_pub_conf_queue_tail;
+
+/*node teaching mode*/
+extern teaching_mode_t node_teaching_mode_t;
 
 /*===================================*/
 
