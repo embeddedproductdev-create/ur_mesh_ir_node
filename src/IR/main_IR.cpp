@@ -21,7 +21,13 @@ decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
 char protocol_chosen_str[15] = "";
 
-uint16_t custom_raw_buffer[NUM_OF_COMMANDS][NUM_OF_VALUES_PER_COMMAND];
+//Initializaiton - Teaching mode
+uint8_t convert_buffer[2];
+uint16_t convert_data=0;
+uint16_t eeprom_addr=0;
+uint16_t eeprom_addr_cal=0;
+uint8_t temp_min_val=0;
+uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 uint8_t custom_raw_buffer_index = 0;
 
 // Initialization - Transmitter
@@ -110,27 +116,31 @@ void IR_receiver_task(void *args)
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
-#if (IR_RECV_LOG_ENABLED)
-            ESP_LOGI(DEBUG_TAG, "%s", raw_buf_str);
-            if (description.length())
-                ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
-#endif
+            #if (IR_RECV_LOG_ENABLED)
+                ESP_LOGI(DEBUG_TAG, "%s", raw_buf_str);
+                if (description.length())
+                    ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
+            #endif
             if (teaching_mode)
             {
-                if (custom_raw_buffer_index < NUM_OF_COMMANDS)
-                {
-                    for (uint16_t i = 0; i < 600; i++)
-                    {
-                        custom_raw_buffer[custom_raw_buffer_index][i] = results.rawbuf[i];
-                    }
-                    custom_raw_buffer_index++;
-                    if(custom_raw_buffer_index == NUM_OF_COMMANDS)
-                    {
-                        ESP_LOGI(DEBUG_TAG, "End of Teaching mode \n");
-                        teaching_mode_done = true;
-                        teaching_mode = false;
-                    }
+                temp_min_val=18;
+                if(!eeprom_addr_cal) {
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
+                    vTaskDelay(20/portTICK_PERIOD_MS);
+                    convert_data=((results.rawlen)-1)*2;
+                    convert_16bit_to_8bit(convert_data,convert_buffer);
+                    eeprom_addr=TEACH_DATA_LEN;
+                    eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
+                    vTaskDelay(20/portTICK_PERIOD_MS);
+                    eeprom_addr=TEACH_DATA_POFF;
                 }
+                else {
+                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
+                }
+                eeprom_addr_cal++;
+                write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
+                ESP_LOGI(DEBUG_TAG, "End of Teaching mode \n");
+                teaching_mode = false;
             }
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
             {

@@ -24,8 +24,6 @@
 #define kTimeout 50
 #define kMinUnknownSize 12
 #define kTolerancePercentage kTolerance
-
-#define NUM_OF_COMMANDS 2
 #define NUM_OF_VALUES_PER_COMMAND 600
 
 /* TRANSMITTER */
@@ -33,7 +31,7 @@
 
 /* GLOBAL VARIABLES - RECEIVER */
 extern char protocol_chosen_str[15];
-extern uint16_t custom_raw_buffer[NUM_OF_COMMANDS][NUM_OF_VALUES_PER_COMMAND];
+extern uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 extern uint8_t custom_raw_buffer_index;
 
 /* GLOBAL VARIABLES - TRANSMITTER */

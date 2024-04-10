@@ -52,6 +52,9 @@
 #include "temperature_sensor.h"
 #include "queue.h"
 
+/* Flash */
+#include "../flash/flash.h"
+
 #define TAG "UART"
 #define DEBUG_TAG "[DEBUG]"
 #define ERROR_TAG "[ERROR]"
