@@ -168,6 +168,8 @@ uint8_t Error_Report(void);
 void clear_mqtt_settings();
 void reset_mqtt();
 void get_mode_value();
+uint16_t get_gwy_ser_no();
+char *get_err_string(uint16_t err_code);
 
 #ifdef __cplusplus
 }

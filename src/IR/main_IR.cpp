@@ -137,10 +137,10 @@ void IR_receiver_task(void *args)
                 configured = true;
                 protocol_selected_num = protocol_detected;
                 char pubmessage[PUBMESG_LEN];
-                sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
+                sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
                         JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
                         JSON_ACK_NAME_KEY, GWY_CONF_ACK,
-                        GWY_SER_NO_KEY, GWY_SER_NO,
+                        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                         ERROR_CODE_KEY, json_ack_err_code);
                 ESP_LOGI(DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
                 add_to_pubmesg_queue(pubmessage, publish_topic);

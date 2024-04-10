@@ -14,6 +14,7 @@
 
 //Initialization
 uint16_t GWY_SER_NO = 1;
+char GWY_SER_NO_IN_STRING[8];
 
 //Initializing Global Structures
 gwy_reg_t gwy_registration_t;
@@ -109,6 +110,21 @@ void init_structures()
     strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK);
 }
 
+void fill_gwy_ser_no_str()
+{
+    strcpy(GWY_SER_NO_IN_STRING, "GWY");
+    char serialNo[6];
+    char zerostr[4];
+    sprintf(serialNo, "%d", GWY_SER_NO);
+    uint8_t len = strlen(GWY_SER_NO_IN_STRING) + strlen(serialNo);
+    for(uint8_t i=0; i<(8-len); i++)
+    {
+        strcat(zerostr, "0");
+    }
+    strcat(GWY_SER_NO_IN_STRING, zerostr);
+    strcat(GWY_SER_NO_IN_STRING, serialNo);
+}
+
 /**
  * @brief Starting point for the whole program
  * @param none
@@ -129,6 +145,7 @@ void app_main()
     #endif
 
     init_structures();
+    fill_gwy_ser_no_str();
 
     //Queue part
     pthread_t queue_tid;
@@ -172,7 +189,7 @@ void app_main()
     #endif
 
     #if(TEMPERATURE_SENSOR_PART_ENABLED)
-    create_Temperature_data_publish_timer();
+    init_temperature_sensor();
     #endif
 
     #if(BUTTON_PART_ENABLED)

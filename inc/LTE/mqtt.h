@@ -24,8 +24,8 @@
 #define MAC_ID_KEY "MacId"
 #define POWER_KEY "Power"
 #define MODE_KEY "Mode"
-#define FAN_SPEED_KEY "Fan"
-#define TEMPERATURE_KEY "Temp"
+#define FAN_SPEED_KEY "FanSpeed"
+#define TEMPERATURE_KEY "Temperature"
 #define SWING_H_KEY "SwingH"
 #define SWING_V_KEY "SwingV"
 #define ONTIMER_KEY "OnTimer"
@@ -33,6 +33,8 @@
 #define AC_LOCKING_KEY "Locking"
 #define TEMP_LOW_LIMIT_KEY "TempLowLimit"
 #define TEMP_UP_LIMIT_KEY "TempUpLimit"
+#define TEMP_UP_LOCK_LIMIT_KEY "TempUpLockLimit"
+#define TEMP_LOW_LOCK_LIMIT_KEY "TempLowLockLimit"
 #define ERROR_CODE_KEY "ErrorCode"
 #define TEMPERATURE_DATA_KEY "Temperature"
 #define PUBLISH_PERIOD_KEY "PublishPeriodSec"
@@ -60,7 +62,7 @@
 #define LOCATION_KEY_LEN 20
 #define MQTT_PACKET_NAME_LEN 40
 #define PUBMESG_QUEUE_LIMIT 20
-#define PUBMESG_LEN 300
+#define PUBMESG_LEN 400
 #define MQTT_TOPIC_CHAR_LEN 20
 #define NODE_TIMEOUT_INTERVAL_US 10000000
 
@@ -194,13 +196,15 @@ enum json_packet_enum
 	UNKNOWN_PACKET = 99
 };
 
+
+
 enum ERROR_CODES
 {
 
 	// Basic
 	FAILURE = -1,
 	SUCCESS,
-	INVALID_JSON_PACKET_ID_KEY,
+	INVALID_JSON_PACKET_ID,
 	INVALID_MSG_SEQ_NO,
 	INVALID_GWY_SER_NO,
 	INVALID_NODE_SER_NO,

@@ -15,6 +15,12 @@
 uint8_t measured_temperature = 0;
 uint32_t TempDataFreqSec = 10;
 
+const esp_timer_create_args_t periodic_timer_args = {
+    .callback = &publish_temperature_cb,
+    .name = "Temperature_data_timer"
+};
+esp_timer_handle_t temp_publish_timer;
+
 esp_err_t initialize_i2c(void){
     int i2c_master_port = I2C_MASTER_NUM;
     i2c_config_t conf = {
@@ -132,13 +138,27 @@ static void publish_temperature_cb(void *arg)
         ESP_LOGI(DEBUG_TAG, "Sending Gwy Temperature Ack\r\n");
         read_analog_temperature(&measured_temperature);
         char pubmessage[PUBMESG_LEN];
-        sprintf(pubmessage, "%s : %d, %s : %s, %s : %d, %s : %d",
+        sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
         JSON_PACKET_ID_KEY, GWY_TEMPERATURE_DATA_PACKET,
         JSON_ACK_NAME_KEY, GWY_TEMPERATURE_DATA_ACK,
-        GWY_SER_NO_KEY, GWY_SER_NO,
+        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
         TEMPERATURE_DATA_KEY, measured_temperature);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
+}
+
+/**
+ * @brief Function that initalizes the Analog and Digital temperature sensor
+ * at board startup. This also takes care of setting up a repeated timer that takes
+ * care of publishing the measured temperature data to the cloud
+ * @param none
+ * @retval none
+ */
+void init_temperature_sensor()
+{
+    init_digital_temperature_sensor();
+    init_analog_temperature_sensor();
+    create_Temperature_data_publish_timer();
 }
 
 /**
@@ -149,13 +169,13 @@ static void publish_temperature_cb(void *arg)
  */
 void create_Temperature_data_publish_timer()
 {
-    init_digital_temperature_sensor();
-    init_analog_temperature_sensor();
-    const esp_timer_create_args_t periodic_timer_args = {
-        .callback = &publish_temperature_cb,
-        .name = "Temperature_data_timer"
-    };
-    esp_timer_handle_t temp_publish_timer;
+    if(registered)
+    {
+        ESP_ERROR_CHECK(esp_timer_stop(temp_publish_timer));
+        ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
+    }
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &temp_publish_timer));
-    ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, TempDataFreqSec*1000000));
+    if(gwy_pub_conf_t.pub_conf_period_in_sec >= 5)
+        ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_pub_conf_t.pub_conf_period_in_sec*1000000));
+    else ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, DEFAULT_TEMPERATURE_DATA_PUBLISH_PERIOD_SEC*1000000));
 }

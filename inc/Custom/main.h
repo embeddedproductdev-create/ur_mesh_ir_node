@@ -53,9 +53,9 @@
 #include "queue.h"
 
 #define TAG "UART"
-#define DEBUG_TAG "[DEBUG] : "
-#define ERROR_TAG "[ERROR] : "
-#define SETUP_TAG "[SETUP] : "
+#define DEBUG_TAG "[DEBUG]"
+#define ERROR_TAG "[ERROR]"
+#define SETUP_TAG "[SETUP]"
 #define MAJ_VERSION 0
 #define MIN_VERSION 2
 #define BAUD_RATE 115200
@@ -79,6 +79,7 @@ extern bool sending;
 extern bool teaching_mode;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;
+extern char GWY_SER_NO_IN_STRING[8];
 
 #ifdef __cplusplus
 extern "C" {

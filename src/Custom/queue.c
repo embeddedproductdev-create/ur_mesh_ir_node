@@ -167,8 +167,8 @@ void search_node_control_queue(uint16_t messageNum)
 					ONTIMER_KEY, traverser->OnTimer,
 					OFFTIMER_KEY, traverser->OffTimer,
 					AC_LOCKING_KEY, traverser->Locking,
-					TEMP_UP_LIMIT_KEY, traverser->TempUpLimit,
-					TEMP_LOW_LIMIT_KEY, traverser->TempLowLimit,
+					TEMP_UP_LOCK_LIMIT_KEY, traverser->TempUpLimit,
+					TEMP_LOW_LOCK_LIMIT_KEY, traverser->TempLowLimit,
 					ERROR_CODE_KEY, traverser->base_data.error_code);
 				add_to_pubmesg_queue(pubmessage, publish_topic);
 			}

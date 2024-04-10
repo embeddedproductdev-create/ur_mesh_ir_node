@@ -40,6 +40,8 @@
 #define TEMPERATURE_SLOPE -0.0196    /**< Slope for temperature conversion */
 #define TEMPERATURE_INTERCEPT 89.362 /**< Intercept for temperature conversion y = -0.0196x + 89.362*/
 
+#define DEFAULT_TEMPERATURE_DATA_PUBLISH_PERIOD_SEC 5
+
 /* GLOBAL VARIABLES */
 extern uint8_t measured_temperature;
 
@@ -65,7 +67,9 @@ void initialize_temp_sensor(void);
 esp_err_t i2c_read(uint8_t reg_addr, uint8_t *data, size_t len);
 esp_err_t i2c_write(uint8_t reg_addr);
 void Read_Digital_Temperature(uint8_t *measured_temperature);
-
+void init_temperature_sensor();
+void create_Temperature_data_publish_timer();
+static void publish_temperature_cb(void *arg);
 #ifdef __cplusplus
 }
 #endif

@@ -633,14 +633,14 @@ void error_check_json(uint8_t json_packet_id)
 			if(cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY));
 			else { json_ack_err_code = INVALID_LOCKING; return; }
 
-			if(cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_KEY));
+			if(cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY));
 			else { json_ack_err_code = INVALID_TEMP_UPPER_LIMIT; return; }
-			uint8_t temp_upper_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_KEY))->valueint;
+			uint8_t temp_upper_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY))->valueint;
 			if(temp_upper_limit > TEMPERATURE_UPPER_LIMIT)
 				{ json_ack_err_code = LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT; return; }
-			if(cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_KEY));
+			if(cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY));
 			else {json_ack_err_code = INVALID_TEMP_LOWER_LIMIT; return; }
-			uint8_t temp_lower_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_KEY))->valueint;
+			uint8_t temp_lower_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY))->valueint;
 			if(temp_lower_limit < TEMPERATURE_LOWER_LIMIT)
 				{ json_ack_err_code = LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT; return; }
 			if(temp_lower_limit > temp_upper_limit)
@@ -685,33 +685,33 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 	{
 		case GWY_REG_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reg Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d}",
 				JSON_PACKET_ID_KEY, GWY_REG_PACKET,
 				JSON_ACK_NAME_KEY, GWY_REG_ACK,
 				MSG_SEQ_NO_KEY, gwy_registration_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				LOCATION_KEY, gwy_registration_t.base_data.location,
 				ERROR_CODE_KEY, json_ack_err_code);
 			break;
 
 		case GWY_UNREG_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Unreg Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d}",
 				JSON_PACKET_ID_KEY, GWY_UNREG_PACKET,
 				JSON_ACK_NAME_KEY, GWY_UNREG_ACK,
 				MSG_SEQ_NO_KEY, gwy_unregistration_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				LOCATION_KEY, gwy_unregistration_t.base_data.location,
 				ERROR_CODE_KEY, json_ack_err_code);
 			break;
 
 		case GWY_AC_CONTROL_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Control Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
 				JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK,
 				MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				POWER_KEY, gwy_ac_control_t.power,
 				MODE_KEY, gwy_ac_control_t.mode_str,
 				FAN_SPEED_KEY, gwy_ac_control_t.fan,
@@ -726,21 +726,21 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case GWY_RECONF_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reconf Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %ss, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %ss, %s : %d, %s : %s, %s : %d}",
 				JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
 				JSON_ACK_NAME_KEY, GWY_RECONF_ACK,
 				MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				ERROR_CODE_KEY, json_ack_err_code);
 			break;
 
 		case GWY_AC_LOCKING_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Locking Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 				JSON_PACKET_ID_KEY, GWY_AC_LOCKING_PACKET,
 				JSON_ACK_NAME_KEY, GWY_LOCKING_ACK,
 				MSG_SEQ_NO_KEY, gwy_locking_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				POWER_KEY, gwy_locking_t.power,
 				MODE_KEY, gwy_locking_t.mode_str,
 				FAN_SPEED_KEY, gwy_locking_t.fan,
@@ -755,22 +755,22 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 		case GWY_PUB_CONF_PACKET:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Pub conf Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
 				JSON_PACKET_ID_KEY, GWY_PUB_CONF_PACKET,
 				JSON_ACK_NAME_KEY, GWY_PUB_CONF_ACK,
 				MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
 				ERROR_CODE_KEY, json_ack_err_code);
 			break;
 
 		case RESET_MQTT:
 			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reset MQTT Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d}",
 				JSON_PACKET_ID_KEY, RESET_MQTT,
 				JSON_ACK_NAME_KEY, GWY_RESET_MQTT_ACK, 
 				MSG_SEQ_NO_KEY, gwy_reset_mqtt_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO,
+				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
 				ERROR_CODE_KEY, json_ack_err_code);
 			break;
 	}
@@ -801,12 +801,88 @@ uint16_t get_gwy_ser_no()
 {
 	char *ptr;
 	uint16_t gwy_ser_no;
-	char gwy_ser_no_in_str[9];
+	char gwy_ser_no_in_str[8];
 	strcpy(gwy_ser_no_in_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
-	char gwy_ser_no_alone_str[6];
-	strncpy(gwy_ser_no_alone_str, gwy_ser_no_in_str + 3, 6);
+	char gwy_ser_no_alone_str[5];
+	strncpy(gwy_ser_no_alone_str, gwy_ser_no_in_str + 3, 5);
 	gwy_ser_no = strtol(gwy_ser_no_alone_str, &ptr, 10);
     return gwy_ser_no;
+}
+
+char *get_err_string(uint16_t err_code)
+{
+	switch(err_code)
+	{
+		case FAILURE:
+			return "FAILURE";
+		case SUCCESS:
+			return "SUCCESS";
+		case INVALID_JSON_PACKET_ID:
+			return "INVALID_JSON_PACKET_ID";
+		case INVALID_MSG_SEQ_NO:
+			return "INVALID_MSG_SEQ_NO";
+		case INVALID_GWY_SER_NO:
+			return "INVALID_GWY_SER_NO";
+		case INVALID_NODE_SER_NO:
+			return "INVALID_NODE_SER_NO";
+		case INVALID_LOCATION_KEY:
+			return "INVALID_LOCATION_KEY";
+		case NODE_TIMEOUT:
+			return "NODE_TIMEOUT";
+		case GWY_ALREADY_REG:
+			return "GWY_ALREADY_REG";
+		case GWY_ALREADY_UNREG:
+			return "GWY_ALREADY_UNREG";
+		case NODE_ALREADY_PROV:
+			return "NODE_ALREADY_PROV";
+		case NODE_ALREADY_UNPROV:
+			return "NODE_ALREADY_UNPROV";
+		case GWY_ALREADY_UNCONF:
+			return "GWY_ALREADY_UNCONF";
+		case NODE_ALREADY_UNCONF:
+			return "NODE_ALREADY_UNCONF";
+		case GWY_NOT_REG:
+			return "GWY_NOT_REG";
+		case GWY_NOT_CONF:
+			return "GWY_NOT_CONF";
+		case INVALID_POWER:
+			return "INVALID_POWER";
+		case INVALID_MODE:
+			return "INVALID_MODE";
+		case INVALID_FAN_SPEED:
+			return "INVALID_FAN_SPEED";
+		case INVALID_TEMPERATURE:
+			return "INVALID_TEMPERATURE";
+		case INVALID_SWING_H:
+			return "INVALID_SWING_H";
+		case INVALID_SWING_V:
+			return "INVALID_SWING_V";
+		case INVALID_ONTIMER:
+			return "INVALID_ONTIMER";
+		case INVALID_OFFTIMER:
+			return "INVALID_OFFTIMER";
+		case INVALID_LOCKING:
+			return "INVALID_LOCKING";
+		case INVALID_TEMP_UPPER_LIMIT:
+			return "INVALID_TEMP_UPPER_LIMIT";
+		case INVALID_TEMP_LOWER_LIMIT:
+			return "INVALID_TEMP_LOWER_LIMIT";
+		case LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT:
+			return "LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT";
+		case LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT:
+			return "LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT";
+		case ILLOGICAL_LOCKING_TEMP_LIMIT:
+			return "ILLOGICAL_LOCKING_TEMP_LIMIT";
+		case INVALID_ELMNT_ADDR:
+			return "INVALID_ELMNT_ADDR";
+		case EXCEEDING_TEMP_LOWER_LIMIT:
+			return "EXCEEDING_TEMP_LOWER_LIMIT";
+		case EXCEEDING_TEMP_UPPER_LIMIT:
+			return "EXCEEDING_TEMP_UPPER_LIMIT";
+		case INVALID_PUBLISH_PERIOD:
+			return "INVALID_PUBLISH_PERIOD";
+	}
+	return "UNKNOWN_ERROR_CODE";
 }
 
 /**
@@ -832,7 +908,7 @@ void parse_json_packet()
 	}
 	else
 	{
-		json_ack_err_code = INVALID_JSON_PACKET_ID_KEY;
+		json_ack_err_code = INVALID_JSON_PACKET_ID;
 		return;
 	}
 
@@ -878,8 +954,8 @@ void parse_json_packet()
 				gwy_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
 				gwy_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
 				gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-				gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_KEY)->valueint;
-				gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_KEY)->valueint;
+				gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
+				gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
 				if(configured) needtosend = true;
 				else ESP_LOGE(ERROR_TAG, "Gwy not configured yet, Can't control AC\r\n");
 				break;
@@ -898,6 +974,7 @@ void parse_json_packet()
 				gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
 				gwy_pub_conf_t.base_data.gwy_ser_no = get_gwy_ser_no();
 				gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+				create_Temperature_data_publish_timer();
 				break;
 
 			case NODE_PROV_PACKET:
@@ -940,8 +1017,8 @@ void parse_json_packet()
 				node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
 				node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
 				node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-				node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LIMIT_KEY)->valueint;
-				node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LIMIT_KEY)->valueint;
+				node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
+				node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
 				break;
 
 			case NODE_RECONF_PACKET:
@@ -984,8 +1061,8 @@ void parse_json_packet()
 				ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
 		}
 	}
-	ESP_LOGE(DEBUG_TAG, "Error Code : %d\n",json_ack_err_code);
-	handle_sending_ack_to_cloud(JSON_PACKET_ID_KEY);
+	ESP_LOGI(DEBUG_TAG, "Error Code : %s\n",get_err_string(json_ack_err_code));
+	handle_sending_ack_to_cloud(json_packet_id);
 }
 
 /**
