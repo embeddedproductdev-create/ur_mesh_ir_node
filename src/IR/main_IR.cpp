@@ -91,86 +91,12 @@ void locking_feature(char *result_description_char_str)
 }
 
 /**
- * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
- * also takes care of the IR transmission part.
- * @param args
- * @return void*
- */
-void IR_receiver_task(void *args)
-{
-    IR_transmit_setup();
-    irrecv.setUnknownThreshold(kMinUnknownSize);
-    irrecv.setTolerance(kTolerancePercentage);
-    irrecv.enableIRIn();
-    while (1)
-    {
-        if (needtosend)
-            IR_transmit(protocol_selected_num);
-        if (esp_restart_flag)
-            ESP.restart();
-        vTaskDelay(1);
-        if (irrecv.decode(&results) && !teaching_mode_done && true)
-        {
-            char raw_buf_str[200];
-            strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
-            String description = IRAcUtils::resultAcToString(&results);
-            char result_description_char_str[200];
-            strcpy(result_description_char_str, (char *)description.c_str());
-            #if (IR_RECV_LOG_ENABLED)
-                ESP_LOGI(DEBUG_TAG, "%s", raw_buf_str);
-                if (description.length())
-                    ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
-            #endif
-            if (teaching_mode)
-            {
-                temp_min_val=18;
-                if(!eeprom_addr_cal) {
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
-                    vTaskDelay(20/portTICK_PERIOD_MS);
-                    convert_data=((results.rawlen)-1)*2;
-                    convert_16bit_to_8bit(convert_data,convert_buffer);
-                    eeprom_addr=TEACH_DATA_LEN;
-                    eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
-                    vTaskDelay(20/portTICK_PERIOD_MS);
-                    eeprom_addr=TEACH_DATA_POFF;
-                }
-                else {
-                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
-                }
-                eeprom_addr_cal++;
-                write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
-                ESP_LOGI(DEBUG_TAG, "End of Teaching mode \n");
-                teaching_mode = false;
-            }
-            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
-            {
-                configured = true;
-                protocol_selected_num = protocol_detected;
-                char pubmessage[PUBMESG_LEN];
-                sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
-                        JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
-                        JSON_ACK_NAME_KEY, GWY_CONF_ACK,
-                        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                        ERROR_CODE_KEY, json_ack_err_code);
-                ESP_LOGI(DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
-                add_to_pubmesg_queue(pubmessage, publish_topic);
-            }
-            if (protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking)
-                locking_feature(result_description_char_str);
-            yield();
-        }
-    }
-    vTaskDelete(NULL);
-}
-
-/**
  * @brief Funtion to setup the IR Transmit part
  * @param none
  * @retval none
  */
 void IR_transmit_setup()
 {
-    pinMode(IR_TRANSMIT_PIN, OUTPUT);
     ac_daikin216.begin();
     ac_daikin280.begin();
     ac_daikin2.begin();
@@ -579,4 +505,77 @@ void IR_transmit(uint16_t protocol_selected_num)
     }
     needtosend = false;
     sending = false;    
+}
+
+/**
+ * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
+ * also takes care of the IR transmission part.
+ * @param args
+ * @return void*
+ */
+void IR_receiver_task(void *args)
+{
+    IR_transmit_setup();
+    irrecv.setUnknownThreshold(kMinUnknownSize);
+    irrecv.setTolerance(kTolerancePercentage);
+    irrecv.enableIRIn();
+    while (1)
+    {
+        if (needtosend)
+            IR_transmit(protocol_selected_num);
+        if (esp_restart_flag)
+            ESP.restart();
+        vTaskDelay(1);
+        if (irrecv.decode(&results))
+        {
+            char raw_buf_str[200];
+            strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
+            String description = IRAcUtils::resultAcToString(&results);
+            char result_description_char_str[200];
+            strcpy(result_description_char_str, (char *)description.c_str());
+            #if (IR_RECV_LOG_ENABLED)
+                ESP_LOGI(DEBUG_TAG, "%s", raw_buf_str);
+                if (description.length())
+                    ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
+            #endif
+            if (teaching_mode)
+            {
+                temp_min_val=18;
+                if(!eeprom_addr_cal) {
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
+                    vTaskDelay(20/portTICK_PERIOD_MS);
+                    convert_data=((results.rawlen)-1)*2;
+                    convert_16bit_to_8bit(convert_data,convert_buffer);
+                    eeprom_addr=TEACH_DATA_LEN;
+                    eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
+                    vTaskDelay(20/portTICK_PERIOD_MS);
+                    eeprom_addr=TEACH_DATA_POFF;
+                }
+                else {
+                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
+                }
+                eeprom_addr_cal++;
+                write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
+                ESP_LOGI(DEBUG_TAG, "End of Teaching mode \n");
+                teaching_mode = false;
+            }
+            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
+            {
+                configured = true;
+                protocol_selected_num = protocol_detected;
+                char pubmessage[PUBMESG_LEN];
+                sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
+                        JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
+                        JSON_ACK_NAME_KEY, GWY_CONF_ACK,
+                        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                        ERROR_CODE_KEY, json_ack_err_code);
+                ESP_LOGI(DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
+                add_to_pubmesg_queue(pubmessage, publish_topic);
+            }
+            if (protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
+                locking_feature(result_description_char_str);
+            yield();
+        }
+    }
+    vTaskDelete(NULL);
 }

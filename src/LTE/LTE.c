@@ -587,49 +587,42 @@ void LTE_initialization(void)
 
 void establishMQTTConnection()
 {
-	LED_state = LED_STATE_MQTT_NOT_CONNECTED;
-	uint8_t network_connect_retry_count = 0;
-	uint8_t client_connect_retry_count = 0;
-	uint8_t subscribe_retry_count = 0;
-	network_flag = false;
-	client_flag = false;
-	subscribe_flag = false;
-	while(network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag)
+	while(!mqtt_connected)
 	{
 		vTaskDelay(1);
-		client_connect_retry_count = 0;
-		printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count++);
-		uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
-		if(ret_val == 2) MQTT_NetworkClose(mqtt_client_index);
-		if(network_flag)
+		mqtt_connected = false;
+		network_flag = false;
+		client_flag = false;
+		subscribe_flag = false;
+		for(uint8_t network_connect_retry_count = 0; network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag; network_connect_retry_count++)
 		{
-			while(client_connect_retry_count < RETRY_COUNT && !client_flag) {
-				subscribe_retry_count = 0;
-				printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count++);
-				if(MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_broker_tabname) == SUCCESS)
-				{
-					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
-						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
-
-						if(SubscribeTopic(mqtt_client_index,2,subscribe_topic, 0)==SUCCESS)
-							mqtt_connected = true;
-					}
-					if(subscribe_retry_count >= RETRY_COUNT) client_flag = 0;
-					client_connect_retry_count = 0;
-				}
-				else
-					printf("CLIENT CONNECTION FAILED\n");
-			}
-			if(client_connect_retry_count >= RETRY_COUNT)
+			vTaskDelay(1);
+			printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count);
+			uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
+			if(ret_val == 2) { MQTT_NetworkClose(mqtt_client_index); continue; }
+			while(network_flag)
 			{
+				for(uint8_t client_connect_retry_count = 0; client_connect_retry_count < RETRY_COUNT && !client_flag && network_flag; client_connect_retry_count++)
+				{
+					vTaskDelay(1);
+					printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count);
+					MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_broker_tabname);
+					while(client_flag)
+					{
+						for(uint8_t subscribe_retry_count = 0; subscribe_retry_count < RETRY_COUNT && !subscribe_flag && client_flag && network_flag; subscribe_retry_count++)
+						{
+							vTaskDelay(1);
+							printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
+							if(SubscribeTopic(mqtt_client_index,2,subscribe_topic, 0)==SUCCESS)
+								mqtt_connected = true;
+						}
+					}
+				}
 				network_flag = false;
-				MQTT_NetworkClose(mqtt_client_index);
-				network_connect_retry_count = 0;
 			}
 		}
-		if(network_connect_retry_count == 5 && !network_flag)
-			network_connect_retry_count = 0;
 	}
+	ESP_LOGI(DEBUG_TAG, "Established connected with MQTT successfully\r\n");
 }
 
 /**
@@ -1150,7 +1143,6 @@ void reset_mqtt()
 		create_AP_task();
 	#endif
 	mqtt_connected = false;
-
 }
 
 /**
@@ -1202,31 +1194,14 @@ void *LTE_task(void *args)
     while(1)
     {
 		vTaskDelay(1);
-		if(!restart_flag && mqtt_params_fetched_flag)
+		if(ReadMessage(mqtt_client_index) == SUCCESS)
 		{
-			if(pubmesg_queue_head!=NULL)
+			if(strlen(json_packet) > 5)
 			{
-				publishing_flag = true;
-				if(publish_to_mqtt(pubmesg_queue_head->topic, pubmesg_queue_head->message)==SUCCESS)
-					remove_from_pubmesg_queue();
-			}
-			else
-			{
-				ReadMessage(mqtt_client_index);
-				if(strlen(json_packet) > 5)
-				{
-					// ESP_LOGI(DEBUG_TAG, json_packet);
-					parse_json_packet();
-					memset(json_packet, 0, sizeof(json_packet));
-				}
+				parse_json_packet();
+				memset(json_packet, 0, sizeof(json_packet));
 			}
 		}
-		else
-		{
-			mqtt_connected = false;
-			restart_flag = false;
-			if(mqtt_params_fetched_flag)
-				LTE_setup();
-		}
-    }
+		else LTE_setup();
+	}
 }

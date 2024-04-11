@@ -13,7 +13,7 @@
 #include "../../inc/Custom/button.h"
 
 //Initialization
-uint16_t GWY_SER_NO = 1;
+uint16_t GWY_SER_NO = 2;
 char GWY_SER_NO_IN_STRING[8];
 
 //Initializing Global Structures
@@ -26,6 +26,7 @@ control_t gwy_locking_t;
 mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
 temperature_data_t gwy_temperature_data_t;
+teaching_mode_t gwy_teaching_mode_t;
 
 prov_t provision_t;
 prov_t *prov_queue_head;
@@ -75,9 +76,13 @@ void fill_gwy_ser_no_str()
  */
 void app_main()
 {
+    fill_gwy_ser_no_str();
+
     ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(DEBUG_TAG, "APPLICATION STARTED : %d.%d",MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
     ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+
+    init_structures();
 
     #if(LED_PART_ENABLED)
     pthread_t LED_tid;
@@ -87,10 +92,7 @@ void app_main()
     }
     #endif
 
-    fill_gwy_ser_no_str();
-    init_structures();
-
-    //Queue part
+    // Queue part
     pthread_t queue_tid;
     if(pthread_create(&queue_tid, NULL, queue_handler, NULL)!=0){
         perror("Error in creating queue_handler_task : ");

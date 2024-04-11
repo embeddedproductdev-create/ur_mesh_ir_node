@@ -60,10 +60,10 @@
 #define ERROR_TAG "[ERROR]"
 #define SETUP_TAG "[SETUP]"
 #define MAJ_VERSION 0
-#define MIN_VERSION 2
+#define MIN_VERSION 3
 #define BAUD_RATE 115200
 
-#define IR_RECV_PART_ENABLED true
+#define IR_RECV_PART_ENABLED false
 #define IR_RECV_LOG_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED true
 #define LTE_PART_ENABLED true

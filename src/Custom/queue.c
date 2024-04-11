@@ -437,7 +437,9 @@ void *queue_handler(void *args)
 		}
 		if(pubmesg_queue_head != NULL)
 		{
-			
+			publishing_flag = true;
+			if(publish_to_mqtt(pubmesg_queue_head->topic, pubmesg_queue_head->message) == SUCCESS)
+				remove_from_pubmesg_queue();
 		}
 	}
 }

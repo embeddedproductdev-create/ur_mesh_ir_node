@@ -65,7 +65,7 @@
 #define NODE_TEACHING_MODE_END_ACK "Node Teaching Mode End Ack"
 
 #define MQTT_PACKET_BUFF_SIZE 500
-#define LOCATION_KEY_LEN 20
+#define LOCATION_STR_LEN 20
 #define MQTT_PACKET_NAME_LEN 40
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 400
@@ -89,7 +89,7 @@ struct base_data_t
 	uint16_t error_code;
 	uint32_t request_in_time_us;
 	char ack_name[MQTT_PACKET_NAME_LEN];
-	char location[LOCATION_KEY_LEN];
+	char location[LOCATION_STR_LEN];
 };
 
 typedef struct mqtt_reset_struct
