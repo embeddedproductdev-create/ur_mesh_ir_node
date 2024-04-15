@@ -366,7 +366,7 @@ uint8_t MQTT_ClientConnect(int mqtt_client_index, char* username, char* passwd, 
 		sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	    sprintf((char*)transmit_buffer,"%s%d,0,0\r\n",MQTT_CLIENT_CONN_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,2*MAX_WAIT_MS)	==	SUCCESS ){
+		if(check_response(transmit_buffer,4*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Connected client to broker: %s\r\n",username);
 			free(transmit_buffer);
 			client_flag = 1;
@@ -587,31 +587,31 @@ void LTE_initialization(void)
 
 void establishMQTTConnection()
 {
+	mqtt_connected = false;
 	while(!mqtt_connected)
 	{
 		vTaskDelay(1);
-		mqtt_connected = false;
 		network_flag = false;
 		client_flag = false;
 		subscribe_flag = false;
-		for(uint8_t network_connect_retry_count = 0; network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag; network_connect_retry_count++)
+		for(uint8_t network_connect_retry_count = 0; !mqtt_connected && network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag; network_connect_retry_count++)
 		{
 			vTaskDelay(1);
 			printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count);
 			uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
 			if(ret_val == 2) { MQTT_NetworkClose(mqtt_client_index); continue; }
-			while(network_flag)
+			while(network_flag && !mqtt_connected)
 			{
 				vTaskDelay(1);
-				for(uint8_t client_connect_retry_count = 0; client_connect_retry_count < RETRY_COUNT && !client_flag && network_flag; client_connect_retry_count++)
+				for(uint8_t client_connect_retry_count = 0; !mqtt_connected && client_connect_retry_count < RETRY_COUNT && !client_flag && network_flag; client_connect_retry_count++)
 				{
 					vTaskDelay(1);
 					printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count);
 					MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_client_id);
-					while(client_flag)
+					while(client_flag && !mqtt_connected)
 					{
 						vTaskDelay(1);
-						for(uint8_t subscribe_retry_count = 0; subscribe_retry_count < RETRY_COUNT && !subscribe_flag && client_flag && network_flag; subscribe_retry_count++)
+						for(uint8_t subscribe_retry_count = 0; !mqtt_connected && subscribe_retry_count < RETRY_COUNT && !subscribe_flag && client_flag && network_flag; subscribe_retry_count++)
 						{
 							vTaskDelay(1);
 							printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
@@ -1201,6 +1201,7 @@ void *LTE_task(void *args)
 		{
 			if(strlen(json_packet) > 5)
 			{
+				
 				parse_json_packet();
 				memset(json_packet, 0, sizeof(json_packet));
 			}

@@ -25,7 +25,7 @@ bool mqtt_params_fetched_flag = false;
 #if(!AP_PART_ENABLED)
 char mqtt_ip_address[16] = "54.215.188.103";
 uint16_t mqtt_port = 1883;
-uint8_t mqtt_client_index = 3;
+uint8_t mqtt_client_index = 1;
 char mqtt_broker_username[30] = "QmaxSystems";
 char mqtt_broker_password[30] = "Qmax_mosquitto_!@#";
 char mqtt_client_id[100] = "AC_IR_CONTROL";

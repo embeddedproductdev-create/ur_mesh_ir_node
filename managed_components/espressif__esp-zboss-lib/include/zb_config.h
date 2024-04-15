@@ -560,9 +560,11 @@ Ideally should rework the whole zb_config.h to suit better for that new concept.
 /*! @} */ /* ZB_CONFIG */
 
 /**
-   Use 32-bit timer
+   Use 64-bit timer
 */
-#define ZB_TIMER_32
+#ifndef ZB_TIMER_64
+#define ZB_TIMER_64
+#endif /* ZB_TIMER_64 */
 
 #ifndef ZB_CB_QUANT
 #define ZB_CB_QUANT 1U
@@ -635,19 +637,19 @@ Ideally should rework the whole zb_config.h to suit better for that new concept.
 /**
    Minimal time between MTORR when ZBOSS decided to run MTORR at some event
  */
-#define ZB_MIN_TIME_BETWEEN_MTORR ZB_MILLISECONDS_TO_BEACON_INTERVAL(10000u)
+#define ZB_MIN_TIME_BETWEEN_MTORR ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(10000u)
 /**
    If advised to send MTORR, do it after that delay
  */
-#define ZB_DELAY_BEFORE_ADVISED_MTORR ZB_MILLISECONDS_TO_BEACON_INTERVAL(2000u)
+#define ZB_DELAY_BEFORE_ADVISED_MTORR ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(2000u)
 
 
-#define ZB_DELAY_BEFORE_ADVISED_MTORR_HIPRI ZB_MILLISECONDS_TO_BEACON_INTERVAL(500u)
+#define ZB_DELAY_BEFORE_ADVISED_MTORR_HIPRI ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(500u)
 
 /**
    Delay to Send MTORR just after boot
  */
-#define ZB_DELAY_BEFORE_MTORR_AT_BOOT ZB_MILLISECONDS_TO_BEACON_INTERVAL(100u)
+#define ZB_DELAY_BEFORE_MTORR_AT_BOOT ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(100u)
 
 #endif /*ZB_PRO_STACK*/
 
@@ -835,7 +837,7 @@ ZB_ED_RX_OFF_WHEN_IDLE
 /**
    End device idle time-out
 */
-#define ZB_TIME_ED_IDLE ZB_MILLISECONDS_TO_BEACON_INTERVAL(7500)
+#define ZB_TIME_ED_IDLE ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(7500)
 #endif
 
 
@@ -988,10 +990,10 @@ ZB_ED_RX_OFF_WHEN_IDLE
    See Zigbee specification revision 22 subclause 4.4.11
 */
 #ifdef ZB_PRO_STACK
-#define ZB_APS_SECURITY_TIME_OUT_PERIOD ZB_MILLISECONDS_TO_BEACON_INTERVAL(10000U)
+#define ZB_APS_SECURITY_TIME_OUT_PERIOD ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(10000U)
 #else
 /* i.e. 700 milliseconds on 2.4 GHz */
-#define ZB_APS_SECURITY_TIME_OUT_PERIOD ZB_MILLISECONDS_TO_BEACON_INTERVAL(700U)
+#define ZB_APS_SECURITY_TIME_OUT_PERIOD ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(700U)
 #endif
 
 /**
@@ -1705,7 +1707,7 @@ exponent.
  */
 #define ZB_ZGPD_CH_SERIES       3U
 
-#define ZB_GPD_COMMISSIONING_RETRY_INTERVAL ZB_MILLISECONDS_TO_BEACON_INTERVAL(500)
+#define ZB_GPD_COMMISSIONING_RETRY_INTERVAL ZB_MILLISECONDS_TO_SYS_TIMER_INTERVAL(500)
 #endif /* ZB_ZGPD_ROLE */
 
 /** The maximum number of reports that GPD can send in the Application Description. */

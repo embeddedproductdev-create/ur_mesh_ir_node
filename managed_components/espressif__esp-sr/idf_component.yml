@@ -9,5 +9,9 @@ files:
   - .github
   - docs/**/*
   - test_apps/**/*
+repository: git://github.com/espressif/esp-sr.git
+repository_info:
+  commit_sha: f5607edd2cdd21a23986ebbce6485f5ceab1e752
+  path: .
 url: https://github.com/espressif/esp-sr
-version: 1.6.1
+version: 1.7.0
