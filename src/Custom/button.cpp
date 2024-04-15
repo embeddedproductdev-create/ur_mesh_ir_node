@@ -33,15 +33,15 @@ void button_logic()
     {
     if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]==0) //Single press
     {
-        restart_flag = true;
-    }
-    else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) // Double press
+        ESP_LOGI(DEBUG_TAG, "Not assigned to any operation yet");
+    } 
+    else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {
         ESP_LOGI(DEBUG_TAG, "Not assigned to any operation yet");
     }
-    else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*6) //Button held for 3 to 6 seconds
+    else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*7) //Button held for 3 to 7 seconds
         configured = false;
-    else if(pressed_duration_array[0] > ONE_SEC_IN_MS*8) //Button held for 8 seconds straight
+    else if(pressed_duration_array[0] >= ONE_SEC_IN_MS*8) //Button held for 8 seconds or more
         esp_restart_flag = true;
     }
 }
@@ -52,7 +52,7 @@ void calculate_button_press_time()
     pressedTime = esp_timer_get_time();
     while(!digitalRead(USER_SWITCH)) //Do nothing until button is released
     {
-        vTaskDelay(1);
+        vTaskDelay(pdMS_TO_TICKS(1));
         ;
     }
     releasedTime = esp_timer_get_time();
@@ -70,13 +70,14 @@ void *button_task(void *args)
     pinMode(USER_SWITCH, INPUT);
     while(1)
     {
-        vTaskDelay(1);
+        vTaskDelay(pdMS_TO_TICKS(100));
         if(!digitalRead(USER_SWITCH)) //button is pressed
         {
             calculate_button_press_time();
             //wait for a second button press within 500ms of first button press
             while(((esp_timer_get_time()-beginTime)/1000) < HALF_SEC_IN_MS)
             {
+                vTaskDelay(pdMS_TO_TICKS(100));
                 if(!digitalRead(USER_SWITCH))
                     calculate_button_press_time();
             }

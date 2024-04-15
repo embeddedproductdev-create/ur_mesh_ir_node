@@ -602,13 +602,15 @@ void establishMQTTConnection()
 			if(ret_val == 2) { MQTT_NetworkClose(mqtt_client_index); continue; }
 			while(network_flag)
 			{
+				vTaskDelay(1);
 				for(uint8_t client_connect_retry_count = 0; client_connect_retry_count < RETRY_COUNT && !client_flag && network_flag; client_connect_retry_count++)
 				{
 					vTaskDelay(1);
 					printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count);
-					MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_broker_tabname);
+					MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_client_id);
 					while(client_flag)
 					{
+						vTaskDelay(1);
 						for(uint8_t subscribe_retry_count = 0; subscribe_retry_count < RETRY_COUNT && !subscribe_flag && client_flag && network_flag; subscribe_retry_count++)
 						{
 							vTaskDelay(1);
@@ -1158,7 +1160,7 @@ void clear_mqtt_settings()
     memset(mqtt_ip_address, 0, strlen(mqtt_ip_address));
     memset(mqtt_broker_username, 0, strlen(mqtt_broker_username));
     memset(mqtt_broker_password, 0, strlen(mqtt_broker_password));
-    memset(mqtt_broker_tabname, 0, strlen(mqtt_broker_tabname));
+    memset(mqtt_client_id, 0, strlen(mqtt_client_id));
 }
 
 /**
@@ -1190,6 +1192,7 @@ void *LTE_task(void *args)
     LTE_initialization();
 	sprintf(subscribe_topic, "%d/commands", GWY_SER_NO);
 	sprintf(publish_topic, "%d/messages", GWY_SER_NO);
+	sprintf(mqtt_client_id,"%d/68ca9045-fa01-44ec-b043-9465c73a542d",GWY_SER_NO);
     establishMQTTConnection();
     while(1)
     {

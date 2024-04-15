@@ -380,7 +380,7 @@ extern uint16_t mqtt_port;
 extern uint8_t mqtt_client_index;
 extern char mqtt_broker_username[30];
 extern char mqtt_broker_password[30];
-extern char mqtt_broker_tabname[30];
+extern char mqtt_client_id[100];
 extern bool mqtt_params_fetched_flag;
 extern bool publishing_flag;
 

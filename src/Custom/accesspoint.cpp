@@ -18,7 +18,7 @@ uint16_t mqtt_port;
 uint8_t mqtt_client_index;
 char mqtt_broker_username[30];
 char mqtt_broker_password[30];
-char mqtt_broker_tabname[30];
+char mqtt_client_id[30];
 bool mqtt_params_fetched_flag = false;
 #endif
 
@@ -28,7 +28,7 @@ uint16_t mqtt_port = 1883;
 uint8_t mqtt_client_index = 3;
 char mqtt_broker_username[30] = "QmaxSystems";
 char mqtt_broker_password[30] = "Qmax_mosquitto_!@#";
-char mqtt_broker_tabname[30] = "AC_IR_CONTROL";
+char mqtt_client_id[100] = "AC_IR_CONTROL";
 bool mqtt_params_fetched_flag = true;
 #endif
 
@@ -111,7 +111,7 @@ void AP_task(void *args)
       mqtt_client_index = atoi(request->getParam("clientid")->value().c_str());
       strcpy(mqtt_broker_username, request->getParam("servername")->value().c_str());
       strcpy(mqtt_broker_password, request->getParam("password")->value().c_str());
-      strcpy(mqtt_broker_tabname, request->getParam("tabname")->value().c_str());
+      strcpy(mqtt_client_id, request->getParam("tabname")->value().c_str());
       request->send(200, "text/html", END_AP_WEBPAGE);
       vTaskDelay(pdMS_TO_TICKS(500)); //Just maybe the website needs to load... We'll remove this later
       mqtt_params_fetched_flag = true;

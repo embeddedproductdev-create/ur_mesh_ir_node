@@ -519,13 +519,13 @@ void IR_receiver_task(void *args)
     irrecv.setUnknownThreshold(kMinUnknownSize);
     irrecv.setTolerance(kTolerancePercentage);
     irrecv.enableIRIn();
-    while (1)
+    while(1)
     {
+        vTaskDelay(1);
         if (needtosend)
             IR_transmit(protocol_selected_num);
         if (esp_restart_flag)
             ESP.restart();
-        vTaskDelay(1);
         if (irrecv.decode(&results))
         {
             char raw_buf_str[200];
