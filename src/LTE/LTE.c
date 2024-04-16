@@ -171,7 +171,7 @@ uint8_t check_response(char* response, uint32_t timeout)
 		while((esp_timer_get_time()/1000ULL) - time < timeout){
 			uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
 			if(length>0){
-				// ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
+				if(!strstr(data, "OK")) ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
 				char check_string[30];
 				sprintf(check_string, "+QMTSTAT: %d,1", mqtt_client_index);
 				if(strstr(data, check_string))
@@ -359,6 +359,17 @@ uint8_t MQTT_NetworkClose(int mqtt_client_index)
 		return FAILURE;
 }
 
+uint8_t find_signal_strength()
+{
+	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
+	sprintf((char*)transmit_buffer,"AT+CSQ");
+	sendAT_Data((char*)transmit_buffer);
+	check_response(transmit_buffer, 10*MAX_WAIT_MS);
+	memset(transmit_buffer,'\0',strlen(transmit_buffer));
+	free(transmit_buffer);
+	return SUCCESS;
+}
+
 uint8_t MQTT_ClientConnect(int mqtt_client_index, char* username, char* passwd, char* clientID)
 {
 		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
@@ -366,7 +377,7 @@ uint8_t MQTT_ClientConnect(int mqtt_client_index, char* username, char* passwd, 
 		sendAT_Data((char*)transmit_buffer);
 	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
 	    sprintf((char*)transmit_buffer,"%s%d,0,0\r\n",MQTT_CLIENT_CONN_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,4*MAX_WAIT_MS)	==	SUCCESS ){
+		if(check_response(transmit_buffer,15*MAX_WAIT_MS)	==	SUCCESS ){
 			ESP_LOGI(TAG,"Connected client to broker: %s\r\n",username);
 			free(transmit_buffer);
 			client_flag = 1;
@@ -374,6 +385,8 @@ uint8_t MQTT_ClientConnect(int mqtt_client_index, char* username, char* passwd, 
 		}
 		client_flag = 0;
 		ESP_LOGI(TAG,"Could not Connect client to broker.\r\n");
+		if(find_signal_strength()== SUCCESS);
+		else ESP_LOGE(ERROR_TAG, "Unable to read RSSI\r\n");
 		free(transmit_buffer);
 		return FAILURE;
 }
@@ -598,8 +611,8 @@ void establishMQTTConnection()
 		{
 			vTaskDelay(1);
 			printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count);
+			MQTT_NetworkClose(mqtt_client_index);
 			uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
-			if(ret_val == 2) { MQTT_NetworkClose(mqtt_client_index); continue; }
 			while(network_flag && !mqtt_connected)
 			{
 				vTaskDelay(1);
