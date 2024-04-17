@@ -21,10 +21,10 @@ bool mqtt_params_fetched_flag = false;
 #endif
 
 #if(!AP_PART_ENABLED)
-char mqtt_server_ip[16] = "3.7.8.183";
+char mqtt_server_ip[16] = "54.215.188.103";
 uint16_t mqtt_port = 1883;
-char mqtt_broker_username[30] = "unimaqtt";
-char mqtt_broker_password[100] = "T5DRIIJEBgfhjsrFkaDERkgJhswMwk4";
+char mqtt_broker_username[30] = "QmaxSystems";
+char mqtt_broker_password[100] = "Qmax_mosquitto_!@#";
 bool mqtt_params_fetched_flag = true;
 #endif
 

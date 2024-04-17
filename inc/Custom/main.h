@@ -60,7 +60,7 @@
 #define ERROR_TAG "[ERROR]"
 #define SETUP_TAG "[SETUP]"
 #define MAJ_VERSION 0
-#define MIN_VERSION 4
+#define MIN_VERSION 5
 #define BAUD_RATE 115200
 
 #define IR_RECV_PART_ENABLED true

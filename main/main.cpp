@@ -13,7 +13,7 @@
 #include "../../inc/Custom/button.h"
 
 //Initialization
-uint16_t GWY_SER_NO = 30;
+uint16_t GWY_SER_NO = 1;
 char GWY_SER_NO_IN_STRING[8];
 
 //Initializing Global Structures
