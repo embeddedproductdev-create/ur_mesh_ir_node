@@ -90,17 +90,11 @@ int8_t check_network_open_response()
 	}
 }
 
-void send_network_open_command(char *hostname, uint32_t port)
+void send_network_open_command()
 {
-	sleep(1);
-	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
-	sprintf((char *)transmit_buffer, "%s%d,\"%s\",%ld\r\n", MQTT_NETWORK_OPEN, mqtt_client_index, hostname, port);
-	sendAT_Data((char *)transmit_buffer);
-	memset(transmit_buffer, '\0', strlen(transmit_buffer));
-	free(transmit_buffer);
-	fetch_data_from_LTE_UART(10000);
-	if(check_network_open_response()!=SUCCESS)
-	send_network_open_command(hostname, port);
+	char *buf = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf(buf, "%s%d,\"%s\",%ld\r\n", MQTT_NETWORK_OPEN, mqtt_client_index, mqtt_server_ip, mqtt_port);
+	send_AT_cmd(buf, "Sending Network Open Command");
 }
 
 int8_t check_client_connection_response()
@@ -215,25 +209,6 @@ int MQTT_NetworkOpen(int mqtt_client_index, char *hostname, uint32_t port)
 	sendAT_Data((char *)transmit_buffer);
 	memset(transmit_buffer, '\0', strlen(transmit_buffer));
 	sprintf((char *)transmit_buffer, "%s%d,0\r\n", MQTT_NETWORK_OPEN_RESPONSE, mqtt_client_index);
-	
-	// if (check_response(OK_RESPONSE, 1*(MAX_WAIT_MS)) == SUCCESS)
-	// {
-	// 	ESP_LOGI(TAG, "Connected to network at:%s\r\n", hostname);
-	// 	free(transmit_buffer);
-	// 	network_flag = 1;
-	// 	return SUCCESS;
-	// }
-	// else
-	// {
-	// 	memset(transmit_buffer, '\0', strlen(transmit_buffer));
-	// 	sprintf((char *)transmit_buffer, "%s%d,2\r\n", MQTT_NETWORK_OPEN_RESPONSE, mqtt_client_index);
-	// 	if (check_response(transmit_buffer, 100) == SUCCESS)
-	// 	{
-	// 		return 2;
-	// 	}
-	// 	network_flag = 0;
-	// }
-	// ESP_LOGI(TAG, "Could not Connect to network. \r\n");
 	free(transmit_buffer);
 	return FAILURE;
 }
@@ -342,15 +317,14 @@ void send_AT_cmd(char *cmd, char *requestString)
 }
 
 void perform_AT_cmd_sequence()
-{
-	/*SIM Related*/
-	
+{	
 	/*Check SIM Insertion status*/
 	send_AT_cmd("AT+QSIMSTAT=1\r","Enabling Sim card Insertion Status");
 	send_AT_cmd("AT+QSIMSTAT?\r","Checking SIM card Insertion status");
-	
-	/*Check PIN locked status*/
-	send_AT_cmd("AT+CLCK\r","Checking SIM locked status");
+
+	/*SIM Hot swapping*/
+	send_AT_cmd("AT+QSIMDET=1,1\r", "Setting SIM Hot Swapping");
+	send_AT_cmd("AT+QSIMDET?\r","Checking SIM Hot swapping status");
 
 	/*Check If SIM is locked with a pin*/
 	send_AT_cmd("AT+CPIN?\r","Checking if PIN is required for SIM operation");
@@ -395,7 +369,7 @@ void clear_mqtt_settings()
 	mqtt_params_fetched_flag = false;
 	mqtt_client_index = 99;
 	mqtt_port = 1;
-	memset(mqtt_ip_address, 0, strlen(mqtt_ip_address));
+	memset(mqtt_server_ip, 0, strlen(mqtt_server_ip));
 	memset(mqtt_broker_username, 0, strlen(mqtt_broker_username));
 	memset(mqtt_broker_password, 0, strlen(mqtt_broker_password));
 	memset(mqtt_client_id, 0, strlen(mqtt_client_id));
@@ -424,7 +398,14 @@ void LTE_initialization(void)
 	MQTT_Config(0, 0, 120, 1, 0, 1, 0, 2, 0, "will/topic", "Network Disconnected unexpectedly");
 }
 
-void init_topics_and_responses()
+void establishMQTTConnection()
+{
+	send_network_open_command(mqtt_server_ip, mqtt_port);
+	send_client_connect_command();
+	send_subscribe_topic_command();
+}
+
+void init_topic_and_responses()
 {
 	sprintf(subscribe_topic, "%d/commands", GWY_SER_NO);
 	sprintf(publish_topic, "%d/messages", GWY_SER_NO);
@@ -481,6 +462,7 @@ void *LTE_task(void *args)
 	powerCycleLTE();
 	LTE_UART_INIT();
 	LTE_initialization();
+	establishMQTTConnectionNew();
 	while (1)
 	{
 		vTaskDelay(1);

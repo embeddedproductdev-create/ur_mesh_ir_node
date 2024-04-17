@@ -13,7 +13,7 @@
 
 // Initialization
 #if(AP_PART_ENABLED)
-char mqtt_ip_address[16];
+char mqtt_server_ip[16];
 uint16_t mqtt_port;
 uint8_t mqtt_client_index;
 char mqtt_broker_username[30];
@@ -23,7 +23,7 @@ bool mqtt_params_fetched_flag = false;
 #endif
 
 #if(!AP_PART_ENABLED)
-char mqtt_ip_address[16] = "54.215.188.103";
+char mqtt_server_ip[16] = "54.215.188.103";
 uint16_t mqtt_port = 1883;
 uint8_t mqtt_client_index = 3;
 char mqtt_broker_username[30] = "QmaxSystems";
@@ -106,7 +106,7 @@ void AP_task(void *args)
         request->hasParam("servername") &&
         request->hasParam("password") &&
         request->hasParam("tabname")) {
-      strcpy(mqtt_ip_address, request->getParam("serverip")->value().c_str());
+      strcpy(mqtt_server_ip, request->getParam("serverip")->value().c_str());
       mqtt_port = atoi(request->getParam("port")->value().c_str());
       mqtt_client_index = atoi(request->getParam("clientid")->value().c_str());
       strcpy(mqtt_broker_username, request->getParam("servername")->value().c_str());

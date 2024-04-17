@@ -149,7 +149,6 @@ void *LTE_task(void *args);
 void LTE_restart(void);
 void LTE_gpio_configuration(void);
 void establishMQTTConnection(void);
-void establishMQTTConnectionNew(void);
 void powerCycleLTE(void);
 void sendAT_Data(const char* data);
 void LTE_initialization(void);
@@ -180,7 +179,7 @@ void init_topic_and_responses();
 void perform_AT_cmd_sequence();
 int8_t fetch_data_from_LTE_UART(uint32_t timeout);
 int8_t check_network_open_response();
-void send_network_open_command(char *hostname, uint32_t port);
+void send_network_open_command();
 void send_AT_cmd(char *cmd, char *requestString);
 
 #ifdef __cplusplus
