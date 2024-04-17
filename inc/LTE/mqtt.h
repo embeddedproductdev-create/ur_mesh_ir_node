@@ -64,11 +64,31 @@
 #define NODE_TEACHING_MODE_START_ACK "Node Teaching Mode Start Ack"
 #define NODE_TEACHING_MODE_END_ACK "Node Teaching Mode End Ack"
 
+/*AT command related*/
+#define MQTT_CLIENT_INDEX 3
+#define MQTT_VERSION 3 // 3 = 3.1, 4 = 3.1.1
+#define MQTT_KEEP_ALIVE_S 120
+#define MQTT_QOS 2 // 0 = atmost once | 1 = atleast once | 2 = exactly once
+#define MQTT_RETAIN 0
+#define MQTT_MSGID 2
+#define MQTT_ENABLE_SSL 0
+#define MQTT_SSL_CTX_INDEX 0
+#define MQTT_KEEP_ALIVE 120
+#define MQTT_CLEAN_SESSION 1
+#define MQTT_MSG_RECV_MODE 1
+#define MQTT_MSG_LEN_ENABLE 1
+#define MQTT_WILL_FLAG 0
+#define MQTT_WILL_QOS 2
+#define MQTT_WILL_RETAIN 0
+#define MQTT_WILL_TOPIC "will/topic"
+#define MQTT_WILL_MESSAGE "Network Disconnected Unexpectedly"
+
+/*JSON related*/
 #define MQTT_PACKET_BUFF_SIZE 500
 #define LOCATION_STR_LEN 20
 #define MQTT_PACKET_NAME_LEN 40
 #define PUBMESG_QUEUE_LIMIT 20
-#define PUBMESG_LEN 400
+#define PUBMESG_LEN 1000
 #define MQTT_TOPIC_CHAR_LEN 20
 #define NODE_TIMEOUT_INTERVAL_US 10000000
 
@@ -140,7 +160,7 @@ typedef struct teaching_mode_struct
 	uint8_t ending_temperature;
 	struct teaching_mode_struct *next;
 	struct teaching_mode_struct *prev;
-}teaching_mode_t;
+} teaching_mode_t;
 
 typedef struct prov_struct
 {
@@ -212,8 +232,6 @@ enum json_packet_enum
 	UNKNOWN_PACKET = 99
 };
 
-
-
 enum ERROR_CODES
 {
 	// Basic
@@ -260,10 +278,10 @@ enum ERROR_CODES
 	EXCEEDING_TEMP_LOWER_LIMIT,
 	EXCEEDING_TEMP_UPPER_LIMIT,
 
-	//Publish Configuration
+	// Publish Configuration
 	INVALID_PUBLISH_PERIOD = 500,
 
-	//Teaching Mode
+	// Teaching Mode
 	INVALID_STARTING_TEMPERATURE = 600,
 	INVALID_ENDING_TEMPERATURE,
 
@@ -376,9 +394,8 @@ extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
 /* MQTT parameters */
 extern char mqtt_server_ip[16];
 extern uint16_t mqtt_port;
-extern uint8_t mqtt_client_index;
 extern char mqtt_broker_username[30];
-extern char mqtt_broker_password[30];
+extern char mqtt_broker_password[100];
 extern char mqtt_client_id[100];
 extern bool mqtt_params_fetched_flag;
 extern bool publishing_flag;

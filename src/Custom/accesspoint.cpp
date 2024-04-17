@@ -15,20 +15,16 @@
 #if(AP_PART_ENABLED)
 char mqtt_server_ip[16];
 uint16_t mqtt_port;
-uint8_t mqtt_client_index;
 char mqtt_broker_username[30];
 char mqtt_broker_password[30];
-char mqtt_client_id[100];
 bool mqtt_params_fetched_flag = false;
 #endif
 
 #if(!AP_PART_ENABLED)
-char mqtt_server_ip[16] = "54.215.188.103";
+char mqtt_server_ip[16] = "3.7.8.183";
 uint16_t mqtt_port = 1883;
-uint8_t mqtt_client_index = 3;
-char mqtt_broker_username[30] = "QmaxSystems";
-char mqtt_broker_password[30] = "Qmax_mosquitto_!@#";
-char mqtt_client_id[100] = "AC_IR_CONTROL";
+char mqtt_broker_username[30] = "unimaqtt";
+char mqtt_broker_password[100] = "T5DRIIJEBgfhjsrFkaDERkgJhswMwk4";
 bool mqtt_params_fetched_flag = true;
 #endif
 
@@ -52,10 +48,8 @@ const char WEBPAGE[] PROGMEM = R"rawliteral(
   <form action="/get">
     MQTT ServerIP: <input type="text" name="serverip"><br><br>
     MQTT ServerPort: <input type="number" name="port"><br><br>
-    MQTT ClientIDX: <input type="number" name="clientid"><br><br>
     MQTT ServerName: <input type="text" name="servername"><br><br>
     MQTT ServerPassword: <input type="text" name="password"><br><br>
-    MQTT TabName: <input type="text" name="tabname"><br><br>
     <input type="submit" name="Submit">
   </form>
 </body></html>)rawliteral";
@@ -102,16 +96,12 @@ void AP_task(void *args)
             {
     if (request->hasParam("serverip") &&
         request->hasParam("port") &&
-        request->hasParam("clientid") &&
         request->hasParam("servername") &&
-        request->hasParam("password") &&
-        request->hasParam("tabname")) {
+        request->hasParam("password")) {
       strcpy(mqtt_server_ip, request->getParam("serverip")->value().c_str());
       mqtt_port = atoi(request->getParam("port")->value().c_str());
-      mqtt_client_index = atoi(request->getParam("clientid")->value().c_str());
       strcpy(mqtt_broker_username, request->getParam("servername")->value().c_str());
       strcpy(mqtt_broker_password, request->getParam("password")->value().c_str());
-      strcpy(mqtt_client_id, request->getParam("tabname")->value().c_str());
       request->send(200, "text/html", END_AP_WEBPAGE);
       vTaskDelay(pdMS_TO_TICKS(500)); //Just maybe the website needs to load... We'll remove this later
       mqtt_params_fetched_flag = true;

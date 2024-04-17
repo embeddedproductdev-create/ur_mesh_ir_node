@@ -14,125 +14,83 @@
 
 #include "../Custom/main.h"
 
-// General commands
-#define PROMPT					">"
-#define PRODUCT_INFO			"ATI\r\n"
-#define AT_CMD      			"AT\r\n"
-#define GET_MANUFACTURER		"AT+CGMI\r\n"
-#define GET_IMEI_NUM 	  		"AT+GSN=1\r\n"
-#define FACTORY_RESET   		"AT&F0\r\n"
-#define GET_CURRENT_CONFIG		"AT&V\r\n"
-#define RESULT_CODE_ECHO_MODE	"ATQ0\r\n"
-#define ERROR_FORMAT			"AT+CMEE=2\r\n"
-#define ERROR_REPORT	        "AT+CEER\r\n"
-#define INDICATOR_STATE         "AT+CIND=?\r\n"
-#define GET_TIME				"AT+QLTS=2\r\n"
+/*SIM AT COMMANDS*/
+#define ENABLE_SIM_INSERTION_STATUS "AT+QSIMSTAT=1\r"
+#define GET_SIM_INSERTION_STATUS "AT+QSIMSTAT?\r"
+#define ENABLE_SIM_HOT_SWAPPING "AT+QSIMDET=1,1\r"
+#define GET_SIM_HOT_SWAPPING_STATUS "AT+QSIMDET?\r"
+#define GET_SIM_PIN_LOCK_STATUS "AT+CPIN?\r"
 
-#define CLIENT_IDX 				4
+/*GENERAL COMMANDS*/
+#define PROMPT ">"
+#define GET_PRODUCT_INFO "ATI\r"
+#define GET_FW_REVISION "AT+GMR\r"
+#define GET_ME_SERIAL_NO "AT+GSN\r"
+#define GET_ME_ACTIVITY_STATUS "AT+CPAS\r"
+#define ENABLE_NETWORK_REGISTRATION "AT+CREG=2\r"
+#define GET_NETWORK_REGISTRATION_STATUS "AT+CREG?\r"
+#define GET_CURRENT_OPERATOR_STATUS "AT+COPS?\r"
+#define GET_SERVICE_PROVIDER_NAME "AT+QSPN\r"
+#define GET_SIGNAL_STRENGTH "AT+QCSQ\r"
+#define GET_MANUFACTURER "AT+CGMI\r\n"
+#define GET_IMEI_NUM "AT+GSN=1\r\n"
+#define FACTORY_RESET "AT&F0\r\n"
+#define GET_CURRENT_CONFIG "AT&V\r\n"
+#define GET_TIME "AT+QLTS=2\r\n"
 
-// UART configuration
-#define SET_DCD					"AT&C=0\r\n"
-#define DTR_FUNCTION_MODE		"AT&D2\r\n"
-#define HW_FLOW_CTRL      		"AT+IFC=2,2\r\n"
-#define SET_FRAMING_FORMAT		"AT+ICF=3\r\n"
-#define SET_BAUD_RATE			"AT+IPR="
+/*MQTT COMMANDS*/
+#define SET_MQTT_VERSION "AT+QMTCFG=\"version\","
+#define MQTT_PDP "AT+QMTCFG=\"pdpcid\","
+#define ENABLE_SSL "AT+QMTCFG=\"ssl\","
+#define SET_KEEP_ALIVE "AT+QMTCFG=\"keepalive\","
+#define SET_CLEAN_SESSION "AT+QMTCFG=\"session\","
+#define MQTT_WILL_CONFIG "AT+QMTCFG=\"will\","
+#define SET_MSG_RECV_MODE "AT+QMTCFG=\"recv/mode\","
+#define MQTT_SEND_MODE "AT+QMTCFG=\"send/mode\",1,0\r\n"
+#define MQTT_HEARTBEAT "AT+QMTCFG=\"qmtping\",1\r\n"
+#define MQTT_DATA_FORMAT "AT+QMTCFG=\"dataformat\",1,0,0\r\n"
+#define MQTT_NETWORK_OPEN "AT+QMTOPEN="
+#define MQTT_NETWORK_CLOSE "AT+QMTCLOSE="
+#define MQTT_CLIENT_CONN "AT+QMTCONN="
+#define MQTT_CLIENT_DISCONN "AT+QMTDISC="
+#define SUB_TO_TOPIC "AT+QMTSUB="
+#define UNSUB_TO_TOPIC "AT+QMTUNS="
+#define PUBLISH_TO_MQTT "AT+QMTPUBEX="
+#define READ_MQTT_MESSAGE "AT+QMTRECV="
 
-//Status Control
-#define ME_ACTIVITY_STATUS		"AT+CPAS=0\r\n"
-#define NETWORK_SEARCH          "AT+QCFG=\"nwscanmode\",3,1\r\n"
-#define SET_FREQUENCY_BAND      "AT+QCFG=\"band\,\r\n"
-#define AIRPLANE_MODE 		    "AT+QCFG=\"airplanecontrol\",0\r\n"
-
-//SIM Card Status
-#define SIM_INSERT_STATUS       "AT+QSIMSTAT=1"
-
-//Hardware commands
-#define POWER_OFF   			"AT+QPOWD=0\r\n"
-#define READ_CLOCK 				"AT+CCLK\r\n"
-#define READ_BATTERY			"AT+CBC\r\n"
-#define SLEEP_MODE   			"AT+QSCLK=2\r\n"
-#define SYNC_SCAN_WIFI  		"AT+QWIFISCAN?\r\n"
-
-//MQTT commands
-#define MQTT_VERSION      		"AT+QMTCFG=\"version\""
-#define MQTT_PDP	     		"AT+QMTCFG=\"pdpcid\","
-#define ENABLE_SSL           	"AT+QMTCFG=\"ssl\","
-#define MQTT_KEEP_ALIVE   		"AT+QMTCFG=\"keepalive\","
-#define CLEAN_SESSION           "AT+QMTCFG=\"session\","
-#define MQTT_WILL_CONFIG   		"AT+QMTCFG=\"will\","
-#define MQTT_RECV_MODE    		"AT+QMTCFG=\"recv/mode\","
-#define MQTT_SEND_MODE    		"AT+QMTCFG=\"send/mode\",1,0\r\n"
-#define MQTT_HEARTBEAT    		"AT+QMTCFG=\"qmtping\",1\r\n"
-#define MQTT_DATA_FORMAT  		"AT+QMTCFG=\"dataformat\",1,0,0\r\n"
-
-#define MQTT_NETWORK_OPEN   	"AT+QMTOPEN="
-#define MQTT_NETWORK_CLOSE  	"AT+QMTCLOSE="
-#define MQTT_CLIENT_CONN   	 	"AT+QMTCONN="
-#define MQTT_CLIENT_DISCONN 	"AT+QMTDISC="
-
-//subscribe & publish
-#define SUB_TO_TOPIC    		"AT+QMTSUB="
-#define UNSUB_TO_TOPIC  		"AT+QMTUNS="
-#define PUB_MSG 				"AT+QMTPUBEX="
-#define READ_MSG_BUFFER  		"AT+QMTRECV="
-
-// MQTT configuration Response
-#define OK_RESPONSE				  "OK\r\n"
-#define CONNECT_RESPONSE		  "CONNECT\r\n"
-#define INDICATOR_STATE_RESPONSE  "+CIND: "
-#define MQTT_VERSION_RESPONSE     "+QMTCFG:\"version\",4"
-#define MQTT_SSL_RESPONSE		  "+QMTCFG:\"ssl\",1"
-#define MQTT_KEEP_ALIVE_RESPONSE  "+QMTCFG:\"keepalive\",120"
-#define MQTT_RECV_MODE_RESPONSE   "+QMTCFG:\"recv/mode\",0,0"
-#define MQTT_HEARTBEAT_RESPONSE   "+QMTCFG:\"qmtping\",5"
-#define MQTT_SEND_MODE_RESPONSE   "+QMTCFG:\"send/mode\",0"
+/*MQTT RESPONSES*/
+#define MQTT_NETWORK_OPEN_RESPONSE "+QMTOPEN: "
+#define MQTT_NETWORK_CLOSE_RESPONSE "+QMTCLOSE: "
+#define MQTT_CLIENT_CONN_RESPONSE "+QMTCONN: "
+#define MQTT_CLIENT_DISCONN_RESPONSE "+QMTDISC: "
+#define MQTT_MSG_RECV_STATUS "+QMTRECV: "
+#define STATUS_MQTT_NETWORK "+QMTSTAT:1,1"
+#define MQTT_SUB_RESPONSE "+QMTSUB: "
+#define MQTT_UNSUB_RESPONSE "+QMTUNS: "
+#define MQTT_PUB_MSG_RESPONSE "+QMTPUBEX: "
+#define OK_RESPONSE "OK\r\n"
+#define CONNECT_RESPONSE "CONNECT\r\n"
+#define INDICATOR_STATE_RESPONSE "+CIND: "
+#define MQTT_VERSION_RESPONSE "+QMTCFG:\"version\",4"
+#define MQTT_SSL_RESPONSE "+QMTCFG:\"ssl\",1"
+#define MQTT_KEEP_ALIVE_RESPONSE "+QMTCFG:\"keepalive\",120"
+#define MQTT_RECV_MODE_RESPONSE "+QMTCFG:\"recv/mode\",0,0"
+#define MQTT_HEARTBEAT_RESPONSE "+QMTCFG:\"qmtping\",5"
+#define MQTT_SEND_MODE_RESPONSE "+QMTCFG:\"send/mode\",0"
 #define MQTT_DATA_FORMAT_RESPONSE "+QMTCFG:\"dataformat\",0,0"
 
-//MQTT responses
-#define MQTT_NETWORK_OPEN_RESPONSE   "+QMTOPEN: "
-#define MQTT_NETWORK_CLOSE_RESPONSE  "+QMTCLOSE: "
-#define MQTT_CLIENT_CONN_RESPONSE    "+QMTCONN: "
-#define MQTT_CLIENT_DISCONN_RESPONSE "+QMTDISC: "
-#define MQTT_MSG_RECV_STATUS         "+QMTRECV: "
-#define STATUS_MQTT_NETWORK	         "+QMTSTAT:1,1"
-#define MQTT_SUB_RESPONSE		     "+QMTSUB: "
-#define MQTT_UNSUB_RESPONSE		     "+QMTUNS: "
-#define MQTT_PUB_MSG_RESPONSE        "+QMTPUBEX: "
-
-//File commands
-#define FILE_UPLOAD  			"AT+QFUPL="
-#define FILE_LIST	  			"AT+QFLST=\"*\"\r\n"
-#define FILE_DELETE	  			"AT+QFDEL="
-
-//File response
-#define FILE_UPLOAD_RESPONSE  	"+QFUPL: "
-
-//SSL commands
-#define SSL_SEC_WRITE           "AT+QSECWRITE="
-#define SSL_SEC_READ            "AT+QSECREAD="
-#define SSL_SEC_DELETE          "AT+QSECDEL="
-#define SSL_CTX_INDEX	  		"AT+QSSLCFG=\"ctxindex\","
-#define SSL_CONFIG_CACERT  		"AT+QSSLCFG=\"cacert\","
-#define SSL_CONFIG_CCCERT  		"AT+QSSLCFG=\"clientcert\","
-#define SSL_CONFIG_CLIKEY  		"AT+QSSLCFG=\"clientkey\","
-#define SSL_CONFIG_AUTHMODE  	"AT+QSSLCFG=\"seclevel\","
-#define SSL_CONFIG_AUTHVER  	"AT+QSSLCFG=\"sslversion\","
-#define SSL_CONFIG_CIPHERSUITE  "AT+QSSLCFG=\"ciphersuite\","
-#define SSL_CONFIG_AUTHTIME  	"AT+QSSLCFG=\"ignorelocaltime\","
-
-//SSL response
-#define SSL_SEC_WRITE_RESPONSE         "+QSECWRITE= "
-#define SSL_SEC_READ_RESPONSE          "+QSECREAD= 1"
-
-//LTE PINS
-#define GPIO_LTE_RESET	46
-#define GPIO_LTE_ONOFF	9
+// LTE PINS
+#define GPIO_LTE_RESET 46
+#define GPIO_LTE_ONOFF 9
 #define TXD_PIN 17
 #define RXD_PIN 18
 #define CTS_PIN 11
 #define RTS_PIN 10
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
 #define RETRY_COUNT 5
+
+// Logging
+#define LOG_SENT_COMMAND_FLAG true
 
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[2048];
@@ -141,53 +99,30 @@ extern char LTE_UART_data[2048];
 extern char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-/* FUNCTION DECLARATIONS */
-void *LTE_task(void *args);
-void LTE_restart(void);
-void LTE_gpio_configuration(void);
-void establishMQTTConnection(void);
-void powerCycleLTE(void);
-void sendAT_Data(const char* data);
-void LTE_initialization(void);
-int8_t check_response(char* response, uint32_t timeout);
-void MQTT_Config(uint8_t enable_ssl, uint8_t SSL_ctx_idx,
-        uint16_t keep_alive,
-        uint8_t clean_session,
-        uint8_t msg_recv_mode,uint8_t msg_len_enable,
-uint8_t will_fg, uint8_t will_qos, uint8_t will_retain, char* will_topic, char* will_message);
-uint8_t SSL_config(uint8_t ssl_context_index, char* ca_cert, char* client_cert, char* client_key);
-uint8_t SubscribeTopic(int client_idx, int msgid, char* topic, int qos);
-uint8_t UnsubscribeTopic(int client_idx, int msgid, char* topic);
-int MQTT_NetworkOpen(int client_idx, char* hostname, uint32_t port);
-uint8_t MQTT_NetworkClose(int client_idx);
-uint8_t MQTT_ClientConnect(int client_idx, char* username, char* passwd, char* clientID);
-uint8_t MQTT_ClientDisconnect(int client_idx);
-uint8_t PublishMessage(uint8_t client_idx, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic, char *message);
-uint8_t ReadMessage(int client_idx);
-uint8_t Error_Report(void);
-void clear_mqtt_settings();
-void reset_mqtt();
-void get_mode_value();
-uint16_t get_gwy_ser_no();
-char *get_err_string(uint16_t err_code);
-void init_structures();
+    /* FUNCTION DECLARATIONS */
+    void *LTE_task(void *args);
+    void LTE_restart(void);
+    void LTE_gpio_configuration(void);
+    int8_t establishMQTTConnection(void);
+    void powerCycleLTE(void);
+    void LTE_initialization(void);
+    void MQTT_Config();
+    void get_mode_value();
+    uint16_t get_gwy_ser_no();
+    void init_structures();
+    void init_Strings();
+    void initial_AT_cmd_seq();
 
-void init_topic_and_responses();
-void perform_AT_cmd_sequence();
-int8_t fetch_data_from_LTE_UART(uint32_t timeout);
-int8_t check_network_open_response();
-int8_t send_network_open_command();
-int8_t send_AT_cmd(char *cmd, char *requestString);
-int8_t send_client_connect_command();
-int8_t send_subscribe_topic_command();
-int8_t send_read_command();
-
+    int8_t fetch_data_from_LTE_UART(uint16_t timeout_ms);
+    int8_t send_cmd_and_check_response(bool log_sent_command, char *cmd, char *requestString,
+                                       char *response_check_string, uint32_t response_wait_time);
+    int8_t check_response(char *response_check_string);
 #ifdef __cplusplus
 }
 #endif
 
 #endif
-
