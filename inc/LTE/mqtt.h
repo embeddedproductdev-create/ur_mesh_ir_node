@@ -216,7 +216,6 @@ enum json_packet_enum
 
 enum ERROR_CODES
 {
-
 	// Basic
 	FAILURE = -1,
 	SUCCESS,

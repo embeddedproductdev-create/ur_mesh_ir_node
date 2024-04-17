@@ -10,415 +10,304 @@
  */
 
 #include "../../inc/LTE/LTE.h"
-#include "../../inc/LTE/mqtt.h"
 
 #define SUCCESS 0
 #define FAILURE -1
-#define MAX_WAIT_MS  100
-#define BUF_SIZE	2048
+#define MAX_WAIT_MS 100
+#define BUF_SIZE 2048
 
-//Initialization
+// Initialization
 bool restart_flag = false;
 bool network_flag = false;
 bool client_flag = false;
 bool subscribe_flag = false;
 bool mqtt_connected = false;
-bool registered  = false;
+bool registered = false;
 bool publishing_flag = false;
-
-int16_t json_ack_err_code = SUCCESS;
-uint8_t json_packet_id = UNKNOWN_PACKET;
-char json_packet[MQTT_PACKET_BUFF_SIZE];
-cJSON *json_packet_j;
-
-struct pub_mesg_struct *pubmesg_queue_head = NULL;
-struct pub_mesg_struct *pubmesg_queue_tail = NULL;
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
-uint8_t mqtt_qos = 2; //0 = atmost once | 1 = atleast once | 2 = exactly once
+char LTE_UART_data[2048];
+char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
+
+uint8_t mqtt_qos = 2; // 0 = atmost once | 1 = atleast once | 2 = exactly once
 uint8_t mqtt_retain = 0;
 uint8_t mqtt_msgid = 2;
 
 /**
- * @brief Function that initializes the members of global strucutres with
- * values that will never changes
- * For examples, GWY SER NO is never going to change
- * For example, the JSON PACKET ID is never going to change
- * So it's better to initialize them with values at the start of application
- * @param none
- * @retval none
+ * @brief configure esp32 uart
+ * @param None
+ * @retval None
  */
-void init_structures()
+void LTE_UART_INIT(void)
 {
-    /* GWY SER NO */
-    gwy_registration_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_unregistration_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_reconf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_ac_control_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_locking_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_reset_mqtt_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_temperature_data_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_teaching_mode_t.base_data.gwy_ser_no = GWY_SER_NO;
-
-    /* GWY SER NO STRING */
-    strcpy(gwy_registration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_locking_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_reset_mqtt_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_temperature_data_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-
-    /* GWY - JSON PACKET IDs */
-    gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
-    gwy_unregistration_t.base_data.json_packet_id = GWY_UNREG_PACKET;
-    gwy_conf_t.base_data.json_packet_id = GWY_CONF_PACKET;
-    gwy_reconf_t.base_data.json_packet_id = GWY_RECONF_PACKET;
-    gwy_ac_control_t.base_data.json_packet_id = GWY_AC_CONTROL_PACKET;
-    gwy_locking_t.base_data.json_packet_id = GWY_AC_LOCKING_PACKET;
-    gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
-    gwy_pub_conf_t.base_data.json_packet_id = GWY_PUB_CONF_PACKET;
-    gwy_temperature_data_t.base_data.json_packet_id = GWY_TEMPERATURE_DATA_PACKET;
-    gwy_teaching_mode_t.base_data.json_packet_id = GWY_TEACHING_MODE_START_PACKET;
-
-    /* NODE - JSON PACKET IDs */
-    provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
-    unprovision_t.base_data.json_packet_id = NODE_UNPROV_PACKET;
-    node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
-    node_reconf_t.base_data.json_packet_id = NODE_RECONF_PACKET;
-    node_ac_control_t.base_data.json_packet_id = NODE_AC_CONTROL_PACKET;
-    node_locking_t.base_data.json_packet_id = NODE_AC_LOCKING_PACKET;
-    node_pub_conf_t.base_data.json_packet_id = NODE_PUB_CONF_PACKET;
-    node_temperature_data_t.base_data.json_packet_id = NODE_TEMPERATURE_DATA_PACKET;
-
-    /* JSON ACK NAMES */
-    strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK);
-    strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK);
-    strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK);
-    strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK);
-    strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK);
-    strcpy(gwy_locking_t.base_data.ack_name, GWY_LOCKING_ACK);
-    strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK);
-    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK);
-    strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK);
+	const uart_config_t uart_config = {
+		.baud_rate = 115200,
+		.data_bits = UART_DATA_8_BITS,
+		.parity = UART_PARITY_DISABLE,
+		.stop_bits = UART_STOP_BITS_1,
+		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+		.source_clk = UART_SCLK_APB,
+	};
+	uart_driver_install(UART_NUM_1, BUF_SIZE * 2, 0, 0, NULL, 0);
+	uart_param_config(UART_NUM_1, &uart_config);
+	uart_set_pin(UART_NUM_1, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 }
 
-void LTE_setup()
+void sendAT_Data(const char *data)
 {
-	resetLte();
-	LTE_initialization();
-	establishMQTTConnection();
+	int err = uart_write_bytes(UART_NUM_1, data, strlen(data));
+	if (err != -1) ESP_LOGI(TAG, "AT Command sent : %s",data);
+	else ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
 }
 
-void fill_macid()
+int8_t fetch_data_from_LTE_UART(uint32_t timeout)
 {
-	char macid[17];
-	strcpy(macid, cJSON_GetObjectItem(json_packet_j, MAC_ID_KEY)->valuestring);
-    char hex_char_str[2];
-	for(uint8_t index=0, i=0; index<6; index++, i+=3)
+	uint32_t time = esp_timer_get_time();
+	while ((esp_timer_get_time()- time)/1000 < timeout)
 	{
-	    strncat(hex_char_str,&macid[i],1);
-	    strncat(hex_char_str,&macid[i+1],1);
-		provision_t.macid[index] = strtol(hex_char_str, NULL, 16);
-		strcpy(hex_char_str, "");
-		printf("macid[%d] : %x\r\n",index, provision_t.macid[index]);
+		uint32_t length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
+		if(length > 0)
+		{
+			return SUCCESS;
+		}
 	}
-	printf("\r\n");
+	return FAILURE;
 }
 
-/**
-  * @brief configure esp32 uart
-  * @param None
-  * @retval None
-*/
-void uart_init(void)
+int8_t check_network_open_response()
 {
-    const uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_APB,
-    };
-    uart_driver_install(UART_NUM_1, BUF_SIZE * 2, 0, 0, NULL, 0);
-    uart_param_config(UART_NUM_1, &uart_config);
-    uart_set_pin(UART_NUM_1, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-}
-
-void sendAT_Data(const char* data)
-{
-    int err = uart_write_bytes(UART_NUM_1, data, strlen(data));
-    if(err != -1) ;//ESP_LOGI(TAG, "AT Command sent : %s",data);
-    else ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
-}
-
-uint8_t check_response(char* response, uint32_t timeout)
-{
-		uint8_t index=0,j=0;
-		bool copy_flag = false;
-		char* data = (char*) calloc(BUF_SIZE,sizeof(char));
-		uint32_t time = esp_timer_get_time()/1000ULL;
-		while((esp_timer_get_time()/1000ULL) - time < timeout){
-			uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
-			if(length>0){
-				if(!strstr(data, "OK")) ESP_LOGI(TAG, "Received string : %s\n", (char *) data);
-				char check_string[30];
-				sprintf(check_string, "+QMTSTAT: %d,1", mqtt_client_index);
-				if(strstr(data, check_string))
-				{
-					printf("Need to restart the LTE to re-establish MQTT connection\r\n");
-					restart_flag = true;
-					break;
-				}
-				if(strstr((const char* )data,(const char*)response)){
-					for(index=0,j=0; data[index] != '\0'; index++)
-					{
-						if(data[index]=='{' && copy_flag == false)
-							copy_flag = true;
-						else
-							continue;
-						while(copy_flag)
-						{
-							vTaskDelay(1);
-							json_packet[j++] = data[index++];
-							if(data[index]=='}')
-							{
-								json_packet[j] = data[index];
-								copy_flag = false;
-								break;
-							}
-						}
-						break;
-					}
-					free(data);
-					return SUCCESS;
-				}
-			}
-		}
-		free(data);
-		return FAILURE;
-}
-
-
-uint8_t Set_BaudRate(int baud_rate)
-{
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",SET_BAUD_RATE,baud_rate);
-	    sendAT_Data(transmit_buffer);
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG, "Baud Rate Set\r\n");
-			free(transmit_buffer);
-			return SUCCESS;
-		}
-		ESP_LOGI(TAG, "Baud Rate configuration failed\r\n");
-		free(transmit_buffer);
-		return FAILURE;
-}
-
-uint8_t get_loacalTime()
-{
-	    sendAT_Data(GET_TIME);
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			return SUCCESS;
-		}
-		ESP_LOGI(TAG, "Time synchronization failed\r\n");
-		return FAILURE;
-}
-
-uint8_t MQTT_Config(uint8_t mqtt_client_index,
-				  uint8_t enable_ssl, uint8_t SSL_ctx_idx,
-				  uint16_t keep_alive,
-				  uint8_t clean_session,
-				  uint8_t msg_recv_mode,uint8_t msg_len_enable,
-				  uint8_t will_fg, uint8_t will_qos, uint8_t will_retain, char* will_topic, char* will_message)
-{
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s4,%d\r\n",MQTT_VERSION,mqtt_client_index);
-		sendAT_Data(transmit_buffer);
-		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"MQTT Version set");
-		}
-		sprintf((char*)transmit_buffer,"%s%d,%d\r\n",MQTT_KEEP_ALIVE,mqtt_client_index,keep_alive);
-		sendAT_Data(transmit_buffer);
-		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Keep_alive time set to %d s",keep_alive);
-		}
-		sprintf((char*)transmit_buffer,"%s%d,%d,%d\r\n",MQTT_RECV_MODE,mqtt_client_index,msg_recv_mode,msg_len_enable);
-		sendAT_Data(transmit_buffer);
-		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Receive mode configured");
-		}
-		sprintf((char*)transmit_buffer,"%s%d,%d,%d,%d,\"%s\",\"%s\"\r\n",MQTT_WILL_CONFIG,mqtt_client_index,will_fg,will_qos,will_retain,will_topic,will_message);
-		sendAT_Data(transmit_buffer);
-		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Will Parameters configured");
-		}
-		sprintf((char*)transmit_buffer,"%s%d,%d\r\n",CLEAN_SESSION,mqtt_client_index,clean_session);
-		sendAT_Data(transmit_buffer);
-		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Session Clean : %d",clean_session);
-		}
-		free(transmit_buffer);
+	if(strstr(NETWORK_CONNECTION_SUCCESSFUL_RESPONSE, LTE_UART_data))
+	{
+		ESP_LOGI(DEBUG_TAG, "Network open successful");
 		return SUCCESS;
+	}
+	else
+	{	
+		ESP_LOGE(ERROR_TAG, "%s", LTE_UART_data);
+		return FAILURE;
+	}
 }
 
-uint8_t SubscribeTopic(int mqtt_client_index, int msgid, char* topic, int qos)
+void send_network_open_command(char *hostname, uint32_t port)
 {
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d,%d,\"%s\",%d\r\n",SUB_TO_TOPIC,mqtt_client_index,msgid,topic,qos);
-	    sendAT_Data((char*)transmit_buffer);
-	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,%d,0\r\n",MQTT_SUB_RESPONSE,mqtt_client_index,msgid);
-		if(check_response(MQTT_SUB_RESPONSE,150*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG, "Subscribed to topic:%s\r\n",topic);
-			free(transmit_buffer);
-			subscribe_flag=1;
-			return SUCCESS;
-		}
-		client_flag = 0;
+	sleep(1);
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d,\"%s\",%ld\r\n", MQTT_NETWORK_OPEN, mqtt_client_index, hostname, port);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	free(transmit_buffer);
+	fetch_data_from_LTE_UART(10000);
+	if(check_network_open_response()!=SUCCESS)
+	send_network_open_command(hostname, port);
+}
+
+int8_t check_client_connection_response()
+{
+	return SUCCESS;
+}
+
+int8_t check_subsribe_response()
+{
+	return SUCCESS;
+}
+
+int8_t check_readmessage_response()
+{
+	return SUCCESS;
+}
+
+void check_if_connection_was_reset(char *data)
+{
+	char check_string[30];
+	sprintf(check_string, "+QMTSTAT: %d,1", mqtt_client_index);
+	if (strstr(data, check_string))
+	{
+		printf("Need to restart the LTE to re-establish MQTT connection\r\n");
+		restart_flag = true;
+	}
+}
+
+uint8_t check_response(char *response, uint32_t timeout)
+{
+	uint8_t index = 0, j = 0;
+	bool copy_flag = false;
+	char *data = (char *)calloc(BUF_SIZE, sizeof(char));
+	uint32_t time = esp_timer_get_time() / 1000ULL;
+	while ((esp_timer_get_time() / 1000ULL) - time < timeout)
+	{
+		uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
+		if (length > 0) ESP_LOGI(TAG, "Received string : %s", (char *)data);
+	}
+	free(data);
+	return FAILURE;
+}
+
+void MQTT_Config(uint8_t enable_ssl, uint8_t SSL_ctx_idx,
+					uint16_t keep_alive,
+					uint8_t clean_session,
+					uint8_t msg_recv_mode, uint8_t msg_len_enable,
+					uint8_t will_fg, uint8_t will_qos, uint8_t will_retain, char *will_topic, char *will_message)
+{
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	
+	sprintf((char *)transmit_buffer, "%s,%d,%d\r\n", MQTT_VERSION, mqtt_client_index, 3);
+	send_AT_cmd(transmit_buffer, "Setting MQTT version");
+	
+	sprintf((char *)transmit_buffer, "%s%d,%d\r\n", MQTT_KEEP_ALIVE, mqtt_client_index, keep_alive);
+	send_AT_cmd(transmit_buffer, "Setting Keep Alive");
+
+	sprintf((char *)transmit_buffer, "%s%d,%d,%d\r\n", MQTT_RECV_MODE, mqtt_client_index, msg_recv_mode, msg_len_enable);
+	send_AT_cmd(transmit_buffer, "Setting RecvMode");
+
+	sprintf((char *)transmit_buffer, "%s%d,%d,%d,%d,\"%s\",\"%s\"\r\n",MQTT_WILL_CONFIG,mqtt_client_index,will_fg,will_qos,will_retain,will_topic,will_message);
+	send_AT_cmd(transmit_buffer, "Setting Will Parameters");
+
+	sprintf((char *)transmit_buffer, "%s%d,%d\r\n", CLEAN_SESSION, mqtt_client_index, clean_session);
+	send_AT_cmd(transmit_buffer, "Setting Clean Session");
+}
+
+uint8_t SubscribeTopic(int mqtt_client_index, int msgid, char *topic, int qos)
+{
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d,%d,\"%s\",%d\r\n", SUB_TO_TOPIC, mqtt_client_index, msgid, topic, qos);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,%d,0\r\n", MQTT_SUB_RESPONSE, mqtt_client_index, msgid);
+	if (check_response(MQTT_SUB_RESPONSE, 150 * MAX_WAIT_MS) == SUCCESS)
+	{
+		ESP_LOGI(TAG, "Subscribed to topic:%s\r\n", topic);
+		free(transmit_buffer);
+		subscribe_flag = 1;
+		return SUCCESS;
+	}
+	client_flag = 0;
+	subscribe_flag = 0;
+	ESP_LOGI(TAG, "Could not Subscribe to Topic. \r\n");
+	free(transmit_buffer);
+	return FAILURE;
+}
+
+uint8_t UnsubscribeTopic(int mqtt_client_index, int msgid, char *topic)
+{
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d,%d,\"%s\"\r\n", UNSUB_TO_TOPIC, mqtt_client_index, msgid, topic);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,%d,0\r\n", MQTT_UNSUB_RESPONSE, mqtt_client_index, msgid);
+	if (check_response(OK_RESPONSE, 150 * MAX_WAIT_MS) == SUCCESS)
+	{
+		ESP_LOGI(TAG, "Unsubscribed from topic:%s\r\n", topic);
+		free(transmit_buffer);
 		subscribe_flag = 0;
-		ESP_LOGI(TAG, "Could not Subscribe to Topic. \r\n");
-		free(transmit_buffer);
-		return FAILURE;
-}
-
-uint8_t UnsubscribeTopic(int mqtt_client_index, int msgid, char* topic)
-{
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d,%d,\"%s\"\r\n",UNSUB_TO_TOPIC,mqtt_client_index,msgid,topic);
-	    sendAT_Data((char*)transmit_buffer);
-	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	   	sprintf((char*)transmit_buffer,"%s%d,%d,0\r\n",MQTT_UNSUB_RESPONSE,mqtt_client_index,msgid);
-		if(check_response(OK_RESPONSE,150*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG, "Unsubscribed from topic:%s\r\n",topic);
-			free(transmit_buffer);
-			subscribe_flag=0;
-			return SUCCESS;
-		}
-		ESP_LOGI(TAG, "Could not Unsubscribe from Topic. \r\n");
-		free(transmit_buffer);
-		return FAILURE;
-}
-
-int MQTT_NetworkOpen(int mqtt_client_index, char* hostname, uint32_t port)
-{
-	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-	sprintf((char*)transmit_buffer,"%s%d,\"%s\",%ld\r\n",MQTT_NETWORK_OPEN,mqtt_client_index,hostname,port);
-	sendAT_Data((char*)transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_OPEN_RESPONSE,mqtt_client_index);
-	if(check_response(OK_RESPONSE,100)	==	SUCCESS ){
-		ESP_LOGI(TAG, "Connected to network at:%s\r\n",hostname);
-		free(transmit_buffer);
-		network_flag = 1;
 		return SUCCESS;
 	}
-	else{
-		memset(transmit_buffer,'\0',strlen(transmit_buffer));
-		sprintf((char*)transmit_buffer,"%s%d,2\r\n",MQTT_NETWORK_OPEN_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,100)	==	SUCCESS ){
-			return 2;
-		}
-		network_flag = 0;
-	}
-	ESP_LOGI(TAG, "Could not Connect to network. \r\n");
+	ESP_LOGI(TAG, "Could not Unsubscribe from Topic. \r\n");
+	free(transmit_buffer);
+	return FAILURE;
+}
+
+int MQTT_NetworkOpen(int mqtt_client_index, char *hostname, uint32_t port)
+{
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d,\"%s\",%ld\r\n", MQTT_NETWORK_OPEN, mqtt_client_index, hostname, port);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,0\r\n", MQTT_NETWORK_OPEN_RESPONSE, mqtt_client_index);
+	
+	// if (check_response(OK_RESPONSE, 1*(MAX_WAIT_MS)) == SUCCESS)
+	// {
+	// 	ESP_LOGI(TAG, "Connected to network at:%s\r\n", hostname);
+	// 	free(transmit_buffer);
+	// 	network_flag = 1;
+	// 	return SUCCESS;
+	// }
+	// else
+	// {
+	// 	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	// 	sprintf((char *)transmit_buffer, "%s%d,2\r\n", MQTT_NETWORK_OPEN_RESPONSE, mqtt_client_index);
+	// 	if (check_response(transmit_buffer, 100) == SUCCESS)
+	// 	{
+	// 		return 2;
+	// 	}
+	// 	network_flag = 0;
+	// }
+	// ESP_LOGI(TAG, "Could not Connect to network. \r\n");
 	free(transmit_buffer);
 	return FAILURE;
 }
 
 uint8_t MQTT_NetworkClose(int mqtt_client_index)
 {
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",MQTT_NETWORK_CLOSE,mqtt_client_index);
-	    sendAT_Data((char*)transmit_buffer);
-	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,0\r\n",MQTT_NETWORK_CLOSE_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,300) ==	SUCCESS ){
-			ESP_LOGI(TAG, "Closed MQTT network");
-			free(transmit_buffer);
-			network_flag = 0;
-			return SUCCESS;
-		}
-		ESP_LOGI(TAG, "Could not close MQTT network. \r\n");
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d\r\n", MQTT_NETWORK_CLOSE, mqtt_client_index);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,0\r\n", MQTT_NETWORK_CLOSE_RESPONSE, mqtt_client_index);
+	if (check_response(transmit_buffer, 300) == SUCCESS)
+	{
+		ESP_LOGI(TAG, "Closed MQTT network");
 		free(transmit_buffer);
-		return FAILURE;
-}
-
-uint8_t find_signal_strength()
-{
-	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-	sprintf((char*)transmit_buffer,"AT+CSQ");
-	sendAT_Data((char*)transmit_buffer);
-	check_response(transmit_buffer, 10*MAX_WAIT_MS);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
+		network_flag = 0;
+		return SUCCESS;
+	}
+	ESP_LOGI(TAG, "Could not close MQTT network. \r\n");
 	free(transmit_buffer);
-	return SUCCESS;
+	return FAILURE;
 }
 
-uint8_t MQTT_ClientConnect(int mqtt_client_index, char* username, char* passwd, char* clientID)
+uint8_t MQTT_ClientConnect(int mqtt_client_index, char *username, char *passwd, char *clientID)
 {
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d,\"%s\",\"%s\",\"%s\"\r\n",MQTT_CLIENT_CONN,mqtt_client_index,clientID,username,passwd);
-		sendAT_Data((char*)transmit_buffer);
-	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,0,0\r\n",MQTT_CLIENT_CONN_RESPONSE,mqtt_client_index);
-		if(check_response(transmit_buffer,15*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Connected client to broker: %s\r\n",username);
-			free(transmit_buffer);
-			client_flag = 1;
-			return SUCCESS;
-		}
-		client_flag = 0;
-		ESP_LOGI(TAG,"Could not Connect client to broker.\r\n");
-		if(find_signal_strength()== SUCCESS);
-		else ESP_LOGE(ERROR_TAG, "Unable to read RSSI\r\n");
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d,\"%s\",\"%s\",\"%s\"\r\n", MQTT_CLIENT_CONN, mqtt_client_index, clientID, username, passwd);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,0,0\r\n", MQTT_CLIENT_CONN_RESPONSE, mqtt_client_index);
+	if (check_response(transmit_buffer, 15 * MAX_WAIT_MS) == SUCCESS)
+	{
+		ESP_LOGI(TAG, "Connected client to broker: %s\r\n", username);
 		free(transmit_buffer);
-		return FAILURE;
+		client_flag = 1;
+		return SUCCESS;
+	}
+	client_flag = 0;
+	ESP_LOGI(TAG, "Could not Connect client to broker.\r\n");
+	free(transmit_buffer);
+	return FAILURE;
 }
 
 uint8_t MQTT_ClientDisconnect(int mqtt_client_index)
 {
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",MQTT_CLIENT_DISCONN,mqtt_client_index);
-	    sendAT_Data((char*)transmit_buffer);
-	    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	    sprintf((char*)transmit_buffer,"%s%d,0",MQTT_CLIENT_DISCONN_RESPONSE,mqtt_client_index);
-		if(check_response(OK_RESPONSE,2*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"Disconnected client from broker");
-			free(transmit_buffer);
-			client_flag = 0;
-			return SUCCESS;
-		}
-		ESP_LOGI(TAG,"Could not Disconnect client from broker.\r\n");
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d\r\n", MQTT_CLIENT_DISCONN, mqtt_client_index);
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,0", MQTT_CLIENT_DISCONN_RESPONSE, mqtt_client_index);
+	if (check_response(OK_RESPONSE, 2 * MAX_WAIT_MS) == SUCCESS)
+	{
+		ESP_LOGI(TAG, "Disconnected client from broker");
 		free(transmit_buffer);
-		return FAILURE;
+		client_flag = 0;
+		return SUCCESS;
+	}
+	ESP_LOGI(TAG, "Could not Disconnect client from broker.\r\n");
+	free(transmit_buffer);
+	return FAILURE;
 }
 
-uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, uint8_t retain, char* topic, char* message)
+uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, uint8_t retain, char *topic, char *message)
 {
-	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-	sprintf((char*)transmit_buffer,"%s%d,%ld,%d,%d,\"%s\",%d\r\n",PUB_MSG,mqtt_client_index,msgid,qos,retain,topic,strlen(message));
-	sendAT_Data((char*)transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	sprintf((char*)transmit_buffer,"%s%d,%ld,0\r\n",MQTT_PUB_MSG_RESPONSE,mqtt_client_index,msgid);
-	if(check_response(PROMPT,1500)==SUCCESS ){
-		uart_write_bytes(UART_NUM_1,message,strlen(message));
-		if(check_response(transmit_buffer,1500)	==	SUCCESS ){
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d,%ld,%d,%d,\"%s\",%d\r\n", PUB_MSG, mqtt_client_index, msgid, qos, retain, topic, strlen(message));
+	sendAT_Data((char *)transmit_buffer);
+	memset(transmit_buffer, '\0', strlen(transmit_buffer));
+	sprintf((char *)transmit_buffer, "%s%d,%ld,0\r\n", MQTT_PUB_MSG_RESPONSE, mqtt_client_index, msgid);
+	if (check_response(PROMPT, 1500) == SUCCESS)
+	{
+		uart_write_bytes(UART_NUM_1, message, strlen(message));
+		if (check_response(transmit_buffer, 1500) == SUCCESS)
+		{
 			free(transmit_buffer);
 			return SUCCESS;
 		}
@@ -429,719 +318,55 @@ uint8_t PublishMessage(uint8_t mqtt_client_index, uint32_t msgid, uint8_t qos, u
 
 uint8_t ReadMessage(int mqtt_client_index)
 {
-		char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-		sprintf((char*)transmit_buffer,"%s%d\r\n",READ_MSG_BUFFER ,mqtt_client_index);
-	    sendAT_Data((char*)transmit_buffer);
-		if(check_response(OK_RESPONSE,2*MAX_WAIT_MS) == SUCCESS ){
-			free(transmit_buffer);
-			return SUCCESS;
-		}
-		ESP_LOGI(TAG,"Could not receive message.\r\n");
+	char *transmit_buffer = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf((char *)transmit_buffer, "%s%d\r\n", READ_MSG_BUFFER, mqtt_client_index);
+	sendAT_Data((char *)transmit_buffer);
+	if (check_response(OK_RESPONSE, 2 * MAX_WAIT_MS) == SUCCESS)
+	{
 		free(transmit_buffer);
-		return FAILURE;
-}
-
-uint8_t SSL_config(uint8_t ssl_context_index, char* ca_cert, char* client_cert, char* client_key)
-{
-	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-
-	sprintf((char*)transmit_buffer,"%s\"UFS:ca.pem\",1464,100,0\r\n",FILE_UPLOAD);
-    sendAT_Data(transmit_buffer);
-    //Error_Report();
-    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(CONNECT_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		uart_write_bytes(UART_NUM_1,ca_cert,strlen(ca_cert));
-		if(check_response(FILE_UPLOAD_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"CA cerificate sent");
-		}
+		return SUCCESS;
 	}
-
-	sprintf((char*)transmit_buffer,"%s\"UFS:client.pem\",1269,100,0\r\n",FILE_UPLOAD);
-    sendAT_Data(transmit_buffer);
-    //Error_Report();
-    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(CONNECT_RESPONSE,50*MAX_WAIT_MS)	==	SUCCESS ){
-		uart_write_bytes(UART_NUM_1,client_cert,strlen(client_cert));
-		if(check_response(FILE_UPLOAD_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"CC cerificate sent");
-		}
-	}
-
-	sprintf((char*)transmit_buffer,"%s\"UFS:client_key.pem\",1679,100,0\r\n",FILE_UPLOAD);
-    sendAT_Data(transmit_buffer);
-    //Error_Report();
-    memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(CONNECT_RESPONSE,50*MAX_WAIT_MS)	==	SUCCESS ){
-		uart_write_bytes(UART_NUM_1,client_key,strlen(client_key));
-		if(check_response(FILE_UPLOAD_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-			ESP_LOGI(TAG,"CK cerificate sent");
-		}
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,\"UFS:ca.pem\"\r\n",SSL_CONFIG_CACERT,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"CA certificate configured");
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,\"UFS:client.pem\"\r\n",SSL_CONFIG_CCCERT,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"CC certificate configured");
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,\"UFS:client_key.pem\"\r\n",SSL_CONFIG_CLIKEY,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"CK certificate configured");
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,2\r\n",SSL_CONFIG_AUTHMODE,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"Server authentication mode");
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,4\r\n",SSL_CONFIG_AUTHVER,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"SSL authentication version");
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,0xFFFF\r\n",SSL_CONFIG_CIPHERSUITE,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"Cipher suite set");
-	}
-
-	sprintf((char*)transmit_buffer,"%s%d,1\r\n",SSL_CONFIG_AUTHTIME,ssl_context_index);
-	sendAT_Data(transmit_buffer);
-	memset(transmit_buffer,'\0',strlen(transmit_buffer));
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)	==	SUCCESS ){
-		ESP_LOGI(TAG,"Authentication time ignored");
-	}
-
-
+	ESP_LOGI(TAG, "Could not receive message.\r\n");
 	free(transmit_buffer);
-	return SUCCESS;
-}
-
-uint8_t List_all_files(){
-	sendAT_Data(FILE_LIST);
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)){
-		ESP_LOGI(TAG,"All files listed");
-		return SUCCESS;
-	}
-	return FAILURE;
-}
-uint8_t Delete_file(char* filename){
-	char* transmit_buffer = (char*) calloc(BUF_SIZE,sizeof(char));
-	sprintf((char*)transmit_buffer,"%s\"%s\"\r\n",FILE_DELETE,filename);
-	sendAT_Data(transmit_buffer);
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)){
-		ESP_LOGI(TAG,"File Deleted");
-		return SUCCESS;
-	}
 	return FAILURE;
 }
 
-uint8_t Error_Report(){
-	sendAT_Data(ERROR_REPORT);
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)){
-		return SUCCESS;
-	}
-	return FAILURE;
-}
-
-uint8_t OT_command(char* cmd){
-	sendAT_Data(cmd);
-	if(check_response(OK_RESPONSE,3*MAX_WAIT_MS)){
-		return SUCCESS;
-	}
-	return FAILURE;
-}
-
-void resetLte()
+void send_AT_cmd(char *cmd, char *requestString)
 {
-	ESP_LOGI(TAG, "Resetting LTE !!!");
-	gpio_set_level(GPIO_LTE_ONOFF, 0);
-	gpio_set_level(GPIO_LTE_RESET, 0);
-	vTaskDelay(10); //100ms delay
-	gpio_set_level(GPIO_LTE_ONOFF, 1);
-	vTaskDelay(pdMS_TO_TICKS(2500)); //2.5s delay
-	gpio_set_level(GPIO_LTE_ONOFF, 0);
-	ESP_LOGI(TAG, "Resetting LTE complete");
+	ESP_LOGI(DEBUG_TAG, "%s : ", requestString);
+	int err = uart_write_bytes(UART_NUM_1, cmd, strlen(cmd));
+	if (err != -1) ESP_LOGI(TAG, "AT Command sent : %s",cmd);
+	else ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
+	sleep(1);
+	check_response(OK_RESPONSE, 1500);
 }
 
-void LTE_gpio_configuration()
+void perform_AT_cmd_sequence()
 {
-	pinMode(GPIO_LTE_RESET, OUTPUT);
-	pinMode(GPIO_LTE_ONOFF, OUTPUT);
-}
+	/*SIM Related*/
+	
+	/*Check SIM Insertion status*/
+	send_AT_cmd("AT+QSIMSTAT=1\r","Enabling Sim card Insertion Status");
+	send_AT_cmd("AT+QSIMSTAT?\r","Checking SIM card Insertion status");
+	
+	/*Check PIN locked status*/
+	send_AT_cmd("AT+CLCK\r","Checking SIM locked status");
 
-void LTE_initialization(void)
-{
-    uart_init();
-    OT_command("ATE0\r\n");
-    MQTT_Config(mqtt_client_index,
-    		1,2,
-			10,
-			1,
-			0,1,
-			1,0,0,"will/topic","Network Disconnected unexpectedly");
-}
+	/*Check If SIM is locked with a pin*/
+	send_AT_cmd("AT+CPIN?\r","Checking if PIN is required for SIM operation");
 
-
-void establishMQTTConnection()
-{
-	mqtt_connected = false;
-	while(!mqtt_connected)
-	{
-		vTaskDelay(1);
-		network_flag = false;
-		client_flag = false;
-		subscribe_flag = false;
-		for(uint8_t network_connect_retry_count = 0; !mqtt_connected && network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag; network_connect_retry_count++)
-		{
-			vTaskDelay(1);
-			printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count);
-			MQTT_NetworkClose(mqtt_client_index);
-			uint8_t ret_val = MQTT_NetworkOpen(mqtt_client_index, mqtt_ip_address, mqtt_port);
-			while(network_flag && !mqtt_connected)
-			{
-				vTaskDelay(1);
-				for(uint8_t client_connect_retry_count = 0; !mqtt_connected && client_connect_retry_count < RETRY_COUNT && !client_flag && network_flag; client_connect_retry_count++)
-				{
-					vTaskDelay(1);
-					printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count);
-					MQTT_ClientConnect(mqtt_client_index, mqtt_broker_username, mqtt_broker_password, mqtt_client_id);
-					while(client_flag && !mqtt_connected)
-					{
-						vTaskDelay(1);
-						for(uint8_t subscribe_retry_count = 0; !mqtt_connected && subscribe_retry_count < RETRY_COUNT && !subscribe_flag && client_flag && network_flag; subscribe_retry_count++)
-						{
-							vTaskDelay(1);
-							printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
-							if(SubscribeTopic(mqtt_client_index,2,subscribe_topic, 0)==SUCCESS)
-								mqtt_connected = true;
-						}
-					}
-				}
-				network_flag = false;
-			}
-		}
-	}
-	ESP_LOGI(DEBUG_TAG, "Established connected with MQTT successfully\r\n");
-}
-
-/**
- * @brief This function verifies the data integrity of the json packet received
- * before trying to parse it
- * @param none
- * @retval none
- */
-void error_check_json(uint8_t json_packet_id)
-{
-	//Checking keys that are common in all JSON packets
-	if(cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY));
-	else { json_ack_err_code = INVALID_MSG_SEQ_NO; return; }
-	if(cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY));
-	else { json_ack_err_code = INVALID_GWY_SER_NO; return; }
-
-	switch(json_packet_id)
-	{
-		case GWY_REG_PACKET:
-			if(registered) {json_ack_err_code = GWY_ALREADY_REG; return; }
-			if(cJSON_GetObjectItem(json_packet_j, LOCATION_KEY));
-			else { json_ack_err_code = INVALID_LOCATION_KEY; return; }
-			return;
-
-		case GWY_UNREG_PACKET:
-			if(!registered) {json_ack_err_code = GWY_ALREADY_UNREG; return; }
-			if(cJSON_GetObjectItem(json_packet_j, LOCATION_KEY));
-			else { json_ack_err_code = INVALID_LOCATION_KEY; return; }
-			return;
-
-		case GWY_AC_CONTROL_PACKET:
-		case NODE_AC_CONTROL_PACKET:
-			if(json_packet_id == GWY_AC_CONTROL_PACKET)
-			{
-				if(!registered) {json_ack_err_code = GWY_NOT_REG; return;}
-				if(!configured) {json_ack_err_code = GWY_NOT_CONF; return;}
-			}
-			else
-			{
-				if(cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY));
-				else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
-			}
-			if(cJSON_GetObjectItem(json_packet_j, POWER_KEY));
-			else { json_ack_err_code = INVALID_POWER; return; }
-			if(cJSON_GetObjectItem(json_packet_j, MODE_KEY));
-			else { json_ack_err_code = INVALID_MODE; return; }
-			if(cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY));
-			else { json_ack_err_code = INVALID_FAN_SPEED; return; }
-			if(cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY));
-
-			else { json_ack_err_code = INVALID_TEMPERATURE; return; }
-			uint8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
-			if(temperature < TEMPERATURE_LOWER_LIMIT)
-			{
-				json_ack_err_code = EXCEEDING_TEMP_LOWER_LIMIT;
-				return;
-			}
-			if(temperature > TEMPERATURE_UPPER_LIMIT)
-			{
-				json_ack_err_code = EXCEEDING_TEMP_UPPER_LIMIT;
-				return;
-			}
-
-			if(cJSON_GetObjectItem(json_packet_j, SWING_H_KEY));
-			else { json_ack_err_code = INVALID_SWING_H; return; }
-			if(cJSON_GetObjectItem(json_packet_j, SWING_V_KEY));
-			else { json_ack_err_code = INVALID_SWING_V; return; }
-			if(cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY));
-			else { json_ack_err_code = INVALID_ONTIMER; return; }
-			if(cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY));
-			else { json_ack_err_code = INVALID_OFFTIMER; return; }
-			if(cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY));
-			else { json_ack_err_code = INVALID_LOCKING; return; }
-
-			if(cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY));
-			else { json_ack_err_code = INVALID_TEMP_UPPER_LIMIT; return; }
-			uint8_t temp_upper_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY))->valueint;
-			if(temp_upper_limit > TEMPERATURE_UPPER_LIMIT)
-				{ json_ack_err_code = LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT; return; }
-			if(cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY));
-			else {json_ack_err_code = INVALID_TEMP_LOWER_LIMIT; return; }
-			uint8_t temp_lower_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY))->valueint;
-			if(temp_lower_limit < TEMPERATURE_LOWER_LIMIT)
-				{ json_ack_err_code = LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT; return; }
-			if(temp_lower_limit > temp_upper_limit)
-				{ json_ack_err_code = ILLOGICAL_LOCKING_TEMP_LIMIT; return; }
-
-			return;
-
-		case NODE_PROV_PACKET:
-			if(cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY));
-			else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
-			return;
-
-		case NODE_UNPROV_PACKET:
-		case NODE_RECONF_PACKET:
-			if(cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY));
-			else { json_ack_err_code = INVALID_NODE_SER_NO; return; }
-			if(cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY));
-			else { json_ack_err_code = INVALID_ELMNT_ADDR; return; }
-			return;
-		
-		case GWY_PUB_CONF_PACKET:
-		case NODE_PUB_CONF_PACKET:
-			if(cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY));
-			else {json_ack_err_code = INVALID_PUBLISH_PERIOD; return;}
-			return;
-
-		case RESET_MQTT:
-			return;
-	}
-}
-
-/**
- * @brief Function that fills the message that needs to be sent as ack to cloud
- * handles only the Gwy part.
- * @param json_id JSON PACKET ID
- * @retval none
- */
-void handle_sending_ack_to_cloud(uint8_t json_id)
-{
-	char pubmessage[PUBMESG_LEN];
-	switch(json_id)
-	{
-		case GWY_REG_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reg Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d}",
-				JSON_PACKET_ID_KEY, GWY_REG_PACKET,
-				JSON_ACK_NAME_KEY, GWY_REG_ACK,
-				MSG_SEQ_NO_KEY, gwy_registration_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				LOCATION_KEY, gwy_registration_t.base_data.location,
-				ERROR_CODE_KEY, json_ack_err_code);
-			break;
-
-		case GWY_UNREG_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy Unreg Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d}",
-				JSON_PACKET_ID_KEY, GWY_UNREG_PACKET,
-				JSON_ACK_NAME_KEY, GWY_UNREG_ACK,
-				MSG_SEQ_NO_KEY, gwy_unregistration_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				LOCATION_KEY, gwy_unregistration_t.base_data.location,
-				ERROR_CODE_KEY, json_ack_err_code);
-			break;
-
-		case GWY_AC_CONTROL_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Control Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
-				JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK,
-				MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				POWER_KEY, gwy_ac_control_t.power,
-				MODE_KEY, gwy_ac_control_t.mode_str,
-				FAN_SPEED_KEY, gwy_ac_control_t.fan,
-				TEMPERATURE_KEY, gwy_ac_control_t.temp,
-				SWING_H_KEY, gwy_ac_control_t.swingH,
-				SWING_V_KEY, gwy_ac_control_t.swingV,
-				ONTIMER_KEY, gwy_ac_control_t.OnTimer,
-				OFFTIMER_KEY, gwy_ac_control_t.OffTimer,
-				AC_LOCKING_KEY, gwy_ac_control_t.Locking,
-				ERROR_CODE_KEY, json_ack_err_code);
-			break;
-
-		case GWY_RECONF_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reconf Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %ss, %s : %d, %s : %s, %s : %d}",
-				JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
-				JSON_ACK_NAME_KEY, GWY_RECONF_ACK,
-				MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				ERROR_CODE_KEY, json_ack_err_code);
-			break;
-
-		case GWY_AC_LOCKING_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Locking Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, GWY_AC_LOCKING_PACKET,
-				JSON_ACK_NAME_KEY, GWY_LOCKING_ACK,
-				MSG_SEQ_NO_KEY, gwy_locking_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				POWER_KEY, gwy_locking_t.power,
-				MODE_KEY, gwy_locking_t.mode_str,
-				FAN_SPEED_KEY, gwy_locking_t.fan,
-				TEMPERATURE_KEY, gwy_locking_t.temp,
-				SWING_H_KEY, gwy_locking_t.swingH,
-				SWING_V_KEY, gwy_locking_t.swingV,
-				ONTIMER_KEY, gwy_locking_t.OnTimer,
-				OFFTIMER_KEY, gwy_locking_t.OffTimer,
-				AC_LOCKING_KEY, gwy_locking_t.Locking,
-				ERROR_CODE_KEY, gwy_locking_t.base_data.error_code);
-			break;
-
-		case GWY_PUB_CONF_PACKET:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy Pub conf Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, GWY_PUB_CONF_PACKET,
-				JSON_ACK_NAME_KEY, GWY_PUB_CONF_ACK,
-				MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
-				ERROR_CODE_KEY, json_ack_err_code);
-			break;
-
-		case RESET_MQTT:
-			ESP_LOGI(DEBUG_TAG, "Sending Gwy Reset MQTT Ack\r\n");
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d}",
-				JSON_PACKET_ID_KEY, RESET_MQTT,
-				JSON_ACK_NAME_KEY, GWY_RESET_MQTT_ACK, 
-				MSG_SEQ_NO_KEY, gwy_reset_mqtt_t.base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				ERROR_CODE_KEY, json_ack_err_code);
-			break;
-	}
-	add_to_pubmesg_queue(pubmessage, publish_topic);
-}
-
-void get_mode_value(char *device_type)
-{
-	if(strcmp(device_type, "gwy"))
-	{
-		if(strcasecmp(gwy_ac_control_t.mode_str, "Auto") == 0) gwy_ac_control_t.mode_val = AUTO;
-		else if(strcasecmp(gwy_ac_control_t.mode_str, "Cool") == 0) gwy_ac_control_t.mode_val = COOL;
-		else if(strcasecmp(gwy_ac_control_t.mode_str, "Dry") == 0) gwy_ac_control_t.mode_val = DRY;
-		else if(strcasecmp(gwy_ac_control_t.mode_str, "Heat") == 0) gwy_ac_control_t.mode_val = HEAT;
-		else if(strcasecmp(gwy_ac_control_t.mode_str, "Fan") == 0) gwy_ac_control_t.mode_val = FAN;
-	}
-	else
-	{
-		if(strcasecmp(node_ac_control_t.mode_str, "Auto") == 0) gwy_ac_control_t.mode_val = AUTO;
-		else if(strcasecmp(node_ac_control_t.mode_str, "Cool") == 0) gwy_ac_control_t.mode_val = COOL;
-		else if(strcasecmp(node_ac_control_t.mode_str, "Dry") == 0) gwy_ac_control_t.mode_val = DRY;
-		else if(strcasecmp(node_ac_control_t.mode_str, "Heat") == 0) gwy_ac_control_t.mode_val = HEAT;
-		else if(strcasecmp(node_ac_control_t.mode_str, "Fan") == 0) gwy_ac_control_t.mode_val = FAN;
-	}
-}
-
-uint16_t get_gwy_ser_no()
-{
-	char *ptr;
-	uint16_t gwy_ser_no;
-	char gwy_ser_no_in_str[8];
-	strcpy(gwy_ser_no_in_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
-	char gwy_ser_no_alone_str[5];
-	strncpy(gwy_ser_no_alone_str, gwy_ser_no_in_str + 3, 5);
-	gwy_ser_no = strtol(gwy_ser_no_alone_str, &ptr, 10);
-    return gwy_ser_no;
-}
-
-char *get_err_string(uint16_t err_code)
-{
-	switch(err_code)
-	{
-		case FAILURE:
-			return "FAILURE";
-		case SUCCESS:
-			return "SUCCESS";
-		case INVALID_JSON_PACKET_ID:
-			return "INVALID_JSON_PACKET_ID";
-		case INVALID_MSG_SEQ_NO:
-			return "INVALID_MSG_SEQ_NO";
-		case INVALID_GWY_SER_NO:
-			return "INVALID_GWY_SER_NO";
-		case INVALID_NODE_SER_NO:
-			return "INVALID_NODE_SER_NO";
-		case INVALID_LOCATION_KEY:
-			return "INVALID_LOCATION_KEY";
-		case NODE_TIMEOUT:
-			return "NODE_TIMEOUT";
-		case GWY_ALREADY_REG:
-			return "GWY_ALREADY_REG";
-		case GWY_ALREADY_UNREG:
-			return "GWY_ALREADY_UNREG";
-		case NODE_ALREADY_PROV:
-			return "NODE_ALREADY_PROV";
-		case NODE_ALREADY_UNPROV:
-			return "NODE_ALREADY_UNPROV";
-		case GWY_ALREADY_UNCONF:
-			return "GWY_ALREADY_UNCONF";
-		case NODE_ALREADY_UNCONF:
-			return "NODE_ALREADY_UNCONF";
-		case GWY_NOT_REG:
-			return "GWY_NOT_REG";
-		case GWY_NOT_CONF:
-			return "GWY_NOT_CONF";
-		case INVALID_POWER:
-			return "INVALID_POWER";
-		case INVALID_MODE:
-			return "INVALID_MODE";
-		case INVALID_FAN_SPEED:
-			return "INVALID_FAN_SPEED";
-		case INVALID_TEMPERATURE:
-			return "INVALID_TEMPERATURE";
-		case INVALID_SWING_H:
-			return "INVALID_SWING_H";
-		case INVALID_SWING_V:
-			return "INVALID_SWING_V";
-		case INVALID_ONTIMER:
-			return "INVALID_ONTIMER";
-		case INVALID_OFFTIMER:
-			return "INVALID_OFFTIMER";
-		case INVALID_LOCKING:
-			return "INVALID_LOCKING";
-		case INVALID_TEMP_UPPER_LIMIT:
-			return "INVALID_TEMP_UPPER_LIMIT";
-		case INVALID_TEMP_LOWER_LIMIT:
-			return "INVALID_TEMP_LOWER_LIMIT";
-		case LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT:
-			return "LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT";
-		case LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT:
-			return "LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT";
-		case ILLOGICAL_LOCKING_TEMP_LIMIT:
-			return "ILLOGICAL_LOCKING_TEMP_LIMIT";
-		case INVALID_ELMNT_ADDR:
-			return "INVALID_ELMNT_ADDR";
-		case EXCEEDING_TEMP_LOWER_LIMIT:
-			return "EXCEEDING_TEMP_LOWER_LIMIT";
-		case EXCEEDING_TEMP_UPPER_LIMIT:
-			return "EXCEEDING_TEMP_UPPER_LIMIT";
-		case INVALID_PUBLISH_PERIOD:
-			return "INVALID_PUBLISH_PERIOD";
-	}
-	return "UNKNOWN_ERROR_CODE";
-}
-
-/**
- * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
- * @param None
- * @retval Error code
- */
-void parse_json_packet()
-{
-	/**
-	 * First get the json packet
-	 * convert it to parseable obj using the CJSON_parse function
-	 * Check if that object is null or not, if not null then continue
-	 * try to parse JSON_PACKET_ID_KEY from it. if not null and valid, continue
-	 * then error check other items based on the parsed JSON_PACKET_ID_KEY, if no error, then continue
-	 * No matter what the error code, ack needs to be sent back with details
-	 */
-	json_ack_err_code = SUCCESS;
-	json_packet_j = cJSON_Parse(json_packet);
-	if((json_packet_j != NULL) && cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID_KEY))
-	{
-		json_packet_id = cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID_KEY)->valueint;
-	}
-	else
-	{
-		json_ack_err_code = INVALID_JSON_PACKET_ID;
-		return;
-	}
-
-	error_check_json(json_packet_id);
-	if(json_ack_err_code == SUCCESS)
-	{
-		switch(json_packet_id)
-		{
-			case GWY_REG_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
-				gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				gwy_registration_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
-				gwy_registration_t.base_data.request_in_time_us = esp_timer_get_time();
-				registered = true;
-				break;
-
-			case GWY_UNREG_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
-				gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				gwy_unregistration_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
-				gwy_unregistration_t.base_data.request_in_time_us = esp_timer_get_time();
-				registered = false;
-				configured = false;
-				break;
-
-			case GWY_AC_CONTROL_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Gwy AC Control packet\r\n");
-				//filling the default values for temp up and low limit
-				gwy_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
-				gwy_ac_control_t.TempLowLimit = TEMPERATURE_LOWER_LIMIT;
-				gwy_ac_control_t.TempUpLimit = TEMPERATURE_UPPER_LIMIT;
-				gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				gwy_ac_control_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
-				strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
-				get_mode_value("gwy");
-				gwy_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-				gwy_ac_control_t.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
-				gwy_ac_control_t.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_KEY)->valueint;
-				gwy_ac_control_t.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_KEY)->valueint;
-				gwy_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
-				gwy_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
-				gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-				gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
-				gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
-				if(configured) needtosend = true;
-				else ESP_LOGE(ERROR_TAG, "Gwy not configured yet, Can't control AC\r\n");
-				break;
-
-			case GWY_RECONF_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
-				gwy_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
-				gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				gwy_reconf_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				configured = false;
-				break;
-
-			case GWY_PUB_CONF_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Gwy Publish configuration packet\r\n");
-				gwy_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
-				gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				gwy_pub_conf_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
-				create_Temperature_data_publish_timer();
-				break;
-
-			case NODE_PROV_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Node Provisioning packet\r\n");
-				provision_t.base_data.request_in_time_us = esp_timer_get_time();
-				provision_t.base_data.json_packet_id = json_packet_id;
-				provision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				provision_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				provision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
-				strcpy(provision_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
-				fill_macid();
-				add_to_prov_queue(&provision_t);
-				break;
-
-			case NODE_UNPROV_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Node Unprovisioning packet\r\n");
-				unprovision_t.base_data.request_in_time_us = esp_timer_get_time();
-				unprovision_t.base_data.json_packet_id = json_packet_id;
-				unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				unprovision_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				unprovision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
-				unprovision_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
-				break;
-
-			case NODE_AC_CONTROL_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Node AC Control packet\r\n");
-				node_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
-				node_ac_control_t.base_data.json_packet_id = json_packet_id;
-				node_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				node_ac_control_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				node_ac_control_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
-				node_ac_control_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
-				node_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
-				strcpy(node_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
-				get_mode_value("node");
-				node_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-				node_ac_control_t.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
-				node_ac_control_t.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_KEY)->valueint;
-				node_ac_control_t.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_KEY)->valueint;
-				node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
-				node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
-				node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-				node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
-				node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
-				break;
-
-			case NODE_RECONF_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Node Reconfiguration packet\r\n");
-				node_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
-				node_reconf_t.base_data.json_packet_id = json_packet_id;
-				node_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				node_reconf_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				node_reconf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
-				node_reconf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
-				break;
-
-			case NODE_PUB_CONF_PACKET:
-				ESP_LOGI(DEBUG_TAG, "Node Publish configuratoin packet received \r\n");
-				node_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
-				node_pub_conf_t.base_data.json_packet_id = json_packet_id;
-				node_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				node_pub_conf_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				node_pub_conf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
-				node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
-				node_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
-				break;
-
-
-			case RESET_MQTT:
-				ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
-				gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
-				gwy_reset_mqtt_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-				gwy_reset_mqtt_t.base_data.gwy_ser_no = get_gwy_ser_no();
-				#if(AP_PART_ENABLED)
-					LED_state = LED_STATE_AP_MODE;
-					reset_mqtt();
-				#endif
-				#if(!AP_PART_ENABLED)
-					ESP_LOGE(ERROR_TAG, "AP mode is not enabled. So skipping reset of MQTT\r\n");
-				#endif
-				break;
-
-			default:
-				ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
-		}
-	}
-	ESP_LOGI(DEBUG_TAG, "Error Code : %s\n",get_err_string(json_ack_err_code));
-	handle_sending_ack_to_cloud(json_packet_id);
+	/*LTE related*/
+	send_AT_cmd("ATI\r", "Requesting Product Information");
+	send_AT_cmd("AT+GMR\r", "Reqeusting TA Firmware Revision Identification");
+	send_AT_cmd("AT+GSN\r","Reqeusting International Mobile Equipment Identity and Serial Number");
+	send_AT_cmd("AT+CPAS\r", "Reqeusting Mobile Equipment Activity Status");
+	send_AT_cmd("AT+COPS=?\r", "Setting Operator Selection");
+	send_AT_cmd("AT+CREG=2\r", "Setting CS Doman Network REgistration Status");
+	send_AT_cmd("AT+CREG?\r","Reqeusting CS Domain Network Registration Status");
+	send_AT_cmd("AT+COPS?\r", "Reqeusting Operator Selection");
+	send_AT_cmd("AT+CSQ?\r","Reqeusting Signal Quality Report");
+	send_AT_cmd("AT+QSPN\r", "Reqeusting Service Provider Name");
+	send_AT_cmd("AT+QCSQ\r","Reqeusting Signal Strength");
 }
 
 /**
@@ -1151,12 +376,12 @@ void parse_json_packet()
  */
 void reset_mqtt()
 {
-    MQTT_NetworkClose(mqtt_client_index);
-	#if(AP_PART_ENABLED)
-		mqtt_params_fetched_flag = false;
-		clear_mqtt_settings();
-		create_AP_task();
-	#endif
+	MQTT_NetworkClose(mqtt_client_index);
+#if (AP_PART_ENABLED)
+	mqtt_params_fetched_flag = false;
+	clear_mqtt_settings();
+	create_AP_task();
+#endif
 	mqtt_connected = false;
 }
 
@@ -1167,13 +392,13 @@ void reset_mqtt()
  */
 void clear_mqtt_settings()
 {
-    mqtt_params_fetched_flag = false;
-    mqtt_client_index = 99;
-    mqtt_port = 1;
-    memset(mqtt_ip_address, 0, strlen(mqtt_ip_address));
-    memset(mqtt_broker_username, 0, strlen(mqtt_broker_username));
-    memset(mqtt_broker_password, 0, strlen(mqtt_broker_password));
-    memset(mqtt_client_id, 0, strlen(mqtt_client_id));
+	mqtt_params_fetched_flag = false;
+	mqtt_client_index = 99;
+	mqtt_port = 1;
+	memset(mqtt_ip_address, 0, strlen(mqtt_ip_address));
+	memset(mqtt_broker_username, 0, strlen(mqtt_broker_username));
+	memset(mqtt_broker_password, 0, strlen(mqtt_broker_password));
+	memset(mqtt_client_id, 0, strlen(mqtt_client_id));
 }
 
 /**
@@ -1184,7 +409,7 @@ void clear_mqtt_settings()
  */
 int8_t publish_to_mqtt()
 {
-	if(PublishMessage(mqtt_client_index, mqtt_msgid, mqtt_qos, mqtt_retain, pubmesg_queue_head->topic, pubmesg_queue_head->message)==SUCCESS)
+	if (PublishMessage(mqtt_client_index, mqtt_msgid, mqtt_qos, mqtt_retain, pubmesg_queue_head->topic, pubmesg_queue_head->message) == SUCCESS)
 	{
 		publishing_flag = false;
 		return SUCCESS;
@@ -1193,32 +418,81 @@ int8_t publish_to_mqtt()
 	return FAILURE;
 }
 
+void LTE_initialization(void)
+{
+	perform_AT_cmd_sequence();
+	MQTT_Config(0, 0, 120, 1, 0, 1, 0, 2, 0, "will/topic", "Network Disconnected unexpectedly");
+}
+
+void init_topics_and_responses()
+{
+	sprintf(subscribe_topic, "%d/commands", GWY_SER_NO);
+	sprintf(publish_topic, "%d/messages", GWY_SER_NO);
+	sprintf(mqtt_client_id, "GWY00020/68ca9045-fa01-44ec-b043-9465c73a542d");
+	snprintf(NETWORK_CONNECTION_SUCCESSFUL_RESPONSE, sizeof(NETWORK_CONNECTION_SUCCESSFUL_RESPONSE),"+QMTOPEN: %d,0",mqtt_client_index);
+	// snprintf(CLIENT_CONNECTION_SUCCESSFUL_RESPONSE, sizeof(CLIENT_CONNECTION_SUCCESSFUL_RESPONSE), "",);
+	// snprintf(SUBSCRIBE_TOPIC_SUCCESSFUL_RESPONSE, sizeof(SUBSCRIBE_TOPIC_SUCCESSFUL_RESPONSE), "",);
+}
+
+void LTE_restart()
+{
+	powerCycleLTE();
+	LTE_initialization();
+}
+
+/**
+ * @brief Function that performs the power up sequence of LTE.
+ * @param none
+ * @retval none
+ * @warning Logic is Inverted
+ */
+void powerCycleLTE()
+{
+	ESP_LOGI(TAG, "Power Cycling LTE !!!");
+	gpio_set_level(GPIO_LTE_ONOFF, 0);
+	gpio_set_level(GPIO_LTE_RESET, 0);
+	vTaskDelay(pdMS_TO_TICKS(100));
+	gpio_set_level(GPIO_LTE_ONOFF, 1);
+	vTaskDelay(pdMS_TO_TICKS(2500));
+	gpio_set_level(GPIO_LTE_ONOFF, 0);
+	ESP_LOGI(TAG, "Power Cycling LTE complete");
+}
+
+/**
+ * @brief Function that configures the POWER and RESET pins of LTE as Output
+ * @param none
+ * @retval none
+ */
+void LTE_gpio_configuration()
+{
+	pinMode(GPIO_LTE_RESET, OUTPUT);
+	pinMode(GPIO_LTE_ONOFF, OUTPUT);
+}
+
 /**
  * @brief Thread that takes care of MQTT-LTE communication
- * @param args 
- * @return void* 
+ * @param args
+ * @return void*
  */
 void *LTE_task(void *args)
 {
-    LTE_gpio_configuration();
-    resetLte();
-    LTE_initialization();
-	sprintf(subscribe_topic, "%d/commands", GWY_SER_NO);
-	sprintf(publish_topic, "%d/messages", GWY_SER_NO);
-	sprintf(mqtt_client_id,"%d/68ca9045-fa01-44ec-b043-9465c73a542d",GWY_SER_NO);
-    establishMQTTConnection();
-    while(1)
-    {
+	init_topic_and_responses();
+	LTE_gpio_configuration();
+	powerCycleLTE();
+	LTE_UART_INIT();
+	LTE_initialization();
+	while (1)
+	{
 		vTaskDelay(1);
-		if(ReadMessage(mqtt_client_index) == SUCCESS)
+		if (ReadMessage(mqtt_client_index) == SUCCESS)
 		{
-			if(strlen(json_packet) > 5)
+			if (strlen(json_packet) > 5)
 			{
-				
+
 				parse_json_packet();
 				memset(json_packet, 0, sizeof(json_packet));
 			}
 		}
-		else LTE_setup();
+		else LTE_restart();
 	}
 }

@@ -54,7 +54,7 @@
 #define SYNC_SCAN_WIFI  		"AT+QWIFISCAN?\r\n"
 
 //MQTT commands
-#define MQTT_VERSION      		"AT+QMTCFG=\"version\",0,4"
+#define MQTT_VERSION      		"AT+QMTCFG=\"version\""
 #define MQTT_PDP	     		"AT+QMTCFG=\"pdpcid\","
 #define ENABLE_SSL           	"AT+QMTCFG=\"ssl\","
 #define MQTT_KEEP_ALIVE   		"AT+QMTCFG=\"keepalive\","
@@ -135,6 +135,10 @@
 #define RETRY_COUNT 5
 
 /* GLOBAL VARIABLES */
+extern char LTE_UART_data[2048];
+
+/*Responses*/
+extern char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
 
 #ifdef __cplusplus
 extern "C" {
@@ -142,15 +146,15 @@ extern "C" {
 
 /* FUNCTION DECLARATIONS */
 void *LTE_task(void *args);
-void LTE_setup(void);
+void LTE_restart(void);
 void LTE_gpio_configuration(void);
 void establishMQTTConnection(void);
-void resetLte(void);
+void establishMQTTConnectionNew(void);
+void powerCycleLTE(void);
 void sendAT_Data(const char* data);
 void LTE_initialization(void);
 uint8_t check_response(char* response, uint32_t timeout);
-uint8_t MQTT_Config(uint8_t client_idx,
-        uint8_t enable_ssl, uint8_t SSL_ctx_idx,
+void MQTT_Config(uint8_t enable_ssl, uint8_t SSL_ctx_idx,
         uint16_t keep_alive,
         uint8_t clean_session,
         uint8_t msg_recv_mode,uint8_t msg_len_enable,
@@ -171,6 +175,14 @@ void get_mode_value();
 uint16_t get_gwy_ser_no();
 char *get_err_string(uint16_t err_code);
 void init_structures();
+
+void init_topic_and_responses();
+void perform_AT_cmd_sequence();
+int8_t fetch_data_from_LTE_UART(uint32_t timeout);
+int8_t check_network_open_response();
+void send_network_open_command(char *hostname, uint32_t port);
+void send_AT_cmd(char *cmd, char *requestString);
+
 #ifdef __cplusplus
 }
 #endif
