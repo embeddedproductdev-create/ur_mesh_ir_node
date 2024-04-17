@@ -414,7 +414,7 @@ void *queue_handler(void *args)
 {
 	while(1)
 	{
-		vTaskDelay(1);
+		vTaskDelay(pdMS_TO_TICKS(50));
 		if(prov_queue_head != NULL)
 		{
 			send_prov_packet_to_node(prov_queue_head);

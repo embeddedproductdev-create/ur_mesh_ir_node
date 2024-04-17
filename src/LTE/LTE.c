@@ -118,6 +118,7 @@ int8_t send_client_connect_command()
 	}
 	else
 	{
+		ESP_LOGE(ERROR_TAG, "Client connection failed");
 		free(buf);
 		return FAILURE;
 	}
@@ -185,11 +186,41 @@ int8_t check_response(char *response, uint32_t timeout)
 	uint32_t time = esp_timer_get_time() / 1000ULL;
 	while ((esp_timer_get_time() / 1000ULL) - time < timeout)
 	{
+		vTaskDelay(pdMS_TO_TICKS(50));
 		uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
 		if (length > 0) 
 		{
-			// ESP_LOGI(TAG, "Received string : %s", (char *)data);
+			if(strstr(data,"ERROR"))
+			{
+				free(data);
+				return FAILURE;
+			}
+			ESP_LOGI(TAG, "Received string : %s", (char *)data);
 			// if(check_if_connection_was_reset(data)==SUCCESS) return FAILURE;
+			if(mqtt_connected)
+			{
+				for(index=0,j=0; data[index] != '\0'; index++)
+				{
+					if(data[index]=='{' && copy_flag == false && strstr(data, "}"))
+						copy_flag = true;
+					else
+						continue;
+					while(copy_flag)
+					{
+						ESP_LOGI(DEBUG_TAG, "Inside copying");
+						vTaskDelay(pdMS_TO_TICKS(50));
+						json_packet[j++] = data[index++];
+						if(data[index]=='}')
+						{
+							json_packet[j] = data[index];
+							copy_flag = false;
+							break;
+						}
+					}
+					break;
+				}
+				ESP_LOGI(DEBUG_TAG, "JSON_PACKET : %s", json_packet);
+			}
 			free(data);
 			return SUCCESS;
 		}
@@ -368,9 +399,9 @@ uint8_t ReadMessage(int mqtt_client_index)
 
 int8_t send_AT_cmd(char *cmd, char *requestString)
 {
-	// ESP_LOGI(DEBUG_TAG, "%s : ", requestString);
+	ESP_LOGI(DEBUG_TAG, "%s : ", requestString);
 	int err = uart_write_bytes(UART_NUM_1, cmd, strlen(cmd));
-	if (err != -1); //ESP_LOGI(TAG, "AT Command sent : %s",cmd);
+	if (err != -1) ESP_LOGI(TAG, "AT Command sent : %s",cmd);
 	else ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
 	return check_response(OK_RESPONSE, 3000);
 }
@@ -463,10 +494,49 @@ void LTE_initialization(void)
 
 void establishMQTTConnection()
 {
-	while(send_network_open_command()!=SUCCESS);
-	while(send_client_connect_command()!=SUCCESS);
-	while(send_subscribe_topic_command()!=SUCCESS);
-	mqtt_connected = true;
+	LED_state = LED_STATE_MQTT_NOT_CONNECTED;
+	uint8_t network_connect_retry_count = 0;
+	uint8_t client_connect_retry_count = 0;
+	uint8_t subscribe_retry_count = 0;
+	network_flag = false;
+	client_flag = false;
+	subscribe_flag = false;
+	while(network_connect_retry_count < RETRY_COUNT && !network_flag && mqtt_params_fetched_flag)
+	{
+		vTaskDelay(1);
+		client_connect_retry_count = 0;
+		printf("NETWORK_CONNECT_RETRY_COUNT : %d\n",network_connect_retry_count++);
+		uint8_t ret_val = send_network_open_command();
+		if(ret_val == 2) MQTT_NetworkClose(mqtt_client_index);
+		if(network_flag)
+		{
+			while(client_connect_retry_count < RETRY_COUNT && !client_flag) {
+				subscribe_retry_count = 0;
+				printf("CLIENT_CONNECT_RETRY_COUNT : %d\n",client_connect_retry_count++);
+				if(send_client_connect_command()==SUCCESS)
+				{
+					while(subscribe_retry_count < RETRY_COUNT && !subscribe_flag) {
+						printf("SUBSCRIBE_RETRY_COUNT : %d\n",subscribe_retry_count++);
+
+						if(send_subscribe_topic_command()==SUCCESS)
+							mqtt_connected = true;
+					}
+					if(subscribe_retry_count >= RETRY_COUNT) client_flag = 0;
+					client_connect_retry_count = 0;
+				}
+				else
+					printf("CLIENT CONNECTION FAILED\n");
+			}
+			if(client_connect_retry_count >= RETRY_COUNT)
+			{
+				network_flag = false;
+				MQTT_NetworkClose(mqtt_client_index);
+				network_connect_retry_count = 0;
+			}
+		}
+		if(network_connect_retry_count == 5 && !network_flag)
+			network_connect_retry_count = 0;
+	}
 }
 
 void init_topic_and_responses()
@@ -530,14 +600,13 @@ void *LTE_task(void *args)
 	establishMQTTConnection();
 	while (1)
 	{
-		vTaskDelay(1);
+		vTaskDelay(pdMS_TO_TICKS(50));
 		if (send_read_command() == SUCCESS)
 		{
 			if (strlen(json_packet) > 5)
 			{
-
 				parse_json_packet();
-				memset(json_packet, 0, sizeof(json_packet));
+				strcpy(json_packet, "");
 			}
 		}
 		else LTE_restart();

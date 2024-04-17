@@ -521,7 +521,7 @@ void IR_receiver_task(void *args)
     irrecv.enableIRIn();
     while(1)
     {
-        vTaskDelay(1);
+        vTaskDelay(pdMS_TO_TICKS(50));
         if (needtosend)
             IR_transmit(protocol_selected_num);
         if (esp_restart_flag)

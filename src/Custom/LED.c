@@ -32,7 +32,7 @@ void *LED_task(void *args)
     LED_initial_setup();
     while(1)
     {
-        vTaskDelay(1);
+        vTaskDelay(pdMS_TO_TICKS(50));
         if(sending)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
         else if(teaching_mode)

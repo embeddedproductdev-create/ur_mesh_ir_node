@@ -13,7 +13,7 @@
 #include "../../inc/Custom/button.h"
 
 //Initialization
-uint16_t GWY_SER_NO = 20;
+uint16_t GWY_SER_NO = 30;
 char GWY_SER_NO_IN_STRING[8];
 
 //Initializing Global Structures
@@ -57,8 +57,8 @@ temperature_data_t node_temperature_data_t;
 void fill_gwy_ser_no_str()
 {
     strcpy(GWY_SER_NO_IN_STRING, "GWY");
-    char serialNo[8];
-    char zerostr[8];
+    char serialNo[8] = {};
+    char zerostr[8] = {};
     sprintf(serialNo, "%d", GWY_SER_NO);
     uint8_t len = strlen(GWY_SER_NO_IN_STRING) + strlen(serialNo);
     for(uint8_t i=0; i<(8-len); i++)
@@ -67,6 +67,22 @@ void fill_gwy_ser_no_str()
     }
     strcat(GWY_SER_NO_IN_STRING, zerostr);
     strcat(GWY_SER_NO_IN_STRING, serialNo);
+}
+
+/**
+ * @brief Function to create the AP task
+ * @param none
+ * @retval none
+ */
+void create_AP_task()
+{
+ESP_LOGI(DEBUG_TAG, "Creating AP task\n");
+BaseType_t xReturned;
+TaskHandle_t xHandle = NULL;
+xReturned = xTaskCreate(AP_task, "AccessPoint Task",
+                        4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+if (xReturned != pdPASS)
+    perror("Error in taskCreate for AP mode : ");
 }
 
 /**
@@ -106,7 +122,7 @@ void app_main()
     while(!mqtt_params_fetched_flag)
     {
         ;//Do nothing until we fetch the mqtt params through the AP Mode (for the very first setup alone)
-        vTaskDelay(1);
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 
     #if(MESH_PART_ENABLED)
@@ -158,20 +174,4 @@ void app_main()
     #endif
 
     pthread_join(queue_tid, NULL);
-}
-
-/**
- * @brief Function to create the AP task
- * @param none
- * @retval none
- */
-void create_AP_task()
-{
-  ESP_LOGI(DEBUG_TAG, "Creating AP task\n");
-  BaseType_t xReturned;
-  TaskHandle_t xHandle = NULL;
-  xReturned = xTaskCreate(AP_task, "AccessPoint Task",
-                          4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
-  if (xReturned != pdPASS)
-    perror("Error in taskCreate for AP mode : ");
 }
