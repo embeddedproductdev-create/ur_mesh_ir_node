@@ -57,8 +57,8 @@ temperature_data_t node_temperature_data_t;
 void fill_gwy_ser_no_str()
 {
     strcpy(GWY_SER_NO_IN_STRING, "GWY");
-    char serialNo[6];
-    char zerostr[4];
+    char serialNo[8];
+    char zerostr[8];
     sprintf(serialNo, "%d", GWY_SER_NO);
     uint8_t len = strlen(GWY_SER_NO_IN_STRING) + strlen(serialNo);
     for(uint8_t i=0; i<(8-len); i++)

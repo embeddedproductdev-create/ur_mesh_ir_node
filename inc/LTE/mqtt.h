@@ -374,7 +374,7 @@ extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 /* MQTT parameters */
-extern char mqtt_ip_address[16];
+extern char mqtt_server_ip[16];
 extern uint16_t mqtt_port;
 extern uint8_t mqtt_client_index;
 extern char mqtt_broker_username[30];

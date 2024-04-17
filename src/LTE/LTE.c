@@ -90,11 +90,63 @@ int8_t check_network_open_response()
 	}
 }
 
-void send_network_open_command()
+int8_t send_network_open_command()
 {
 	char *buf = (char *)calloc(BUF_SIZE, sizeof(char));
-	sprintf(buf, "%s%d,\"%s\",%ld\r\n", MQTT_NETWORK_OPEN, mqtt_client_index, mqtt_server_ip, mqtt_port);
-	send_AT_cmd(buf, "Sending Network Open Command");
+	sprintf(buf, "%s%d,\"%s\",%d\r\n", MQTT_NETWORK_OPEN, mqtt_client_index, mqtt_server_ip, mqtt_port);
+	if(send_AT_cmd(buf, "Sending Network Open Command")==SUCCESS)
+	{
+		network_flag = true;
+		return SUCCESS;
+	}
+	else 
+	{
+		free(buf);
+		return FAILURE;
+	}
+	
+}
+
+int8_t send_client_connect_command()
+{
+	char *buf = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf(buf, "%s%d,\"%s\",\"%s\",\"%s\"\r\n", MQTT_CLIENT_CONN, mqtt_client_index, mqtt_client_id, mqtt_broker_username, mqtt_broker_password);
+	if(send_AT_cmd(buf, "Sending Client Connection Command")==SUCCESS)
+	{
+		client_flag = true;
+		return SUCCESS;
+	}
+	else
+	{
+		free(buf);
+		return FAILURE;
+	}
+	
+}
+
+int8_t send_subscribe_topic_command()
+{
+	char *buf = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf(buf, "%s%d,%d,\"%s\",%d\r\n", SUB_TO_TOPIC, mqtt_client_index, mqtt_msgid, subscribe_topic, mqtt_qos);
+	if(send_AT_cmd(buf, "Sending Subscribe Topic Command")==SUCCESS)
+	{
+		subscribe_flag = true;
+		return SUCCESS;
+	}
+	else
+	{
+		free(buf);
+		return FAILURE;
+	}
+}
+
+int8_t send_read_command()
+{
+	char *buf = (char *)calloc(BUF_SIZE, sizeof(char));
+	sprintf(buf, "%s%d\r\n", READ_MSG_BUFFER, mqtt_client_index);
+	send_AT_cmd(buf, "Sending Read Message Command");
+	free(buf);
+	return SUCCESS;
 }
 
 int8_t check_client_connection_response()
@@ -112,18 +164,20 @@ int8_t check_readmessage_response()
 	return SUCCESS;
 }
 
-void check_if_connection_was_reset(char *data)
+int8_t check_if_connection_was_reset(char *data)
 {
 	char check_string[30];
 	sprintf(check_string, "+QMTSTAT: %d,1", mqtt_client_index);
 	if (strstr(data, check_string))
 	{
-		printf("Need to restart the LTE to re-establish MQTT connection\r\n");
+		printf("Received +QMTSTAT: 1 Error. Restarting LTE\r\n");
 		restart_flag = true;
+		return SUCCESS;
 	}
+	return FAILURE;
 }
 
-uint8_t check_response(char *response, uint32_t timeout)
+int8_t check_response(char *response, uint32_t timeout)
 {
 	uint8_t index = 0, j = 0;
 	bool copy_flag = false;
@@ -132,7 +186,13 @@ uint8_t check_response(char *response, uint32_t timeout)
 	while ((esp_timer_get_time() / 1000ULL) - time < timeout)
 	{
 		uint32_t length = uart_read_bytes(UART_NUM_1, data, BUF_SIZE, 100);
-		if (length > 0) ESP_LOGI(TAG, "Received string : %s", (char *)data);
+		if (length > 0) 
+		{
+			// ESP_LOGI(TAG, "Received string : %s", (char *)data);
+			// if(check_if_connection_was_reset(data)==SUCCESS) return FAILURE;
+			free(data);
+			return SUCCESS;
+		}
 	}
 	free(data);
 	return FAILURE;
@@ -306,14 +366,13 @@ uint8_t ReadMessage(int mqtt_client_index)
 	return FAILURE;
 }
 
-void send_AT_cmd(char *cmd, char *requestString)
+int8_t send_AT_cmd(char *cmd, char *requestString)
 {
-	ESP_LOGI(DEBUG_TAG, "%s : ", requestString);
+	// ESP_LOGI(DEBUG_TAG, "%s : ", requestString);
 	int err = uart_write_bytes(UART_NUM_1, cmd, strlen(cmd));
-	if (err != -1) ESP_LOGI(TAG, "AT Command sent : %s",cmd);
+	if (err != -1); //ESP_LOGI(TAG, "AT Command sent : %s",cmd);
 	else ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
-	sleep(1);
-	check_response(OK_RESPONSE, 1500);
+	return check_response(OK_RESPONSE, 3000);
 }
 
 void perform_AT_cmd_sequence()
@@ -394,15 +453,20 @@ int8_t publish_to_mqtt()
 
 void LTE_initialization(void)
 {
+	mqtt_connected = false;
+	network_flag = false;
+	client_flag = false;
+	subscribe_flag = false;
 	perform_AT_cmd_sequence();
 	MQTT_Config(0, 0, 120, 1, 0, 1, 0, 2, 0, "will/topic", "Network Disconnected unexpectedly");
 }
 
 void establishMQTTConnection()
 {
-	send_network_open_command(mqtt_server_ip, mqtt_port);
-	send_client_connect_command();
-	send_subscribe_topic_command();
+	while(send_network_open_command()!=SUCCESS);
+	while(send_client_connect_command()!=SUCCESS);
+	while(send_subscribe_topic_command()!=SUCCESS);
+	mqtt_connected = true;
 }
 
 void init_topic_and_responses()
@@ -417,6 +481,7 @@ void init_topic_and_responses()
 
 void LTE_restart()
 {
+	mqtt_connected = false;
 	powerCycleLTE();
 	LTE_initialization();
 }
@@ -462,11 +527,11 @@ void *LTE_task(void *args)
 	powerCycleLTE();
 	LTE_UART_INIT();
 	LTE_initialization();
-	establishMQTTConnectionNew();
+	establishMQTTConnection();
 	while (1)
 	{
 		vTaskDelay(1);
-		if (ReadMessage(mqtt_client_index) == SUCCESS)
+		if (send_read_command() == SUCCESS)
 		{
 			if (strlen(json_packet) > 5)
 			{

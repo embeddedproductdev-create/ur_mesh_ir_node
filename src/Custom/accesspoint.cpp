@@ -18,7 +18,7 @@ uint16_t mqtt_port;
 uint8_t mqtt_client_index;
 char mqtt_broker_username[30];
 char mqtt_broker_password[30];
-char mqtt_client_id[30];
+char mqtt_client_id[100];
 bool mqtt_params_fetched_flag = false;
 #endif
 

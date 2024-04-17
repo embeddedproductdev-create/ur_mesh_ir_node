@@ -152,7 +152,7 @@ void establishMQTTConnection(void);
 void powerCycleLTE(void);
 void sendAT_Data(const char* data);
 void LTE_initialization(void);
-uint8_t check_response(char* response, uint32_t timeout);
+int8_t check_response(char* response, uint32_t timeout);
 void MQTT_Config(uint8_t enable_ssl, uint8_t SSL_ctx_idx,
         uint16_t keep_alive,
         uint8_t clean_session,
@@ -179,8 +179,11 @@ void init_topic_and_responses();
 void perform_AT_cmd_sequence();
 int8_t fetch_data_from_LTE_UART(uint32_t timeout);
 int8_t check_network_open_response();
-void send_network_open_command();
-void send_AT_cmd(char *cmd, char *requestString);
+int8_t send_network_open_command();
+int8_t send_AT_cmd(char *cmd, char *requestString);
+int8_t send_client_connect_command();
+int8_t send_subscribe_topic_command();
+int8_t send_read_command();
 
 #ifdef __cplusplus
 }
