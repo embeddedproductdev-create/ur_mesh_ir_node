@@ -13,7 +13,8 @@
 #include "../../inc/Custom/button.h"
 
 //Initialization
-uint16_t GWY_SER_NO = 1;
+bool esp_restart_flag = false;
+uint16_t GWY_SER_NO = 3;
 char GWY_SER_NO_IN_STRING[8];
 
 //Initializing Global Structures
@@ -99,7 +100,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-
+    sleep(2);
     init_structures();
 
     #if(LED_PART_ENABLED)

@@ -18,7 +18,6 @@
 #define HALF_SEC_IN_MS 500
 
 /* GLOBAL VARIABLES */
-extern bool esp_restart_flag;
 
 /* FUNCTION DECLARATIONS */
 void clear_mqtt_settings();

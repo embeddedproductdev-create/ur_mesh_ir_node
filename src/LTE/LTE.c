@@ -19,7 +19,8 @@
 // Global Variable Initialization
 char mqtt_client_id[100];
 
-bool restart_flag = false;
+bool LOG_LTE_DATA = false;
+
 bool network_flag = false;
 bool client_flag = false;
 bool subscribe_flag = false;
@@ -33,10 +34,10 @@ char publish_topic[MQTT_TOPIC_CHAR_LEN];
 //Local variable Initialization
 char MQTT_NETWORK_OPEN_CMD[100];
 char MQTT_NETWORK_CLOSE_CMD[100];
+char MQTT_CLIENT_DISCONN_CMD[300];
 char MQTT_CLIENT_CONN_CMD[300];
 char MQTT_SUB_CMD[100];
 
-char LTE_UART_data[2048];
 char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
 
 /**
@@ -59,31 +60,44 @@ void LTE_UART_INIT(void)
 	uart_set_pin(UART_NUM_1, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 }
 
-int8_t fetch_data_from_LTE_UART(uint16_t timeout_ms)
+int8_t fetch_data_from_LTE_UART(char *cmd, uint16_t timeout_ms, char *check_string)
 {
+	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
 	uint32_t in_time = esp_timer_get_time();
-	while ((esp_timer_get_time()- in_time)/1000 < timeout_ms)
+	while((esp_timer_get_time()-in_time)/1000 < timeout_ms)
 	{
-		uint32_t length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
+		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 500);
 		if(length > 0) {
-			ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
-			return SUCCESS;
+			if(!strcmp(cmd, READ_MQTT_MESSAGE)) strcpy(json_packet, LTE_UART_data);
+			if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "%d bytes Data Received : %s", length, LTE_UART_data);
+			if(check_response(LTE_UART_data, check_string)==SUCCESS)
+			{
+				if(!strcmp(cmd,MQTT_NETWORK_OPEN_CMD)) network_flag = 1;
+				else if(!strcmp(cmd,MQTT_CLIENT_CONN_CMD)) client_flag = 1;
+				else if(!strcmp(cmd,MQTT_SUB_CMD)) subscribe_flag = 1;
+				return SUCCESS;
+			}
+			if(!strcmp(cmd,MQTT_NETWORK_OPEN_CMD)) network_flag = 0;
+			else if(!strcmp(cmd,MQTT_CLIENT_CONN_CMD)) {network_flag = 0; client_flag = 0;}
+			else if(!strcmp(cmd,MQTT_SUB_CMD)) {network_flag = 0; client_flag = 0; subscribe_flag = 0;}
+			return FAILURE;
 		}
 	}
+	ESP_LOGE(LTE_ERROR_TAG, "No data received");
 	return FAILURE;
 }
 
 void MQTT_Config()
 {	
 	char cmd[100];
-	sprintf(cmd, "%s,%d,%d",SET_MQTT_VERSION, MQTT_CLIENT_INDEX, MQTT_VERSION);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, cmd, "SET_MQTT_VERSION", OK_RESPONSE, 300);
+	// sprintf(cmd, "%s,%d,%d",SET_MQTT_VERSION, MQTT_CLIENT_INDEX, MQTT_VERSION);
+	// send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_MQTT_VERSION", OK_RESPONSE, 300);
 	
 	sprintf(cmd, "%s%d,%d\r\n", SET_KEEP_ALIVE, MQTT_CLIENT_INDEX, MQTT_KEEP_ALIVE_S);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, cmd, "SET_MQTT_KEEP_ALIVE", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_MQTT_KEEP_ALIVE", OK_RESPONSE, 300);
 
 	sprintf(cmd, "%s%d,%d,%d\r\n", SET_MSG_RECV_MODE, MQTT_CLIENT_INDEX, MQTT_MSG_RECV_MODE, MQTT_MSG_LEN_ENABLE);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, cmd, "SET_MSG_RECV_MODE", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_MSG_RECV_MODE", OK_RESPONSE, 300);
 
 	sprintf(cmd, 
 	"%s%d,%d,%d,%d,\"%s\",\"%s\"\r\n",
@@ -94,10 +108,10 @@ void MQTT_Config()
 	MQTT_WILL_RETAIN,
 	MQTT_WILL_TOPIC,
 	MQTT_WILL_MESSAGE);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, cmd, "MQTT_WILL_CONFIG", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "MQTT_WILL_CONFIG", OK_RESPONSE, 300);
 
 	sprintf(cmd, "%s%d,%d\r\n", SET_CLEAN_SESSION, MQTT_CLIENT_INDEX, MQTT_CLEAN_SESSION);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, cmd, "SET_CLEAN_SESSION", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_CLEAN_SESSION", OK_RESPONSE, 300);
 }
 
 // int8_t split_out_JSON_part()
@@ -127,32 +141,33 @@ void MQTT_Config()
 // 	}
 // }
 
-int8_t check_response(char *response_check_string)
+int8_t check_response(char *LTE_UART_data, char *response_check_string)
 {
-	if(strstr(LTE_UART_data, response_check_string))
-	{
-		// if(strstr(LTE_UART_data, "{") && strstr(LTE_UART_data, "}"))
-		// {
-		// 	if(split_out_JSON_part()==SUCCESS) return SUCCESS;
-		// 	else return FAILURE;
-		// }
+	if(strstr(LTE_UART_data, CME_ERROR_10)) {
+		free(LTE_UART_data);
+		ESP_LOGE(LTE_ERROR_TAG, "FATAL: SIM NOT INSERTED");
+		esp_restart_flag = true;
+	}
+	if(strstr(LTE_UART_data, response_check_string)) {
+		strcpy(json_packet, LTE_UART_data);
+		free(LTE_UART_data);
 		return SUCCESS;
 	}
+	free(LTE_UART_data);
 	return FAILURE;
 }
 
 int8_t send_cmd_and_check_response(bool log_sent_command, char *cmd, char *requestString, char *response_check_string, uint32_t response_wait_time_ms)
 {
-	if(log_sent_command) ESP_LOGI(LTE_DEBUG_TAG, "%s : ", requestString);
+	if(log_sent_command) ESP_LOGI(LTE_DEBUG_TAG, "%s", requestString);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE) 
 	{
-		if(log_sent_command) ESP_LOGI(TAG, "Command being sent : %s",cmd);
-		if(fetch_data_from_LTE_UART(response_wait_time_ms)==SUCCESS) 
-		{
-			if(check_response(response_check_string)==SUCCESS) return SUCCESS;
-			else return FAILURE;
-		}
-		else return FAILURE;
+		if(log_sent_command) ESP_LOGI(LTE_DEBUG_TAG, "Command being sent : %s",cmd);
+		if(fetch_data_from_LTE_UART(cmd, response_wait_time_ms, response_check_string)==SUCCESS) return SUCCESS;
+		if(!strcmp(cmd,MQTT_NETWORK_OPEN_CMD)) network_flag = 0;
+		else if(!strcmp(cmd,MQTT_CLIENT_CONN_CMD)) {network_flag = 0; client_flag = 0;}
+		else if(!strcmp(cmd,MQTT_SUB_CMD)) {network_flag = 0; client_flag = 0; subscribe_flag = 0;}
+		return FAILURE;
 	}
 	else 
 	{
@@ -164,26 +179,28 @@ int8_t send_cmd_and_check_response(bool log_sent_command, char *cmd, char *reque
 void initial_AT_cmd_seq()
 {	
 	/*Check SIM Insertion status*/
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, ENABLE_SIM_INSERTION_STATUS,"ENABLE_SIM_INSERTION_STATUS", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SIM_INSERTION_STATUS,"GET_SIM_INSERTION_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, ENABLE_SIM_INSERTION_STATUS,"ENABLE_SIM_INSERTION_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_SIM_INSERTION_STATUS,"GET_SIM_INSERTION_STATUS", SIM_INSERTION_STATUS_RESPONSE, 300);
 
 	/*SIM Hot swapping*/
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, ENABLE_SIM_HOT_SWAPPING, "ENABLE_SIM_HOT_SWAPPING",OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SIM_HOT_SWAPPING_STATUS,"GET_SIM_HOT_SWAPPING_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, ENABLE_SIM_HOT_SWAPPING, "ENABLE_SIM_HOT_SWAPPING",OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_SIM_HOT_SWAPPING_STATUS,"GET_SIM_HOT_SWAPPING_STATUS", OK_RESPONSE, 300);
 
 	/*Check If SIM is locked with a pin*/
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SIM_PIN_LOCK_STATUS,"GET_SIM_PIN_LOCK_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_SIM_PIN_LOCK_STATUS,"GET_SIM_PIN_LOCK_STATUS", OK_RESPONSE, 300);
 
 	/*LTE related*/
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_PRODUCT_INFO, "GET_PRODUCT_INFO", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_FW_REVISION, "GET_FW_REVISION", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_ME_SERIAL_NO,"GET_ME_SERIAL_NO", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_ME_ACTIVITY_STATUS, "GET_ME_ACTIVITY_STATUS", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, ENABLE_NETWORK_REGISTRATION, "ENABLE_NETWORK_REGISTRATION", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_NETWORK_REGISTRATION_STATUS,"GET_NETWORK_REGISTRATION_STATUS", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_CURRENT_OPERATOR_STATUS, "GET_CURRENT_OPERATOR_STATUS", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SERVICE_PROVIDER_NAME, "GET_SERVICE_PROVIDER_NAME", OK_RESPONSE, 300);
-	send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SIGNAL_STRENGTH, "GET_SIGNAL_STRENGTH", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_PRODUCT_INFO, "GET_PRODUCT_INFO", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_FW_REVISION, "GET_FW_REVISION", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_ME_SERIAL_NO,"GET_ME_SERIAL_NO", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_ME_ACTIVITY_STATUS, "GET_ME_ACTIVITY_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, ENABLE_NETWORK_REGISTRATION, "ENABLE_NETWORK_REGISTRATION", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, LIST_ALL_OPERATORS, "LIST_ALL_OPERATORS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_NETWORK_REGISTRATION_STATUS,"GET_NETWORK_REGISTRATION_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, SET_CURRENT_OPERATOR_STATUS, "GET_CURRENT_OPERATOR_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_CURRENT_OPERATOR_STATUS, "GET_CURRENT_OPERATOR_STATUS", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_SERVICE_PROVIDER_NAME, "GET_SERVICE_PROVIDER_NAME", OK_RESPONSE, 300);
+	send_cmd_and_check_response(LOG_LTE_DATA, GET_SIGNAL_STRENGTH, "GET_SIGNAL_STRENGTH", OK_RESPONSE, 300);
 }
 
 /**
@@ -196,7 +213,7 @@ int8_t publish_to_mqtt()
 {
 	char cmd[PUBMESG_LEN];
 	sprintf(cmd, "%s%d,%d,%d,%d,\"%s\",%d\r\n", PUBLISH_TO_MQTT, MQTT_CLIENT_INDEX, MQTT_MSGID, MQTT_QOS, MQTT_RETAIN, pubmesg_queue_head->topic, strlen(pubmesg_queue_head->message));
-	if (send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, cmd, "PUBLISH_TO_MQTT", OK_RESPONSE, 1500) == SUCCESS)
+	if (send_cmd_and_check_response(LOG_LTE_DATA, cmd, "PUBLISH_TO_MQTT", OK_RESPONSE, 1500) == SUCCESS)
 	{
 		publishing_flag = false;
 		return SUCCESS;
@@ -223,16 +240,16 @@ void init_Strings()
 {
 	sprintf(subscribe_topic, "%s/commands", GWY_SER_NO_IN_STRING);
 	sprintf(publish_topic, "%s/messages", GWY_SER_NO_IN_STRING);
-	sprintf(mqtt_client_id, "%s/68ca9045-fa01-44ec-b043-9465c73a542d", GWY_SER_NO_IN_STRING);
+	sprintf(mqtt_client_id, "%s/07ebf099-2d3e-451e-9f8b-0cf34838a246", GWY_SER_NO_IN_STRING);
 	sprintf(MQTT_NETWORK_OPEN_CMD,"%s%d,\"%s\",%d\r\n", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, mqtt_server_ip, mqtt_port);
 	sprintf(MQTT_NETWORK_CLOSE_CMD,"%s%d\r\n",MQTT_NETWORK_CLOSE,MQTT_CLIENT_INDEX);
 	sprintf(MQTT_CLIENT_CONN_CMD,"%s%d,\"%s\",\"%s\",\"%s\"\r\n",MQTT_CLIENT_CONN,MQTT_CLIENT_INDEX,mqtt_client_id,mqtt_broker_username,mqtt_broker_password);
+	sprintf(MQTT_CLIENT_DISCONN_CMD,"%s%d\r\n",MQTT_CLIENT_DISCONN,MQTT_CLIENT_INDEX);
 	sprintf(MQTT_SUB_CMD,"%s%d,%d,\"%s\",%d\r\n",SUB_TO_TOPIC,MQTT_CLIENT_INDEX,MQTT_MSGID,subscribe_topic,MQTT_QOS);
 }
 
 void LTE_restart()
 {
-	mqtt_connected = false;
 	powerCycleLTE();
 	LTE_initialization();
 }
@@ -245,14 +262,14 @@ void LTE_restart()
  */
 void powerCycleLTE()
 {
-	ESP_LOGI(TAG, "Power Cycling LTE !!!");
+	// ESP_LOGI(LTE_DEBUG_TAG, "Power Cycling LTE Starts !!!");
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
 	gpio_set_level(GPIO_LTE_RESET, 0);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	gpio_set_level(GPIO_LTE_ONOFF, 1);
 	vTaskDelay(pdMS_TO_TICKS(2500));
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
-	ESP_LOGI(TAG, "Power Cycling LTE complete");
+	// ESP_LOGI(LTE_DEBUG_TAG, "Power Cycling LTE complete");
 }
 
 /**
@@ -268,12 +285,23 @@ void LTE_gpio_configuration()
 
 int8_t establishMQTTConnection()
 {
-	while(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1500)!=SUCCESS)
-	{vTaskDelay(pdMS_TO_TICKS(50));}
-	while(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, MQTT_CLIENT_CONN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1500)!=SUCCESS)
-	{vTaskDelay(pdMS_TO_TICKS(50));}
-	while(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, MQTT_SUB_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1500)!=SUCCESS)
-	{vTaskDelay(pdMS_TO_TICKS(50));}
+	static uint8_t retry_count = 0;
+	// ESP_LOGI(LTE_DEBUG_TAG, "retry_count : %d\n | network_flag : %d | client_flag : %d | subscribe_flag : %d\n | mqtt_connected_flag : %d",
+	// retry_count, network_flag, client_flag, subscribe_flag, mqtt_connected);
+	if(!mqtt_connected && retry_count++ > RETRY_COUNT) {retry_count = 0; powerCycleLTE();}
+	else if(!network_flag) 
+	{	
+		send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE", OK_RESPONSE, 1000);
+		send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1000);
+	}
+	else if(network_flag && !client_flag)
+	{ 
+		send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_DISCONN_CMD, "MQTT_CLIENT_DISCONN_CMD", OK_RESPONSE, 1000);
+		send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", OK_RESPONSE, 1000);
+	}
+	else if(network_flag && client_flag && !subscribe_flag) send_cmd_and_check_response(LOG_LTE_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", OK_RESPONSE, 1000);
+	else if(network_flag && client_flag && subscribe_flag) mqtt_connected = true;
+	else if(mqtt_connected) send_cmd_and_check_response(LOG_LTE_DATA, READ_MQTT_MESSAGE, "READ_MQTT_MESSAGE", OK_RESPONSE, 1000);
 	return SUCCESS;
 }
 
@@ -288,21 +316,11 @@ void *LTE_task(void *args)
 	LTE_gpio_configuration();
 	powerCycleLTE();
 	LTE_UART_INIT();
-	LTE_initialization();
-	establishMQTTConnection();
+	MQTT_Config();
 	while (1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));
-		if(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SIM_INSERTION_STATUS, "GET_SIM_INSERTION_STATUS", SIM_INSERTION_RESPONSE, 300) == SUCCESS);
-		else 
-		{
-			ESP_LOGE(LTE_DEBUG_TAG, "+QSIMSTAT: 1,0 ==> SIM Not Inserted ==> Restarting LTE");
-			LTE_restart();
-		}
-		if(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, READ_MQTT_MESSAGE, "READ_MQTT_MESSAGE", OK_RESPONSE, 1500) == SUCCESS)
-		{
-			if(strstr(LTE_UART_data, "{") && strstr(LTE_UART_data, "}")) parse_json_packet();
-		}
-		else LTE_restart();
+		establishMQTTConnection();
+		if(strstr(json_packet, "{") && strstr(json_packet, "}")) parse_json_packet();
 	}
 }

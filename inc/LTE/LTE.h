@@ -14,9 +14,13 @@
 
 #include "../Custom/main.h"
 
+/*CME ERRORS*/
+#define CME_ERROR_10 "+CME ERROR: 10"
+
 /*SIM AT COMMANDS*/
 #define ENABLE_SIM_INSERTION_STATUS "AT+QSIMSTAT=1\r"
 #define GET_SIM_INSERTION_STATUS "AT+QSIMSTAT?\r"
+#define SIM_INSERTION_STATUS_RESPONSE "+QSIMSTAT: 1,1"
 #define ENABLE_SIM_HOT_SWAPPING "AT+QSIMDET=1,1\r"
 #define GET_SIM_HOT_SWAPPING_STATUS "AT+QSIMDET?\r"
 #define GET_SIM_PIN_LOCK_STATUS "AT+CPIN?\r"
@@ -32,6 +36,8 @@
 #define GET_ME_ACTIVITY_STATUS "AT+CPAS\r"
 #define ENABLE_NETWORK_REGISTRATION "AT+CREG=2\r"
 #define GET_NETWORK_REGISTRATION_STATUS "AT+CREG?\r"
+#define LIST_ALL_OPERATORS "AT+COPS=?\r"
+#define SET_CURRENT_OPERATOR_STATUS "AT+COPS=0,2,0,0\r"
 #define GET_CURRENT_OPERATOR_STATUS "AT+COPS?\r"
 #define GET_SERVICE_PROVIDER_NAME "AT+QSPN\r"
 #define GET_SIGNAL_STRENGTH "AT+QCSQ\r"
@@ -83,8 +89,8 @@
 #define MQTT_DATA_FORMAT_RESPONSE "+QMTCFG:\"dataformat\",0,0"
 
 // LTE PINS
-#define GPIO_LTE_RESET 46
-#define GPIO_LTE_ONOFF 9
+#define GPIO_LTE_RESET 20//46
+#define GPIO_LTE_ONOFF 21//9
 #define TXD_PIN 17
 #define RXD_PIN 18
 #define CTS_PIN 11
@@ -92,11 +98,9 @@
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
 #define RETRY_COUNT 5
 
-// Logging
-#define LOG_SENT_COMMAND_FLAG true
-
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[2048];
+extern bool LOG_LTE_DATA;
 
 /*Responses*/
 extern char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
@@ -120,10 +124,10 @@ extern "C"
     void init_Strings();
     void initial_AT_cmd_seq();
 
-    int8_t fetch_data_from_LTE_UART(uint16_t timeout_ms);
+    int8_t fetch_data_from_LTE_UART(char *cmd, uint16_t timeout_ms, char *check_string);
     int8_t send_cmd_and_check_response(bool log_sent_command, char *cmd, char *requestString,
                                        char *response_check_string, uint32_t response_wait_time);
-    int8_t check_response(char *response_check_string);
+    int8_t check_response(char *data, char *response_check_string);
 #ifdef __cplusplus
 }
 #endif

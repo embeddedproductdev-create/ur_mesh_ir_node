@@ -31,7 +31,7 @@ uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 uint8_t custom_raw_buffer_index = 0;
 
 // Initialization - Transmitter
-bool needtosend = false;
+bool needToSendIRComamnd = false;
 bool sending = false;
 int16_t protocol_selected_num = UNKNOWN;
 
@@ -503,7 +503,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ESP_LOGI(IR_DEBUG_TAG, "Sending MitsubishiHeavy152\n");
         break;
     }
-    needtosend = false;
+    needToSendIRComamnd = false;
     sending = false;    
 }
 
@@ -522,7 +522,7 @@ void IR_receiver_task(void *args)
     while(1)
     {
         vTaskDelay(pdMS_TO_TICKS(50));
-        if (needtosend)
+        if (needToSendIRComamnd)
             IR_transmit(protocol_selected_num);
         if (esp_restart_flag)
             ESP.restart();

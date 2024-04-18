@@ -67,18 +67,17 @@
 /*AT command related*/
 #define MQTT_CLIENT_INDEX 3
 #define MQTT_VERSION 3 // 3 = 3.1, 4 = 3.1.1
-#define MQTT_KEEP_ALIVE_S 120
 #define MQTT_QOS 2 // 0 = atmost once | 1 = atleast once | 2 = exactly once
 #define MQTT_RETAIN 0
 #define MQTT_MSGID 2
 #define MQTT_ENABLE_SSL 0
 #define MQTT_SSL_CTX_INDEX 0
-#define MQTT_KEEP_ALIVE 120
+#define MQTT_KEEP_ALIVE_S 3000
 #define MQTT_CLEAN_SESSION 1
-#define MQTT_MSG_RECV_MODE 1
+#define MQTT_MSG_RECV_MODE 0
 #define MQTT_MSG_LEN_ENABLE 1
-#define MQTT_WILL_FLAG 0
-#define MQTT_WILL_QOS 2
+#define MQTT_WILL_FLAG 1
+#define MQTT_WILL_QOS 0
 #define MQTT_WILL_RETAIN 0
 #define MQTT_WILL_TOPIC "will/topic"
 #define MQTT_WILL_MESSAGE "Network Disconnected Unexpectedly"
@@ -307,7 +306,6 @@ extern int16_t json_ack_err_code;
 
 /*flags*/
 extern bool send_control_packet;
-extern bool restart_flag;
 extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;

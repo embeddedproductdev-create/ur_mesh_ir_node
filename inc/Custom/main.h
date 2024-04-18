@@ -83,7 +83,7 @@
 #define IR_RECV_LOG_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED false
 #define LTE_PART_ENABLED true
-#define BUTTON_PART_ENABLED false
+#define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
 #define AP_PART_ENABLED false
@@ -93,9 +93,10 @@
 extern bool configured;
 extern bool mqtt_connected;
 extern bool registered;
-extern bool needtosend;
+extern bool needToSendIRComamnd;
 extern bool sending;
 extern bool teaching_mode;
+extern bool esp_restart_flag;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;
 extern char GWY_SER_NO_IN_STRING[8];

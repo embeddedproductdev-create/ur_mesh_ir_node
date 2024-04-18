@@ -25,7 +25,6 @@ uint32_t releasedTime = 0;
 uint32_t pressedduration_ms = 0;
 uint32_t pressed_duration_array[3] = {0,0,0};
 uint8_t pressed_duration_array_index = 0;
-bool esp_restart_flag = false;
 
 void button_logic()
 {
@@ -33,7 +32,8 @@ void button_logic()
     {
     if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]==0) //Single press
     {
-        ESP_LOGI(BUTTON_DEBUG_TAG, "Not assigned to any operation yet");
+        if(LOG_LTE_DATA) LOG_LTE_DATA = false;
+        else LOG_LTE_DATA = true;
     } 
     else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {

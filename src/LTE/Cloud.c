@@ -636,7 +636,7 @@ void parse_json_packet()
             gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
             gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
             if (configured)
-                needtosend = true;
+                needToSendIRComamnd = true;
             else
                 ESP_LOGE(LTE_ERROR_TAG, "Gwy not configured yet, Can't control AC\r\n");
             break;
