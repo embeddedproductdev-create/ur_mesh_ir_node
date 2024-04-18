@@ -353,7 +353,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     switch (json_id)
     {
     case GWY_REG_PACKET:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Reg Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy Reg Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_REG_PACKET,
                 JSON_ACK_NAME_KEY, GWY_REG_ACK,
@@ -364,7 +364,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case GWY_UNREG_PACKET:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Unreg Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy Unreg Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_UNREG_PACKET,
                 JSON_ACK_NAME_KEY, GWY_UNREG_ACK,
@@ -375,7 +375,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case GWY_AC_CONTROL_PACKET:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Control Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy AC Control Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
                 JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK,
@@ -394,7 +394,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case GWY_RECONF_PACKET:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Reconf Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy Reconf Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %ss, %s : %d, %s : %s, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
                 JSON_ACK_NAME_KEY, GWY_RECONF_ACK,
@@ -404,7 +404,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case GWY_AC_LOCKING_PACKET:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy AC Locking Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy AC Locking Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_AC_LOCKING_PACKET,
                 JSON_ACK_NAME_KEY, GWY_LOCKING_ACK,
@@ -423,7 +423,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case GWY_PUB_CONF_PACKET:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Pub conf Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy Pub conf Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_PUB_CONF_PACKET,
                 JSON_ACK_NAME_KEY, GWY_PUB_CONF_ACK,
@@ -434,7 +434,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case RESET_MQTT:
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Reset MQTT Ack\r\n");
+        ESP_LOGI(LTE_DEBUG_TAG, "Sending Gwy Reset MQTT Ack\r\n");
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d}",
                 JSON_PACKET_ID_KEY, RESET_MQTT,
                 JSON_ACK_NAME_KEY, GWY_RESET_MQTT_ACK,
@@ -597,7 +597,7 @@ void parse_json_packet()
         switch (json_packet_id)
         {
         case GWY_REG_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Gwy Registration packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy Registration packet\r\n");
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_registration_t.base_data.gwy_ser_no = get_gwy_ser_no();
             strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
@@ -606,7 +606,7 @@ void parse_json_packet()
             break;
 
         case GWY_UNREG_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Gwy Unregistration packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy Unregistration packet\r\n");
             gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_unregistration_t.base_data.gwy_ser_no = get_gwy_ser_no();
             strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
@@ -616,7 +616,7 @@ void parse_json_packet()
             break;
 
         case GWY_AC_CONTROL_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Gwy AC Control packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy AC Control packet\r\n");
             // filling the default values for temp up and low limit
             gwy_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
             gwy_ac_control_t.TempLowLimit = TEMPERATURE_LOWER_LIMIT;
@@ -638,11 +638,11 @@ void parse_json_packet()
             if (configured)
                 needtosend = true;
             else
-                ESP_LOGE(ERROR_TAG, "Gwy not configured yet, Can't control AC\r\n");
+                ESP_LOGE(LTE_ERROR_TAG, "Gwy not configured yet, Can't control AC\r\n");
             break;
 
         case GWY_RECONF_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy Reconfiguration packet\r\n");
             gwy_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
             gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_reconf_t.base_data.gwy_ser_no = get_gwy_ser_no();
@@ -650,7 +650,7 @@ void parse_json_packet()
             break;
 
         case GWY_PUB_CONF_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Gwy Publish configuration packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy Publish configuration packet\r\n");
             gwy_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_pub_conf_t.base_data.gwy_ser_no = get_gwy_ser_no();
@@ -659,7 +659,7 @@ void parse_json_packet()
             break;
 
         case NODE_PROV_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Node Provisioning packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Node Provisioning packet\r\n");
             provision_t.base_data.request_in_time_us = esp_timer_get_time();
             provision_t.base_data.json_packet_id = json_packet_id;
             provision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -671,7 +671,7 @@ void parse_json_packet()
             break;
 
         case NODE_UNPROV_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Node Unprovisioning packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Node Unprovisioning packet\r\n");
             unprovision_t.base_data.request_in_time_us = esp_timer_get_time();
             unprovision_t.base_data.json_packet_id = json_packet_id;
             unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -681,7 +681,7 @@ void parse_json_packet()
             break;
 
         case NODE_AC_CONTROL_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Node AC Control packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Node AC Control packet\r\n");
             node_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
             node_ac_control_t.base_data.json_packet_id = json_packet_id;
             node_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -703,7 +703,7 @@ void parse_json_packet()
             break;
 
         case NODE_RECONF_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Node Reconfiguration packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Node Reconfiguration packet\r\n");
             node_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
             node_reconf_t.base_data.json_packet_id = json_packet_id;
             node_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -713,7 +713,7 @@ void parse_json_packet()
             break;
 
         case NODE_PUB_CONF_PACKET:
-            ESP_LOGI(DEBUG_TAG, "Node Publish configuratoin packet received \r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Node Publish configuratoin packet received \r\n");
             node_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
             node_pub_conf_t.base_data.json_packet_id = json_packet_id;
             node_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -724,7 +724,7 @@ void parse_json_packet()
             break;
 
         case RESET_MQTT:
-            ESP_LOGI(DEBUG_TAG, "Reset MQTT packet\r\n");
+            ESP_LOGI(LTE_DEBUG_TAG, "Reset MQTT packet\r\n");
             gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
             gwy_reset_mqtt_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_reset_mqtt_t.base_data.gwy_ser_no = get_gwy_ser_no();
@@ -733,14 +733,14 @@ void parse_json_packet()
             reset_mqtt();
 #endif
 #if (!AP_PART_ENABLED)
-            ESP_LOGE(ERROR_TAG, "AP mode is not enabled. So skipping reset of MQTT\r\n");
+            ESP_LOGE(LTE_ERROR_TAG, "AP mode is not enabled. So skipping reset of MQTT\r\n");
 #endif
             break;
 
         default:
-            ESP_LOGI(ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
+            ESP_LOGI(LTE_ERROR_TAG, "Unknown MQTT packet received in parse_json_packet\r\n");
         }
     }
-    ESP_LOGI(DEBUG_TAG, "Error Code : %s\n", get_err_string(json_ack_err_code));
+    ESP_LOGI(LTE_DEBUG_TAG, "Error Code : %s\n", get_err_string(json_ack_err_code));
     handle_sending_ack_to_cloud(json_packet_id);
 }

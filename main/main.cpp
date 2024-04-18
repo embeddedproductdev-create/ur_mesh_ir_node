@@ -78,7 +78,7 @@ void fill_gwy_ser_no_str()
  */
 void create_AP_task()
 {
-ESP_LOGI(DEBUG_TAG, "Creating AP task\n");
+ESP_LOGI(MAIN_DEBUG_TAG, "Creating AP task\n");
 BaseType_t xReturned;
 TaskHandle_t xHandle = NULL;
 xReturned = xTaskCreate(AP_task, "AccessPoint Task",
@@ -96,9 +96,9 @@ void app_main()
 {
     fill_gwy_ser_no_str();
 
-    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
-    ESP_LOGI(DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
 
     init_structures();
 

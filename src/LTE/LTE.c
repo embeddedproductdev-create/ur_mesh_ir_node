@@ -65,7 +65,10 @@ int8_t fetch_data_from_LTE_UART(uint16_t timeout_ms)
 	while ((esp_timer_get_time()- in_time)/1000 < timeout_ms)
 	{
 		uint32_t length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
-		if(length > 0) return SUCCESS;
+		if(length > 0) {
+			ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
+			return SUCCESS;
+		}
 	}
 	return FAILURE;
 }
@@ -118,7 +121,7 @@ void MQTT_Config()
 // 				break;
 // 			}
 // 		}
-// 		ESP_LOGI(DEBUG_TAG, "JSON_PACKET : %s", json_packet);
+// 		ESP_LOGI(LTE_DEBUG_TAG, "JSON_PACKET : %s", json_packet);
 // 		strcpy(LTE_UART_data, "");
 // 		break;
 // 	}
@@ -140,7 +143,7 @@ int8_t check_response(char *response_check_string)
 
 int8_t send_cmd_and_check_response(bool log_sent_command, char *cmd, char *requestString, char *response_check_string, uint32_t response_wait_time_ms)
 {
-	if(log_sent_command) ESP_LOGI(DEBUG_TAG, "%s : ", requestString);
+	if(log_sent_command) ESP_LOGI(LTE_DEBUG_TAG, "%s : ", requestString);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE) 
 	{
 		if(log_sent_command) ESP_LOGI(TAG, "Command being sent : %s",cmd);
@@ -290,7 +293,13 @@ void *LTE_task(void *args)
 	while (1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));
-		if (send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, READ_MQTT_MESSAGE, "READ_MQTT_MESSAGE", OK_RESPONSE, 1500) == SUCCESS)
+		if(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, GET_SIM_INSERTION_STATUS, "GET_SIM_INSERTION_STATUS", SIM_INSERTION_RESPONSE, 300) == SUCCESS);
+		else 
+		{
+			ESP_LOGE(LTE_DEBUG_TAG, "+QSIMSTAT: 1,0 ==> SIM Not Inserted ==> Restarting LTE");
+			LTE_restart();
+		}
+		if(send_cmd_and_check_response(LOG_SENT_COMMAND_FLAG, READ_MQTT_MESSAGE, "READ_MQTT_MESSAGE", OK_RESPONSE, 1500) == SUCCESS)
 		{
 			if(strstr(LTE_UART_data, "{") && strstr(LTE_UART_data, "}")) parse_json_packet();
 		}

@@ -135,7 +135,7 @@ static void publish_temperature_cb(void *arg)
 {
     if(registered)
     {
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Temperature Ack\r\n");
+        ESP_LOGI(TEMPERATURE_DEBUG_TAG, "Sending Gwy Temperature Ack\r\n");
         read_analog_temperature(&measured_temperature);
         char pubmessage[PUBMESG_LEN];
         sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",

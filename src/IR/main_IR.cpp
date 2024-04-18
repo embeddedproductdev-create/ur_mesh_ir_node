@@ -76,7 +76,7 @@ void locking_feature(char *result_description_char_str)
 {
     if (registered)
     {
-        ESP_LOGI(DEBUG_TAG, "Sending Gwy Locking feature ack\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Gwy Locking feature ack\r\n");
         uint8_t temperature = 0;
         if (protocol_detected == protocol_selected_num) // Someone tried to control AC
         {
@@ -136,7 +136,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         break;
 
     case DAIKIN200:
-        ESP_LOGI(DEBUG_TAG, "Sending Raw\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Raw\r\n");
         break;
 
     case DAIKIN:
@@ -155,7 +155,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin280.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin280\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin280\r\n");
         break;  
 
     case DAIKIN216:
@@ -172,7 +172,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin216.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin216\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin216\r\n");
         break;
 
     case DAIKIN2:
@@ -189,7 +189,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin2.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin2\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin2\r\n");
         break;
     case DAIKIN160:
         strcpy(protocol_chosen_str, "Daikin160");
@@ -200,7 +200,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin160.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin160\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin160\r\n");
         break;
     case DAIKIN176:
         strcpy(protocol_chosen_str, "Daikin176");
@@ -212,7 +212,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin176.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin176\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin176\r\n");
         break;
     case DAIKIN64:
         strcpy(protocol_chosen_str, "Daikin64");
@@ -225,7 +225,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikinac64.setMode(ac_daikinac64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikinac64.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin64\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin64\r\n");
         break;
     case DAIKIN152:
         strcpy(protocol_chosen_str, "Daikin152");
@@ -236,7 +236,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin152.setMode(ac_daikin152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin152.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin152\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin152\r\n");
         break;
     case DAIKIN128:
         strcpy(protocol_chosen_str, "Daikin128");
@@ -249,7 +249,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin128.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Daikin128\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin128\r\n");
         break;
     case HITACHI_AC296:
         strcpy(protocol_chosen_str, "Hitachi296");
@@ -259,11 +259,11 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi296.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Hitachi296\r\n");
-        ESP_LOGI(DEBUG_TAG, "Power : %d\n",gwy_ac_control_t.power);
-        ESP_LOGI(DEBUG_TAG, "Temperature : %d\n",gwy_ac_control_t.temp);
-        ESP_LOGI(DEBUG_TAG, "Fan Speed : %d\n",gwy_ac_control_t.fan);
-        ESP_LOGI(DEBUG_TAG, "Mode : %d\n",ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Hitachi296\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Power : %d\n",gwy_ac_control_t.power);
+        ESP_LOGI(IR_DEBUG_TAG, "Temperature : %d\n",gwy_ac_control_t.temp);
+        ESP_LOGI(IR_DEBUG_TAG, "Fan Speed : %d\n",gwy_ac_control_t.fan);
+        ESP_LOGI(IR_DEBUG_TAG, "Mode : %d\n",ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         break;
         
     case HITACHI_AC:
@@ -276,7 +276,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_hitachi224.setMode(ac_hitachi224.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi224.send();
-        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc224\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending HitachiAc224\r\n");
         break;
     case HITACHI_AC1:
         strcpy(protocol_chosen_str, "HitachiAc104");
@@ -290,7 +290,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_hitachi104.setMode(ac_hitachi104.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi104.send();
-        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc104\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending HitachiAc104\r\n");
         break;
     case HITACHI_AC424:
         strcpy(protocol_chosen_str, "HitachiAc424");
@@ -301,7 +301,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_hitachi424.setMode(ac_hitachi424.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi424.send();
-        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc424\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending HitachiAc424\r\n");
         break;
     case HITACHI_AC344:
         strcpy(protocol_chosen_str, "HitachiAc344");
@@ -309,14 +309,14 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_hitachi344.setSwingV(gwy_ac_control_t.swingV);
         sending = true;
         ac_hitachi344.send();
-        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc344\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending HitachiAc344\r\n");
         break;
     case HITACHI_AC264:
         strcpy(protocol_chosen_str, "HitachiAc264");
         ac_hitachi264.setFan(gwy_ac_control_t.fan);
         sending = true;
         ac_hitachi264.send();
-        ESP_LOGI(DEBUG_TAG, "Sending HitachiAc264\r\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending HitachiAc264\r\n");
         break;
     
     case VOLTAS:
@@ -331,7 +331,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_voltas.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Voltas\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Voltas\n");
         break;
     case SAMSUNG_AC:
         strcpy(protocol_chosen_str, "Samsung");
@@ -345,7 +345,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_samsung.setMode(ac_samsung.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_samsung.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Samsung\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Samsung\n");
         break;
     case HAIER_AC:
         strcpy(protocol_chosen_str, "Haier");
@@ -358,7 +358,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_haier.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Haier\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Haier\n");
         break;
     case HAIER_AC176:
         strcpy(protocol_chosen_str, "Haier176");
@@ -372,7 +372,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_haier176.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Haier176\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Haier176\n");
         break;
     case HAIER_AC160:
         //Regarding horizontal swing we don't have library support
@@ -386,7 +386,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_haier160.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Haier160\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Haier160\n");
         break;
     case CARRIER_AC64:
     //Regarding horizontal swing we don't have library support
@@ -400,7 +400,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_carrier64.send();
-        ESP_LOGI(DEBUG_TAG, "Sending CarrierAC64\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending CarrierAC64\n");
         break;
     case LG:
         //Regarding on/off timer we don't have library support
@@ -413,7 +413,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_lg.send();
-        ESP_LOGI(DEBUG_TAG, "Sending LG\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending LG\n");
         break;
     case TOSHIBA_AC:
         //Regarding on/off timer we don't have library support
@@ -432,7 +432,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_toshiba.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Toshiba\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Toshiba\n");
         break;
     case MITSUBISHI112:
     //Regarding on/off timer we don't have library support
@@ -445,7 +445,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi112.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Mitsubishi112\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Mitsubishi112\n");
         break;
     case MITSUBISHI136:
     //Regarding on/off timer and horizontal swing we don't have library support
@@ -459,7 +459,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi136.send();
-        ESP_LOGI(DEBUG_TAG, "Sending Mitsubishi136\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Mitsubishi136\n");
         break;
     case MITSUBISHI_AC:
     //Regarding on/off timer and  swing we don't have library support
@@ -470,7 +470,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi144.send();
-        ESP_LOGI(DEBUG_TAG, "Sending MitsubishiAc\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending MitsubishiAc\n");
         break;
     case MITSUBISHI_HEAVY_88:
     //Regarding on/off timer we don't have library support
@@ -485,7 +485,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi88.send();
-        ESP_LOGI(DEBUG_TAG, "Sending MitsubishiHeavy88\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending MitsubishiHeavy88\n");
         break;
     case MITSUBISHI_HEAVY_152:
     //Regarding on/off timer we don't have library support
@@ -500,7 +500,7 @@ void IR_transmit(uint16_t protocol_selected_num)
         ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi152.send();
-        ESP_LOGI(DEBUG_TAG, "Sending MitsubishiHeavy152\n");
+        ESP_LOGI(IR_DEBUG_TAG, "Sending MitsubishiHeavy152\n");
         break;
     }
     needtosend = false;
@@ -534,9 +534,9 @@ void IR_receiver_task(void *args)
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
             #if (IR_RECV_LOG_ENABLED)
-                ESP_LOGI(DEBUG_TAG, "%s", raw_buf_str);
+                ESP_LOGI(IR_DEBUG_TAG, "%s", raw_buf_str);
                 if (description.length())
-                    ESP_LOGI(DEBUG_TAG, "%s", result_description_char_str);
+                    ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
             #endif
             if (teaching_mode)
             {
@@ -556,7 +556,7 @@ void IR_receiver_task(void *args)
                 }
                 eeprom_addr_cal++;
                 write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
-                ESP_LOGI(DEBUG_TAG, "End of Teaching mode \n");
+                ESP_LOGI(IR_DEBUG_TAG, "End of Teaching mode \n");
                 teaching_mode = false;
             }
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
@@ -569,7 +569,7 @@ void IR_receiver_task(void *args)
                         JSON_ACK_NAME_KEY, GWY_CONF_ACK,
                         GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                         ERROR_CODE_KEY, json_ack_err_code);
-                ESP_LOGI(DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
+                ESP_LOGI(IR_DEBUG_TAG, "Sending Gwy Configuration ack\r\n");
                 add_to_pubmesg_queue(pubmessage, publish_topic);
             }
             if (protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)

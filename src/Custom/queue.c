@@ -40,7 +40,7 @@ void remove_from_node_pub_conf_queue()
 {
 	if(node_pub_conf_queue_head == NULL)
 	{
-		ESP_LOGE(ERROR_TAG, "node_pub_conf_queue is empty\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "node_pub_conf_queue is empty\r\n");
 		return;
 	}
 	else
@@ -58,7 +58,7 @@ void add_to_node_pub_conf_queue()
 	if(pub_conf_node!=NULL) *pub_conf_node = node_pub_conf_t;
 	else
 	{
-		ESP_LOGE(ERROR_TAG, "Memory allocation failed in add_to_node_pub_conf_queue\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_node_pub_conf_queue\r\n");
 		return;
 	}
 	if (node_pub_conf_queue_head == NULL)
@@ -105,7 +105,7 @@ void remove_from_node_reconf_queue()
 {
 	if(node_reconf_queue_head == NULL)
 	{
-		ESP_LOGE(ERROR_TAG, "node_reconf_queue is empty\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "node_reconf_queue is empty\r\n");
 		return;
 	}
 	else
@@ -123,7 +123,7 @@ void add_to_node_reconf_queue()
 	if(reconf_node!=NULL) *reconf_node = node_reconf_t;
 	else
 	{
-		ESP_LOGE(ERROR_TAG, "Memory allocation failed in add_to_node_reconf_queue\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_node_reconf_queue\r\n");
 		return;
 	}
 	if (node_reconf_queue_head == NULL)
@@ -181,7 +181,7 @@ void remove_from_node_control_queue()
 {
 	if(node_ac_control_queue_head == NULL)
 	{
-		ESP_LOGE(ERROR_TAG, "node_ac_control_queue is empty\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "node_ac_control_queue is empty\r\n");
 		return;
 	}
 	else
@@ -199,7 +199,7 @@ void add_to_node_control_queue()
 	if(control_node!=NULL) *control_node = node_ac_control_t;
 	else
 	{
-		ESP_LOGE(ERROR_TAG, "Memory allocation failed in add_to_unprov_queue\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_unprov_queue\r\n");
 		return;
 	}
 	if (node_ac_control_queue_head == NULL)
@@ -248,7 +248,7 @@ void remove_from_unprov_queue()
 {
 	if(unprov_queue_head == NULL)
 	{
-		ESP_LOGE(ERROR_TAG, "unprov_queue is empty\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "unprov_queue is empty\r\n");
 		return;
 	}
 	else
@@ -266,7 +266,7 @@ void add_to_unprov_queue()
 	if(unprov_node!=NULL) *unprov_node = unprovision_t;
 	else
 	{
-		ESP_LOGE(ERROR_TAG, "Memory allocation failed in add_to_unprov_queue\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_unprov_queue\r\n");
 		return;
 	}
 	if (unprov_queue_head == NULL)
@@ -315,7 +315,7 @@ void remove_from_prov_queue()
 {
 	if(prov_queue_head == NULL)
 	{
-		ESP_LOGE(ERROR_TAG, "prov_queue is empty\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "prov_queue is empty\r\n");
 		return;
 	}
 	else
@@ -333,7 +333,7 @@ void add_to_prov_queue()
 	if(prov_node!=NULL) *prov_node = provision_t;
 	else 
 	{
-		ESP_LOGE(ERROR_TAG, "Memory allocation failed in add_to_prov_queue\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_prov_queue\r\n");
 		return;
 	}
 	if (prov_queue_head == NULL)
@@ -378,7 +378,7 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 	struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
 	if(pubmesg_node == NULL) 
 	{
-		ESP_LOGE(ERROR_TAG, "Memory allocation failed in add_to_pubmesg_queue\r\n");
+		ESP_LOGE(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_pubmesg_queue\r\n");
 		return;
 	}
 	strcpy(pubmesg_node->message,msg);

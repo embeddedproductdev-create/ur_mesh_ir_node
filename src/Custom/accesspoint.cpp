@@ -80,7 +80,7 @@ void notFound(AsyncWebServerRequest *request)
 void AP_task(void *args)
 {
   configASSERT(((uint32_t)args) == 1);
-  ESP_LOGI(DEBUG_TAG, "Restarted AP_Task\n");
+  ESP_LOGI(AP_DEBUG_TAG, "Restarted AP_Task\n");
   nvs_flash_init();
 
   WiFi.mode(WIFI_AP);
