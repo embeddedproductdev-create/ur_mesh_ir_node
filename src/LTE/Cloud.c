@@ -588,6 +588,7 @@ void parse_json_packet()
     else
     {
         json_ack_err_code = INVALID_JSON_PACKET_ID;
+        ESP_LOGE(LTE_ERROR_TAG, "Unable to parse UART data into JSON");
         return;
     }
 

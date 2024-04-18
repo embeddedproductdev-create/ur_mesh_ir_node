@@ -19,7 +19,7 @@
 // Global Variable Initialization
 char mqtt_client_id[100];
 
-bool LOG_LTE_DATA = false;
+bool LOG_LTE_DATA = true;
 
 bool network_flag = false;
 bool client_flag = false;
@@ -37,6 +37,7 @@ char MQTT_NETWORK_CLOSE_CMD[100];
 char MQTT_CLIENT_DISCONN_CMD[300];
 char MQTT_CLIENT_CONN_CMD[300];
 char MQTT_SUB_CMD[100];
+char MQTT_READ_MSG_CMD[100];
 
 char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
 
@@ -68,7 +69,10 @@ int8_t fetch_data_from_LTE_UART(char *cmd, uint16_t timeout_ms, char *check_stri
 	{
 		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 500);
 		if(length > 0) {
-			if(!strcmp(cmd, READ_MQTT_MESSAGE)) strcpy(json_packet, LTE_UART_data);
+			if(strstr(LTE_UART_data, "{")) {
+				ESP_LOGI(LTE_DEBUG_TAG, "Copying UART data into json_packet");
+				strcpy(json_packet, strstr(LTE_UART_data, "{"));
+			} 
 			if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "%d bytes Data Received : %s", length, LTE_UART_data);
 			if(check_response(LTE_UART_data, check_string)==SUCCESS)
 			{
@@ -83,7 +87,9 @@ int8_t fetch_data_from_LTE_UART(char *cmd, uint16_t timeout_ms, char *check_stri
 			return FAILURE;
 		}
 	}
-	ESP_LOGE(LTE_ERROR_TAG, "No data received");
+	free(LTE_UART_data);
+	if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "JSON_PACKET after freeing LTE_UART_data : %s", json_packet);
+	if(LOG_LTE_DATA) ESP_LOGE(LTE_ERROR_TAG, "No data received");
 	return FAILURE;
 }
 
@@ -241,11 +247,12 @@ void init_Strings()
 	sprintf(subscribe_topic, "%s/commands", GWY_SER_NO_IN_STRING);
 	sprintf(publish_topic, "%s/messages", GWY_SER_NO_IN_STRING);
 	sprintf(mqtt_client_id, "%s/07ebf099-2d3e-451e-9f8b-0cf34838a246", GWY_SER_NO_IN_STRING);
-	sprintf(MQTT_NETWORK_OPEN_CMD,"%s%d,\"%s\",%d\r\n", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, mqtt_server_ip, mqtt_port);
-	sprintf(MQTT_NETWORK_CLOSE_CMD,"%s%d\r\n",MQTT_NETWORK_CLOSE,MQTT_CLIENT_INDEX);
-	sprintf(MQTT_CLIENT_CONN_CMD,"%s%d,\"%s\",\"%s\",\"%s\"\r\n",MQTT_CLIENT_CONN,MQTT_CLIENT_INDEX,mqtt_client_id,mqtt_broker_username,mqtt_broker_password);
-	sprintf(MQTT_CLIENT_DISCONN_CMD,"%s%d\r\n",MQTT_CLIENT_DISCONN,MQTT_CLIENT_INDEX);
-	sprintf(MQTT_SUB_CMD,"%s%d,%d,\"%s\",%d\r\n",SUB_TO_TOPIC,MQTT_CLIENT_INDEX,MQTT_MSGID,subscribe_topic,MQTT_QOS);
+	sprintf(MQTT_NETWORK_OPEN_CMD,"%s%d,\"%s\",%d\r", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, mqtt_server_ip, mqtt_port);
+	sprintf(MQTT_NETWORK_CLOSE_CMD,"%s%d\r",MQTT_NETWORK_CLOSE,MQTT_CLIENT_INDEX);
+	sprintf(MQTT_CLIENT_CONN_CMD,"%s%d,\"%s\",\"%s\",\"%s\"\r",MQTT_CLIENT_CONN,MQTT_CLIENT_INDEX,mqtt_client_id,mqtt_broker_username,mqtt_broker_password);
+	sprintf(MQTT_CLIENT_DISCONN_CMD,"%s%d\r",MQTT_CLIENT_DISCONN,MQTT_CLIENT_INDEX);
+	sprintf(MQTT_READ_MSG_CMD, "%s%d",READ_MQTT_MESSAGE,MQTT_CLIENT_INDEX);
+	sprintf(MQTT_SUB_CMD,"%s%d,%d,\"%s\",%d\r",SUB_TO_TOPIC,MQTT_CLIENT_INDEX,MQTT_MSGID,subscribe_topic,MQTT_QOS);
 }
 
 void LTE_restart()
@@ -301,7 +308,7 @@ int8_t establishMQTTConnection()
 	}
 	else if(network_flag && client_flag && !subscribe_flag) send_cmd_and_check_response(LOG_LTE_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", OK_RESPONSE, 1000);
 	else if(network_flag && client_flag && subscribe_flag) mqtt_connected = true;
-	else if(mqtt_connected) send_cmd_and_check_response(LOG_LTE_DATA, READ_MQTT_MESSAGE, "READ_MQTT_MESSAGE", OK_RESPONSE, 1000);
+	if(mqtt_connected) send_cmd_and_check_response(LOG_LTE_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 100);
 	return SUCCESS;
 }
 
@@ -321,6 +328,7 @@ void *LTE_task(void *args)
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));
 		establishMQTTConnection();
-		if(strstr(json_packet, "{") && strstr(json_packet, "}")) parse_json_packet();
+		if(strlen(json_packet) > 5) parse_json_packet();
+		memset(json_packet, "\0", sizeof(json_packet));
 	}
 }

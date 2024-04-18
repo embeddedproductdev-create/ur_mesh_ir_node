@@ -89,8 +89,8 @@
 #define MQTT_DATA_FORMAT_RESPONSE "+QMTCFG:\"dataformat\",0,0"
 
 // LTE PINS
-#define GPIO_LTE_RESET 20//46
-#define GPIO_LTE_ONOFF 21//9
+#define GPIO_LTE_RESET 46
+#define GPIO_LTE_ONOFF 9
 #define TXD_PIN 17
 #define RXD_PIN 18
 #define CTS_PIN 11
