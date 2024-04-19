@@ -299,7 +299,6 @@ enum Modes
 /*GLOBAL VARIABLES */
 
 /*json*/
-extern char json_packet[MQTT_PACKET_BUFF_SIZE];
 extern cJSON *json_packet_j;
 extern uint8_t json_packet_id;
 extern int16_t json_ack_err_code;
@@ -399,7 +398,7 @@ extern bool mqtt_params_fetched_flag;
 extern bool publishing_flag;
 
 /* FUNCTION DECLARATIONS */
-void parse_json_packet(void);
+void parse_json_packet(char *json_packet);
 void fill_macid(void);
 void handle_sending_ack_to_cloud(uint8_t json_id);
 void error_check_json(uint8_t json_packet_id);

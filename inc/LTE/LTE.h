@@ -72,7 +72,7 @@
 #define MQTT_NETWORK_CLOSE_RESPONSE "+QMTCLOSE: "
 #define MQTT_CLIENT_CONN_RESPONSE "+QMTCONN: "
 #define MQTT_CLIENT_DISCONN_RESPONSE "+QMTDISC: "
-#define MQTT_MSG_RECV_STATUS "+QMTRECV: "
+#define MQTT_READ_MSG_RESPONSE "+QMTRECV: "
 #define STATUS_MQTT_NETWORK "+QMTSTAT:1,1"
 #define MQTT_SUB_RESPONSE "+QMTSUB: "
 #define MQTT_UNSUB_RESPONSE "+QMTUNS: "
@@ -98,6 +98,20 @@
 #define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_LTE_RESET) | (1ULL << GPIO_LTE_ONOFF);
 #define RETRY_COUNT 5
 
+enum AT_cmd_id{
+    MQTT_KEEP_ALIVE_CMD_ID,
+    MQTT_RECV_MODE_CMD_ID,
+    MQTT_WILL_CONFIG_CMD_ID,
+    MQTT_CLEAN_SESSION_CMD_ID,
+    MQTT_NETWORK_OPEN_CMD_ID,
+    MQTT_NETWORK_CLOSE_CMD_ID,
+    MQTT_CLIENT_CONN_CMD_ID,
+    MQTT_CLIENT_DISCONN_CMD_ID,
+    MQTT_SUB_CMD_ID,
+    MQTT_READ_MSG_CMD_ID,
+    MQTT_PUBLISH_MESG_CMD_ID
+};
+
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[2048];
 extern bool LOG_LTE_DATA;
@@ -114,20 +128,23 @@ extern "C"
     void *LTE_task(void *args);
     void LTE_restart(void);
     void LTE_gpio_configuration(void);
-    int8_t establishMQTTConnection(void);
     void powerCycleLTE(void);
-    void LTE_initialization(void);
     void MQTT_Config();
+    int8_t establishMQTTConnection(void);
     void get_mode_value();
     uint16_t get_gwy_ser_no();
     void init_structures();
     void init_Strings();
-    void initial_AT_cmd_seq();
-
-    int8_t fetch_data_from_LTE_UART(char *cmd, uint16_t timeout_ms, char *check_string);
-    int8_t send_cmd_and_check_response(bool log_sent_command, char *cmd, char *requestString,
-                                       char *response_check_string, uint32_t response_wait_time);
+    int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string);
+    int8_t send_cmd_and_check_response(
+        bool logging,
+        char *cmd, 
+        char *cmdName,
+        char *check_string, 
+        uint32_t timeout_ms
+    );
     int8_t check_response(char *data, char *response_check_string);
+
 #ifdef __cplusplus
 }
 #endif

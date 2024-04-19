@@ -569,7 +569,7 @@ char *get_err_string(uint16_t err_code)
  * @param None
  * @retval Error code
  */
-void parse_json_packet()
+void parse_json_packet(char *json_packet)
 {
     /**
      * First get the json packet
