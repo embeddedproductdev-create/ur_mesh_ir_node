@@ -111,20 +111,21 @@ void app_main()
     }
     #endif
 
-    // Queue part
-    pthread_t queue_tid;
-    if(pthread_create(&queue_tid, NULL, queue_handler, NULL)!=0){
-        perror("Error in creating queue_handler_task : ");
-        exit(FAILURE);
-    }
-
     #if(AP_PART_ENABLED)
     create_AP_task();
     #endif
 
     while(!mqtt_params_fetched_flag)
     {
-        ;//Do nothing until we fetch the mqtt params through the AP Mode (for the very first setup alone)
+        /**
+         * It's better if we don't enable other threads until 
+         * we get the paramters for MQTT from AP mode. Cause,
+         * without it, it's meaningless to run other thread.
+         * NOTE: If AP mode disabled and MQTT params hardcoded,
+         * then the mqtt_params_fetch_flag is be default set to 
+         * true. 
+         */
+        ;
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
@@ -132,9 +133,11 @@ void app_main()
     mesh_main_init();
     #endif
 
+    //these two are needed incase if we're creating tasks using RTOS
+    BaseType_t xReturned;
+    TaskHandle_t xHandle = NULL;
+
     #if(IR_RECV_PART_ENABLED)
-        BaseType_t xReturned;
-        TaskHandle_t xHandle = NULL;
         xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
                                 4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
         if (xReturned != pdPASS)
@@ -145,11 +148,23 @@ void app_main()
     #endif
 
     #if(LTE_PART_ENABLED)
-    pthread_t LTE_tid;
-    if(pthread_create(&LTE_tid, NULL, LTE_task, NULL)!=0){
-        perror("Error in creating LTE_task : ");
-        exit(FAILURE);
-    }
+        xReturned = xTaskCreate(LTE_task, "LTE Task",
+                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+        if (xReturned != pdPASS)
+        {
+            perror("Error in taskCreate for LTE task : ");
+            exit(FAILURE);
+        }
+    #endif
+
+    #if(QUEUE_PART_ENABLED)
+        xReturned = xTaskCreate(queue_handler, "Queue Task",
+                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+        if (xReturned != pdPASS)
+        {
+            perror("Error in taskCreate for Queue task : ");
+            exit(FAILURE);
+        }
     #endif
 
     #if(TEMPERATURE_SENSOR_PART_ENABLED)
@@ -168,13 +183,7 @@ void app_main()
     pthread_join(LED_tid, NULL);
     #endif
 
-    #if(LTE_PART_ENABLED)
-    pthread_join(LTE_tid, NULL);
-    #endif
-
     #if(BUTTON_PART_ENABLED)
     pthread_join(button_tid, NULL);
     #endif
-
-    pthread_join(queue_tid, NULL);
 }

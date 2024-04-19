@@ -143,16 +143,16 @@ void IR_transmit(uint16_t protocol_selected_num)
         strcpy(protocol_chosen_str, "Daikin280");
         ac_daikin280.setPower(gwy_ac_control_t.power);
         ac_daikin280.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
-            gwy_ac_control_t.swingH = kDaikinSwingOn;
-        ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
-        if (gwy_ac_control_t.swingV)
-            gwy_ac_control_t.swingV = kDaikinSwingOn;
-        ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin280.setFan(gwy_ac_control_t.fan);
-        ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
-        ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
-        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        // if (gwy_ac_control_t.swingH)
+        //     gwy_ac_control_t.swingH = kDaikinSwingOn;
+        // ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
+        // if (gwy_ac_control_t.swingV)
+        //     gwy_ac_control_t.swingV = kDaikinSwingOn;
+        // ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
+        // ac_daikin280.setFan(gwy_ac_control_t.fan);
+        // ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
+        // ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
+        // ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin280.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin280\r\n");
@@ -162,14 +162,14 @@ void IR_transmit(uint16_t protocol_selected_num)
         strcpy(protocol_chosen_str, "Daikin216");
         ac_daikin216.setPower(gwy_ac_control_t.power);
         ac_daikin216.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
-            gwy_ac_control_t.swingH = kDaikinSwingOn;
-        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
-        if (gwy_ac_control_t.swingV)
-            gwy_ac_control_t.swingV = kDaikinSwingOn;
-        ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin216.setFan(gwy_ac_control_t.fan);
-        ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        // if (gwy_ac_control_t.swingH)
+        //     gwy_ac_control_t.swingH = kDaikinSwingOn;
+        // ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
+        // if (gwy_ac_control_t.swingV)
+        //     gwy_ac_control_t.swingV = kDaikinSwingOn;
+        // ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
+        // ac_daikin216.setFan(gwy_ac_control_t.fan);
+        // ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin216.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin216\r\n");
@@ -255,15 +255,10 @@ void IR_transmit(uint16_t protocol_selected_num)
         strcpy(protocol_chosen_str, "Hitachi296");
         ac_hitachi296.setPower(gwy_ac_control_t.power);
         ac_hitachi296.setTemp(gwy_ac_control_t.temp);
-        ac_hitachi296.setFan(gwy_ac_control_t.fan);
-        ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        // ac_hitachi296.setFan(gwy_ac_control_t.fan);
+        // ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi296.send();
-        ESP_LOGI(IR_DEBUG_TAG, "Sending Hitachi296\r\n");
-        ESP_LOGI(IR_DEBUG_TAG, "Power : %d\n",gwy_ac_control_t.power);
-        ESP_LOGI(IR_DEBUG_TAG, "Temperature : %d\n",gwy_ac_control_t.temp);
-        ESP_LOGI(IR_DEBUG_TAG, "Fan Speed : %d\n",gwy_ac_control_t.fan);
-        ESP_LOGI(IR_DEBUG_TAG, "Mode : %d\n",ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         break;
         
     case HITACHI_AC:

@@ -37,7 +37,7 @@ void button_logic()
     } 
     else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {
-        ESP_LOGI(BUTTON_DEBUG_TAG, "Not assigned to any operation yet");
+        esp_restart_flag = true;
     }
     else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*7) //Button held for 3 to 7 seconds
         configured = false;

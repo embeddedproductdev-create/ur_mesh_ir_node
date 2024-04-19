@@ -34,7 +34,7 @@ extern "C"
     void search_node_pub_conf_queue(uint16_t messageNum);
     void remove_from_node_pub_conf_queue();
     void add_to_node_pub_conf_queue();
-    void *queue_handler(void *args);
+    void queue_handler(void *args);
 #ifdef __cplusplus
 }
 #endif

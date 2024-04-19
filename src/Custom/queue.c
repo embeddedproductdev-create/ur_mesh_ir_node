@@ -353,17 +353,19 @@ void add_to_prov_queue()
 
 void remove_from_pubmesg_queue()
 {
-	if(pubmesg_queue_head->next == NULL)
+	if(pubmesg_queue_head == NULL)
 	{
-		pubmesg_queue_head->next = NULL;
-		pubmesg_queue_head->prev = NULL;
-		pubmesg_queue_head = NULL;
-		pubmesg_queue_tail = NULL;
+		ESP_LOGE(QUEUE_ERROR_TAG, "pubmesg queue is empty\r\n");
 		return;
 	}
-	pubmesg_queue_head = pubmesg_queue_head->next;
-	free(pubmesg_queue_head->prev);
-	pubmesg_queue_head->prev = NULL;
+	else
+	{
+		struct pub_mesg_struct *temp = pubmesg_queue_head;
+		pubmesg_queue_head = pubmesg_queue_head->next;
+		free(temp);
+		ESP_LOGI(QUEUE_DEBUG_TAG, "Removed element from Pubmesg Queue");
+		if(pubmesg_queue_head == NULL) pubmesg_queue_head = NULL;
+	}
 }
 
 /**
@@ -395,6 +397,7 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 		pubmesg_queue_tail->next->next = NULL;
 		pubmesg_queue_tail = pubmesg_node;
 	}
+	ESP_LOGI(QUEUE_DEBUG_TAG, "Added msg to pub queue");
 }
 
 /**
@@ -410,8 +413,9 @@ void add_to_pubmesg_queue(char *msg, char *topic)
  * @param args 
  * @return void* 
  */
-void *queue_handler(void *args)
+void queue_handler(void *args)
 {
+	ESP_LOGI(QUEUE_DEBUG_TAG, "Queue Thread started");
 	while(1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));
@@ -435,10 +439,9 @@ void *queue_handler(void *args)
 		{
 			send_pub_conf_packet_to_node(node_pub_conf_queue_head);
 		}
-		if(pubmesg_queue_head != NULL)
+		if(pubmesg_queue_head != NULL && mqtt_connected)
 		{
-			publishing_flag = true;
-			if(publish_to_mqtt(pubmesg_queue_head->topic, pubmesg_queue_head->message) == SUCCESS)
+			if(publish_to_mqtt() == SUCCESS)
 				remove_from_pubmesg_queue();
 		}
 	}

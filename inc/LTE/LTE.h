@@ -46,6 +46,7 @@
 #define FACTORY_RESET "AT&F0\r\n"
 #define GET_CURRENT_CONFIG "AT&V\r\n"
 #define GET_TIME "AT+QLTS=2\r\n"
+#define TURN_OFF_ECHO_CMD "ATE0\r"
 
 /*MQTT COMMANDS*/
 #define SET_MQTT_VERSION "AT+QMTCFG=\"version\","
@@ -62,10 +63,12 @@
 #define MQTT_NETWORK_CLOSE "AT+QMTCLOSE="
 #define MQTT_CLIENT_CONN "AT+QMTCONN="
 #define MQTT_CLIENT_DISCONN "AT+QMTDISC="
+#define MQTT_CLIENT_DISCONN_CHECK "AT+QMTDISC=?\r"
 #define SUB_TO_TOPIC "AT+QMTSUB="
 #define UNSUB_TO_TOPIC "AT+QMTUNS="
 #define PUBLISH_TO_MQTT "AT+QMTPUBEX="
 #define READ_MQTT_MESSAGE "AT+QMTRECV="
+#define MQTT_CHECK_READ_BUFFER_CMD "AT+QMTRECV?\r"
 
 /*MQTT RESPONSES*/
 #define MQTT_NETWORK_OPEN_RESPONSE "+QMTOPEN: "
@@ -125,7 +128,7 @@ extern "C"
 #endif
 
     /* FUNCTION DECLARATIONS */
-    void *LTE_task(void *args);
+    void LTE_task(void *args);
     void LTE_restart(void);
     void LTE_gpio_configuration(void);
     void powerCycleLTE(void);
