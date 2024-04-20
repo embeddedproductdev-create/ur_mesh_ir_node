@@ -753,10 +753,10 @@ bool IRrecv::decode(decode_results *results, irparams_t *save,
     // Bosch is similar to Coolix, so it must be attempted before decodeCOOLIX.
     if (decodeBosch144(results, offset)) return true;
 #endif  // DECODE_BOSCH144
-#if DECODE_COOLIX
-    DPRINTLN("Attempting Coolix 24-bit decode");
-    if (decodeCOOLIX(results, offset)) return true;
-#endif  // DECODE_COOLIX
+// #if DECODE_COOLIX
+//     DPRINTLN("Attempting Coolix 24-bit decode");
+//     if (decodeCOOLIX(results, offset)) return true;
+// #endif  // DECODE_COOLIX
 #if DECODE_NIKAI
     DPRINTLN("Attempting Nikai decode");
     if (decodeNikai(results, offset)) return true;
@@ -1135,10 +1135,10 @@ bool IRrecv::decode(decode_results *results, irparams_t *save,
     DPRINTLN("Attempting Airton decode");
     if (decodeAirton(results, offset)) return true;
 #endif  // DECODE_AIRTON
-#if DECODE_COOLIX48
-    DPRINTLN("Attempting Coolix 48-bit decode");
-    if (decodeCoolix48(results, offset)) return true;
-#endif  // DECODE_COOLIX48
+// #if DECODE_COOLIX48
+//     DPRINTLN("Attempting Coolix 48-bit decode");
+//     if (decodeCoolix48(results, offset)) return true;
+// #endif  // DECODE_COOLIX48
 #if DECODE_DAIKIN200
     DPRINTLN("Attempting Daikin 200-bit decode");
     if (decodeDaikin200(results, offset)) return true;

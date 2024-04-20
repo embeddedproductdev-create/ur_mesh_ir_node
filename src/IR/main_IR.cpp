@@ -228,9 +228,9 @@ void IR_transmit(uint16_t protocol)
     case HITACHI_AC296:
         strcpy(protocol_chosen_str, "Hitachi296");
         ac_hitachi296.setPower(gwy_ac_control_t.power);
-        // ac_hitachi296.setTemp(gwy_ac_control_t.temp);
-        // ac_hitachi296.setFan(gwy_ac_control_t.fan);
-        // ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_hitachi296.setTemp(gwy_ac_control_t.temp);
+        ac_hitachi296.setFan(gwy_ac_control_t.fan);
+        ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi296.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Hitachi296\r\n");
