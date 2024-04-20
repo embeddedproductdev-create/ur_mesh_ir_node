@@ -65,32 +65,6 @@ IRMitsubishiHeavy152Ac ac_mitsubishi152(IR_TRANSMIT_PIN);
 IRsend ac_custom(IR_TRANSMIT_PIN);
 
 /**
- * @brief Function that deals with the locking feature
- * If locking is enabled, then it checks if the set temperature was within locking limits, if not it will
- * set the ac back to prev state.
- * If locking is not enabled, then it will send ack to cloud to let user know that someone controlled AC with remote
- * @param result_description_char_str - String containing info about AC remote control
- * @retval none
- */
-void locking_feature(char *result_description_char_str)
-{
-    if (registered)
-    {
-        ESP_LOGI(IR_DEBUG_TAG, "Sending Gwy Locking feature ack\r\n");
-        uint8_t temperature = 0;
-        if (protocol_detected == protocol_selected_num) // Someone tried to control AC
-        {
-            if (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit)
-            {
-                // Someone controlled the AC using remote with exceeding temperature limits
-                IR_transmit(protocol_selected_num);
-            }
-            add_to_pubmesg_queue(result_description_char_str, publish_topic);
-        }
-    }
-}
-
-/**
  * @brief Funtion to setup the IR Transmit part
  * @param none
  * @retval none
@@ -140,14 +114,6 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case DAIKIN:
-        printf("\tgwy_ac_control_t.power : %d\n",gwy_ac_control_t.power);
-        printf("\tgwy_ac_control_t.temp : %d\n",gwy_ac_control_t.temp);
-        printf("\tgwy_ac_control_t.swingH : %d\n",gwy_ac_control_t.swingH);
-        printf("\tgwy_ac_control_t.swingV : %d\n",gwy_ac_control_t.swingV);
-        printf("\tgwy_ac_control_t.mode_val : %d\n",gwy_ac_control_t.mode_val);
-        printf("\tgwy_ac_control_t.fan : %d\n",gwy_ac_control_t.fan);
-        printf("\tgwy_ac_control_t.OffTimer : %d\n",gwy_ac_control_t.OffTimer);
-        printf("\tgwy_ac_control_t.onTimer : %d\n",gwy_ac_control_t.OnTimer);
         strcpy(protocol_chosen_str, "Daikin280");
         ac_daikin280.setPower(gwy_ac_control_t.power);
         ac_daikin280.setTemp(gwy_ac_control_t.temp);
@@ -156,10 +122,10 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
         if (gwy_ac_control_t.swingV)
             gwy_ac_control_t.swingV = kDaikinSwingOn;
-        ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin280.setFan(gwy_ac_control_t.fan);
-        ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
-        ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
+        // ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
+        // ac_daikin280.setFan(gwy_ac_control_t.fan);
+        // ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
+        // ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
         // ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin280.send();
@@ -177,7 +143,7 @@ void IR_transmit(uint16_t protocol)
             gwy_ac_control_t.swingV = kDaikinSwingOn;
         ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
         ac_daikin216.setFan(gwy_ac_control_t.fan);
-        // ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin216.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin216\r\n");
@@ -262,11 +228,12 @@ void IR_transmit(uint16_t protocol)
     case HITACHI_AC296:
         strcpy(protocol_chosen_str, "Hitachi296");
         ac_hitachi296.setPower(gwy_ac_control_t.power);
-        ac_hitachi296.setTemp(gwy_ac_control_t.temp);
+        // ac_hitachi296.setTemp(gwy_ac_control_t.temp);
         // ac_hitachi296.setFan(gwy_ac_control_t.fan);
         // ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_hitachi296.send();
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Hitachi296\r\n");
         break;
         
     case HITACHI_AC:
@@ -511,6 +478,41 @@ void IR_transmit(uint16_t protocol)
 }
 
 /**
+ * @brief Function that deals with the locking feature
+ * If locking is enabled, then it checks if the set temperature was within locking limits, if not it will
+ * set the ac back to prev state.
+ * If locking is not enabled, then it will send ack to cloud to let user know that someone controlled AC with remote
+ * @param result_description_char_str - String containing info about AC remote control
+ * @retval none
+ */
+void locking_feature(char *result_description_char_str)
+{
+    uint8_t temperature = 0;
+    char temperature_in_string[10] = "";
+    if(strstr(result_description_char_str, "Temp: "))
+    {
+        temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: "))+6);
+        temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: "))+7);
+        temperature = atoi(temperature_in_string);
+        ESP_LOGI(IR_DEBUG_TAG, "Manually set Temperature : %s", temperature_in_string);
+        ESP_LOGI(IR_DEBUG_TAG, "Manually set Temperature : %d", temperature);
+    }
+    if (registered)
+    {
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Gwy Locking feature ack\r\n");
+        if (protocol_detected == protocol_selected_num) // Someone tried to control AC
+        {
+            if (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit)
+            {
+                // Someone controlled the AC using remote with exceeding temperature limits
+                IR_transmit(protocol_selected_num);
+            }
+            add_to_pubmesg_queue(result_description_char_str, publish_topic);
+        }
+    }
+}
+
+/**
  * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
  * also takes care of the IR transmission part.
  * @param args
@@ -524,16 +526,19 @@ void IR_receiver_task(void *args)
     irrecv.enableIRIn();
     while(1)
     {
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(1);
         if (needToSendIRComamnd)
-        {
-            ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num : %d",protocol_selected_num);
             IR_transmit(protocol_selected_num);
-        }
         if (esp_restart_flag)
             ESP.restart();
         if (irrecv.decode(&results))
         {
+            printf("IR RAW VALUES : { ");
+            for(uint16_t i=0; i<results.rawlen; i++)
+            {
+                printf("%d ", results.rawbuf[i]);
+            }
+            printf("}\n");
             char raw_buf_str[200];
             strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
             String description = IRAcUtils::resultAcToString(&results);
@@ -565,7 +570,7 @@ void IR_receiver_task(void *args)
                 ESP_LOGI(IR_DEBUG_TAG, "End of Teaching mode \n");
                 teaching_mode = false;
             }
-            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && mqtt_connected && !teaching_mode)
+            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && !configured && !teaching_mode)
             {
                 configured = true;
                 protocol_selected_num = protocol_detected;
@@ -579,7 +584,8 @@ void IR_receiver_task(void *args)
                 add_to_pubmesg_queue(pubmessage, publish_topic);
             }
             if (protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
-                locking_feature(result_description_char_str);
+                // locking_feature(result_description_char_str);
+                ;
             yield();
         }
     }

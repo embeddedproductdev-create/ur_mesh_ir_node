@@ -74,32 +74,32 @@ void IRsend::sendDaikin(const unsigned char data[], const uint16_t nbytes,
     sendGeneric(0, 0,  // No header for the header
                 kDaikinBitMark, kDaikinOneSpace, kDaikinBitMark,
                 kDaikinZeroSpace, kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                (uint64_t)0b00000, kDaikinHeaderLength, 41, false, 0, 75);
+                (uint64_t)0b00000, kDaikinHeaderLength, 41, false, 0, 35);
     // Data #1
     if (nbytes < kDaikinStateLength) {  // Are we using the legacy size?
       // Do this as a constant to save RAM and keep in flash memory
       sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                   kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                   kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                  kDaikinFirstHeader64, 41, 41, false, 0, 75);
+                  kDaikinFirstHeader64, 41, 41, false, 0, 35);
     } else {  // We are using the newer/more correct size.
       sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                   kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                   kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                  data, kDaikinSection1Length, 41, false, 0, 75);
+                  data, kDaikinSection1Length, 41, false, 0, 35);
       offset += kDaikinSection1Length;
     }
     // Data #2
     sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                 kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                 kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                data + offset, kDaikinSection2Length, 41, false, 0, 75);
+                data + offset, kDaikinSection2Length, 41, false, 0, 35);
     offset += kDaikinSection2Length;
     // Data #3
     sendGeneric(kDaikinHdrMark, kDaikinHdrSpace, kDaikinBitMark,
                 kDaikinOneSpace, kDaikinBitMark, kDaikinZeroSpace,
                 kDaikinBitMark, kDaikinZeroSpace + kDaikinGap,
-                data + offset, nbytes - offset, 41, false, 0, 75);
+                data + offset, nbytes - offset, 41, false, 0, 35);
   }
 }
 #endif  // SEND_DAIKIN
@@ -187,12 +187,6 @@ void IRDaikinESP::stateReset(void) {
 uint8_t *IRDaikinESP::getRaw(void) {
   stateReset();
   checksum();  // Ensure correct settings before sending.
-  printf("Printing IR command being sent : \n");
-  for(uint8_t i=0; i<kDaikinStateLength; i++)
-  {
-    printf("\t raw[%d] : %x\n",i,_.raw[i]);
-  }
-  printf("\n");
   return _.raw;
 }
 

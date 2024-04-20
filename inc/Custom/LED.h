@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 /* FUNCTION DECLARATIONS */
-void *LED_task(void *args);
+void LED_task(void *args);
 void LED_initial_setup();
 
 #ifdef __cplusplus

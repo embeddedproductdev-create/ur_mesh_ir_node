@@ -40,8 +40,8 @@ extern uint8_t custom_raw_buffer_index;
 void IR_receiver_task(void *args);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
-void IR_transmit(uint16_t protocol_detected);
 void IR_transmit_setup();
+void IR_transmit(uint16_t protocol_detected);
 
 #endif
 

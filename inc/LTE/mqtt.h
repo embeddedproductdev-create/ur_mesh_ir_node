@@ -65,7 +65,7 @@
 #define NODE_TEACHING_MODE_END_ACK "Node Teaching Mode End Ack"
 
 /*AT command related*/
-#define MQTT_CLIENT_INDEX 1
+#define MQTT_CLIENT_INDEX 2
 #define MQTT_VERSION 3 // 3 = 3.1, 4 = 3.1.1
 #define MQTT_QOS 0 // 0 = atmost once | 1 = atleast once | 2 = exactly once
 #define MQTT_RETAIN 0

@@ -72,7 +72,6 @@ void LTE_UART_INIT(void)
  */
 int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 {
-	ESP_LOGI(LTE_DEBUG_TAG, "fetching and checking ... ");
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
 	uint32_t in_time = esp_timer_get_time();
 	while((esp_timer_get_time()-in_time)/1000 < timeout_ms)
@@ -162,10 +161,8 @@ int8_t publish_to_mqtt()
 	{
 		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
 		{
-			ESP_LOGI(QUEUE_DEBUG_TAG, "Writing Pubmesg to LTE UART after receiving prompt");
 			if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
 			{
-				ESP_LOGI(QUEUE_DEBUG_TAG, "Published [%s] to [%s]",pubmesg_queue_head->message, subscribe_topic);
 				publishing_flag = false;
 				return SUCCESS;
 			}
@@ -176,7 +173,6 @@ int8_t publish_to_mqtt()
 			}
 		}
 	}
-	ESP_LOGE(QUEUE_DEBUG_TAG, "Failed to receive PROMPT from LTE to write Pubmesg");
 	return FAILURE;
 }
 
@@ -238,9 +234,9 @@ void LTE_gpio_configuration()
 void establishMQTTConnection()
 {
 	static uint8_t retry_count = 0;
-	if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
-	if(!sending_at_cmd)
+	if(!sending_at_cmd && !sending)
 	{	
+		if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
 		//If we are stuck at retrying for more than RETRY_COUNT times, then it's better to power cycle the LTE
 		if(retry_count > RETRY_COUNT) 
 		{

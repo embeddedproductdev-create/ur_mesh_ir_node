@@ -363,7 +363,6 @@ void remove_from_pubmesg_queue()
 		struct pub_mesg_struct *temp = pubmesg_queue_head;
 		pubmesg_queue_head = pubmesg_queue_head->next;
 		free(temp);
-		ESP_LOGI(QUEUE_DEBUG_TAG, "Removed element from Pubmesg Queue");
 		if(pubmesg_queue_head == NULL) pubmesg_queue_head = NULL;
 	}
 }
@@ -397,7 +396,6 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 		pubmesg_queue_tail->next->next = NULL;
 		pubmesg_queue_tail = pubmesg_node;
 	}
-	ESP_LOGI(QUEUE_DEBUG_TAG, "Added msg to pub queue");
 }
 
 /**
@@ -418,32 +416,35 @@ void queue_handler(void *args)
 	ESP_LOGI(QUEUE_DEBUG_TAG, "Queue Thread started");
 	while(1)
 	{
-		vTaskDelay(pdMS_TO_TICKS(50));
-		if(prov_queue_head != NULL)
+		vTaskDelay(1);
+		if(!sending)
 		{
-			send_prov_packet_to_node(prov_queue_head);
-		}
-		if(unprov_queue_head != NULL)
-		{
-			send_unprov_packet_to_node(unprov_queue_head);
-		}
-		if(node_reconf_queue_head != NULL)
-		{
-			send_reconf_packet_to_node(node_reconf_queue_head);
-		}	
-		if(node_ac_control_queue_head != NULL)
-		{
-			send_ac_control_packet_to_node(node_ac_control_queue_head);
-		}
-		if(node_pub_conf_queue_head != NULL)
-		{
-			send_pub_conf_packet_to_node(node_pub_conf_queue_head);
-		}
-		//Don't try to publish in the middle of sending an IR command
-		if(pubmesg_queue_head != NULL && mqtt_connected && !needToSendIRComamnd)
-		{
-			if(publish_to_mqtt() == SUCCESS)
-				remove_from_pubmesg_queue();
+			if(prov_queue_head != NULL)
+			{
+				send_prov_packet_to_node(prov_queue_head);
+			}
+			if(unprov_queue_head != NULL)
+			{
+				send_unprov_packet_to_node(unprov_queue_head);
+			}
+			if(node_reconf_queue_head != NULL)
+			{
+				send_reconf_packet_to_node(node_reconf_queue_head);
+			}	
+			if(node_ac_control_queue_head != NULL)
+			{
+				send_ac_control_packet_to_node(node_ac_control_queue_head);
+			}
+			if(node_pub_conf_queue_head != NULL)
+			{
+				send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+			}
+			//Don't try to publish in the middle of sending an IR command
+			if(pubmesg_queue_head != NULL && mqtt_connected)
+			{
+				if(publish_to_mqtt() == SUCCESS)
+					remove_from_pubmesg_queue();
+			}
 		}
 	}
 }

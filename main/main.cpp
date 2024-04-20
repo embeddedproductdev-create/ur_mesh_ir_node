@@ -95,18 +95,24 @@ if (xReturned != pdPASS)
  */
 void app_main()
 {
+    //these two are needed incase if we're creating tasks using RTOS
+    BaseType_t xReturned;
+    TaskHandle_t xHandle = NULL;
+
     fill_gwy_ser_no_str();
 
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    sleep(2);
+
     init_structures();
 
     #if(LED_PART_ENABLED)
-    pthread_t LED_tid;
-    if(pthread_create(&LED_tid, NULL, LED_task, NULL)!=0){
-        perror("Error in creating recv_task : ");
+    xReturned = xTaskCreate(LED_task, "LED task",
+                            4096, (void *)1, 1, &xHandle);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for LED task : ");
         exit(FAILURE);
     }
     #endif
@@ -133,13 +139,13 @@ void app_main()
     mesh_main_init();
     #endif
 
-    //these two are needed incase if we're creating tasks using RTOS
-    BaseType_t xReturned;
-    TaskHandle_t xHandle = NULL;
+    #if(TEMPERATURE_SENSOR_PART_ENABLED)
+    init_temperature_sensor();
+    #endif
 
     #if(IR_RECV_PART_ENABLED)
         xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
-                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+                                4096, (void *)1, 10, &xHandle);
         if (xReturned != pdPASS)
         {
             perror("Error in taskCreate for IR recv task : ");
@@ -167,23 +173,14 @@ void app_main()
         }
     #endif
 
-    #if(TEMPERATURE_SENSOR_PART_ENABLED)
-    init_temperature_sensor();
-    #endif
-
     #if(BUTTON_PART_ENABLED)
-    pthread_t button_tid;
-    if(pthread_create(&button_tid, NULL, button_task, NULL)!=0){
-        perror("Error in creating button_thread : ");
+    xReturned = xTaskCreate(button_task, "button task",
+                            4096, (void *)1, 0, &xHandle);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for button task : ");
         exit(FAILURE);
     }
     #endif
 
-    #if(LED_PART_ENABLED)
-    pthread_join(LED_tid, NULL);
-    #endif
-
-    #if(BUTTON_PART_ENABLED)
-    pthread_join(button_tid, NULL);
-    #endif
 }

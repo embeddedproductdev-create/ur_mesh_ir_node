@@ -133,7 +133,7 @@ void init_digital_temperature_sensor()
 
 static void publish_temperature_cb(void *arg)
 {
-    if(registered)
+    if(registered && !sending)
     {
         ESP_LOGI(TEMPERATURE_DEBUG_TAG, "Sending Gwy Temperature Ack\r\n");
         read_analog_temperature(&measured_temperature);

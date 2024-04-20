@@ -21,5 +21,5 @@
 
 /* FUNCTION DECLARATIONS */
 void clear_mqtt_settings();
-void *button_task(void *args);
+void button_task(void *args);
 #endif

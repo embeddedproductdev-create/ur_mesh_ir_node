@@ -27,7 +27,7 @@ void LED_initial_setup()
  * @param args
  * @return void*
  */
-void *LED_task(void *args)
+void LED_task(void *args)
 {
     LED_initial_setup();
     while(1)

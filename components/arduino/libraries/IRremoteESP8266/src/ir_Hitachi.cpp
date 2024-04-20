@@ -81,7 +81,7 @@ void IRsend::sendHitachiAC(const unsigned char data[], const uint16_t nbytes,
   sendGeneric(kHitachiAcHdrMark, kHitachiAcHdrSpace, kHitachiAcBitMark,
               kHitachiAcOneSpace, kHitachiAcBitMark, kHitachiAcZeroSpace,
               kHitachiAcBitMark, kHitachiAcMinGap, data, nbytes, 41, MSBfirst,
-              repeat, 50);
+              repeat, 65);
 }
 #endif  // (SEND_HITACHI_AC || SEND_HITACHI_AC2 || SEND_HITACHI_AC264 ||
         //  SEND_HITACHI_AC344)
