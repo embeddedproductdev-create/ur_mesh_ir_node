@@ -118,6 +118,7 @@ enum AT_cmd_id{
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[2048];
 extern bool LOG_LTE_DATA;
+extern bool sending_at_cmd;
 
 /*Responses*/
 extern char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
@@ -132,8 +133,7 @@ extern "C"
     void LTE_restart(void);
     void LTE_gpio_configuration(void);
     void powerCycleLTE(void);
-    void MQTT_Config();
-    int8_t establishMQTTConnection(void);
+    void establishMQTTConnection(void);
     void get_mode_value();
     uint16_t get_gwy_ser_no();
     void init_structures();

@@ -187,6 +187,12 @@ void IRDaikinESP::stateReset(void) {
 uint8_t *IRDaikinESP::getRaw(void) {
   stateReset();
   checksum();  // Ensure correct settings before sending.
+  printf("Printing IR command being sent : \n");
+  for(uint8_t i=0; i<kDaikinStateLength; i++)
+  {
+    printf("\t raw[%d] : %x\n",i,_.raw[i]);
+  }
+  printf("\n");
   return _.raw;
 }
 

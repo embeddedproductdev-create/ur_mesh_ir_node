@@ -37,7 +37,8 @@ void button_logic()
     } 
     else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {
-        esp_restart_flag = true;
+        ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num : %d",DAIKIN);
+        IR_transmit(DAIKIN);
     }
     else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*7) //Button held for 3 to 7 seconds
         configured = false;

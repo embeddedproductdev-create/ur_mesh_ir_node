@@ -27,6 +27,7 @@ bool subscribe_flag = false;
 bool mqtt_connected = false;
 bool registered = false;
 bool publishing_flag = false;
+bool sending_at_cmd = false;
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
@@ -103,20 +104,6 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 	return FAILURE;
 }
 
-void MQTT_Config()
-{	
-	char cmd[100];
-
-	sprintf(cmd, "%s%d,%d\r", SET_KEEP_ALIVE, MQTT_CLIENT_INDEX, MQTT_KEEP_ALIVE_S);
-	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_MQTT_KEEP_ALIVE", OK_RESPONSE, 300);
-
-	sprintf(cmd, "%s%d,%d,%d\r", SET_MSG_RECV_MODE, MQTT_CLIENT_INDEX, MQTT_MSG_RECV_MODE, MQTT_MSG_LEN_ENABLE);
-	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_MSG_RECV_MODE", OK_RESPONSE, 300);
-
-	sprintf(cmd, "%s%d,%d\r", SET_CLEAN_SESSION, MQTT_CLIENT_INDEX, MQTT_CLEAN_SESSION);
-	send_cmd_and_check_response(LOG_LTE_DATA, cmd, "SET_CLEAN_SESSION", OK_RESPONSE, 300);
-}
-
 int8_t check_response(char *LTE_UART_data, char *check_string)
 {
 	if(strstr(LTE_UART_data, QMTSTAT_1_ERROR)) return FAILURE;
@@ -139,17 +126,23 @@ int8_t check_response(char *LTE_UART_data, char *check_string)
 int8_t send_cmd_and_check_response(bool logging, char *cmd, 
 char *cmdName, char *check_string, uint32_t timeout_ms)
 {
+	sending_at_cmd = true;
 	if(logging) ESP_LOGI(LTE_DEBUG_TAG, "%s", cmdName);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE) 
 	{
 		if(logging) ESP_LOGI(LTE_DEBUG_TAG, "Command sent : %s",cmd);
-		if(fetch_and_check_data(timeout_ms, check_string)==SUCCESS) 
+		if(fetch_and_check_data(timeout_ms, check_string)==SUCCESS)
+		{ 
+			sending_at_cmd = false;
 			return SUCCESS;
+		}
+		sending_at_cmd = false;
 		return FAILURE;
 	}
 	else 
 	{
 		ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
+		sending_at_cmd = false;
 		return FAILURE;
 	}
 }
@@ -165,19 +158,22 @@ int8_t publish_to_mqtt()
 	publishing_flag = true;
 	char MQTT_PUBLISH_MESG_CMD[PUBMESG_LEN];
 	sprintf(MQTT_PUBLISH_MESG_CMD, "%s%d,%d,%d,%d,\"%s\",%d\r\n", PUBLISH_TO_MQTT, MQTT_CLIENT_INDEX, MQTT_MSGID, MQTT_QOS, MQTT_RETAIN, pubmesg_queue_head->topic, strlen(pubmesg_queue_head->message));
-	if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
+	if(!sending_at_cmd)
 	{
-		ESP_LOGI(QUEUE_DEBUG_TAG, "Writing Pubmesg to LTE UART after receiving prompt");
-		if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
+		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
 		{
-			ESP_LOGI(QUEUE_DEBUG_TAG, "Published [%s] to [%s]",pubmesg_queue_head->message, subscribe_topic);
-			publishing_flag = false;
-			return SUCCESS;
-		}
-		else
-		{
-			ESP_LOGE(QUEUE_DEBUG_TAG, "Publishing to MQTT Failed");
-			return FAILURE;
+			ESP_LOGI(QUEUE_DEBUG_TAG, "Writing Pubmesg to LTE UART after receiving prompt");
+			if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
+			{
+				ESP_LOGI(QUEUE_DEBUG_TAG, "Published [%s] to [%s]",pubmesg_queue_head->message, subscribe_topic);
+				publishing_flag = false;
+				return SUCCESS;
+			}
+			else
+			{
+				ESP_LOGE(QUEUE_DEBUG_TAG, "Publishing to MQTT Failed");
+				return FAILURE;
+			}
 		}
 	}
 	ESP_LOGE(QUEUE_DEBUG_TAG, "Failed to receive PROMPT from LTE to write Pubmesg");
@@ -239,60 +235,61 @@ void LTE_gpio_configuration()
  * @param none
  * @return 0=Success, -1=Failure 
  */
-int8_t establishMQTTConnection()
+void establishMQTTConnection()
 {
 	static uint8_t retry_count = 0;
 	if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
-	
-	//If we are stuck at retrying for more than RETRY_COUNT times, then it's better to power cycle the LTE
-	if(retry_count > RETRY_COUNT) 
-	{
-		network_flag = 0; client_flag = 0; subscribe_flag = 0; retry_count = 0; 
-		powerCycleLTE();
-	}
-	
-	//See if we have connected with Network first
-	else if(!network_flag) 
+	if(!sending_at_cmd)
 	{	
-		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE", OK_RESPONSE, 1000)==FAILURE) retry_count++;
-		else retry_count = 0;
-		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1000)==FAILURE)
+		//If we are stuck at retrying for more than RETRY_COUNT times, then it's better to power cycle the LTE
+		if(retry_count > RETRY_COUNT) 
+		{
+			network_flag = 0; client_flag = 0; subscribe_flag = 0; retry_count = 0; 
+			powerCycleLTE();
+		}
+		
+		//See if we have connected with Network first
+		else if(!network_flag) 
+		{	
+			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE", OK_RESPONSE, 1000)==FAILURE) retry_count++;
+			else retry_count = 0;
+			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1000)==FAILURE)
+			{ 
+				retry_count++;
+			}
+			else {network_flag = 1; retry_count = 0;}
+		}
+		
+		//Then see if we have established a client connection
+		else if(network_flag && !client_flag)
 		{ 
-			retry_count++;
+			send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_DISCONN_CMD, "MQTT_CLIENT_DISCONN_CMD", OK_RESPONSE, 1000);
+			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", OK_RESPONSE, 1000)==FAILURE)
+			{
+				retry_count++; network_flag = 0;
+			} 
+			else {client_flag = 1; retry_count = 0;}
 		}
-		else {network_flag = 1; retry_count = 0;}
-	}
-	
-	//Then see if we have established a client connection
-	else if(network_flag && !client_flag)
-	{ 
-		send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_DISCONN_CMD, "MQTT_CLIENT_DISCONN_CMD", OK_RESPONSE, 1000);
-		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", OK_RESPONSE, 1000)==FAILURE)
+		
+		//Check if we have also subscribed to the topic
+		else if(network_flag && client_flag && !subscribe_flag)
 		{
-			retry_count++; network_flag = 0;
+			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", OK_RESPONSE, 1000)==FAILURE)
+			{
+				retry_count++; client_flag = 0;		
+			}
+			else {subscribe_flag = 1; mqtt_connected = 1; retry_count = 0;}
 		} 
-		else {client_flag = 1; retry_count = 0;}
-	}
-	
-	//Check if we have also subscribed to the topic
-	else if(network_flag && client_flag && !subscribe_flag)
-	{
-		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", OK_RESPONSE, 1000)==FAILURE)
+		
+		//If everything looks good, then we are good to check if we have recvd any message from MQTT on the topic we have subscribed
+		if(mqtt_connected && !publishing_flag) 
 		{
-			retry_count++; client_flag = 0;		
+			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200)==FAILURE) {
+				retry_count++; mqtt_connected = 0; subscribe_flag = 0;
+			} 
+			else retry_count = 0;
 		}
-		else {subscribe_flag = 1; mqtt_connected = 1; retry_count = 0;}
-	} 
-	
-	//If everything looks good, then we are good to check if we have recvd any message from MQTT on the topic we have subscribed
-	if(mqtt_connected && !publishing_flag) 
-	{
-		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200)==FAILURE) {
-			retry_count++; mqtt_connected = 0; subscribe_flag = 0;
-		} 
-		else retry_count = 0;
 	}
-	return SUCCESS;
 }
 
 /**

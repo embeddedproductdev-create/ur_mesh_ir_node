@@ -439,7 +439,8 @@ void queue_handler(void *args)
 		{
 			send_pub_conf_packet_to_node(node_pub_conf_queue_head);
 		}
-		if(pubmesg_queue_head != NULL && mqtt_connected)
+		//Don't try to publish in the middle of sending an IR command
+		if(pubmesg_queue_head != NULL && mqtt_connected && !needToSendIRComamnd)
 		{
 			if(publish_to_mqtt() == SUCCESS)
 				remove_from_pubmesg_queue();

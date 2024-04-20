@@ -619,7 +619,6 @@ void parse_json_packet(char *json_packet)
         case GWY_AC_CONTROL_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy AC Control packet\r\n");
             // filling the default values for temp up and low limit
-            gwy_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
             gwy_ac_control_t.TempLowLimit = TEMPERATURE_LOWER_LIMIT;
             gwy_ac_control_t.TempUpLimit = TEMPERATURE_UPPER_LIMIT;
             gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;

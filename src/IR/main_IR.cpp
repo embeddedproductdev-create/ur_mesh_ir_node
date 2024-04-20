@@ -127,9 +127,9 @@ void IR_transmit_setup()
     ac_custom.begin();
 }
 
-void IR_transmit(uint16_t protocol_selected_num)
+void IR_transmit(uint16_t protocol)
 {
-    switch (protocol_selected_num)
+    switch (protocol)
     {
     default:
         printf("Error in choosing the protocol for send\r\n");
@@ -140,18 +140,26 @@ void IR_transmit(uint16_t protocol_selected_num)
         break;
 
     case DAIKIN:
+        printf("\tgwy_ac_control_t.power : %d\n",gwy_ac_control_t.power);
+        printf("\tgwy_ac_control_t.temp : %d\n",gwy_ac_control_t.temp);
+        printf("\tgwy_ac_control_t.swingH : %d\n",gwy_ac_control_t.swingH);
+        printf("\tgwy_ac_control_t.swingV : %d\n",gwy_ac_control_t.swingV);
+        printf("\tgwy_ac_control_t.mode_val : %d\n",gwy_ac_control_t.mode_val);
+        printf("\tgwy_ac_control_t.fan : %d\n",gwy_ac_control_t.fan);
+        printf("\tgwy_ac_control_t.OffTimer : %d\n",gwy_ac_control_t.OffTimer);
+        printf("\tgwy_ac_control_t.onTimer : %d\n",gwy_ac_control_t.OnTimer);
         strcpy(protocol_chosen_str, "Daikin280");
         ac_daikin280.setPower(gwy_ac_control_t.power);
         ac_daikin280.setTemp(gwy_ac_control_t.temp);
-        // if (gwy_ac_control_t.swingH)
-        //     gwy_ac_control_t.swingH = kDaikinSwingOn;
-        // ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
-        // if (gwy_ac_control_t.swingV)
-        //     gwy_ac_control_t.swingV = kDaikinSwingOn;
-        // ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
-        // ac_daikin280.setFan(gwy_ac_control_t.fan);
-        // ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
-        // ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
+        if (gwy_ac_control_t.swingH)
+            gwy_ac_control_t.swingH = kDaikinSwingOn;
+        ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
+        if (gwy_ac_control_t.swingV)
+            gwy_ac_control_t.swingV = kDaikinSwingOn;
+        ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikin280.setFan(gwy_ac_control_t.fan);
+        ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
+        ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
         // ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin280.send();
@@ -162,13 +170,13 @@ void IR_transmit(uint16_t protocol_selected_num)
         strcpy(protocol_chosen_str, "Daikin216");
         ac_daikin216.setPower(gwy_ac_control_t.power);
         ac_daikin216.setTemp(gwy_ac_control_t.temp);
-        // if (gwy_ac_control_t.swingH)
-        //     gwy_ac_control_t.swingH = kDaikinSwingOn;
-        // ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
-        // if (gwy_ac_control_t.swingV)
-        //     gwy_ac_control_t.swingV = kDaikinSwingOn;
-        // ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
-        // ac_daikin216.setFan(gwy_ac_control_t.fan);
+        if (gwy_ac_control_t.swingH)
+            gwy_ac_control_t.swingH = kDaikinSwingOn;
+        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
+        if (gwy_ac_control_t.swingV)
+            gwy_ac_control_t.swingV = kDaikinSwingOn;
+        ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikin216.setFan(gwy_ac_control_t.fan);
         // ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin216.send();
@@ -518,7 +526,10 @@ void IR_receiver_task(void *args)
     {
         vTaskDelay(pdMS_TO_TICKS(50));
         if (needToSendIRComamnd)
+        {
+            ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num : %d",protocol_selected_num);
             IR_transmit(protocol_selected_num);
+        }
         if (esp_restart_flag)
             ESP.restart();
         if (irrecv.decode(&results))
