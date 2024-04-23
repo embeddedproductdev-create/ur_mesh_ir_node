@@ -2,7 +2,7 @@
  * @file main_IR_recv.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions related to the IR receiver part
- * @version 0.1
+ * @version 0.5
  * @date 2024-02-29
  * @copyright Copyright (c) 2024
  */
@@ -20,6 +20,7 @@ IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
 decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
 char protocol_chosen_str[15] = "";
+bool teachMode_size_done=0;
 
 //Initializaiton - Teaching mode
 uint8_t convert_buffer[2];
@@ -105,8 +106,20 @@ void IR_transmit(uint16_t protocol)
 {
     switch (protocol)
     {
-    default:
-        printf("Error in choosing the protocol for send\r\n");
+    case RAW:
+        eeprom_read(EEPROM_SLAVE_ADDR,TEACH_DATA_LEN,convert_buffer,2);
+        convert_data=convert_8bit_to_16bit(convert_buffer);
+        eeprom_addr=TEACH_DATA_POFF;
+        if(gwy_ac_control_t.power){
+            if(gwy_ac_control_t.temp>FETCH_ADDR_LOW)
+                eeprom_addr=(TEACH_DATA_POFF+(MAX_OFFSET*(gwy_ac_control_t.temp-FETCH_ADDR_LOW)));
+            else  ESP_LOGI(IR_DEBUG_TAG,  "Not an valid temperature\r\n");
+        }
+        printf("EEPROM ADDR : %d",eeprom_addr);
+        read_from_memory(custom_raw_buffer,convert_data,eeprom_addr);
+        ac_custom.sendRaw(custom_raw_buffer,convert_data/2,41);
+        ESP_LOGI(IR_DEBUG_TAG,  "Running Random protocol\r\n");
+        strcpy(protocol_chosen_str, "Random");
         break;
 
     case DAIKIN200:
@@ -122,11 +135,11 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
         if (gwy_ac_control_t.swingV)
             gwy_ac_control_t.swingV = kDaikinSwingOn;
-        // ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
-        // ac_daikin280.setFan(gwy_ac_control_t.fan);
-        // ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
-        // ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
-        // ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
+        ac_daikin280.setFan(gwy_ac_control_t.fan);
+        ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
+        ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
+        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_daikin280.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin280\r\n");
@@ -472,6 +485,9 @@ void IR_transmit(uint16_t protocol)
         ac_mitsubishi152.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending MitsubishiHeavy152\n");
         break;
+    default:
+        printf("Error in choosing the protocol for send\r\n");
+        break;
     }
     needToSendIRComamnd = false;
     sending = false;    
@@ -526,7 +542,7 @@ void IR_receiver_task(void *args)
     irrecv.enableIRIn();
     while(1)
     {
-        vTaskDelay(1);
+        vTaskDelay(1);  
         if (needToSendIRComamnd)
             IR_transmit(protocol_selected_num);
         if (esp_restart_flag)
@@ -551,24 +567,29 @@ void IR_receiver_task(void *args)
             #endif
             if (teaching_mode)
             {
+                configured = true;
+                protocol_selected_num = RAW;
                 temp_min_val=18;
-                if(!eeprom_addr_cal) {
+                if(teachMode_size_done){
                     eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
                     vTaskDelay(20/portTICK_PERIOD_MS);
-                    convert_data=((results.rawlen)-1)*2;
+                    if(results.rawlen>1)    convert_data=((results.rawlen)-1)*2;
                     convert_16bit_to_8bit(convert_data,convert_buffer);
                     eeprom_addr=TEACH_DATA_LEN;
                     eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
                     vTaskDelay(20/portTICK_PERIOD_MS);
+                    teachMode_size_done=false;
+                }
+                ESP_LOGI(IR_DEBUG_TAG,"Writing Data");
+                if(!eeprom_addr_cal) { 
                     eeprom_addr=TEACH_DATA_POFF;
                 }
                 else {
                     eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
                 }
                 eeprom_addr_cal++;
+                printf("EEPROM ADDR : %d",eeprom_addr);
                 write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
-                ESP_LOGI(IR_DEBUG_TAG, "End of Teaching mode \n");
-                teaching_mode = false;
             }
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && !configured && !teaching_mode)
             {

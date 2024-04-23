@@ -89,6 +89,7 @@
 #define AP_PART_ENABLED false
 #define QUEUE_PART_ENABLED true
 #define TEACHING_PART_ENABLED true
+#define CLIENT_RELEASE true
 
 /* GLOBAL VARIABLES */
 extern bool configured;

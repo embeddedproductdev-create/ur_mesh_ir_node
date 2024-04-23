@@ -2,7 +2,7 @@
  * @file LTE.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions related to LTE communication
- * @version 0.1
+ * @version 0.5
  * @date 2024-02-29
  * @link https://evelta.com/content/datasheets/027-EC200UCNAA.pdf <-- Hardware design document link
  * @link https://auroraevernet.ru/upload/iblock/c81/rfhactu9l14ymr9cxt3pebdqxfu39h5v.pdf <-- MQTT AT commands manual

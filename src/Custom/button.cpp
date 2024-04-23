@@ -2,7 +2,7 @@
  * @file button.cpp
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to the User button
- * @version 0.1
+ * @version 0.5
  * @date 2024-03-05
  * @copyright Copyright (c) 2024
  */

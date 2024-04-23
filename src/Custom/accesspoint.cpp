@@ -2,7 +2,7 @@
  * @file accesspoint.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to the Access point hosting for MQTT parameter initialization
- * @version 0.1
+ * @version 0.5
  * @date 2024-03-07
  * @ref https://www.upesy.com/blogs/tutorials/how-create-a-wifi-acces-point-with-esp32
  * @ref https://randomnerdtutorials.com/esp32-access-point-ap-web-Server/
@@ -21,11 +21,20 @@ bool mqtt_params_fetched_flag = false;
 #endif
 
 #if(!AP_PART_ENABLED)
-char mqtt_server_ip[16] = "54.215.188.103";
-uint16_t mqtt_port = 1883;
-char mqtt_broker_username[30] = "QmaxSystems";
-char mqtt_broker_password[100] = "Qmax_mosquitto_!@#";
+#if(CLIENT_RELEASE)
+char mqtt_server_ip[16] = UNIMATION_IP;
+uint16_t mqtt_port = UNIMATION_MQTT_PORT;
+char mqtt_broker_username[30] = UNIMATION_BROKER_NAME;
+char mqtt_broker_password[100] = UNIMATION_BROKER_PASSWORD;
 bool mqtt_params_fetched_flag = true;
+#endif
+#if(!CLIENT_RELEASE)
+char mqtt_server_ip[16] = QMAX_IP;
+uint16_t mqtt_port = QMAX_MQTT_PORT;
+char mqtt_broker_username[30] = UNIMATION_BROKER_NAME;
+char mqtt_broker_password[100] = UNIMATION_BROKER_PASSWORD;
+bool mqtt_params_fetched_flag = true;
+#endif
 #endif
 
 /* IP Address details */

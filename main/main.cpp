@@ -2,7 +2,7 @@
  * @file main.cpp
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This is the starting point for the whole program
- * @version 0.1
+ * @version 0.5
  * @date 2024-02-29
  * @copyright Copyright (c) 2024
  */
@@ -14,7 +14,12 @@
 
 //Initialization
 bool esp_restart_flag = false;
+#if(CLIENT_RELEASE)
+uint16_t GWY_SER_NO = 100;
+#endif
+#if(!CLIENT_RELEASE)
 uint16_t GWY_SER_NO = 3;
+#endif
 char GWY_SER_NO_IN_STRING[8];
 
 //Initializing Global Structures
@@ -98,7 +103,6 @@ void app_main()
     //these two are needed incase if we're creating tasks using RTOS
     BaseType_t xReturned;
     TaskHandle_t xHandle = NULL;
-
     fill_gwy_ser_no_str();
 
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
