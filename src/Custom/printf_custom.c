@@ -2,7 +2,7 @@
  * @file printf_custom.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains function definitions for custom printing logs
- * @version 0.5
+ * @version 0.6
  * @date 2024-04-20
  * @copyright Copyright (c) 2024
  */

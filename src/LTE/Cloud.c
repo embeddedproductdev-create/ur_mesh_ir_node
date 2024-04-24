@@ -2,7 +2,7 @@
  * @file Cloud.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to MQTT packet handling and Sending Acknowledgements
- * @version 0.5
+ * @version 0.6
  * @date 2024-04-16
  * @copyright Copyright (c) 2024
  */

@@ -2,7 +2,7 @@
  * @file button.cpp
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to the User button
- * @version 0.5
+ * @version 0.6
  * @date 2024-03-05
  * @copyright Copyright (c) 2024
  */
@@ -37,7 +37,7 @@ void button_logic()
     } 
     else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {
-        if(!teaching_mode){
+        if(!teaching_mode && registered){
             teaching_mode = true;
             teachMode_size_done=true;
             ESP_LOGI(IR_DEBUG_TAG,"Starting Teaching Mode");

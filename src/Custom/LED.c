@@ -2,7 +2,7 @@
  * @file LED.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions related to the handling of the On-Board LED
- * @version 0.5
+ * @version 0.6
  * @date 2024-02-29
  * @copyright Copyright (c) 2024
  */

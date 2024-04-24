@@ -56,6 +56,9 @@
 /* Flash */
 #include "../flash/flash.h"
 
+#define MAJ_VERSION 0
+#define MIN_VERSION 6
+
 #define TAG "UART"
 #define MAIN_DEBUG_TAG "[MAIN_DEBUG]"
 #define MAIN_ERROR_TAG "[MAIN_ERROR]"
@@ -76,8 +79,6 @@
 #define TEMPERATURE_DEBUG_TAG "[TEMPERATURE_DEBUG]"
 #define TEMPERATURE_ERROR_TAG "[TEMPERATURE_ERROR]"
 #define SETUP_TAG "[SETUP]"
-#define MAJ_VERSION 0
-#define MIN_VERSION 5
 #define BAUD_RATE 115200
 
 #define IR_RECV_PART_ENABLED true

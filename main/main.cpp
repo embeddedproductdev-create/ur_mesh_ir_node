@@ -2,7 +2,7 @@
  * @file main.cpp
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This is the starting point for the whole program
- * @version 0.5
+ * @version 0.6
  * @date 2024-02-29
  * @copyright Copyright (c) 2024
  */
