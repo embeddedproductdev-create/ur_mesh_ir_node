@@ -52,6 +52,7 @@
 #include "temperature_sensor.h"
 #include "queue.h"
 #include "printf_custom.h"
+#include "button.h"
 
 /* Flash */
 #include "../flash/flash.h"

@@ -29,6 +29,10 @@
 /* TRANSMITTER */
 #define IR_TRANSMIT_PIN 7
 
+/* TEACHING MODE */
+#define TEACHING_MODE_STARTING_TEMPERATURE 19
+#define TEACHING_MODE_ENDING_TEMPERATURE 28
+
 /* GLOBAL VARIABLES - RECEIVER */
 extern char protocol_chosen_str[15];
 extern uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];

@@ -8,9 +8,6 @@
  */
 
 #include "../../inc/IR/main_IR.h"
-#include "../../inc/LTE/LTE.h"
-#include "../../inc/LTE/mqtt.h"
-#include "../../inc/Custom/button.h"
 
 // Initialization - Receiver
 IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
@@ -27,7 +24,6 @@ uint8_t convert_buffer[2];
 uint16_t convert_data=0;
 uint16_t eeprom_addr=0;
 uint16_t eeprom_addr_cal=0;
-uint8_t temp_min_val=0;
 uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 uint8_t custom_raw_buffer_index = 0;
 bool data_processing=0;
@@ -121,7 +117,7 @@ void IR_transmit(uint16_t protocol)
         }
         sprintf(ir_log_buffer, "EEPROM ADDR : %d\n",eeprom_addr);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        if((convert_data<=MAX_OFFSET)&&(eeprom_addr<=TEACH_DATA_PON_32C)&&((gwy_ac_control_t.temp>=temp_min_val)&&((gwy_ac_control_t.temp<=temp_max_val)||!gwy_ac_control_t.power))){
+        if((convert_data<=MAX_OFFSET)&&(eeprom_addr<=TEACH_DATA_PON_32C)&&((gwy_ac_control_t.temp>=TEACHING_MODE_STARTING_TEMPERATURE)&&((gwy_ac_control_t.temp<=TEACHING_MODE_ENDING_TEMPERATURE)||!gwy_ac_control_t.power))){
             read_from_memory(custom_raw_buffer,convert_data,eeprom_addr);
             ac_custom.sendRaw(custom_raw_buffer,convert_data/2,41);
         }
@@ -628,7 +624,6 @@ void IR_receiver_task(void *args)
             if (teaching_mode)
             {
                 protocol_selected_num = RAW;
-                temp_min_val=18;
                 if(teachMode_size_done){
                     eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
                     vTaskDelay(20/portTICK_PERIOD_MS);
@@ -645,7 +640,7 @@ void IR_receiver_task(void *args)
                     eeprom_addr=TEACH_DATA_POFF;
                 }
                 else {
-                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
+                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(TEACHING_MODE_STARTING_TEMPERATURE-16))*MAX_OFFSET);
                 }
                 eeprom_addr_cal++;
                 printf("EEPROM ADDR : %d",eeprom_addr);

@@ -54,7 +54,7 @@ void remove_from_node_pub_conf_queue()
 
 void add_to_node_pub_conf_queue()
 {
-	pub_conf_t *pub_conf_node = (struct pub_conf_t *)malloc(sizeof(pub_conf_t));
+	pub_conf_t *pub_conf_node = (pub_conf_t *)malloc(sizeof(pub_conf_t));
 	if(pub_conf_node!=NULL) *pub_conf_node = node_pub_conf_t;
 	else
 	{
@@ -119,7 +119,7 @@ void remove_from_node_reconf_queue()
 
 void add_to_node_reconf_queue()
 {
-	reconf_t *reconf_node = (struct reconf_t *)malloc(sizeof(reconf_t));
+	reconf_t *reconf_node = (reconf_t *)malloc(sizeof(reconf_t));
 	if(reconf_node!=NULL) *reconf_node = node_reconf_t;
 	else
 	{
@@ -195,7 +195,7 @@ void remove_from_node_control_queue()
 
 void add_to_node_control_queue()
 {
-	control_t *control_node = (struct control_t *)malloc(sizeof(control_t));
+	control_t *control_node = (control_t *)malloc(sizeof(control_t));
 	if(control_node!=NULL) *control_node = node_ac_control_t;
 	else
 	{
@@ -262,7 +262,7 @@ void remove_from_unprov_queue()
 
 void add_to_unprov_queue()
 {
-	unprov_t *unprov_node = (struct unprov_t *)malloc(sizeof(unprov_t));
+	unprov_t *unprov_node = (unprov_t *)malloc(sizeof(unprov_t));
 	if(unprov_node!=NULL) *unprov_node = unprovision_t;
 	else
 	{
@@ -329,7 +329,7 @@ void remove_from_prov_queue()
 
 void add_to_prov_queue()
 {
-	prov_t *prov_node = (struct prov_t *)malloc(sizeof(prov_t));
+	prov_t *prov_node = (prov_t *)malloc(sizeof(prov_t));
 	if(prov_node!=NULL) *prov_node = provision_t;
 	else 
 	{
@@ -413,7 +413,6 @@ void add_to_pubmesg_queue(char *msg, char *topic)
  */
 void queue_handler(void *args)
 {
-	ESP_LOGI(QUEUE_DEBUG_TAG, "Queue Thread started");
 	while(1)
 	{
 		vTaskDelay(1);

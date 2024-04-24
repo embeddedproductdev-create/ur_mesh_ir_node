@@ -173,6 +173,8 @@ int8_t publish_to_mqtt()
 			if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
 			{
 				publishing_flag = false;
+				sprintf(queue_log_buffer, "Published :\n\t%s\n\ttopic %s",pubmesg_queue_head->message, subscribe_topic);
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				return SUCCESS;
 			}
 			else
