@@ -36,6 +36,9 @@ extern uint8_t custom_raw_buffer_index;
 
 /* GLOBAL VARIABLES - TRANSMITTER */
 
+/* GLOBAL VARIABLES - TEACHING MODE*/
+extern bool teachMode_size_done;
+
 /* FUNCTION DECLARATIONS - RECEIVER */
 void IR_receiver_task(void *args);
 

@@ -37,8 +37,16 @@ void button_logic()
     } 
     else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {
-        if(!teaching_mode) teaching_mode = true;
-        else teaching_mode = false;
+        if(!teaching_mode){
+            teaching_mode = true;
+            teachMode_size_done=true;
+            ESP_LOGI(IR_DEBUG_TAG,"Starting Teaching Mode");
+        } 
+        else{
+            teaching_mode = false;
+            teachMode_size_done=false;
+            ESP_LOGI(IR_DEBUG_TAG,"End of Teaching Mode");
+        } 
     }
     else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*7) //Button held for 3 to 7 seconds
         configured = false;

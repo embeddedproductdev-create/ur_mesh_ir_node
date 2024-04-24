@@ -20,7 +20,7 @@ bool configured = false;
 bool teaching_mode = false;
 bool teaching_mode_done =false;
 char protocol_chosen_str[15] = "";
-bool teachMode_size_done=0;
+
 
 //Initializaiton - Teaching mode
 uint8_t convert_buffer[2];
@@ -30,6 +30,8 @@ uint16_t eeprom_addr_cal=0;
 uint8_t temp_min_val=0;
 uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 uint8_t custom_raw_buffer_index = 0;
+bool data_processing=0;
+bool teachMode_size_done=0;
 
 // Initialization - Transmitter
 bool needToSendIRComamnd = false;
@@ -107,29 +109,26 @@ void IR_transmit(uint16_t protocol)
     switch (protocol)
     {
     case RAW:
+        strcpy(protocol_chosen_str, "RAW");
         eeprom_read(EEPROM_SLAVE_ADDR,TEACH_DATA_LEN,convert_buffer,2);
         convert_data=convert_8bit_to_16bit(convert_buffer);
+        sprintf(ir_log_buffer, "Size of data : %d\t",convert_data);
+        white_printf(IR_DEBUG_TAG, ir_log_buffer);
         eeprom_addr=TEACH_DATA_POFF;
         if(gwy_ac_control_t.power){
-            if(gwy_ac_control_t.temp>FETCH_ADDR_LOW)
-                eeprom_addr=(TEACH_DATA_POFF+(MAX_OFFSET*(gwy_ac_control_t.temp-FETCH_ADDR_LOW)));
-            else {
-                sprintf(ir_log_buffer,  "Not an valid temperature");
-                white_printf(IR_DEBUG_TAG, ir_log_buffer);
-            }
+            if(gwy_ac_control_t.temp>FETCH_ADDR_LOW)    eeprom_addr=(TEACH_DATA_POFF+(MAX_OFFSET*(gwy_ac_control_t.temp-FETCH_ADDR_LOW)));
+            else  ESP_LOGE(IR_ERROR_TAG,  "Not an valid temperature\r\n");
         }
-        printf("EEPROM ADDR : %d",eeprom_addr);
-        read_from_memory(custom_raw_buffer,convert_data,eeprom_addr);
-        ac_custom.sendRaw(custom_raw_buffer,convert_data/2,41);
-        sprintf(ir_log_buffer,  "Running Random protocol");
+        sprintf(ir_log_buffer, "EEPROM ADDR : %d\n",eeprom_addr);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        strcpy(protocol_chosen_str, "Random");
-        break;
-
-    case DAIKIN200:
-        sprintf(ir_log_buffer, "Sending Raw");
-        white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        break;
+        if((convert_data<=MAX_OFFSET)&&(eeprom_addr<=TEACH_DATA_PON_32C)&&((gwy_ac_control_t.temp>=temp_min_val)&&((gwy_ac_control_t.temp<=temp_max_val)||!gwy_ac_control_t.power))){
+            read_from_memory(custom_raw_buffer,convert_data,eeprom_addr);
+            ac_custom.sendRaw(custom_raw_buffer,convert_data/2,41);
+        }
+        else{
+            sprintf(ir_log_buffer,  "Memory is not configured correctly or data invalid!!!\r\n");
+            white_printf(IR_DEBUG_TAG, ir_log_buffer);
+        }
 
     case DAIKIN:
         strcpy(protocol_chosen_str, "Daikin280");
@@ -186,6 +185,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin2");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+        
     case DAIKIN160:
         strcpy(protocol_chosen_str, "Daikin160");
         ac_daikin160.setPower(gwy_ac_control_t.power);
@@ -198,6 +198,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin160");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case DAIKIN176:
         strcpy(protocol_chosen_str, "Daikin176");
         ac_daikin176.setPower(gwy_ac_control_t.power);
@@ -211,6 +212,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin176");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case DAIKIN64:
         strcpy(protocol_chosen_str, "Daikin64");
         ac_daikinac64.setPowerToggle(gwy_ac_control_t.power);
@@ -225,6 +227,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin64");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case DAIKIN152:
         strcpy(protocol_chosen_str, "Daikin152");
         ac_daikin152.setPower(gwy_ac_control_t.power);
@@ -237,6 +240,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin152");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case DAIKIN128:
         strcpy(protocol_chosen_str, "Daikin128");
         ac_daikin128.setPowerToggle(gwy_ac_control_t.power);
@@ -251,6 +255,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin128");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case HITACHI_AC296:
         strcpy(protocol_chosen_str, "Hitachi296");
         ac_hitachi296.setPower(gwy_ac_control_t.power);
@@ -276,6 +281,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending HitachiAc224");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case HITACHI_AC1:
         strcpy(protocol_chosen_str, "HitachiAc104");
         ac_hitachi104.setPower(gwy_ac_control_t.power);
@@ -291,6 +297,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending HitachiAc104");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case HITACHI_AC424:
         strcpy(protocol_chosen_str, "HitachiAc424");
         ac_hitachi424.setPower(gwy_ac_control_t.power);
@@ -303,6 +310,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending HitachiAc424");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case HITACHI_AC344:
         strcpy(protocol_chosen_str, "HitachiAc344");
         ac_hitachi344.setSwingH(gwy_ac_control_t.swingH);
@@ -311,6 +319,7 @@ void IR_transmit(uint16_t protocol)
         ac_hitachi344.send();
         sprintf(ir_log_buffer, "Sending HitachiAc344");
         break;
+
     case HITACHI_AC264:
         strcpy(protocol_chosen_str, "HitachiAc264");
         ac_hitachi264.setFan(gwy_ac_control_t.fan);
@@ -335,6 +344,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Voltas\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case SAMSUNG_AC:
         strcpy(protocol_chosen_str, "Samsung");
         ac_samsung.setPower(gwy_ac_control_t.power);
@@ -350,6 +360,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Samsung\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+        
     case HAIER_AC:
         strcpy(protocol_chosen_str, "Haier");
         //Regarding Power on/off and horizontal swing control we don't have library support 
@@ -364,6 +375,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Haier\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case HAIER_AC176:
         strcpy(protocol_chosen_str, "Haier176");
         ac_haier176.setPower(gwy_ac_control_t.power);
@@ -379,6 +391,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Haier176\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case HAIER_AC160:
         //Regarding horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "Haier160");
@@ -394,6 +407,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Haier160\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case CARRIER_AC64:
     //Regarding horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "CarrierAC64");
@@ -409,6 +423,8 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending CarrierAC64\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
+    case LG2:
     case LG:
         //Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "LG");
@@ -423,6 +439,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending LG\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case TOSHIBA_AC:
         //Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "Toshiba");
@@ -443,6 +460,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Toshiba\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case MITSUBISHI112:
     //Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "Mitsubishi112");
@@ -457,6 +475,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Mitsubishi112\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case MITSUBISHI136:
     //Regarding on/off timer and horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "Mitsubishi136");
@@ -472,6 +491,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Mitsubishi136\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case MITSUBISHI_AC:
     //Regarding on/off timer and  swing we don't have library support
         strcpy(protocol_chosen_str, "MitsubishiAc");
@@ -484,6 +504,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending MitsubishiAc\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case MITSUBISHI_HEAVY_88:
     //Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "MitsubisiHvy88");
@@ -500,6 +521,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending MitsubishiHeavy88\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     case MITSUBISHI_HEAVY_152:
     //Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "MitsbisiHvy152");
@@ -516,6 +538,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending MitsubishiHeavy152\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
+
     default:
         printf("Error in choosing the protocol for send");
         break;
