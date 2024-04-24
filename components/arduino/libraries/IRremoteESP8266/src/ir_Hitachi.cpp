@@ -1373,7 +1373,7 @@ IRHitachiAc3::IRHitachiAc3(const uint16_t pin, const bool inverted,
 /// @note Reset to auto fan, cooling, 23° Celsius
 void IRHitachiAc3::stateReset(void) {
   for (uint8_t i = 0; i < kHitachiAc3StateLength; i++)
-    remote_state[i] = 0x00;
+  remote_state[i] = 0x00;
   remote_state[0]  = 0x01;
   remote_state[1]  = 0x10;
   remote_state[3]  = 0x40;
@@ -1756,11 +1756,9 @@ void IRHitachiAc296::stateReset(void) {
   _.raw[31] = 0x00;
   _.raw[33] = 0x00;
   _.raw[35] = 0x03;  // Humidity
-
   setTemp(24);
   setMode(kHitachiAc296Heat);
   setFan(kHitachiAc296FanAuto);
-
   setInvertedStates();
 }
 

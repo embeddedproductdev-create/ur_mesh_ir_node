@@ -14,6 +14,9 @@
 
 #include "../Custom/main.h"
 
+#define MAX_WAIT_MS 100
+#define BUF_SIZE 2048
+
 /*CME ERRORS*/
 #define CME_ERROR_10 "+CME ERROR: 10"
 

@@ -10,7 +10,11 @@
 #include <../../inc/Custom/printf_custom.h>
 
 /*Initialization*/
-char log_buffer[2048];
+char lte_log_buffer[2048];
+char queue_log_buffer[2048];
+char ir_log_buffer[2048];
+char mesh_log_buffer[2048];
+char temperature_log_buffer[2048];
 
 void red_printf(char* tag, char *msg)
 {
@@ -35,10 +39,5 @@ void cyan_printf(char* tag, char *msg)
 void yellow_printf(char* tag, char *msg)
 {
     printf(ANSI_COLOR_YELLOW"%s%s\n"ANSI_COLOR_RESET,tag,msg);
-}
-
-void red_printf(char* tag, char *msg)
-{
-    printf(ANSI_COLOR_RED"%s%s\n"ANSI_COLOR_RESET,tag,msg);
 }
 

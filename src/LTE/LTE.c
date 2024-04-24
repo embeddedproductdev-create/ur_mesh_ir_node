@@ -13,8 +13,6 @@
 
 #define SUCCESS 0
 #define FAILURE -1
-#define MAX_WAIT_MS 100
-#define BUF_SIZE 2048
 
 // Global Variable Initialization
 char mqtt_client_id[100];
@@ -81,6 +79,11 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 		{
 			if(check_response(LTE_UART_data, check_string)==SUCCESS)
 			{
+
+				if(LOG_LTE_DATA) {
+					sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
+					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+				}
 				if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "%d bytes Data Received : %s", length, LTE_UART_data);
 				/*If its the case of READ MESG, then we need to parse JSON*/
 				if(strstr(LTE_UART_data, "{")){
@@ -126,10 +129,16 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 char *cmdName, char *check_string, uint32_t timeout_ms)
 {
 	sending_at_cmd = true;
-	if(logging) ESP_LOGI(LTE_DEBUG_TAG, "%s", cmdName);
+	if(logging) {
+		sprintf(lte_log_buffer, "%s", cmdName);
+		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+	}
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE) 
 	{
-		if(logging) ESP_LOGI(LTE_DEBUG_TAG, "Command sent : %s",cmd);
+		if(logging) {
+			sprintf(lte_log_buffer, "Command sent : %s",cmd);
+			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+		}
 		if(fetch_and_check_data(timeout_ms, check_string)==SUCCESS)
 		{ 
 			sending_at_cmd = false;
@@ -205,14 +214,16 @@ void init_Strings()
  */
 void powerCycleLTE()
 {
-	// ESP_LOGI(LTE_DEBUG_TAG, "Power Cycling LTE Starts !!!");
+	sprintf(lte_log_buffer, "Power cycling LTE starts");
+	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
 	gpio_set_level(GPIO_LTE_RESET, 0);
 	vTaskDelay(pdMS_TO_TICKS(100));
 	gpio_set_level(GPIO_LTE_ONOFF, 1);
 	vTaskDelay(pdMS_TO_TICKS(2500));
 	gpio_set_level(GPIO_LTE_ONOFF, 0);
-	// ESP_LOGI(LTE_DEBUG_TAG, "Power Cycling LTE complete");
+	sprintf(lte_log_buffer, "Power cycling LTE end");
+	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 }
 
 /**
@@ -236,7 +247,10 @@ void establishMQTTConnection()
 	static uint8_t retry_count = 0;
 	if(!sending_at_cmd && !sending)
 	{	
-		if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
+		if(LOG_LTE_DATA) {
+			sprintf(lte_log_buffer, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
+			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+		}
 		//If we are stuck at retrying for more than RETRY_COUNT times, then it's better to power cycle the LTE
 		if(retry_count > RETRY_COUNT) 
 		{

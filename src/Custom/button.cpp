@@ -32,7 +32,8 @@ void button_logic()
     {
     if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]==0) //Single press
     {
-        needToSendIRComamnd = true;
+        if(LOG_LTE_DATA) LOG_LTE_DATA = false;
+        else LOG_LTE_DATA = true;
     } 
     else if(pressed_duration_array[0]<ONE_SEC_IN_MS && pressed_duration_array[1]!=0 && pressed_duration_array[1] < ONE_SEC_IN_MS) //Double press
     {

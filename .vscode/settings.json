@@ -49,7 +49,8 @@
     "gpio.h": "c",
     "flash.h": "c",
     "esp_http_server.h": "c",
-    "uart.h": "c"
+    "uart.h": "c",
+    "printf_custom.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

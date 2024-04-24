@@ -44,12 +44,12 @@ IRDaikin176 ac_daikin176(IR_TRANSMIT_PIN);
 IRDaikin64 ac_daikinac64(IR_TRANSMIT_PIN);
 IRDaikin152 ac_daikin152(IR_TRANSMIT_PIN);
 IRDaikin128 ac_daikin128(IR_TRANSMIT_PIN);
-IRHitachiAc296 ac_hitachi296(IR_TRANSMIT_PIN);
 IRHitachiAc ac_hitachi224(IR_TRANSMIT_PIN);
 IRHitachiAc1 ac_hitachi104(IR_TRANSMIT_PIN);
 IRHitachiAc424 ac_hitachi424(IR_TRANSMIT_PIN);
 IRHitachiAc344 ac_hitachi344(IR_TRANSMIT_PIN);
 IRHitachiAc264 ac_hitachi264(IR_TRANSMIT_PIN);
+IRHitachiAc296 ac_hitachi296(IR_TRANSMIT_PIN);
 IRVoltas ac_voltas(IR_TRANSMIT_PIN);
 IRSamsungAc ac_samsung(IR_TRANSMIT_PIN);
 IRHaierAC ac_haier(IR_TRANSMIT_PIN);
@@ -548,7 +548,7 @@ void IR_receiver_task(void *args)
         if (esp_restart_flag)
             ESP.restart();
         if (irrecv.decode(&results))
-        {
+        {   
             printf("IR RAW VALUES : { ");
             for(uint16_t i=0; i<results.rawlen; i++)
             {
@@ -567,7 +567,6 @@ void IR_receiver_task(void *args)
             #endif
             if (teaching_mode)
             {
-                configured = true;
                 protocol_selected_num = RAW;
                 temp_min_val=18;
                 if(teachMode_size_done){
