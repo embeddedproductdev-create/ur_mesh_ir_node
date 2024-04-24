@@ -41,3 +41,8 @@ void yellow_printf(char* tag, char *msg)
     printf(ANSI_COLOR_YELLOW"%s%s\n"ANSI_COLOR_RESET,tag,msg);
 }
 
+void white_printf(char* tag, char *msg)
+{
+    printf(ANSI_COLOR_WHITE"%s%s\n"ANSI_COLOR_RESET,tag,msg);
+}
+

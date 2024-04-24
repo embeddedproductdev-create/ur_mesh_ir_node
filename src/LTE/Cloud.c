@@ -263,27 +263,27 @@ void error_check_json(uint8_t json_packet_id)
             return;
         }
 
-        if (cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY))
+        if (cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY))
             ;
         else
         {
             json_ack_err_code = INVALID_TEMP_UPPER_LIMIT;
             return;
         }
-        uint8_t temp_upper_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY))->valueint;
+        uint8_t temp_upper_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY))->valueint;
         if (temp_upper_limit > TEMPERATURE_UPPER_LIMIT)
         {
             json_ack_err_code = LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT;
             return;
         }
-        if (cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY))
+        if (cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY))
             ;
         else
         {
             json_ack_err_code = INVALID_TEMP_LOWER_LIMIT;
             return;
         }
-        uint8_t temp_lower_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY))->valueint;
+        uint8_t temp_lower_limit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY))->valueint;
         if (temp_lower_limit < TEMPERATURE_LOWER_LIMIT)
         {
             json_ack_err_code = LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT;
@@ -633,8 +633,8 @@ void parse_json_packet(char *json_packet)
             gwy_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
             gwy_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
             gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-            gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
-            gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
+            gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
+            gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
             if(configured)
                 needToSendIRComamnd = true;
             else
@@ -698,8 +698,8 @@ void parse_json_packet(char *json_packet)
             node_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
             node_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
             node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-            node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOW_LOCK_LIMIT_KEY)->valueint;
-            node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_UP_LOCK_LIMIT_KEY)->valueint;
+            node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
+            node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
             break;
 
         case NODE_RECONF_PACKET:
