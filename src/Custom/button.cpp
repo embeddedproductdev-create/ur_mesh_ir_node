@@ -40,16 +40,20 @@ void button_logic()
         if(!teaching_mode && registered){
             teaching_mode = true;
             teachMode_size_done=true;
-            ESP_LOGI(IR_DEBUG_TAG,"Starting Teaching Mode");
+            sprintf(button_log_buffer,"Start of Teaching Mode");
+            blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
         } 
         else{
             teaching_mode = false;
             teachMode_size_done=false;
-            ESP_LOGI(IR_DEBUG_TAG,"End of Teaching Mode");
+            sprintf(button_log_buffer,"End of Teaching Mode");
+            blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
         } 
     }
     else if(pressed_duration_array[0] > ONE_SEC_IN_MS*3 && pressed_duration_array[0] < ONE_SEC_IN_MS*7) //Button held for 3 to 7 seconds
-        configured = false;
+    {
+        esp_restart_flag = true;   
+    }
     else if(pressed_duration_array[0] >= ONE_SEC_IN_MS*8) //Button held for 8 seconds or more
         esp_restart_flag = true;
     }

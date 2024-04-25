@@ -15,6 +15,7 @@ char queue_log_buffer[2048];
 char ir_log_buffer[2048];
 char mesh_log_buffer[2048];
 char temperature_log_buffer[2048];
+char button_log_buffer[2048];
 
 void white_printf(char *tag, char *msg)
 {

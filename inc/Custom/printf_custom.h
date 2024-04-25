@@ -24,14 +24,14 @@ extern char queue_log_buffer[2048];
 extern char ir_log_buffer[2048];
 extern char mesh_log_buffer[2048];
 extern char temperature_log_buffer[2048];
+extern char button_log_buffer[2048];
 
 /* FUNCTION DECLARATIONS */
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 void white_printf(char *tag, char *msg);
-
+void blue_printf(char *tag, char *msg);
 #ifdef __cplusplus
 }
 #endif
@@ -39,6 +39,5 @@ void white_printf(char *tag, char *msg);
 void red_printf(char *tag, char *msg);
 void green_printf(char *tag, char *msg);
 void yellow_printf(char *tag, char *msg);
-void blue_printf(char *tag, char *msg);
 void magenta_printf(char *tag, char *msg);
 void cyan_printf(char *tag, char *msg);

@@ -84,7 +84,6 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 					sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
 					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 				}
-				if(LOG_LTE_DATA) ESP_LOGI(LTE_DEBUG_TAG, "%d bytes Data Received : %s", length, LTE_UART_data);
 				/*If its the case of READ MESG, then we need to parse JSON*/
 				if(strstr(LTE_UART_data, "{")){
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
@@ -95,13 +94,17 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 			}
 			else
 			{
-				if(LOG_LTE_DATA) ESP_LOGE(LTE_ERROR_TAG, "%d bytes of Data Received : %s", length, LTE_UART_data);
+				if(LOG_LTE_DATA) {
+					sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
+					red_printf(LTE_ERROR_TAG, lte_log_buffer);
+				} 
 				free(LTE_UART_data); 
 				return FAILURE; 
 			}
 		}
 	}
-	ESP_LOGE(LTE_ERROR_TAG, "No Data recevied from LTE");
+	sprintf(lte_log_buffer, "No Data recevied from LTE");
+	red_printf(LTE_ERROR_TAG, lte_log_buffer);
 	free(LTE_UART_data); 
 	return FAILURE;
 }
@@ -149,7 +152,8 @@ char *cmdName, char *check_string, uint32_t timeout_ms)
 	}
 	else 
 	{
-		ESP_LOGE(TAG, "Error in sending AT command to the EC200!!!");
+		sprintf(lte_log_buffer, "Error in sending AT command to the EC200!!!");
+		red_printf(LTE_ERROR_TAG, lte_log_buffer);
 		sending_at_cmd = false;
 		return FAILURE;
 	}
@@ -173,13 +177,18 @@ int8_t publish_to_mqtt()
 			if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
 			{
 				publishing_flag = false;
-				sprintf(queue_log_buffer, "Published :\n\t%s\n\ttopic %s",pubmesg_queue_head->message, subscribe_topic);
+				sprintf(queue_log_buffer, "Published :");
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				sprintf(queue_log_buffer, "%s", subscribe_topic);
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				return SUCCESS;
 			}
 			else
 			{
-				ESP_LOGE(QUEUE_DEBUG_TAG, "Publishing to MQTT Failed");
+				sprintf(queue_log_buffer, "Publishing to MQTT Failed");
+				red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 				return FAILURE;
 			}
 		}
