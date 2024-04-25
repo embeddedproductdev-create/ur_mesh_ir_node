@@ -15,7 +15,6 @@
 /* JSON PACKET KEY STRINGS */
 #define JSON_PACKET_ID_KEY "JsonPacketID"
 #define JSON_ACK_NAME_KEY "JsonAckName"
-#define JSON_ACK_SEQ_NO_KEY "JsonAckSeqNo"
 #define MSG_SEQ_NO_KEY "MsgSeqNo"
 #define GWY_SER_NO_KEY "GwySerNo"
 #define NODE_SER_NO_KEY "NodeSerNo"

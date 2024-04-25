@@ -56,8 +56,22 @@
 /* Flash */
 #include "../flash/flash.h"
 
+/**
+ * @brief VERY IMPORTANT MACROS !!!!!!!!!!!!!!!!!!!!!!!
+ * DO NOT CHANGE THE THINGS BELOW WITHOUT KNOWING WHAT YOU ARE DOING
+ */
+#define IS_GWY true
+#define CLIENT_RELEASE false
+
+#if(IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 6
+#endif
+
+#if(!IS_GWY)
+#define MAJ_VERSION 0
+#define MIN_VERSION 3
+#endif
 
 #define TAG "UART"
 #define MAIN_DEBUG_TAG          "[MAIN_DEBUG]   : "
@@ -84,14 +98,20 @@
 #define IR_RECV_PART_ENABLED true
 #define IR_RECV_LOG_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED true
-#define LTE_PART_ENABLED true
 #define BUTTON_PART_ENABLED true
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
-#define AP_PART_ENABLED false
-#define QUEUE_PART_ENABLED true
 #define TEACHING_PART_ENABLED true
-#define CLIENT_RELEASE true
+#if(IS_GWY)
+    #define LTE_PART_ENABLED true
+    #define AP_PART_ENABLED false
+    #define QUEUE_PART_ENABLED true
+#endif
+#if(!IS_GWY)
+    #define AP_PART_ENABLED false
+    #define QUEUE_PART_ENABLED false
+    #define LTE_PART_ENABLED false
+#endif
 
 /* GLOBAL VARIABLES */
 extern bool configured;
@@ -103,11 +123,14 @@ extern bool teaching_mode;
 extern bool esp_restart_flag;
 extern int16_t protocol_selected_num;
 extern uint16_t GWY_SER_NO;
-extern char GWY_SER_NO_IN_STRING[8];
+extern char GWY_SER_NO_IN_STRING[15];
+extern uint16_t NODE_SER_NO;
+extern char NODE_SER_NO_IN_STRING[15];
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 /* FUNCTION DECLARATIONS */
 void app_main();
 void create_AP_task();

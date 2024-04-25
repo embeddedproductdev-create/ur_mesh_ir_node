@@ -12,17 +12,20 @@
 #include "../../inc/Custom/accesspoint.h"
 #include "../../inc/Custom/button.h"
 
-//Initialization
+// Initialization
 bool esp_restart_flag = false;
-#if(CLIENT_RELEASE)
+#if (CLIENT_RELEASE)
 uint16_t GWY_SER_NO = 100;
+uint16_t NODE_SER_NO = 100;
 #endif
-#if(!CLIENT_RELEASE)
+#if (!CLIENT_RELEASE)
 uint16_t GWY_SER_NO = 3;
+uint16_t NODE_SER_NO = 3;
 #endif
-char GWY_SER_NO_IN_STRING[8];
+char GWY_SER_NO_IN_STRING[15];
+char NODE_SER_NO_IN_STRING[15];
 
-//Initializing Global Structures
+// Initializing Global Structures
 gwy_reg_t gwy_registration_t;
 gwy_unreg_t gwy_unregistration_t;
 reconf_t gwy_conf_t;
@@ -65,16 +68,33 @@ void fill_gwy_ser_no_str()
     strcpy(GWY_SER_NO_IN_STRING, "GWY");
     char serialNo[20];
     char zerostr[20];
-    strcpy(serialNo,"");
-    strcpy(zerostr,"");
+    strcpy(serialNo, "");
+    strcpy(zerostr, "");
     sprintf(serialNo, "%d", GWY_SER_NO);
     uint8_t len = strlen(GWY_SER_NO_IN_STRING) + strlen(serialNo);
-    for(uint8_t i=0; i<(8-len); i++)
+    for (uint8_t i = 0; i < (8 - len); i++)
     {
         strcat(zerostr, "0");
     }
     strcat(GWY_SER_NO_IN_STRING, zerostr);
     strcat(GWY_SER_NO_IN_STRING, serialNo);
+}
+
+void fill_node_ser_no_str()
+{
+    strcpy(GWY_SER_NO_IN_STRING, "N");
+    char serialNo[20];
+    char zerostr[20];
+    strcpy(serialNo, "");
+    strcpy(zerostr, "");
+    sprintf(serialNo, "%d", NODE_SER_NO);
+    uint8_t len = strlen(NODE_SER_NO_IN_STRING) + strlen(serialNo);
+    for (uint8_t i = 0; i < (6 - len); i++)
+    {
+        strcat(zerostr, "0");
+    }
+    strcat(NODE_SER_NO_IN_STRING, zerostr);
+    strcat(NODE_SER_NO_IN_STRING, serialNo);
 }
 
 /**
@@ -84,13 +104,13 @@ void fill_gwy_ser_no_str()
  */
 void create_AP_task()
 {
-ESP_LOGI(MAIN_DEBUG_TAG, "Creating AP task\n");
-BaseType_t xReturned;
-TaskHandle_t xHandle = NULL;
-xReturned = xTaskCreate(AP_task, "AccessPoint Task",
-                        4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
-if (xReturned != pdPASS)
-    perror("Error in taskCreate for AP mode : ");
+    ESP_LOGI(MAIN_DEBUG_TAG, "Creating AP task\n");
+    BaseType_t xReturned;
+    TaskHandle_t xHandle = NULL;
+    xReturned = xTaskCreate(AP_task, "AccessPoint Task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    if (xReturned != pdPASS)
+        perror("Error in taskCreate for AP mode : ");
 }
 
 /**
@@ -100,18 +120,27 @@ if (xReturned != pdPASS)
  */
 void app_main()
 {
-    //these two are needed incase if we're creating tasks using RTOS
+    // these two are needed incase if we're creating tasks using RTOS
     BaseType_t xReturned;
     TaskHandle_t xHandle = NULL;
-    fill_gwy_ser_no_str();
 
+#if (IS_GWY)
+    fill_gwy_ser_no_str();
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-
     init_structures();
+#endif
 
-    #if(LED_PART_ENABLED)
+#if (IS_GWY)
+    fill_node_ser_no_str();
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", NODE_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    init_structures();
+#endif
+
+#if (LED_PART_ENABLED)
     xReturned = xTaskCreate(LED_task, "LED task",
                             4096, (void *)1, 1, &xHandle);
     if (xReturned != pdPASS)
@@ -119,65 +148,65 @@ void app_main()
         perror("Error in taskCreate for LED task : ");
         exit(FAILURE);
     }
-    #endif
+#endif
 
-    #if(AP_PART_ENABLED)
+#if (AP_PART_ENABLED)
     create_AP_task();
-    #endif
+#endif
 
-    while(!mqtt_params_fetched_flag)
+    while (!mqtt_params_fetched_flag)
     {
         /**
-         * It's better if we don't enable other threads until 
+         * It's better if we don't enable other threads until
          * we get the paramters for MQTT from AP mode. Cause,
          * without it, it's meaningless to run other thread.
          * NOTE: If AP mode disabled and MQTT params hardcoded,
-         * then the mqtt_params_fetch_flag is be default set to 
-         * true. 
+         * then the mqtt_params_fetch_flag is be default set to
+         * true.
          */
         ;
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 
-    #if(MESH_PART_ENABLED)
+#if (MESH_PART_ENABLED)
     mesh_main_init();
-    #endif
+#endif
 
-    #if(TEMPERATURE_SENSOR_PART_ENABLED)
+#if (TEMPERATURE_SENSOR_PART_ENABLED)
     init_temperature_sensor();
-    #endif
+#endif
 
-    #if(IR_RECV_PART_ENABLED)
-        xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
-                                4096, (void *)1, 10, &xHandle);
-        if (xReturned != pdPASS)
-        {
-            perror("Error in taskCreate for IR recv task : ");
-            exit(FAILURE);
-        }
-    #endif
+#if (IR_RECV_PART_ENABLED)
+    xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
+                            4096, (void *)1, 10, &xHandle);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for IR recv task : ");
+        exit(FAILURE);
+    }
+#endif
 
-    #if(LTE_PART_ENABLED)
-        xReturned = xTaskCreate(LTE_task, "LTE Task",
-                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
-        if (xReturned != pdPASS)
-        {
-            perror("Error in taskCreate for LTE task : ");
-            exit(FAILURE);
-        }
-    #endif
+#if (LTE_PART_ENABLED)
+    xReturned = xTaskCreate(LTE_task, "LTE Task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for LTE task : ");
+        exit(FAILURE);
+    }
+#endif
 
-    #if(QUEUE_PART_ENABLED)
-        xReturned = xTaskCreate(queue_handler, "Queue Task",
-                                4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
-        if (xReturned != pdPASS)
-        {
-            perror("Error in taskCreate for Queue task : ");
-            exit(FAILURE);
-        }
-    #endif
+#if (QUEUE_PART_ENABLED)
+    xReturned = xTaskCreate(queue_handler, "Queue Task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for Queue task : ");
+        exit(FAILURE);
+    }
+#endif
 
-    #if(BUTTON_PART_ENABLED)
+#if (BUTTON_PART_ENABLED)
     xReturned = xTaskCreate(button_task, "button task",
                             4096, (void *)1, 0, &xHandle);
     if (xReturned != pdPASS)
@@ -185,6 +214,5 @@ void app_main()
         perror("Error in taskCreate for button task : ");
         exit(FAILURE);
     }
-    #endif
-
+#endif
 }

@@ -181,7 +181,7 @@ int8_t publish_to_mqtt()
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				sprintf(queue_log_buffer, "%s", subscribe_topic);
+				sprintf(queue_log_buffer, "%s", publish_topic);
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				return SUCCESS;
 			}
