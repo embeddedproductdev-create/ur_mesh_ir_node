@@ -6,8 +6,11 @@
  * @date 2024-02-29
  * @copyright Copyright (c) 2024
  */
-
 #include "../../inc/IR/main_IR.h"
+#include "../../inc/LTE/LTE.h"
+#include "../../inc/LTE/mqtt.h"
+#include "../../inc/Custom/button.h"
+#include "../../inc/Custom/printf_custom.h"
 
 // Initialization - Receiver
 IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
@@ -125,6 +128,7 @@ void IR_transmit(uint16_t protocol)
             sprintf(ir_log_buffer,  "Memory is not configured correctly or data invalid!!!\r\n");
             white_printf(IR_DEBUG_TAG, ir_log_buffer);
         }
+        break;
 
     case DAIKIN:
         strcpy(protocol_chosen_str, "Daikin280");
