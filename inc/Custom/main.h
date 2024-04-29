@@ -57,11 +57,15 @@
 #include "../flash/flash.h"
 
 /**
+ * ===================================================================
  * @brief VERY IMPORTANT MACROS !!!!!!!!!!!!!!!!!!!!!!!
  * DO NOT CHANGE THE THINGS BELOW WITHOUT KNOWING WHAT YOU ARE DOING
+ * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
+ * ===================================================================
  */
 #define IS_GWY true
 #define CLIENT_RELEASE false
+/*====================================================================*/
 
 #if(IS_GWY)
 #define MAJ_VERSION 0
@@ -114,14 +118,21 @@
 #endif
 
 /* GLOBAL VARIABLES */
-extern bool configured;
 extern bool mqtt_connected;
+
 extern bool registered;
+extern bool provisioned;
+
+extern bool configured;
+
 extern bool needToSendIRComamnd;
 extern bool sending;
 extern bool teaching_mode;
+
 extern bool esp_restart_flag;
+
 extern int16_t protocol_selected_num;
+
 extern uint16_t GWY_SER_NO;
 extern char GWY_SER_NO_IN_STRING[15];
 extern uint16_t NODE_SER_NO;

@@ -31,8 +31,8 @@ bool mqtt_params_fetched_flag = true;
 #if(!CLIENT_RELEASE)
 char mqtt_server_ip[16] = QMAX_IP;
 uint16_t mqtt_port = QMAX_MQTT_PORT;
-char mqtt_broker_username[30] = UNIMATION_BROKER_NAME;
-char mqtt_broker_password[100] = UNIMATION_BROKER_PASSWORD;
+char mqtt_broker_username[30] = QMAX_BROKER_NAME;
+char mqtt_broker_password[100] = QMAX_BROKER_PASSWORD;
 bool mqtt_params_fetched_flag = true;
 #endif
 #endif

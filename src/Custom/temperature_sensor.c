@@ -11,17 +11,17 @@
 
 #include "../../inc/Custom/temperature_sensor.h"
 
-//Initialization
+// Initialization
 uint8_t measured_temperature = 0;
 uint32_t TempDataFreqSec = 10;
 
 const esp_timer_create_args_t periodic_timer_args = {
     .callback = &publish_temperature_cb,
-    .name = "Temperature_data_timer"
-};
+    .name = "Temperature_data_timer"};
 esp_timer_handle_t temp_publish_timer;
 
-esp_err_t initialize_i2c(void){
+esp_err_t initialize_i2c(void)
+{
     int i2c_master_port = I2C_MASTER_NUM;
     i2c_config_t conf = {
         .mode = I2C_MODE_MASTER,
@@ -42,7 +42,8 @@ esp_err_t initialize_i2c(void){
  * @param len Length of the data to be read.
  * @return 0 on success, non-zero on failure.
  */
-esp_err_t i2c_read(uint8_t reg_addr, uint8_t *data, size_t len){
+esp_err_t i2c_read(uint8_t reg_addr, uint8_t *data, size_t len)
+{
     i2c_master_write_read_device(I2C_MASTER_NUM, SENSOR_SLAVE_ADDR, &reg_addr, 1, data, len, I2C_MASTER_TIMEOUT_MS / 10);
     return 0;
 }
@@ -52,7 +53,8 @@ esp_err_t i2c_read(uint8_t reg_addr, uint8_t *data, size_t len){
  * @param reg_addr The register address to write to.
  * @retval Zero on success, NonZero on Failure
  */
-esp_err_t i2c_write(uint8_t reg_addr){
+esp_err_t i2c_write(uint8_t reg_addr)
+{
     int ret;
     uint8_t write_buf[1] = {reg_addr};
     ret = i2c_master_write_to_device(I2C_MASTER_NUM, SENSOR_SLAVE_ADDR, write_buf, sizeof(write_buf), I2C_MASTER_TIMEOUT_MS / 10);
@@ -70,24 +72,26 @@ void read_digital_temperature(uint8_t *measured_temperature)
     uint8_t data[2];
     uint16_t temp_val;
     float temperature_val;
-    i2c_read(POINTER_REGISTER,data,sizeof(data));
-    temp_val = ((data[0]<<8)|(data[1]));
-    temperature_val = (temp_val *SLOPE_FOR_DIGI)+ INTERCEPT_DIGI;
-    *measured_temperature = (uint8_t) temperature_val;
+    i2c_read(POINTER_REGISTER, data, sizeof(data));
+    temp_val = ((data[0] << 8) | (data[1]));
+    temperature_val = (temp_val * SLOPE_FOR_DIGI) + INTERCEPT_DIGI;
+    *measured_temperature = (uint8_t)temperature_val;
 }
 
 /**
  * @brief Function to read RAW ADC values from channel 2 and average them.
  * @param rawdata Pointer to store the averaged raw ADC value.
  */
-void read_adc(int *rawdata){
-    double calibrate=0;
-    int data_read=0;
-    for(uint8_t count= 0;count<ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT;count++){
+void read_adc(int *rawdata)
+{
+    double calibrate = 0;
+    int data_read = 0;
+    for (uint8_t count = 0; count < ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT; count++)
+    {
         adc2_get_raw(ADC2_CHANNEL_0, ADC_WIDTH_BIT_12, &data_read); // Read ADC value from channel 0
-        calibrate +=data_read;
+        calibrate += data_read;
     }
-    *rawdata =calibrate/ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT;
+    *rawdata = calibrate / ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT;
 }
 
 /**
@@ -98,17 +102,17 @@ void read_adc(int *rawdata){
  */
 void read_analog_temperature(uint8_t *measured_temperature)
 {
-    int adc_data=0;
-    float voltage=0;
+    int adc_data = 0;
+    float voltage = 0;
     int temperature;
     read_adc(&adc_data);
     //(146.222969-(45.46104901*voltage));
-    temperature =(((TEMPERATURE_SLOPE*adc_data)) + (TEMPERATURE_INTERCEPT)); 
-    *measured_temperature = (uint8_t) temperature;
+    temperature = (((TEMPERATURE_SLOPE * adc_data)) + (TEMPERATURE_INTERCEPT));
+    *measured_temperature = (uint8_t)temperature;
 }
 
 /**
- * @brief Function that takes care of setting up 
+ * @brief Function that takes care of setting up
  * of Analog Temperature sensor
  * @param none
  * @retval none
@@ -116,7 +120,7 @@ void read_analog_temperature(uint8_t *measured_temperature)
 void init_analog_temperature_sensor()
 {
     // Set attenuation to 11dB for maximum voltage range
-    adc2_config_channel_atten(ADC2_CHANNEL_0, ADC_ATTEN_DB_11); 
+    adc2_config_channel_atten(ADC2_CHANNEL_0, ADC_ATTEN_DB_11);
 }
 
 /**
@@ -129,23 +133,29 @@ void init_digital_temperature_sensor()
 {
     initialize_i2c();
     i2c_write(POINTER_REGISTER);
-}   
+}
 
 static void publish_temperature_cb(void *arg)
 {
-    if(registered && !sending)
+    char pubmessage[PUBMESG_LEN];
+    read_analog_temperature(&measured_temperature);
+#if (IS_GWY)
+    if (registered && !sending)
     {
         sprintf(temperature_log_buffer, "Sending Gwy Temperature Ack");
         magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
-        read_analog_temperature(&measured_temperature);
-        char pubmessage[PUBMESG_LEN];
         sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
-        JSON_PACKET_ID_KEY, GWY_TEMPERATURE_DATA_PACKET,
-        JSON_ACK_NAME_KEY, GWY_TEMPERATURE_DATA_ACK,
-        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-        TEMPERATURE_DATA_KEY, measured_temperature);
+                JSON_PACKET_ID_KEY, GWY_TEMPERATURE_DATA_PACKET,
+                JSON_ACK_NAME_KEY, GWY_TEMPERATURE_DATA_ACK,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                TEMPERATURE_DATA_KEY, measured_temperature);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
+#endif
+
+#if (!IS_GWY)
+    if (provisioned && !sending) send_temperature_ack_to_gwy();
+#endif
 }
 
 /**
@@ -163,20 +173,21 @@ void init_temperature_sensor()
 }
 
 /**
- * @brief Function that creates a repeating timer that measures temperature data with 
+ * @brief Function that creates a repeating timer that measures temperature data with
  * on-board temperature sensor and publishes it as per desired frequency to the cloud
  * @param none
  * @return none
  */
 void create_Temperature_data_publish_timer()
 {
-    if(registered)
+    if (registered)
     {
         ESP_ERROR_CHECK(esp_timer_stop(temp_publish_timer));
         ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
     }
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &temp_publish_timer));
-    if(gwy_pub_conf_t.pub_conf_period_in_sec >= 5)
-        ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_pub_conf_t.pub_conf_period_in_sec*1000000));
-    else ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, DEFAULT_TEMPERATURE_DATA_PUBLISH_PERIOD_SEC*1000000));
+    if (gwy_pub_conf_t.pub_conf_period_in_sec >= 5)
+        ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_pub_conf_t.pub_conf_period_in_sec * 1000000));
+    else
+        ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, DEFAULT_TEMPERATURE_DATA_PUBLISH_PERIOD_SEC * 1000000));
 }
