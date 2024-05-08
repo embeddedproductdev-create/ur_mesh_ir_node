@@ -169,7 +169,12 @@ void app_main()
     }
 
 #if (MESH_PART_ENABLED)
-    mesh_main_init();
+#if (IS_GWY)
+    gwy_mesh_main_init();
+#endif
+#if (!IS_GWY)
+    node_mesh_main_init();
+#endif
 #endif
 
 #if (TEMPERATURE_SENSOR_PART_ENABLED)

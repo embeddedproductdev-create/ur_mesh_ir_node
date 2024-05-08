@@ -18,19 +18,18 @@ decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
 bool configured = false;
 bool teaching_mode = false;
-bool teaching_mode_done =false;
+bool teaching_mode_done = false;
 char protocol_chosen_str[15] = "";
 
-
-//Initializaiton - Teaching mode
+// Initializaiton - Teaching mode
 uint8_t convert_buffer[2];
-uint16_t convert_data=0;
-uint16_t eeprom_addr=0;
-uint16_t eeprom_addr_cal=0;
+uint16_t convert_data = 0;
+uint16_t eeprom_addr = 0;
+uint16_t eeprom_addr_cal = 0;
 uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 uint8_t custom_raw_buffer_index = 0;
-bool data_processing=0;
-bool teachMode_size_done=0;
+bool data_processing = 0;
+bool teachMode_size_done = 0;
 
 // Initialization - Transmitter
 bool needToSendIRComamnd = false;
@@ -109,23 +108,28 @@ void IR_transmit(uint16_t protocol)
     {
     case RAW:
         strcpy(protocol_chosen_str, "RAW");
-        eeprom_read(EEPROM_SLAVE_ADDR,TEACH_DATA_LEN,convert_buffer,2);
-        convert_data=convert_8bit_to_16bit(convert_buffer);
-        sprintf(ir_log_buffer, "Size of data : %d\t",convert_data);
+        eeprom_read(EEPROM_SLAVE_ADDR, TEACH_DATA_LEN, convert_buffer, 2);
+        convert_data = convert_8bit_to_16bit(convert_buffer);
+        sprintf(ir_log_buffer, "Size of data : %d\t", convert_data);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        eeprom_addr=TEACH_DATA_POFF;
-        if(gwy_ac_control_t.power){
-            if(gwy_ac_control_t.temp>FETCH_ADDR_LOW)    eeprom_addr=(TEACH_DATA_POFF+(MAX_OFFSET*(gwy_ac_control_t.temp-FETCH_ADDR_LOW)));
-            else  ESP_LOGE(IR_ERROR_TAG,  "Not an valid temperature\r\n");
+        eeprom_addr = TEACH_DATA_POFF;
+        if (gwy_ac_control_t.power)
+        {
+            if (gwy_ac_control_t.temp > FETCH_ADDR_LOW)
+                eeprom_addr = (TEACH_DATA_POFF + (MAX_OFFSET * (gwy_ac_control_t.temp - FETCH_ADDR_LOW)));
+            else
+                ESP_LOGE(IR_ERROR_TAG, "Not an valid temperature\r\n");
         }
-        sprintf(ir_log_buffer, "EEPROM ADDR : %d\n",eeprom_addr);
+        sprintf(ir_log_buffer, "EEPROM ADDR : %d\n", eeprom_addr);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        if((convert_data<=MAX_OFFSET)&&(eeprom_addr<=TEACH_DATA_PON_32C)&&((gwy_ac_control_t.temp>=TEACHING_MODE_STARTING_TEMPERATURE)&&((gwy_ac_control_t.temp<=TEACHING_MODE_ENDING_TEMPERATURE)||!gwy_ac_control_t.power))){
-            read_from_memory(custom_raw_buffer,convert_data,eeprom_addr);
-            ac_custom.sendRaw(custom_raw_buffer,convert_data/2,41);
+        if ((convert_data <= MAX_OFFSET) && (eeprom_addr <= TEACH_DATA_PON_32C) && ((gwy_ac_control_t.temp >= TEACHING_MODE_STARTING_TEMPERATURE) && ((gwy_ac_control_t.temp <= TEACHING_MODE_ENDING_TEMPERATURE) || !gwy_ac_control_t.power)))
+        {
+            read_from_memory(custom_raw_buffer, convert_data, eeprom_addr);
+            ac_custom.sendRaw(custom_raw_buffer, convert_data / 2, 41);
         }
-        else{
-            sprintf(ir_log_buffer,  "Memory is not configured correctly or data invalid!!!\r\n");
+        else
+        {
+            sprintf(ir_log_buffer, "Memory is not configured correctly or data invalid!!!\r\n");
             white_printf(IR_DEBUG_TAG, ir_log_buffer);
         }
         break;
@@ -148,7 +152,7 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.send();
         sprintf(ir_log_buffer, "Sending Daikin280");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        break;  
+        break;
 
     case DAIKIN216:
         strcpy(protocol_chosen_str, "Daikin216");
@@ -172,10 +176,14 @@ void IR_transmit(uint16_t protocol)
         strcpy(protocol_chosen_str, "Daikin2");
         ac_daikin2.setPower(gwy_ac_control_t.power);
         ac_daikin2.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)    ac_daikin2.setSwingHorizontal(kDaikin2SwingHAuto);
-        else ac_daikin2.setSwingHorizontal(kDaikin2SwingHOff);
-        if (gwy_ac_control_t.swingV)   ac_daikin2.setSwingVertical(kDaikin2SwingVAuto);
-        else ac_daikin2.setSwingVertical(kDaikin2SwingVOff);
+        if (gwy_ac_control_t.swingH)
+            ac_daikin2.setSwingHorizontal(kDaikin2SwingHAuto);
+        else
+            ac_daikin2.setSwingHorizontal(kDaikin2SwingHOff);
+        if (gwy_ac_control_t.swingV)
+            ac_daikin2.setSwingVertical(kDaikin2SwingVAuto);
+        else
+            ac_daikin2.setSwingVertical(kDaikin2SwingVOff);
         ac_daikin2.setFan(gwy_ac_control_t.fan);
         ac_daikin2.enableOffTimer(gwy_ac_control_t.OffTimer);
         ac_daikin2.enableOnTimer(gwy_ac_control_t.OnTimer);
@@ -185,12 +193,13 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Daikin2");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
-        
+
     case DAIKIN160:
         strcpy(protocol_chosen_str, "Daikin160");
         ac_daikin160.setPower(gwy_ac_control_t.power);
         ac_daikin160.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingV)   ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
+        if (gwy_ac_control_t.swingV)
+            ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
         ac_daikin160.setFan(gwy_ac_control_t.fan);
         ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
@@ -203,8 +212,10 @@ void IR_transmit(uint16_t protocol)
         strcpy(protocol_chosen_str, "Daikin176");
         ac_daikin176.setPower(gwy_ac_control_t.power);
         ac_daikin176.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)    ac_daikin176.setSwingHorizontal(kDaikin176SwingHAuto);
-        else ac_daikin176.setSwingHorizontal(kDaikin176SwingHOff);      
+        if (gwy_ac_control_t.swingH)
+            ac_daikin176.setSwingHorizontal(kDaikin176SwingHAuto);
+        else
+            ac_daikin176.setSwingHorizontal(kDaikin176SwingHOff);
         ac_daikin176.setFan(gwy_ac_control_t.fan);
         ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
@@ -267,7 +278,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Hitachi296");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
-        
+
     case HITACHI_AC:
         strcpy(protocol_chosen_str, "HitachiAc224");
         ac_hitachi224.setPower(gwy_ac_control_t.power);
@@ -328,7 +339,7 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending HitachiAc264");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
-    
+
     case VOLTAS:
         strcpy(protocol_chosen_str, "Voltas");
         ac_voltas.setPower(gwy_ac_control_t.power);
@@ -360,10 +371,10 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Sending Samsung\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         break;
-        
+
     case HAIER_AC:
         strcpy(protocol_chosen_str, "Haier");
-        //Regarding Power on/off and horizontal swing control we don't have library support 
+        // Regarding Power on/off and horizontal swing control we don't have library support
         ac_haier.setTemp(gwy_ac_control_t.temp);
         ac_haier.setSwingV(gwy_ac_control_t.swingV);
         ac_haier.setFan(gwy_ac_control_t.fan);
@@ -393,7 +404,7 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case HAIER_AC160:
-        //Regarding horizontal swing we don't have library support
+        // Regarding horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "Haier160");
         ac_haier160.setPower(gwy_ac_control_t.power);
         ac_haier160.setTemp(gwy_ac_control_t.temp);
@@ -409,7 +420,7 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case CARRIER_AC64:
-    //Regarding horizontal swing we don't have library support
+        // Regarding horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "CarrierAC64");
         ac_carrier64.setPower(gwy_ac_control_t.power);
         ac_carrier64.setTemp(gwy_ac_control_t.temp);
@@ -426,7 +437,7 @@ void IR_transmit(uint16_t protocol)
 
     case LG2:
     case LG:
-        //Regarding on/off timer we don't have library support
+        // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "LG");
         ac_lg.setPower(gwy_ac_control_t.power);
         ac_lg.setTemp(gwy_ac_control_t.temp);
@@ -441,17 +452,19 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case TOSHIBA_AC:
-        //Regarding on/off timer we don't have library support
+        // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "Toshiba");
         ac_toshiba.setPower(gwy_ac_control_t.power);
         ac_toshiba.setTemp(gwy_ac_control_t.temp);
         ac_toshiba.setFan(gwy_ac_control_t.fan);
-        if(gwy_ac_control_t.swingV||gwy_ac_control_t.swingH){
+        if (gwy_ac_control_t.swingV || gwy_ac_control_t.swingH)
+        {
             /*Library seems like they only do swing on/off so that only i am having an
             condition check for both horizontal and vertical*/
             ac_toshiba.setSwing(kToshibaAcSwingOn);
         }
-        else{
+        else
+        {
             ac_toshiba.setSwing(kToshibaAcSwingOff);
         }
         ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
@@ -462,7 +475,7 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case MITSUBISHI112:
-    //Regarding on/off timer we don't have library support
+        // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "Mitsubishi112");
         ac_mitsubishi112.setPower(gwy_ac_control_t.power);
         ac_mitsubishi112.setTemp(gwy_ac_control_t.temp);
@@ -477,11 +490,12 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case MITSUBISHI136:
-    //Regarding on/off timer and horizontal swing we don't have library support
+        // Regarding on/off timer and horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "Mitsubishi136");
         ac_mitsubishi136.setPower(gwy_ac_control_t.power);
         ac_mitsubishi136.setTemp(gwy_ac_control_t.temp);
-        if(gwy_ac_control_t.swingV){
+        if (gwy_ac_control_t.swingV)
+        {
             ac_mitsubishi136.setSwingV(kMitsubishi136SwingVAuto);
         }
         ac_mitsubishi136.setFan(gwy_ac_control_t.fan);
@@ -493,7 +507,7 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case MITSUBISHI_AC:
-    //Regarding on/off timer and  swing we don't have library support
+        // Regarding on/off timer and  swing we don't have library support
         strcpy(protocol_chosen_str, "MitsubishiAc");
         ac_mitsubishi144.setPower(gwy_ac_control_t.power);
         ac_mitsubishi144.setTemp(gwy_ac_control_t.temp);
@@ -506,15 +520,19 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case MITSUBISHI_HEAVY_88:
-    //Regarding on/off timer we don't have library support
+        // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "MitsubisiHvy88");
         ac_mitsubishi88.setPower(gwy_ac_control_t.power);
         ac_mitsubishi88.setTemp(gwy_ac_control_t.temp);
         ac_mitsubishi88.setFan(gwy_ac_control_t.fan);
-        if(gwy_ac_control_t.swingH) ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
-        else    ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
-        if(gwy_ac_control_t.swingV) ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
-        else ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVOff);
+        if (gwy_ac_control_t.swingH)
+            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
+        else
+            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
+        if (gwy_ac_control_t.swingV)
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
+        else
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVOff);
         ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi88.send();
@@ -523,15 +541,19 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case MITSUBISHI_HEAVY_152:
-    //Regarding on/off timer we don't have library support
+        // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "MitsbisiHvy152");
         ac_mitsubishi152.setPower(gwy_ac_control_t.power);
         ac_mitsubishi152.setTemp(gwy_ac_control_t.temp);
         ac_mitsubishi152.setFan(gwy_ac_control_t.fan);
-        if(gwy_ac_control_t.swingH) ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
-        else    ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
-        if(gwy_ac_control_t.swingV) ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
-        else ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88SwingVOff);
+        if (gwy_ac_control_t.swingH)
+            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
+        else
+            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
+        if (gwy_ac_control_t.swingV)
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
+        else
+            ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88SwingVOff);
         ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
         sending = true;
         ac_mitsubishi152.send();
@@ -544,7 +566,7 @@ void IR_transmit(uint16_t protocol)
         break;
     }
     needToSendIRComamnd = false;
-    sending = false;    
+    sending = false;
 }
 
 /**
@@ -559,29 +581,28 @@ void locking_feature(char *result_description_char_str)
 {
     uint8_t temperature = 0;
     char temperature_in_string[10] = "";
-    if(strstr(result_description_char_str, "Temp: "))
+    if (strstr(result_description_char_str, "Temp: "))
     {
-        temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: "))+6);
-        temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: "))+7);
+        temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: ")) + 6);
+        temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: ")) + 7);
         temperature = atoi(temperature_in_string);
         sprintf(ir_log_buffer, "Manually set Temperature : %s", temperature_in_string);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         sprintf(ir_log_buffer, "Manually set Temperature : %d", temperature);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
     }
-    if (registered)
+#if (IS_GWY)
+    sprintf(ir_log_buffer, "Sending Gwy Locking feature ack");
+    white_printf(IR_DEBUG_TAG, ir_log_buffer);
+    add_to_pubmesg_queue(result_description_char_str, publish_topic);
+#endif
+#if(!IS_GWY)
+    send_locking_feature_ack_to_gwy();
+#endif
+    if (temperature != 0 && (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit))
     {
-        sprintf(ir_log_buffer, "Sending Gwy Locking feature ack");
-        white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        if (protocol_detected == protocol_selected_num) // Someone tried to control AC
-        {
-            if (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit)
-            {
-                // Someone controlled the AC using remote with exceeding temperature limits
-                IR_transmit(protocol_selected_num);
-            }
-            add_to_pubmesg_queue(result_description_char_str, publish_topic);
-        }
+        // Someone controlled the AC using remote with exceeding temperature limits
+        IR_transmit(protocol_selected_num);
     }
 }
 
@@ -597,76 +618,91 @@ void IR_receiver_task(void *args)
     irrecv.setUnknownThreshold(kMinUnknownSize);
     irrecv.setTolerance(kTolerancePercentage);
     irrecv.enableIRIn();
-    while(1)
+    while (1)
     {
-        vTaskDelay(1);  
+        vTaskDelay(1);
         if (needToSendIRComamnd)
             IR_transmit(protocol_selected_num);
         if (esp_restart_flag)
             ESP.restart();
         if (irrecv.decode(&results))
-        {   
-            printf("IR RAW VALUES : { ");
-            for(uint16_t i=0; i<results.rawlen; i++)
-            {
-                printf("%d ", results.rawbuf[i]);
-            }
-            printf("}\n");
+        {
             char raw_buf_str[200];
             strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
-            #if (IR_RECV_LOG_ENABLED)
-                sprintf(ir_log_buffer, "%s", raw_buf_str);
+#if (IR_RECV_LOG_ENABLED)
+            printf("IR RAW VALUES : { ");
+            for (uint16_t i = 0; i < results.rawlen; i++)
+            {
+                printf("%d ", results.rawbuf[i]);
+            }
+            printf("}\n");
+            sprintf(ir_log_buffer, "%s", raw_buf_str);
+            white_printf(IR_DEBUG_TAG, ir_log_buffer);
+            if (description.length())
+            {
+                sprintf(ir_log_buffer, "%s", result_description_char_str);
                 white_printf(IR_DEBUG_TAG, ir_log_buffer);
-                if (description.length()){
-                    sprintf(ir_log_buffer, "%s", result_description_char_str);
-                    white_printf(IR_DEBUG_TAG, ir_log_buffer);
-                }
-            #endif
+            }
+#endif
             if (teaching_mode)
             {
                 protocol_selected_num = RAW;
-                if(teachMode_size_done){
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
-                    vTaskDelay(20/portTICK_PERIOD_MS);
-                    if(results.rawlen>1)    convert_data=((results.rawlen)-1)*2;
-                    convert_16bit_to_8bit(convert_data,convert_buffer);
-                    eeprom_addr=TEACH_DATA_LEN;
-                    eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
-                    vTaskDelay(20/portTICK_PERIOD_MS);
-                    teachMode_size_done=false;
+                if (teachMode_size_done)
+                {
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR, EEPROM_CONF_FAC, TEACHING_FAC);
+                    vTaskDelay(20 / portTICK_PERIOD_MS);
+                    if (results.rawlen > 1)
+                        convert_data = ((results.rawlen) - 1) * 2;
+                    convert_16bit_to_8bit(convert_data, convert_buffer);
+                    eeprom_addr = TEACH_DATA_LEN;
+                    eeprom_write(EEPROM_SLAVE_ADDR, eeprom_addr, convert_buffer, 2);
+                    vTaskDelay(20 / portTICK_PERIOD_MS);
+                    teachMode_size_done = false;
                 }
-                sprintf(ir_log_buffer,"Writing Data");
+                sprintf(ir_log_buffer, "Writing Data");
                 white_printf(IR_DEBUG_TAG, ir_log_buffer);
-                if(!eeprom_addr_cal) { 
-                    eeprom_addr=TEACH_DATA_POFF;
+                if (!eeprom_addr_cal)
+                {
+                    eeprom_addr = TEACH_DATA_POFF;
                 }
-                else {
-                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(TEACHING_MODE_STARTING_TEMPERATURE-16))*MAX_OFFSET);
+                else
+                {
+                    eeprom_addr = TEACH_DATA_POFF + ((eeprom_addr_cal + (TEACHING_MODE_STARTING_TEMPERATURE - 16)) * MAX_OFFSET);
                 }
                 eeprom_addr_cal++;
-                printf("EEPROM ADDR : %d",eeprom_addr);
-                write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
+                printf("EEPROM ADDR : %d", eeprom_addr);
+                write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
             }
-            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && registered && !configured && !teaching_mode)
+
+            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
-                configured = true;
-                protocol_selected_num = protocol_detected;
-                char pubmessage[PUBMESG_LEN];
-                sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
-                        JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
-                        JSON_ACK_NAME_KEY, GWY_CONF_ACK,
-                        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                        ERROR_CODE_KEY, json_ack_err_code);
-                sprintf(ir_log_buffer, "Sending Gwy Configuration ack");
-                white_printf(IR_DEBUG_TAG, ir_log_buffer);
-                add_to_pubmesg_queue(pubmessage, publish_topic);
+#if (IS_GWY)
+                if (registered)
+                {
+                    configured = true;
+                    protocol_selected_num = protocol_detected;
+                    char pubmessage[PUBMESG_LEN];
+                    sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
+                            JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
+                            JSON_ACK_NAME_KEY, GWY_CONF_ACK,
+                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                            ERROR_CODE_KEY, json_ack_err_code);
+                    sprintf(ir_log_buffer, "Sending Gwy Configuration ack");
+                    white_printf(IR_DEBUG_TAG, ir_log_buffer);
+                    add_to_pubmesg_queue(pubmessage, publish_topic);
+                }
+#endif
+#if (!IS_GWY)
+                if (provisioned)
+                    send_AC_configuration_ack_to_gwy();
+#endif
             }
-            if (protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
-                // locking_feature(result_description_char_str);
-                ;
+
+            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
+                locking_feature(result_description_char_str);
             yield();
         }
     }
