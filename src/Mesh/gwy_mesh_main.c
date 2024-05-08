@@ -7,6 +7,8 @@
  * @copyright Copyright (c) 2024
  */
 
+#if (IS_GWY)
+
 #include "../../inc/mesh/mesh_main.h"
 #include "../../inc/Mesh/ble_mesh_example_init.h"
 
@@ -1896,3 +1898,5 @@ void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
     ESP_LOGI(MESH_DEBUG_TAG, "err err: %d",err);
     remove_from_node_pub_conf_queue();
 }
+
+#endif

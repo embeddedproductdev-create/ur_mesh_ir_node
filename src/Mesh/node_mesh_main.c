@@ -7,6 +7,8 @@
  * @copyright Copyright (c) 2024
  */
 
+#if (!IS_GWY)
+
 #include "../../inc/mesh/mesh_main.h"
 #include "../../inc/Mesh/ble_mesh_example_init.h"
 
@@ -52,8 +54,8 @@ uint8_t *BLE_recvd_data;
 #include "esp_ble_mesh_sensor_model_api.h"
 
 //Initialization
-uint16_t NODE_SER_NO = 1;
 uint16_t ELEMENT_ADDR = 0;
+bool provisioned = false;
 
 #define CID_ESP 0x02E5
 
@@ -1120,3 +1122,5 @@ void send_temperature_ack_to_gwy()
     sensor_states[0].sensor_data.raw_value->data = &node_temperature_data_t;
     example_ble_mesh_send_sensor_status();
 }
+
+#endif

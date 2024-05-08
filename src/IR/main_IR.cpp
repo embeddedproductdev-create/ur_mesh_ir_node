@@ -597,7 +597,7 @@ void locking_feature(char *result_description_char_str)
     add_to_pubmesg_queue(result_description_char_str, publish_topic);
 #endif
 #if(!IS_GWY)
-    send_locking_feature_ack_to_gwy();
+    send_locking_feature_ack_to_gwy(result_description_char_str);
 #endif
     if (temperature != 0 && (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit))
     {

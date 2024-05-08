@@ -19,8 +19,8 @@ uint16_t GWY_SER_NO = 100;
 uint16_t NODE_SER_NO = 100;
 #endif
 #if (!CLIENT_RELEASE)
-uint16_t GWY_SER_NO = 3;
-uint16_t NODE_SER_NO = 3;
+uint16_t GWY_SER_NO = 1;
+uint16_t NODE_SER_NO = 1;
 #endif
 char GWY_SER_NO_IN_STRING[15];
 char NODE_SER_NO_IN_STRING[15];
@@ -132,7 +132,7 @@ void app_main()
     init_structures();
 #endif
 
-#if (IS_GWY)
+#if (!IS_GWY)
     fill_node_ser_no_str();
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", NODE_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
