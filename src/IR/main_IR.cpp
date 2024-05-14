@@ -636,7 +636,7 @@ void IR_receiver_task(void *args)
             printf("IR RAW VALUES : { ");
             for (uint16_t i = 0; i < results.rawlen; i++)
             {
-                printf("%d ", results.rawbuf[i]);
+                printf("%d, ", results.rawbuf[i]);
             }
             printf("}\n");
             sprintf(ir_log_buffer, "%s", raw_buf_str);

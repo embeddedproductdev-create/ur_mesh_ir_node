@@ -58,12 +58,12 @@
 
 /**
  * ===================================================================
- * @brief VERY IMPORTANT MACROS !!!!!!!!!!!!!!!!!!!!!!!
+ * @brief VERY IMPORTANT MACROS !!!
  * DO NOT CHANGE THE THINGS BELOW WITHOUT KNOWING WHAT YOU ARE DOING
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY false
+#define IS_GWY true
 #define CLIENT_RELEASE false
 /*====================================================================*/
 

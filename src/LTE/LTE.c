@@ -104,6 +104,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 		}
 	}
 	sprintf(lte_log_buffer, "No Data recevied from LTE");
+	network_flag = 0;
 	red_printf(LTE_ERROR_TAG, lte_log_buffer);
 	free(LTE_UART_data); 
 	return FAILURE;

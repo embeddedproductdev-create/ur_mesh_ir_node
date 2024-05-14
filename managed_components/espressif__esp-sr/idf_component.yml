@@ -11,7 +11,7 @@ files:
   - test_apps/**/*
 repository: git://github.com/espressif/esp-sr.git
 repository_info:
-  commit_sha: f5607edd2cdd21a23986ebbce6485f5ceab1e752
+  commit_sha: 9a70f8b45cc6f9e30ad5a907a70472a135e08538
   path: .
 url: https://github.com/espressif/esp-sr
-version: 1.7.0
+version: 1.7.1

@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2024
  */
 
-#if (IS_GWY)
+
 
 #include "../../inc/mesh/mesh_main.h"
 #include "../../inc/Mesh/ble_mesh_example_init.h"
@@ -66,6 +66,8 @@
 #include "esp_ble_mesh_provisioning_api.h"
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_sensor_model_api.h"
+
+#if (IS_GWY)
 
 control_t *vendor_node_ac_control_t;
 control_t *vendor_node_ac_locking_t;
