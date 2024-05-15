@@ -44,14 +44,14 @@ union LGProtocol{
     uint32_t Fan  :4;
     uint32_t Temp :4;
     uint32_t Mode :3;
-    uint32_t      :3;
+    uint32_t config:3;
     uint32_t Power:2;
     uint32_t Sign :8;
   };
 };
 
 const uint8_t kLgAcFanLowest = 0;  // 0b0000
-const uint8_t kLgAcFanLow = 1;     // 0b0001
+const uint8_t kLgAcFanLow = 9;  // 0b1001
 const uint8_t kLgAcFanMedium = 2;  // 0b0010
 const uint8_t kLgAcFanMax = 4;     // 0b0100
 const uint8_t kLgAcFanAuto = 5;    // 0b0101
@@ -148,7 +148,7 @@ class IRLgAc {
   bool isSwingV(void) const;
   bool isSwingVToggle(void) const;
   bool isVaneSwingV(void) const;
-  void setSwingV(const uint32_t position);
+  void setSwingV(uint32_t position);
   uint32_t getSwingV(void) const;
   void setVaneSwingV(const uint8_t vane, const uint8_t position);
   uint8_t getVaneSwingV(const uint8_t vane) const;

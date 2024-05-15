@@ -41,6 +41,7 @@ IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
 IRDaikin2 ac_daikin2(IR_TRANSMIT_PIN);
 IRDaikin160 ac_daikin160(IR_TRANSMIT_PIN);
 IRDaikin176 ac_daikin176(IR_TRANSMIT_PIN);
+IRDaikin200 ac_daikin200(IR_TRANSMIT_PIN);
 IRDaikin64 ac_daikinac64(IR_TRANSMIT_PIN);
 IRDaikin152 ac_daikin152(IR_TRANSMIT_PIN);
 IRDaikin128 ac_daikin128(IR_TRANSMIT_PIN);
@@ -77,6 +78,7 @@ void IR_transmit_setup()
     ac_daikin2.begin();
     ac_daikin160.begin();
     ac_daikin176.begin();
+    ac_daikin200.begin();
     ac_daikinac64.begin();
     ac_daikin152.begin();
     ac_daikin128.begin();
@@ -152,6 +154,18 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.send();
         sprintf(ir_log_buffer, "Sending Daikin280");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
+        break;
+
+    case DAIKIN200:
+        strcpy(protocol_chosen_str, "Daikin200");
+        ac_daikin200.setPower(gwy_ac_control_t.power);
+        ac_daikin200.setSwingHorizontal(gwy_ac_control_t.swingH);
+        ac_daikin200.setFan(gwy_ac_control_t.fan);
+        ac_daikin200.setTemp(gwy_ac_control_t.temp);
+        ac_daikin200.setMode(ac_daikin200.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        sending = true;
+        ac_daikin200.send();
+        ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin200\r\n");
         break;
 
     case DAIKIN216:

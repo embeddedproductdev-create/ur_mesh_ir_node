@@ -453,7 +453,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
 void get_mode_value(char *device_type)
 {
-    if (strcmp(device_type, "gwy"))
+    if (strcmp(device_type, "gwy")==0)
     {
         if (strcasecmp(gwy_ac_control_t.mode_str, "Auto") == 0)
             gwy_ac_control_t.mode_val = AUTO;

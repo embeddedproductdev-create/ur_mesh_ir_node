@@ -271,11 +271,10 @@ void IRLgAc::send(const uint16_t repeat) {
         if (!_light) _irsend.send(_protocol, kLgAcLightToggle, kLgBits, repeat);
         break;
       case lg_ac_remote_model_t::AKB73757604:
-        // Check if we need to send any vane specific swingv's.
-        for (uint8_t i = 0; i < kLgAcSwingVMaxVanes; i++)  // For all vanes
-          if (_vaneswingv[i] != _vaneswingv_prev[i])  // Only send if we must.
-            _irsend.send(_protocol, calcVaneSwingV(i, _vaneswingv[i]), kLgBits,
-                         repeat);
+      case lg_ac_remote_model_t::AKB75215403:
+        // Only send the swing setting if we need to.
+        if (_swingv != _swingv_prev)
+          _irsend.send(_protocol, _swingv, kLgBits, repeat);
         // and if we need to send a swingh message.
         if (_swingh != _swingh_prev)
           _irsend.send(_protocol, _swingh ? kLgAcSwingHAuto : kLgAcSwingHOff,
@@ -475,27 +474,12 @@ uint8_t IRLgAc::getTemp(void) const {
 /// @param[in] speed The desired setting.
 void IRLgAc::setFan(const uint8_t speed) {
   uint8_t _speed = speed;
-  // Only model AKB74955603 has these speeds, so convert if we have to.
-  if (getModel() != lg_ac_remote_model_t::AKB74955603) {
-    switch (speed) {
-      case kLgAcFanLowAlt:
-        _.Fan = kLgAcFanLow;
-        return;
-      case kLgAcFanHigh:
-        _.Fan = kLgAcFanMax;
-        return;
-    }
-  }
   switch (speed) {
     case kLgAcFanLow:
-    case kLgAcFanLowAlt:
       _speed = (getModel() != lg_ac_remote_model_t::AKB74955603)
           ? kLgAcFanLow : kLgAcFanLowAlt;
       break;
     case kLgAcFanHigh:
-      _speed = (getModel() != lg_ac_remote_model_t::AKB74955603)
-          ? kLgAcFanMax : speed;
-      break;
     case kLgAcFanAuto:
     case kLgAcFanLowest:
     case kLgAcFanMedium:
@@ -562,7 +546,9 @@ bool IRLgAc::getSwingH(void) const { return _swingh; }
 
 /// Set the Horizontal Swing mode of the A/C.
 /// @param[in] on true, the setting is on. false, the setting is off.
-void IRLgAc::setSwingH(const bool on) { _swingh = on; }
+void IRLgAc::setSwingH(const bool on) {
+    _swingh =on;
+}
 
 /// Check if the stored code is a vane specific SwingV message.
 /// @return true, if it is. Otherwise, false.
@@ -575,14 +561,19 @@ bool IRLgAc::isVaneSwingV(void) const {
 
 /// Set the Vertical Swing mode of the A/C.
 /// @param[in] position The position/mode to set the vanes to.
-void IRLgAc::setSwingV(const uint32_t position) {
+void IRLgAc::setSwingV(uint32_t position) {
   // Is it a valid position code?
+  if(position&0x01)
+    position = kLgAcSwingVAuto;
+  if(!(position&0x01))
+    position= kLgAcSwingVOff;
   if (position == kLgAcSwingVOff || position == kLgAcSwingVToggle ||
       toCommonSwingV(position) != stdAc::swingv_t::kOff) {
     if (position <= 0xFF) {  // It's a short code, convert it.
       _swingv = (kLgAcSwingSignature << 8 | position) << kLgAcChecksumSize;
       _swingv |= calcChecksum(_swingv);
-    } else {
+    }
+    else {
       _swingv = position;
     }
   }
@@ -591,6 +582,7 @@ void IRLgAc::setSwingV(const uint32_t position) {
 // Copy the previous swing settings from the current ones.
 void IRLgAc::updateSwingPrev(void) {
   _swingv_prev = _swingv;
+  _swingh_prev = _swingh;
   for (uint8_t i = 0; i < kLgAcSwingVMaxVanes; i++)
     _vaneswingv_prev[i] = _vaneswingv[i];
 }
@@ -680,7 +672,6 @@ stdAc::fanspeed_t IRLgAc::toCommonFanSpeed(const uint8_t speed) {
     case kLgAcFanHigh:    return stdAc::fanspeed_t::kHigh;
     case kLgAcFanMedium:  return stdAc::fanspeed_t::kMedium;
     case kLgAcFanLow:
-    case kLgAcFanLowAlt:  return stdAc::fanspeed_t::kLow;
     case kLgAcFanLowest:  return stdAc::fanspeed_t::kMin;
     default:              return stdAc::fanspeed_t::kAuto;
   }

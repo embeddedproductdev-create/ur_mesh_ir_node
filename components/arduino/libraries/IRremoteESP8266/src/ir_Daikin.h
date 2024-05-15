@@ -682,6 +682,89 @@ const uint8_t kDaikin64MaxTemp = 30;  // Celsius
 const uint8_t kDaikin64ChecksumOffset = 60;
 const uint8_t kDaikin64ChecksumSize = 4;  // Mask 0b1111 << 59
 
+union Daikin200Protocol{
+  uint8_t raw[kDaikin200StateLength];  ///< The state of the IR remote.
+  struct {
+    // Byte 0~5
+    uint8_t                   :8;
+    uint8_t                   :8;
+    uint8_t                   :8;
+    uint8_t                   :8;
+    uint8_t                   :8;
+    uint8_t                   :8;
+    // Byte 6
+    uint8_t Sum1 :8;
+    // Byte 7-10
+    uint8_t                   :8;
+    uint8_t                   :8;
+    uint8_t                   :8;
+    uint8_t                   :8;
+    // Byte 11
+    uint8_t                   :8;
+    // Byte 12
+    uint8_t         :4;
+    uint8_t AltMode :3;
+    uint8_t         :1;
+    // Byte 13
+    uint8_t ModeButton  :8;
+    // Byte 14
+    uint8_t Power :1;
+    uint8_t       :3;
+    uint8_t Mode  :3;
+    uint8_t       :1;
+    // Byte 15~16
+    uint8_t pad2[2];
+    // Byte 17
+    uint8_t       :1;
+    uint8_t Temp  :6;
+    uint8_t       :1;
+    // Byte 18
+    uint8_t SwingH  :4;
+    uint8_t Fan     :4;
+    // Byte 19~23
+    uint8_t pad3[5];
+    // Byte 24
+    uint8_t Sum2  :8;
+  };
+};
+
+/// Class for handling detailed Daikin 280-bit A/C messages.
+class IRDaikin200 {
+ public:
+  explicit IRDaikin200(const uint16_t pin, const bool inverted = false,
+                       const bool use_modulation = true);
+
+#if SEND_DAIKIN200
+  void send(const uint16_t repeat = kDaikinDefaultRepeat);
+  /// Run the calibration to calculate uSec timing offsets for this platform.
+  /// @return The uSec timing offset needed per modulation of the IR Led.
+  /// @note This will produce a 65ms IR signal pulse at 38kHz.
+  ///   Only ever needs to be run once per object instantiation, if at all.
+  int8_t calibrate(void) { return _irsend.calibrate(); }
+#endif
+  void begin(void);
+  void setPower(const bool on);
+  bool getPower(void) const;
+  void setTemp(const uint8_t temp);
+  uint8_t* getRaw(void);
+  void setFan(const uint8_t fan);
+  void setSwingHorizontal(const bool state);
+  void setMode(const uint8_t mode);
+  static uint8_t convertMode(const stdAc::opmode_t mode);
+#ifndef UNIT_TEST
+ private:
+  IRsend _irsend;  ///< instance of the IR send class
+#else
+  /// @cond IGNORE
+  IRsendTest _irsend;  ///< instance of the testing IR send class
+  /// @endcond
+#endif
+  // # of bytes per command
+  Daikin200Protocol _;
+  void stateReset(void);
+  void checksum(void);
+};
+
 const uint16_t kDaikin200Freq = 38000;  // Modulation Frequency in Hz.
 const uint16_t kDaikin200HdrMark = 4920;
 const uint16_t kDaikin200HdrSpace = 2230;
@@ -693,6 +776,16 @@ const uint16_t kDaikin200Sections = 2;
 const uint16_t kDaikin200Section1Length = 7;
 const uint16_t kDaikin200Section2Length = kDaikin200StateLength -
                                           kDaikin200Section1Length;
+const uint8_t kDaikin200Fan =  0b000;  // 0
+const uint8_t kDaikin200Heat = 0b001;  // 1
+const uint8_t kDaikin200Cool = 0b010;  // 2
+const uint8_t kDaikin200Auto = 0b011;  // 3
+const uint8_t kDaikin200Dry =  0b111;  // 7
+const uint8_t kDaikin200ModeButton = 0b00000100;
+const uint8_t kDaikin200DryFanTemp = 17;  // Dry/Fan mode is always 17 Celsius.
+const uint8_t kDaikin200FanMax = 5;
+const uint8_t kDaikin200SwingHAuto =  0b101;
+const uint8_t kDaikin200SwingHOff = 0b110;
 
 const uint16_t kDaikin312HdrMark = 3518;
 const uint16_t kDaikin312HdrSpace = 1688;

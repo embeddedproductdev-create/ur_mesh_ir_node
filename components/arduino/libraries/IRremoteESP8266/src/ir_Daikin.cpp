@@ -3785,7 +3785,126 @@ void IRsend::sendDaikin200(const unsigned char data[], const uint16_t nbytes,
   }
 }
 #endif  // SEND_DAIKIN200
+#if SEND_DAIKIN200
+/// Send the current internal state as an IR message.
+/// @param[in] repeat Nr. of times the message will be repeated.
+void IRDaikin200::send(const uint16_t repeat) {
+  _irsend.sendDaikin200(getRaw(), kDaikin200StateLength, repeat);
+}
+#endif  // SEND_DAIKIN200
+void IRDaikin200::begin(void) { _irsend.begin(); }
+/// Calculate and set the checksum values for the internal state.
+void IRDaikin200::checksum(void) {
+  _.Sum1 = sumBytes(_.raw, kDaikin200Section1Length - 1);
+  _.Sum2 = sumBytes(_.raw + kDaikin200Section1Length,
+                    kDaikin200Section2Length - 1);
+}
+//horizontal swing on /off if state on horizontal swing on else off
+void IRDaikin200::setSwingHorizontal(const bool on) {
+  if(on)
+    _.SwingH=kDaikin200SwingHAuto;
+  else
+    _.SwingH=kDaikin200SwingHOff;
+}
 
+void IRDaikin200::setMode(const uint8_t mode) {
+  uint8_t altmode = 0;
+  // Set the mode bits.
+  _.Mode = mode;
+  switch (mode) {
+    case kDaikin200Dry:  altmode = 2; break;
+    case kDaikin200Fan:  altmode = 6; break;
+    case kDaikin200Auto:
+    case kDaikin200Cool:
+    case kDaikin200Heat: altmode = 7; break;
+    default: _.Mode = kDaikin200Cool; altmode = 7; break;
+  }
+  // Set the additional mode bits.
+  _.AltMode = altmode;
+  // Needs to happen after setTemp() as it will clear it.
+  _.ModeButton = kDaikin200ModeButton;
+}
+uint8_t IRDaikin200::convertMode(const stdAc::opmode_t mode) {
+  switch (mode) {
+    case stdAc::opmode_t::kDry:   return kDaikin200Dry;
+    case stdAc::opmode_t::kHeat:  return kDaikin200Heat;
+    case stdAc::opmode_t::kFan:   return kDaikin200Fan;
+    case stdAc::opmode_t::kAuto:  return kDaikin200Auto;
+    default:                      return kDaikin200Cool;
+  }
+}
+
+/// Reset the internal state to a fixed known good state.
+void IRDaikin200::stateReset(void) {
+  for (uint8_t i = 0; i < kDaikin200StateLength; i++) _.raw[i] = 0x00;
+  _.raw[0] =  0x11;
+  _.raw[1] =  0xDA;
+  _.raw[2] =  0x17;
+  _.raw[3] =  0x48;
+  _.raw[4] =  0x04;
+  // _.raw[6] is a checksum byte, it will be set by checksum().
+  _.raw[7] =  0x11;
+  _.raw[8] =  0xDA;
+  _.raw[9] =  0x17;
+  _.raw[10] = 0x48;
+  _.raw[12] = 0x53;
+  _.raw[14] = 0x21;
+  _.raw[17] = 0x22;
+  _.raw[18] = 0x50;  // Fan speed and swing
+  _.raw[20] = 0x20;
+  // _.raw[24] is a checksum byte, it will be set by checksum().
+}
+
+/// Get a PTR to the internal state/code for this protocol.
+/// @return PTR to a code for this protocol based on the current internal state.
+uint8_t *IRDaikin200::getRaw(void) {
+  checksum();  // Ensure correct settings before sending.
+  return _.raw;
+}
+/// Class constructor.
+/// @param[in] pin GPIO to be used when sending.
+/// @param[in] inverted Is the output signal to be inverted?
+/// @param[in] use_modulation Is frequency modulation to be used?
+IRDaikin200::IRDaikin200(const uint16_t pin, const bool inverted,
+                         const bool use_modulation)
+      : _irsend(pin, inverted, use_modulation) { stateReset(); }
+
+/// Change the power setting.
+/// @param[in] on true, the setting is on. false, the setting is off.
+void IRDaikin200::setPower(const bool on) {
+  _.ModeButton = 0;
+  _.Power = on;
+}
+
+/// Set the temperature.
+/// @param[in] temp The temperature in degrees celsius.
+void IRDaikin200::setTemp(const uint8_t temp) {
+  uint8_t degrees = std::min(kDaikinMaxTemp, std::max(temp, kDaikinMinTemp));
+  switch (_.Mode) {
+    case kDaikin200Dry:
+    case kDaikin200Fan:
+      degrees = kDaikin200DryFanTemp; break;
+  }
+  _.Temp = degrees - 9;
+  _.ModeButton = 0;
+}
+
+void IRDaikin200::setFan(const uint8_t fan) {
+  switch (fan) {
+    case kDaikinFanMin: 
+    case kDaikinFanMed:
+    case kDaikin200FanMax:
+      _.Fan = fan;
+      break;
+    default:
+      _.Fan = kDaikin200FanMax;
+      break;
+  }
+  _.ModeButton = 0;
+}
+/// Get the value of the current power setting.
+/// @return true, the setting is on. false, the setting is off.
+bool IRDaikin200::getPower(void) const { return _.Power; }
 #if DECODE_DAIKIN200
 /// Decode the supplied Daikin 200-bit message. (DAIKIN200)
 /// Status: STABLE / Known to be working.
@@ -3820,7 +3939,7 @@ bool IRrecv::decodeDaikin200(decode_results *results, uint16_t offset,
                         kDaikin200BitMark, kDaikin200Gap,
                         section >= kDaikin200Sections - 1,
                         kDaikinTolerance, 0, false);
-    if (used == 0) return false;
+    if (!used) return false;
     offset += used;
     pos += ksectionSize[section];
   }
