@@ -64,7 +64,7 @@
 #define NODE_TEACHING_MODE_END_ACK "Node Teaching Mode End Ack"
 
 /*AT command related*/
-#define MQTT_CLIENT_INDEX 5
+extern uint8_t MQTT_CLIENT_INDEX;
 #define MQTT_VERSION 3 // 3 = 3.1, 4 = 3.1.1
 #define MQTT_QOS 0 // 0 = atmost once | 1 = atleast once | 2 = exactly once
 #define MQTT_RETAIN 0
@@ -194,13 +194,13 @@ typedef struct TEMPERATURE_DATA_KEYuct
 	uint8_t measured_temperature;
 } temperature_data_t;
 
-struct pub_mesg_struct
+typedef struct pub_mesg_struct
 {
 	char message[PUBMESG_LEN];
 	char *topic;
 	struct pub_mesg_struct *next;
 	struct pub_mesg_struct *prev;
-};
+}pubmesg_t;
 
 enum json_packet_enum
 {
@@ -379,8 +379,8 @@ extern teaching_mode_t node_teaching_mode_t;
 /*===================================*/
 
 /*pubmesg*/
-extern struct pub_mesg_struct *pubmesg_queue_head;
-extern struct pub_mesg_struct *pubmesg_queue_tail;
+extern pubmesg_t *pubmesg_queue_head;
+extern pubmesg_t *pubmesg_queue_tail;
 
 // SUBSCRIBE TOPICS
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];

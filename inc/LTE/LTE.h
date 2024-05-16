@@ -150,7 +150,8 @@ extern "C"
         uint32_t timeout_ms
     );
     int8_t check_response(char *data, char *response_check_string);
-
+    void rotate_client_index();
+    
 #ifdef __cplusplus
 }
 #endif

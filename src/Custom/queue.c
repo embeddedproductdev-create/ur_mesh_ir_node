@@ -78,6 +78,22 @@ void add_to_node_pub_conf_queue()
 	}
 }
 
+/**
+ * @brief Get the node_pubconf queue count
+ * @param none
+ * @return Number of elements currently in node_pubconf queue 
+ */
+uint8_t get_node_pub_conf_queue_count(pub_conf_t *head)
+{
+	uint8_t count = 0;
+	while(head!=NULL)
+	{
+		count++;
+		head=head->next;
+	}
+	return count;
+}
+
 void search_node_reconf_queue(uint16_t messageNum)
 {
 	char pubmessage[PUBMESG_LEN];
@@ -144,6 +160,23 @@ void add_to_node_reconf_queue()
 		node_reconf_queue_tail = reconf_node;
 	}
 }
+
+/**
+ * @brief Get the node_reconf queue count
+ * @param none
+ * @return Number of elements currently in node_reconf queue 
+ */
+uint8_t get_node_reconf_queue_count(reconf_t *head)
+{
+	uint8_t count = 0;
+	while(head!=NULL)
+	{
+		count++;
+		head=head->next;
+	}
+	return count;
+}
+
 
 void search_node_control_queue(uint16_t messageNum)
 {
@@ -223,6 +256,22 @@ void add_to_node_control_queue()
 	}
 }
 
+/**
+ * @brief Get the node_ac_control queue count
+ * @param none
+ * @return Number of elements currently in node_ac_control queue 
+ */
+uint8_t get_node_control_queue_count(control_t *head)
+{
+	uint8_t count = 0;
+	while(head!=NULL)
+	{
+		count++;
+		head=head->next;
+	}
+	return count;
+}
+
 void search_unprov_queue(uint16_t messageNum)
 {
 	char pubmessage[PUBMESG_LEN];
@@ -290,6 +339,22 @@ void add_to_unprov_queue()
 		unprov_queue_tail->next->next = NULL;
 		unprov_queue_tail = unprov_node;
 	}
+}
+
+/**
+ * @brief Get the unprov queue count
+ * @param none
+ * @return Number of elements currently in unprov queue 
+ */
+uint8_t get_unprov_queue_count(unprov_t *head)
+{
+	uint8_t count = 0;
+	while(head!=NULL)
+	{
+		count++;
+		head=head->next;
+	}
+	return count;
 }
 
 void search_prov_queue(uint16_t messageNum)
@@ -361,6 +426,22 @@ void add_to_prov_queue()
 	}
 }
 
+/**
+ * @brief Get the prov queue count
+ * @param none
+ * @return Number of elements currently in prov queue 
+ */
+uint8_t get_prov_queue_count(prov_t *head)
+{
+	uint8_t count = 0;
+	while(head!=NULL)
+	{
+		count++;
+		head=head->next;
+	}
+	return count;
+}
+
 void remove_from_pubmesg_queue()
 {
 	if(pubmesg_queue_head == NULL)
@@ -374,7 +455,7 @@ void remove_from_pubmesg_queue()
 		struct pub_mesg_struct *temp = pubmesg_queue_head;
 		pubmesg_queue_head = pubmesg_queue_head->next;
 		free(temp);
-		if(pubmesg_queue_head == NULL) pubmesg_queue_head = NULL;
+		if(pubmesg_queue_head == NULL) pubmesg_queue_tail = NULL;
 	}
 }
 
@@ -411,6 +492,22 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 }
 
 /**
+ * @brief Get the pubmesg queue count
+ * @param none
+ * @return Number of elements currently in Pubmesg queue 
+ */
+uint8_t get_pubmesg_queue_count(pubmesg_t *head)
+{
+	uint8_t count = 0;
+	while(head!=NULL)
+	{
+		count++;
+		head=head->next;
+	}
+	return count;
+}
+
+/**
  * @brief Thread that takes care of handling all queues throught out the code 
  * We have the following queues across the application. We can call it a queue or LinkedLists.
  * They are actually Doubly linked lists with structures as node. 
@@ -432,29 +529,48 @@ void queue_handler(void *args)
 		{
 			if(prov_queue_head != NULL)
 			{
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "prov_queue_count(%d)",get_prov_queue_count(prov_queue_head));
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				
+				
+				
 				send_prov_packet_to_node(prov_queue_head);
 			}
 			if(unprov_queue_head != NULL)
 			{
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_unprov_queue_count(%d)",get_unprov_queue_count(unprov_queue_head));
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				send_unprov_packet_to_node(unprov_queue_head);
 			}
 			if(node_reconf_queue_head != NULL)
 			{
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_reconf_queue_count(%d)",get_node_reconf_queue_count(node_reconf_queue_head));
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				send_reconf_packet_to_node(node_reconf_queue_head);
 			}	
 			if(node_ac_control_queue_head != NULL)
 			{
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_ac_control_queue_count(%d)",get_node_control_queue_count(node_ac_control_queue_head));
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				send_ac_control_packet_to_node(node_ac_control_queue_head);
 			}
 			if(node_pub_conf_queue_head != NULL)
 			{
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_pubconf_queue_count(%d)",get_node_pub_conf_queue_count(node_pub_conf_queue_head));
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				send_pub_conf_packet_to_node(node_pub_conf_queue_head);
 			}
 			//Don't try to publish in the middle of sending an IR command
 			if(pubmesg_queue_head != NULL && mqtt_connected)
 			{
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE: pubmesg_queue_count(%d)",get_pubmesg_queue_count(pubmesg_queue_head));
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				if(publish_to_mqtt() == SUCCESS)
+				{
 					remove_from_pubmesg_queue();
+					snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER: pubmesg_queue_count(%d)",get_pubmesg_queue_count(pubmesg_queue_head));
+					yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				}
 			}
 		}
 	}

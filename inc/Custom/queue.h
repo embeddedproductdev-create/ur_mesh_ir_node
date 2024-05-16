@@ -16,24 +16,41 @@
 extern "C"
 {
 #endif
+    //Pubmesh
     int8_t publish_to_mqtt();
     void remove_from_pubmesg_queue();   
 	void add_to_pubmesg_queue(char *msg, char *topic);
+    uint8_t get_pubmesg_queue_count(pubmesg_t *);
+
+    //Prov
     void search_prov_queue(uint16_t messageNum);
     void remove_from_prov_queue();
     void add_to_prov_queue();
+    uint8_t get_prov_queue_count(prov_t *);
+
+    //Unprov
     void search_unprov_queue(uint16_t messageNum);
     void remove_from_unprov_queue();
     void add_to_unprov_queue();
+    uint8_t get_unprov_queue_count(unprov_t *);
+
+    //Node AC control
     void search_node_control_queue(uint16_t messageNum);
     void remove_from_node_control_queue();
     void add_to_node_control_queue();
+    uint8_t get_node_control_queue_count(control_t *);
+
+    //Node reconf
     void search_node_reconf_queue(uint16_t messageNum);
     void remove_from_node_reconf_queue();
     void add_to_node_reconf_queue();
+    uint8_t get_node_reconf_queue_count(reconf_t *);
+
+    //Node Pubconf
     void search_node_pub_conf_queue(uint16_t messageNum);
     void remove_from_node_pub_conf_queue();
     void add_to_node_pub_conf_queue();
+    uint8_t get_node_pub_conf_queue_count(pub_conf_t *);
     void queue_handler(void *args);
 #ifdef __cplusplus
 }

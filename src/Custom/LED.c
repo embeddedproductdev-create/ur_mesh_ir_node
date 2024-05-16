@@ -108,11 +108,9 @@ void LED_task(void *args)
             vTaskDelay(pdMS_TO_TICKS(SLOW_BLINK_MS));
             break;
 
-        case LED_STATE_SENDING_IR_COMMAND: // Slow Blinking GREEN
-            digitalWrite(GREEN_LED_PIN, LOW);
-            vTaskDelay(pdMS_TO_TICKS(FAST_BLINK_MS));
-            digitalWrite(GREEN_LED_PIN, HIGH);
-            vTaskDelay(pdMS_TO_TICKS(FAST_BLINK_MS));
+        case LED_STATE_SENDING_IR_COMMAND: // Solid Purple
+            digitalWrite(RED_LED_PIN, LOW);
+            digitalWrite(BLUE_LED_PIN, LOW);
             break;
 
         default:

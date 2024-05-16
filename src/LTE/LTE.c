@@ -15,6 +15,9 @@
 #define FAILURE -1
 
 // Global Variable Initialization
+
+uint8_t MQTT_CLIENT_INDEX=5;
+
 char mqtt_client_id[100];
 
 bool LOG_LTE_DATA = true;
@@ -32,6 +35,8 @@ char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 //Local variable Initialization
 char QMTSTAT_1_ERROR[20];
+char QMTOPEN_2_ERROR[20];
+char QMTOPEN_3_ERROR[20];
 char MQTT_NETWORK_OPEN_CMD[100];
 char MQTT_NETWORK_CLOSE_CMD[100];
 char MQTT_CLIENT_DISCONN_CMD[30];
@@ -71,6 +76,12 @@ void LTE_UART_INIT(void)
 int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 {
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
+	if(LTE_UART_data==NULL)
+	{
+		snprintf(lte_log_buffer, sizeof(lte_log_buffer), "Memory allocation failed for LTE_uart_data");
+		red_printf(LTE_ERROR_TAG, lte_log_buffer);
+		return FAILURE;
+	}
 	uint32_t in_time = esp_timer_get_time();
 	while((esp_timer_get_time()-in_time)/1000 < timeout_ms)
 	{
@@ -110,10 +121,12 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 	return FAILURE;
 }
 
-int8_t check_response(char *LTE_UART_data, char *check_string)
+int8_t check_response(char *uart_data, char *check_string)
 {
-	if(strstr(LTE_UART_data, QMTSTAT_1_ERROR)) return FAILURE;
-	if(strstr(LTE_UART_data, check_string)) {
+	if(strstr(uart_data, QMTSTAT_1_ERROR)) return FAILURE;
+	if(strstr(uart_data, QMTOPEN_2_ERROR)) return FAILURE;
+	if(strstr(uart_data, QMTOPEN_3_ERROR)) return FAILURE;
+	if(strstr(uart_data, check_string)) {
 		return SUCCESS;
 	}
 	return FAILURE;
@@ -182,8 +195,6 @@ int8_t publish_to_mqtt()
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				sprintf(queue_log_buffer, "%s", publish_topic);
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 				return SUCCESS;
 			}
 			else
@@ -215,7 +226,9 @@ void init_Strings()
 	sprintf(MQTT_CLIENT_DISCONN_CMD,"%s%d\r",MQTT_CLIENT_DISCONN,MQTT_CLIENT_INDEX);
 	sprintf(MQTT_READ_MSG_CMD, "%s%d\r",READ_MQTT_MESSAGE,MQTT_CLIENT_INDEX);
 	sprintf(MQTT_SUB_CMD,"%s%d,%d,\"%s\",%d\r",SUB_TO_TOPIC,MQTT_CLIENT_INDEX,MQTT_MSGID,subscribe_topic,MQTT_QOS);
-	sprintf(QMTSTAT_1_ERROR, "+QMTSTAT:%d,1", MQTT_CLIENT_INDEX);
+	sprintf(QMTSTAT_1_ERROR, "+QMTSTAT: %d,1", MQTT_CLIENT_INDEX);
+	sprintf(QMTOPEN_2_ERROR, "+QMTOPEN: %d,2", MQTT_CLIENT_INDEX);
+	sprintf(QMTOPEN_3_ERROR, "+QMTOPEN: %d,3", MQTT_CLIENT_INDEX);
 }
 
 /**
@@ -250,6 +263,22 @@ void LTE_gpio_configuration()
 }
 
 /**
+ * @brief Function that takes care of switching the client index after
+ * multiple failure to MQTT Network Open command
+ * @param none
+ * @retval none
+ */
+void rotate_client_index()
+{
+	uint8_t old_client_index = MQTT_CLIENT_INDEX;
+	if(MQTT_CLIENT_INDEX==5) MQTT_CLIENT_INDEX=0;
+	else MQTT_CLIENT_INDEX++;
+	snprintf(lte_log_buffer, sizeof(lte_log_buffer), "Old Client Index : %d | New Client Index : %d",old_client_index, MQTT_CLIENT_INDEX);
+	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+	init_Strings();
+}
+
+/**
  * @brief Function that takes care of maintainig the MQTT communication
  * @param none
  * @return 0=Success, -1=Failure 
@@ -267,6 +296,7 @@ void establishMQTTConnection()
 		if(retry_count > RETRY_COUNT) 
 		{
 			network_flag = 0; client_flag = 0; subscribe_flag = 0; retry_count = 0; 
+			rotate_client_index();
 			powerCycleLTE();
 		}
 		

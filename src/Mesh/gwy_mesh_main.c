@@ -859,6 +859,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
 				ELMNT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
 				LOCATION_KEY, vendor_provision_t->base_data.location,
 				ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
+            remove_from_prov_queue(vendor_provision_t->base_data.msg_seq_no);
             break;
 
         case NODE_UNPROV_PACKET:
@@ -1807,7 +1808,6 @@ void send_prov_packet_to_node(prov_t *prov_packet)
         ESP_LOGE(MESH_ERROR_TAG, "Failed to set matching device uuid");
     }
     Bind_fl = true;
-    remove_from_prov_queue();
 }
 
 void send_unprov_packet_to_node(unprov_t *unprov_packet)
