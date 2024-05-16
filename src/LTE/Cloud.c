@@ -360,6 +360,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 LOCATION_KEY, gwy_registration_t.base_data.location,
                 ERROR_CODE_KEY, json_ack_err_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
 
     case GWY_UNREG_PACKET:
@@ -372,6 +373,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 LOCATION_KEY, gwy_unregistration_t.base_data.location,
                 ERROR_CODE_KEY, json_ack_err_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
 
     case GWY_AC_CONTROL_PACKET:
@@ -392,6 +394,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 OFFTIMER_KEY, gwy_ac_control_t.OffTimer,
                 AC_LOCKING_KEY, gwy_ac_control_t.Locking,
                 ERROR_CODE_KEY, json_ack_err_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
 
     case GWY_RECONF_PACKET:
@@ -403,6 +406,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 ERROR_CODE_KEY, json_ack_err_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
 
     case GWY_AC_LOCKING_PACKET:
@@ -423,6 +427,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 OFFTIMER_KEY, gwy_locking_t.OffTimer,
                 AC_LOCKING_KEY, gwy_locking_t.Locking,
                 ERROR_CODE_KEY, gwy_locking_t.base_data.error_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
 
     case GWY_PUB_CONF_PACKET:
@@ -435,6 +440,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
                 ERROR_CODE_KEY, json_ack_err_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
 
     case RESET_MQTT:
@@ -447,8 +453,9 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 ERROR_CODE_KEY, json_ack_err_code);
         break;
+        add_to_pubmesg_queue(pubmessage, publish_topic);
     }
-    add_to_pubmesg_queue(pubmessage, publish_topic);
+    
 }
 
 void get_mode_value(char *device_type)
@@ -678,7 +685,7 @@ void parse_json_packet(char *json_packet)
             provision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
             strcpy(provision_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             fill_macid();
-            add_to_prov_queue(&provision_t);
+            add_to_prov_queue();
             break;
 
         case NODE_UNPROV_PACKET:

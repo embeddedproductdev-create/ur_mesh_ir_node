@@ -94,6 +94,27 @@ uint8_t get_node_pub_conf_queue_count(pub_conf_t *head)
 	return count;
 }
 
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_node_pubconf_queue()
+{
+	pub_conf_t *temp = node_pub_conf_queue_head;
+	while(temp!=NULL)
+	{
+		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		{
+			temp=temp->next;
+			remove_from_node_pub_conf_queue();
+			continue;
+		}
+		temp=temp->next;
+	}
+}
+
 void search_node_reconf_queue(uint16_t messageNum)
 {
 	char pubmessage[PUBMESG_LEN];
@@ -175,6 +196,27 @@ uint8_t get_node_reconf_queue_count(reconf_t *head)
 		head=head->next;
 	}
 	return count;
+}
+
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_node_reconf_queue()
+{
+	reconf_t *temp = node_reconf_queue_head;
+	while(temp!=NULL)
+	{
+		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		{
+			temp=temp->next;
+			remove_from_node_reconf_queue();
+			continue;
+		}
+		temp=temp->next;
+	}
 }
 
 
@@ -272,6 +314,27 @@ uint8_t get_node_control_queue_count(control_t *head)
 	return count;
 }
 
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_node_ac_control_queue()
+{
+	control_t *temp = node_ac_control_queue_head;
+	while(temp!=NULL)
+	{
+		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		{
+			temp=temp->next;
+			remove_from_node_control_queue();
+			continue;
+		}
+		temp=temp->next;
+	}
+}
+
 void search_unprov_queue(uint16_t messageNum)
 {
 	char pubmessage[PUBMESG_LEN];
@@ -357,6 +420,27 @@ uint8_t get_unprov_queue_count(unprov_t *head)
 	return count;
 }
 
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_unprov_queue()
+{
+	unprov_t *temp = unprov_queue_head;
+	while(temp!=NULL)
+	{
+		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		{
+			temp=temp->next;
+			remove_from_unprov_queue();
+			continue;
+		}
+		temp=temp->next;
+	}
+}
+
 void search_prov_queue(uint16_t messageNum)
 {
 	char pubmessage[PUBMESG_LEN];
@@ -440,6 +524,27 @@ uint8_t get_prov_queue_count(prov_t *head)
 		head=head->next;
 	}
 	return count;
+}
+
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_prov_queue()
+{
+	prov_t *temp = prov_queue_head;
+	while(temp!=NULL)
+	{
+		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		{
+			temp=temp->next;
+			remove_from_prov_queue();
+			continue;
+		}
+		temp=temp->next;
+	}
 }
 
 void remove_from_pubmesg_queue()
@@ -531,33 +636,35 @@ void queue_handler(void *args)
 			{
 				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "prov_queue_count(%d)",get_prov_queue_count(prov_queue_head));
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				
-				
-				
+				maintain_prov_queue();
 				send_prov_packet_to_node(prov_queue_head);
 			}
 			if(unprov_queue_head != NULL)
 			{
 				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_unprov_queue_count(%d)",get_unprov_queue_count(unprov_queue_head));
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				maintain_unprov_queue();
 				send_unprov_packet_to_node(unprov_queue_head);
 			}
 			if(node_reconf_queue_head != NULL)
 			{
 				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_reconf_queue_count(%d)",get_node_reconf_queue_count(node_reconf_queue_head));
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				maintain_node_reconf_queue();
 				send_reconf_packet_to_node(node_reconf_queue_head);
 			}	
 			if(node_ac_control_queue_head != NULL)
 			{
 				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_ac_control_queue_count(%d)",get_node_control_queue_count(node_ac_control_queue_head));
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				maintain_node_ac_control_queue();
 				send_ac_control_packet_to_node(node_ac_control_queue_head);
 			}
 			if(node_pub_conf_queue_head != NULL)
 			{
 				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "node_pubconf_queue_count(%d)",get_node_pub_conf_queue_count(node_pub_conf_queue_head));
 				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				maintain_node_pubconf_queue();
 				send_pub_conf_packet_to_node(node_pub_conf_queue_head);
 			}
 			//Don't try to publish in the middle of sending an IR command

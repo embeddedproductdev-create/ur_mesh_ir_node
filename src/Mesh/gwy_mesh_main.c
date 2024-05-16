@@ -1398,7 +1398,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);
         break;
     case ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT:
-        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d", param->provisioner_set_dev_uuid_match_comp.err_code);
+        // ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d", param->provisioner_set_dev_uuid_match_comp.err_code);
         break;
     case ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT, err_code %d", param->provisioner_set_node_name_comp.err_code);
@@ -1796,11 +1796,11 @@ uint32_t opcode;
 void send_prov_packet_to_node(prov_t *prov_packet)
 {
     uint8_t match[8] = {0xcd, 0xdc};
-    ESP_LOGI(MESH_DEBUG_TAG, "Node provision packet send :");
+    // ESP_LOGI(MESH_DEBUG_TAG, "Node provision packet send :");
     for (uint8_t i = 2; i < 8; i++)
     {
         match[i] = provision_t.macid[i - 2];
-        ESP_LOGI(MESH_DEBUG_TAG, "Node provision mac id  : %0x",match[i]);
+        // ESP_LOGI(MESH_DEBUG_TAG, "Node provision mac id  : %0x",match[i]);
     }
     err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
     if (err != ESP_OK)
