@@ -697,6 +697,7 @@ void parse_json_packet(char *json_packet)
             unprovision_t.base_data.gwy_ser_no = get_gwy_ser_no();
             unprovision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
             unprovision_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
+            add_to_unprov_queue();
             break;
 
         case NODE_AC_CONTROL_PACKET:
@@ -720,6 +721,7 @@ void parse_json_packet(char *json_packet)
             node_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
             node_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
             node_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
+            add_to_node_control_queue();
             break;
 
         case NODE_RECONF_PACKET:
@@ -731,6 +733,7 @@ void parse_json_packet(char *json_packet)
             node_reconf_t.base_data.gwy_ser_no = get_gwy_ser_no();
             node_reconf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
             node_reconf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
+            add_to_node_reconf_queue();
             break;
 
         case NODE_PUB_CONF_PACKET:
@@ -743,6 +746,7 @@ void parse_json_packet(char *json_packet)
             node_pub_conf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
             node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
             node_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            add_to_node_pub_conf_queue();
             break;
 
         case RESET_MQTT:
