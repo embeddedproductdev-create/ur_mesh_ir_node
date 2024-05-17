@@ -1823,7 +1823,6 @@ void send_unprov_packet_to_node(unprov_t *unprov_packet)
     set_rst .model_app_bind.model_app_idx = prov_key.app_idx;
     set_rst .model_app_bind.company_id = CID_ESP;
     err = esp_ble_mesh_config_client_set_state(&common, &set_rst );
-    remove_from_unprov_queue();
 }
 
 void send_reconf_packet_to_node(reconf_t *reconf_packet)
@@ -1845,7 +1844,6 @@ void send_reconf_packet_to_node(reconf_t *reconf_packet)
         ESP_LOGE(MESH_ERROR_TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
     }
     mesh_example_info_store();
-    remove_from_node_reconf_queue();
 }
 
 void send_ac_control_packet_to_node(control_t *control_packet)
@@ -1867,7 +1865,6 @@ void send_ac_control_packet_to_node(control_t *control_packet)
         ESP_LOGE(MESH_ERROR_TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
     }
     mesh_example_info_store();
-    remove_from_node_control_queue();
 }
 
 void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
@@ -1898,7 +1895,6 @@ void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
     set_pub_conf.model_pub_set.company_id = 0xffff;
     err = esp_ble_mesh_config_client_set_state(&common, &set_pub_conf);
     ESP_LOGI(MESH_DEBUG_TAG, "err err: %d",err);
-    remove_from_node_pub_conf_queue();
 }
 
 #endif

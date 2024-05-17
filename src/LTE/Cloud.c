@@ -341,7 +341,7 @@ void error_check_json(uint8_t json_packet_id)
 
 /**
  * @brief Function that fills the message that needs to be sent as ack to cloud
- * handles only the Gwy part.
+ * handles only the Gwy part. Ack for the Node part is being handled at the Gwy_mesh_main.c
  * @param json_id JSON PACKET ID
  * @retval none
  */
@@ -452,10 +452,9 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 MSG_SEQ_NO_KEY, gwy_reset_mqtt_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 ERROR_CODE_KEY, json_ack_err_code);
-        break;
         add_to_pubmesg_queue(pubmessage, publish_topic);
+        break; 
     }
-    
 }
 
 void get_mode_value(char *device_type)
@@ -676,6 +675,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case NODE_PROV_PACKET:
+            if(!registered) break;
             sprintf(lte_log_buffer, "Node Provisioning packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             provision_t.base_data.request_in_time_us = esp_timer_get_time();
@@ -689,6 +689,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case NODE_UNPROV_PACKET:
+            if(!registered) break;
             sprintf(lte_log_buffer, "Node Unprovisioning packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             unprovision_t.base_data.request_in_time_us = esp_timer_get_time();
@@ -701,6 +702,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case NODE_AC_CONTROL_PACKET:
+            if(!registered) break;
             sprintf(lte_log_buffer, "Node AC Control packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             node_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
@@ -725,6 +727,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case NODE_RECONF_PACKET:
+            if(!registered) break;
             sprintf(lte_log_buffer, "Node Reconfiguration packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             node_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
@@ -737,6 +740,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case NODE_PUB_CONF_PACKET:
+            if(!registered) break;
             sprintf(lte_log_buffer, "Node Publish configuratoin packet received");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             node_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
@@ -750,6 +754,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case RESET_MQTT:
+            if(!registered) break;
             sprintf(lte_log_buffer, "Reset MQTT packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
