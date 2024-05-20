@@ -7,7 +7,7 @@
  * @copyright Copyright (c) 2024
  */
 
-#if (!IS_GWY)
+
 
 #include "../../inc/mesh/mesh_main.h"
 #include "../../inc/Mesh/ble_mesh_example_init.h"
@@ -34,6 +34,8 @@
 #include "host/util/util.h"
 #include "console/console.h"
 #endif
+
+#if (!IS_GWY)
 
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
