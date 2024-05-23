@@ -104,7 +104,8 @@ void maintain_node_pubconf_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			//We need to be sending out the timeout ack for the request from the cloud 
+			sprintf(queue_log_buffer, "Removing %d NodePubConf request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d",
 			JSON_PACKET_ID_KEY, NODE_PUB_CONF_PACKET,
 			JSON_ACK_NAME_KEY, NODE_PUB_CONF_ACK,
@@ -218,7 +219,8 @@ void maintain_node_reconf_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			//We need to be sending out the timeout ack for the request from the cloud 
+			sprintf(queue_log_buffer, "Removing %d NodeReconf request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d",
 			JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
 			JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
@@ -329,7 +331,8 @@ void maintain_node_ac_control_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			//We need to be sending out the timeout ack for the request from the cloud 
+			sprintf(queue_log_buffer, "Removing %d NodeACControl request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer); 
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d,, %s : %s, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
                 JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK,
@@ -453,7 +456,8 @@ void maintain_unprov_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			//We need to be sending out the timeout ack for the request from the cloud 
+			sprintf(queue_log_buffer, "Removing %d NodeUnprov request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d",
 				JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
 				JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
@@ -566,7 +570,8 @@ void maintain_prov_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			
+			sprintf(queue_log_buffer, "Removing %d Prov request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_PROV_ACK,
@@ -659,13 +664,13 @@ uint8_t get_pubmesg_queue_count(pubmesg_t *head)
 /**
  * @brief Thread that takes care of handling all queues throught out the code 
  * We have the following queues across the application. We can call it a queue or LinkedLists.
- * They are actually Doubly linked lists with structures as node. 
- *  - Provision List
- *  - Unprovision List
- *  - Node Reconfiguration List
- *  - Node AC control List
- *  - Node Publish configuration List
- *  - Publish Message List
+ * They are actually Doubly linked lists with structures as nodes. 
+ *  - Provision List - Conaints list of prov requests from MQTT
+ *  - Unprovision List - Contains list of Unprov requests from MQTT
+ *  - Node Reconfiguration List - Contains list of reconf requests from MQTT
+ *  - Node AC control List - Contains list of AC control requests from MQTT
+ *  - Node Publish configuration List - Contains list of Pubconf requests from MQTT
+ *  - Publish Message List - Contains lists of messages to be published to MQTT
  * @param args 
  * @return void* 
  */
@@ -679,32 +684,61 @@ void queue_handler(void *args)
 			if(prov_queue_head != NULL)
 			{
 				maintain_prov_queue();
-				send_prov_packet_to_node(prov_queue_head);
+				//Don't keep sending the requests again and again
+				if(!prov_queue_head->base_data.request_sent_to_node_flag) {
+					prov_queue_head->base_data.request_sent_to_node_flag = true;
+					send_prov_packet_to_node(prov_queue_head);
+				}
 			}
 			if(unprov_queue_head != NULL)
 			{
 				maintain_unprov_queue();
-				send_unprov_packet_to_node(unprov_queue_head);
+				//Don't keep sending the requests again and again
+				if(!unprov_queue_head->base_data.request_sent_to_node_flag) {
+					unprov_queue_head->base_data.request_sent_to_node_flag = true;
+					send_unprov_packet_to_node(unprov_queue_head);
+				}
 			}
 			if(node_reconf_queue_head != NULL)
 			{
 				maintain_node_reconf_queue();
-				send_reconf_packet_to_node(node_reconf_queue_head);
+				//Don't keep sending the requests again and again
+				if(!node_reconf_queue_head->base_data.request_sent_to_node_flag) {
+					node_reconf_queue_head->base_data.request_sent_to_node_flag = true;
+					send_reconf_packet_to_node(node_reconf_queue_head);
+				}
 			}	
 			if(node_ac_control_queue_head != NULL)
 			{
 				maintain_node_ac_control_queue();
-				send_ac_control_packet_to_node(node_ac_control_queue_head);
+				//Don't keep sending the requests again and again
+				if(!node_ac_control_queue_head->base_data.request_sent_to_node_flag) {
+					node_ac_control_queue_head->base_data.request_sent_to_node_flag = true;
+					send_ac_control_packet_to_node(node_ac_control_queue_head);
+				}
 			}
 			if(node_pub_conf_queue_head != NULL)
 			{
 				maintain_node_pubconf_queue();
-				send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+				//Don't keep sending the requests again and again
+				if(!node_pub_conf_queue_head->base_data.request_sent_to_node_flag) {
+					node_pub_conf_queue_head->base_data.request_sent_to_node_flag = true;
+					send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+				}	
 			}
-			//Don't try to publish in the middle of sending an IR command
-			if(pubmesg_queue_head != NULL && mqtt_connected)
+			//Don't try to publish in the middle of sending an IR command or while sending another AT command
+			//Some form of synchronization is required here.
+			if(pubmesg_queue_head != NULL && mqtt_connected && !sending_at_cmd)
 			{
-				if(publish_to_mqtt() == SUCCESS) remove_from_pubmesg_queue();
+				if(publish_to_mqtt() == SUCCESS){ 
+					remove_from_pubmesg_queue();
+					snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
+					yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				}
+				else {
+					snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
+					red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+				}
 			}
 		}
 	}

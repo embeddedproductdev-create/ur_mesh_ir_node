@@ -56,7 +56,7 @@ void LED_task(void *args)
         else LED_state = LED_STATE_IDLE;
 #endif
 
-        // LED logics are inverted so HIGH = LOW, LOW = HIGH
+        // LED logics are inverted so HIGH = OFF, LOW = ON
         // Turn off LEDs at start
         digitalWrite(RED_LED_PIN, HIGH);
         digitalWrite(GREEN_LED_PIN, HIGH);

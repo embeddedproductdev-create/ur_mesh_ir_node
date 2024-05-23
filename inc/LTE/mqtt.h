@@ -107,6 +107,7 @@ struct base_data_t
 	uint16_t elementAddr;
 	uint16_t error_code;
 	uint32_t request_in_time_us;
+	bool request_sent_to_node_flag;
 	char ack_name[MQTT_PACKET_NAME_LEN];
 	char location[LOCATION_STR_LEN];
 };

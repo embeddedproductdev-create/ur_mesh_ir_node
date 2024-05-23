@@ -693,11 +693,11 @@ void IR_receiver_task(void *args)
 
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
+                protocol_selected_num = protocol_detected;
 #if (IS_GWY)
                 if (registered)
                 {
                     configured = true;
-                    protocol_selected_num = protocol_detected;
                     char pubmessage[PUBMESG_LEN];
                     sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
                             JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
@@ -711,7 +711,10 @@ void IR_receiver_task(void *args)
 #endif
 #if (!IS_GWY)
                 if (provisioned)
+                {
+                    configured = true;
                     send_AC_configuration_ack_to_gwy();
+                }
 #endif
             }
 

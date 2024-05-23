@@ -82,7 +82,7 @@ void fill_gwy_ser_no_str()
 
 void fill_node_ser_no_str()
 {
-    strcpy(GWY_SER_NO_IN_STRING, "N");
+    strcpy(NODE_SER_NO_IN_STRING, "N");
     char serialNo[20];
     char zerostr[20];
     strcpy(serialNo, "");
@@ -203,7 +203,7 @@ void app_main()
 
 #if (QUEUE_PART_ENABLED)
     xReturned = xTaskCreate(queue_handler, "Queue Task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+                            8192, (void *)1, tskIDLE_PRIORITY, &xHandle);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for Queue task : ");

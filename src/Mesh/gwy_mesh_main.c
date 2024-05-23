@@ -7,8 +7,6 @@
  * @copyright Copyright (c) 2024
  */
 
-
-
 #include "../../inc/mesh/mesh_main.h"
 #include "../../inc/Mesh/ble_mesh_example_init.h"
 
@@ -831,16 +829,19 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
 {
     char pubmessage[PUBMESG_LEN];
     uint8_t recvd_json_id = param->status_cb.sensor_status.marshalled_sensor_data->data[0];
-    switch (recvd_json_id)
+    if (registered)
     {
+        switch (recvd_json_id)
+        {
         default:
             ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Node\r\n");
             return;
 
         case NODE_PROV_PACKET:
+            remove_from_prov_queue();
             vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE PROV ACK | FROM ELEMADDR : %d",vendor_provision_t->base_data.elementAddr);
-            if(Bind_fl == true)
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE PROV ACK | FROM ELEMADDR : %d", vendor_provision_t->base_data.elementAddr);
+            if (Bind_fl == true)
             {
                 example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
                 set.model_app_bind.element_addr = node->unicast_addr;
@@ -851,124 +852,133 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 Bind_fl = false;
             }
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-				JSON_ACK_NAME_KEY, NODE_PROV_ACK,
-				MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no,
-				ELMNT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
-				LOCATION_KEY, vendor_provision_t->base_data.location,
-				ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
+                    JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_PROV_ACK,
+                    MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no,
+                    ELMNT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
+                    LOCATION_KEY, vendor_provision_t->base_data.location,
+                    ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
             remove_from_prov_queue(vendor_provision_t->base_data.msg_seq_no);
             break;
 
         case NODE_UNPROV_PACKET:
+            remove_from_unprov_queue();
             vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d",vendor_unprovision_t->base_data.elementAddr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", vendor_unprovision_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-				JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
-				MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no,
-				ELMNT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
-				LOCATION_KEY, vendor_unprovision_t->base_data.location,
-				ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
+                    JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
+                    MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no,
+                    ELMNT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
+                    LOCATION_KEY, vendor_unprovision_t->base_data.location,
+                    ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
             break;
 
         case NODE_CONF_PACKET:
             vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d",vendor_node_config_t->base_data.elementAddr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d", vendor_node_config_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
-				JSON_ACK_NAME_KEY, NODE_CONF_ACK,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no,
-				ELMNT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
-				ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
+                    JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_CONF_ACK,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no,
+                    ELMNT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
+                    ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
             break;
 
         case NODE_RECONF_PACKET:
+            remove_from_node_reconf_queue();
             vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d",vendor_node_reconf_t->base_data.elementAddr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-				JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
-				MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.elementAddr,
-				ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
+                    JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
+                    MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.elementAddr,
+                    ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
             break;
 
         case NODE_AC_CONTROL_PACKET:
+            remove_from_node_control_queue();
             vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d",vendor_node_ac_control_t->base_data.elementAddr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-				JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK,
-				MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
-				POWER_KEY, vendor_node_ac_control_t->power,
-				MODE_KEY, vendor_node_ac_control_t->mode_str,
-				FAN_SPEED_KEY, vendor_node_ac_control_t->fan,
-				TEMPERATURE_KEY, vendor_node_ac_control_t->temp,
-				SWING_H_KEY, vendor_node_ac_control_t->swingH,
-				SWING_V_KEY, vendor_node_ac_control_t->swingV,
-				ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
-				OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
-				AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
-                TEMP_UP_LIMIT_KEY, vendor_node_ac_control_t->TempUpLimit,
-                TEMP_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLowLimit,
-				ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
+                    JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK,
+                    MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
+                    POWER_KEY, vendor_node_ac_control_t->power,
+                    MODE_KEY, vendor_node_ac_control_t->mode_str,
+                    FAN_SPEED_KEY, vendor_node_ac_control_t->fan,
+                    TEMPERATURE_KEY, vendor_node_ac_control_t->temp,
+                    SWING_H_KEY, vendor_node_ac_control_t->swingH,
+                    SWING_V_KEY, vendor_node_ac_control_t->swingV,
+                    ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
+                    OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
+                    AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
+                    TEMP_UP_LIMIT_KEY, vendor_node_ac_control_t->TempUpLimit,
+                    TEMP_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLowLimit,
+                    ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
             break;
 
         case NODE_AC_LOCKING_PACKET:
             vendor_node_ac_locking_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC LOCKING ACK | FROM ELEMADDR : %d",vendor_node_ac_locking_t->base_data.elementAddr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC LOCKING ACK | FROM ELEMADDR : %d", vendor_node_ac_locking_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_AC_LOCKING_PACKET,
-				JSON_ACK_NAME_KEY, NODE_LOCKING_ACK,
-				MSG_SEQ_NO_KEY, vendor_node_ac_locking_t->base_data.msg_seq_no,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_node_ac_locking_t->base_data.elementAddr,
-				POWER_KEY, vendor_node_ac_locking_t->power,
-				MODE_KEY, vendor_node_ac_locking_t->mode_str,
-				FAN_SPEED_KEY, vendor_node_ac_locking_t->fan,
-				TEMPERATURE_KEY, vendor_node_ac_locking_t->temp,
-				SWING_H_KEY, vendor_node_ac_locking_t->swingH,
-				SWING_V_KEY, vendor_node_ac_locking_t->swingV,
-				ONTIMER_KEY, vendor_node_ac_locking_t->OnTimer,
-				OFFTIMER_KEY, vendor_node_ac_locking_t->OffTimer);
+                    JSON_PACKET_ID_KEY, NODE_AC_LOCKING_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_LOCKING_ACK,
+                    MSG_SEQ_NO_KEY, vendor_node_ac_locking_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_ac_locking_t->base_data.elementAddr,
+                    POWER_KEY, vendor_node_ac_locking_t->power,
+                    MODE_KEY, vendor_node_ac_locking_t->mode_str,
+                    FAN_SPEED_KEY, vendor_node_ac_locking_t->fan,
+                    TEMPERATURE_KEY, vendor_node_ac_locking_t->temp,
+                    SWING_H_KEY, vendor_node_ac_locking_t->swingH,
+                    SWING_V_KEY, vendor_node_ac_locking_t->swingV,
+                    ONTIMER_KEY, vendor_node_ac_locking_t->OnTimer,
+                    OFFTIMER_KEY, vendor_node_ac_locking_t->OffTimer);
             break;
 
         case NODE_TEMPERATURE_DATA_PACKET:
             vendor_node_temperature_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE TEMPERATURE DATA ACK | FROM ELEMADDR : %d", vendor_node_temperature_data_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
-				JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
-				GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no,
-				ELMNT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
-				TEMPERATURE_DATA_KEY, vendor_node_temperature_data_t->measured_temperature);
+                    JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no,
+                    ELMNT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
+                    TEMPERATURE_DATA_KEY, vendor_node_temperature_data_t->measured_temperature);
             break;
 
         case NODE_PUB_CONF_PACKET:
+            remove_from_node_pub_conf_queue();
             vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d",vendor_node_pub_conf_t->base_data.elementAddr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
-				JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
-				JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
-				MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
-                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-				NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no,
-				ELMNT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
-                PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
-				ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);
+                    JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
+                    MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no,
+                    ELMNT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
+                    PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
+                    ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);
             break;
+        }
+        add_to_pubmesg_queue(pubmessage, publish_topic);
     }
-    add_to_pubmesg_queue(pubmessage, publish_topic);
+    else {
+        sprintf(mesh_log_buffer, "Ack came in when Gwy in Unregistered state");
+        red_printf(MESH_ERROR_TAG, mesh_log_buffer);
+    }
 }
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
                                               esp_ble_mesh_sensor_client_cb_param_t *param)
@@ -977,9 +987,9 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
 
     ESP_LOGI(MESH_DEBUG_TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
     // printf("json id,%d",param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-    //if( param->status_cb.sensor_status.marshalled_sensor_data->data[0]!=64 || first != true){
+    // if( param->status_cb.sensor_status.marshalled_sensor_data->data[0]!=64 || first != true){
     store_data_to_node_structures(param);
-   // }
+    // }
     // else{
     //     example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
     //     set.model_app_bind.element_addr = node->unicast_addr;
@@ -1390,6 +1400,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
 
         break;
     case ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT:
+        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT");
         prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
                       param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
                       param->provisioner_prov_complete.netkey_idx);
@@ -1398,7 +1409,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);
         break;
     case ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT:
-        // ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d", param->provisioner_set_dev_uuid_match_comp.err_code);
+        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_SET_DEV_UUID_MATCH_COMP_EVT, err_code %d", param->provisioner_set_dev_uuid_match_comp.err_code);
         break;
     case ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_SET_NODE_NAME_COMP_EVT, err_code %d", param->provisioner_set_node_name_comp.err_code);
@@ -1547,7 +1558,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
             set.model_app_bind.company_id = CID_ESP;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
-        
+
             if (err != ESP_OK)
             {
                 ESP_LOGE(MESH_ERROR_TAG, "Failed to send Config Model App Bind");
@@ -1800,29 +1811,29 @@ void send_prov_packet_to_node(prov_t *prov_packet)
     for (uint8_t i = 2; i < 8; i++)
     {
         match[i] = provision_t.macid[i - 2];
-        // ESP_LOGI(MESH_DEBUG_TAG, "Node provision mac id  : %0x",match[i]);
+        // ESP_LOGI(MESH_DEBUG_TAG, "Node provision mac id  : %0x", match[i]);
     }
     err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(MESH_ERROR_TAG, "Failed to set matching device uuid");
-    }
+    // if (err != ESP_OK)
+    // {
+    //     ESP_LOGE(MESH_ERROR_TAG, "Failed to set matching device uuid");
+    // }
     Bind_fl = true;
 }
 
 void send_unprov_packet_to_node(unprov_t *unprov_packet)
 {
-    esp_ble_mesh_cfg_client_set_state_t set_rst = {0},set_hb = {0},set_pub_conf = {0};
+    esp_ble_mesh_cfg_client_set_state_t set_rst = {0}, set_hb = {0}, set_pub_conf = {0};
     esp_ble_mesh_client_common_param_t common = {0};
     esp_ble_mesh_node_t node;
     ESP_LOGI(MESH_DEBUG_TAG, "Node unprovision packet send :");
-    node.unicast_addr = unprovision_t.base_data.elementAddr;
+    node.unicast_addr = unprov_packet->base_data.elementAddr;
     example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
-    set_rst .model_app_bind.element_addr = unprovision_t.base_data.elementAddr;
-    ESP_LOGI(MESH_DEBUG_TAG, " addr to unprov%d", set_rst .model_app_bind.element_addr);
-    set_rst .model_app_bind.model_app_idx = prov_key.app_idx;
-    set_rst .model_app_bind.company_id = CID_ESP;
-    err = esp_ble_mesh_config_client_set_state(&common, &set_rst );
+    set_rst.model_app_bind.element_addr = unprov_packet->base_data.elementAddr;
+    ESP_LOGI(MESH_DEBUG_TAG, " addr to unprov%d", set_rst.model_app_bind.element_addr);
+    set_rst.model_app_bind.model_app_idx = prov_key.app_idx;
+    set_rst.model_app_bind.company_id = CID_ESP;
+    err = esp_ble_mesh_config_client_set_state(&common, &set_rst);
 }
 
 void send_reconf_packet_to_node(reconf_t *reconf_packet)
@@ -1838,11 +1849,11 @@ void send_reconf_packet_to_node(reconf_t *reconf_packet)
     store.server_addr = node_reconf_t.base_data.elementAddr;
     ctx.addr = store.server_addr;
     err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                                                sizeof(store.vendor_node_reconf_t), (uint8_t *)&store.vendor_node_reconf_t, MSG_TIMEOUT, true, MSG_ROLE);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(MESH_ERROR_TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
-    }
+                                             sizeof(store.vendor_node_reconf_t), (uint8_t *)&store.vendor_node_reconf_t, MSG_TIMEOUT, true, MSG_ROLE);
+    // if (err != ESP_OK)
+    // {
+    //     ESP_LOGE(MESH_ERROR_TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
+    // }
     mesh_example_info_store();
 }
 
@@ -1859,11 +1870,11 @@ void send_ac_control_packet_to_node(control_t *control_packet)
     store.server_addr = node_ac_control_t.base_data.elementAddr;
     ctx.addr = store.server_addr;
     err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                                                sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(MESH_ERROR_TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
-    }
+                                             sizeof(store.vendor_node_ac_control), (uint8_t *)&store.vendor_node_ac_control, MSG_TIMEOUT, true, MSG_ROLE);
+    // if (err != ESP_OK)
+    // {
+    //     ESP_LOGE(MESH_ERROR_TAG, "Failed to send vendor message 0x%06" PRIx32, opcode);
+    // }
     mesh_example_info_store();
 }
 
@@ -1879,10 +1890,10 @@ void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
     // uint16_t model_id;              /*!< The model id */
     // uint16_t company_id;            /*!< The company id, if not a vendor model, shall set to 0xFFFF */
     esp_ble_mesh_node_t node;
-    esp_ble_mesh_cfg_client_set_state_t set_rst = {0},set_hb = {0},set_pub_conf = {0};
+    esp_ble_mesh_cfg_client_set_state_t set_rst = {0}, set_hb = {0}, set_pub_conf = {0};
     esp_ble_mesh_client_common_param_t common = {0};
     ESP_LOGI(MESH_DEBUG_TAG, "Node pub configure packet send :");
-    node.unicast_addr =  node_pub_conf_t.base_data.elementAddr;
+    node.unicast_addr = node_pub_conf_t.base_data.elementAddr;
     example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
     set_pub_conf.model_pub_set.element_addr = node.unicast_addr;
     set_pub_conf.model_pub_set.publish_addr = 1;
@@ -1894,7 +1905,7 @@ void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
     set_pub_conf.model_pub_set.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
     set_pub_conf.model_pub_set.company_id = 0xffff;
     err = esp_ble_mesh_config_client_set_state(&common, &set_pub_conf);
-    ESP_LOGI(MESH_DEBUG_TAG, "err err: %d",err);
+    // ESP_LOGI(MESH_DEBUG_TAG, "err err: %d", err);
 }
 
 #endif

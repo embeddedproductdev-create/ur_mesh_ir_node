@@ -845,13 +845,17 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
         esp_ble_mesh_node_local_reset();
+        provisioned = false;
+        ELEMENT_ADDR = 0;
+        send_unprovisioned_ack_to_gwy();
+        vTaskDelay(pdMS_TO_TICKS(100));
         esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-
         break;
     case ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT, err_code %d", param->node_set_unprov_dev_name_comp.err_code);
         break;
     default:
+        ESP_LOGE(MESH_DEBUG_TAG, "Unknown prov cb event");
         break;
     }
 }
@@ -894,12 +898,15 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 vTaskDelay(pdMS_TO_TICKS(100));
                 esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
                 break;
+
             case ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET:
                 ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
                 break;
+
             case ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET:
                 ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET");
                 break;
+
             default:
                 break;
         }
@@ -960,7 +967,6 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
                                                                sizeof(tid), (uint8_t *)&tid);
             if (err)
                 ESP_LOGE(MESH_DEBUG_TAG, "Failed to send message 0x%06x", ESP_BLE_MESH_VND_MODEL_OP_STATUS);
-            needToSendIRComamnd = true;
         }
         break;
 
@@ -1000,7 +1006,6 @@ static esp_err_t ble_mesh_init(void)
     }
     for (int i = 0; i < 10; i++)
     {
-
         ESP_LOGI(MESH_DEBUG_TAG, "%0x :", dev_uuid[i]);
     }
 

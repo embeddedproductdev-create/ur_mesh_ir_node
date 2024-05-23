@@ -487,18 +487,6 @@ void get_mode_value(char *device_type)
     }
 }
 
-uint16_t get_gwy_ser_no()
-{
-    char *ptr;
-    uint16_t gwy_ser_no;
-    char gwy_ser_no_in_str[8];
-    strcpy(gwy_ser_no_in_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
-    char gwy_ser_no_alone_str[5];
-    strncpy(gwy_ser_no_alone_str, gwy_ser_no_in_str + 3, 5);
-    gwy_ser_no = strtol(gwy_ser_no_alone_str, &ptr, 10);
-    return gwy_ser_no;
-}
-
 char *get_err_string(int16_t err_code)
 {
     switch (err_code)
@@ -612,9 +600,7 @@ void parse_json_packet(char *json_packet)
             sprintf(lte_log_buffer, "Gwy Registration packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_registration_t.base_data.gwy_ser_no = get_gwy_ser_no();
             strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
-            gwy_registration_t.base_data.request_in_time_us = esp_timer_get_time();
             registered = true;
             break;
 
@@ -622,9 +608,7 @@ void parse_json_packet(char *json_packet)
             sprintf(lte_log_buffer, "Gwy Unregistration packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_unregistration_t.base_data.gwy_ser_no = get_gwy_ser_no();
             strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
-            gwy_unregistration_t.base_data.request_in_time_us = esp_timer_get_time();
             registered = false;
             configured = false;
             break;
@@ -636,7 +620,6 @@ void parse_json_packet(char *json_packet)
             gwy_ac_control_t.TempLowLimit = TEMPERATURE_LOWER_LIMIT;
             gwy_ac_control_t.TempUpLimit = TEMPERATURE_UPPER_LIMIT;
             gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_ac_control_t.base_data.gwy_ser_no = get_gwy_ser_no();
             gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
             strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
             get_mode_value("gwy");
@@ -649,67 +632,73 @@ void parse_json_packet(char *json_packet)
             gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
             gwy_ac_control_t.TempLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
             gwy_ac_control_t.TempUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
-            if (configured)
-                needToSendIRComamnd = true;
-            else
-                ESP_LOGE(LTE_ERROR_TAG, "Gwy not configured yet, Can't control AC");
+            if (configured) needToSendIRComamnd = true;
+            else json_ack_err_code = GWY_NOT_CONF;
             break;
 
         case GWY_RECONF_PACKET:
             sprintf(lte_log_buffer, "Gwy Reconfiguration packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-            gwy_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
             gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_reconf_t.base_data.gwy_ser_no = get_gwy_ser_no();
             configured = false;
             break;
 
         case GWY_PUB_CONF_PACKET:
             sprintf(lte_log_buffer, "Gwy Publish configuration packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-            gwy_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_pub_conf_t.base_data.gwy_ser_no = get_gwy_ser_no();
             gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
             create_Temperature_data_publish_timer();
             break;
 
         case NODE_PROV_PACKET:
-            if(!registered) break;
+            if(!registered) {
+                sprintf(lte_log_buffer, "Gwy is currently unregistered. Try registering first before trying to provision node");
+                red_printf(LTE_ERROR_TAG, lte_log_buffer);
+                json_ack_err_code = GWY_NOT_REG;
+                break;
+            }
             sprintf(lte_log_buffer, "Node Provisioning packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             provision_t.base_data.request_in_time_us = esp_timer_get_time();
             provision_t.base_data.json_packet_id = json_packet_id;
             provision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            provision_t.base_data.gwy_ser_no = get_gwy_ser_no();
-            provision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
+            strcpy(provision_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             strcpy(provision_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             fill_macid();
             add_to_prov_queue();
             break;
 
         case NODE_UNPROV_PACKET:
-            if(!registered) break;
+            if(!registered) {
+                sprintf(lte_log_buffer, "Gwy is currently unregistered. Try registering first before trying to unprovision node");
+                red_printf(LTE_ERROR_TAG, lte_log_buffer);
+                json_ack_err_code = GWY_NOT_REG;
+                break;
+            }
             sprintf(lte_log_buffer, "Node Unprovisioning packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             unprovision_t.base_data.request_in_time_us = esp_timer_get_time();
             unprovision_t.base_data.json_packet_id = json_packet_id;
             unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            unprovision_t.base_data.gwy_ser_no = get_gwy_ser_no();
-            unprovision_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
+            strcpy(unprovision_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             unprovision_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
             add_to_unprov_queue();
             break;
 
         case NODE_AC_CONTROL_PACKET:
-            if(!registered) break;
+            if(!registered) {
+                sprintf(lte_log_buffer, "Gwy is currently unregistered. Try registering first before trying to control AC using node");
+                red_printf(LTE_ERROR_TAG, lte_log_buffer);
+                json_ack_err_code = GWY_NOT_REG;
+                break;
+            }
             sprintf(lte_log_buffer, "Node AC Control packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             node_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
             node_ac_control_t.base_data.json_packet_id = json_packet_id;
             node_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            node_ac_control_t.base_data.gwy_ser_no = get_gwy_ser_no();
-            node_ac_control_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
+            strcpy(node_ac_control_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             node_ac_control_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
             node_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
             strcpy(node_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
@@ -727,27 +716,35 @@ void parse_json_packet(char *json_packet)
             break;
 
         case NODE_RECONF_PACKET:
-            if(!registered) break;
+            if(!registered) {
+                sprintf(lte_log_buffer, "Gwy is currently unregistered. Try registering first before trying to reconfigure node");
+                red_printf(LTE_ERROR_TAG, lte_log_buffer);
+                json_ack_err_code = GWY_NOT_REG;
+                break;
+            }
             sprintf(lte_log_buffer, "Node Reconfiguration packet");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             node_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
             node_reconf_t.base_data.json_packet_id = json_packet_id;
             node_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            node_reconf_t.base_data.gwy_ser_no = get_gwy_ser_no();
-            node_reconf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
+            strcpy(node_reconf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             node_reconf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
             add_to_node_reconf_queue();
             break;
 
         case NODE_PUB_CONF_PACKET:
-            if(!registered) break;
+            if(!registered) {
+                sprintf(lte_log_buffer, "Gwy is currently unregistered. Try registering first before trying to change pubconf settings of node");
+                red_printf(LTE_ERROR_TAG, lte_log_buffer);
+                json_ack_err_code = GWY_NOT_REG;
+                break;
+            }
             sprintf(lte_log_buffer, "Node Publish configuratoin packet received");
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             node_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
             node_pub_conf_t.base_data.json_packet_id = json_packet_id;
             node_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            node_pub_conf_t.base_data.gwy_ser_no = get_gwy_ser_no();
-            node_pub_conf_t.base_data.node_ser_no = cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valueint;
+            strcpy(node_pub_conf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
             node_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
             add_to_node_pub_conf_queue();
@@ -759,7 +756,6 @@ void parse_json_packet(char *json_packet)
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
             gwy_reset_mqtt_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_reset_mqtt_t.base_data.gwy_ser_no = get_gwy_ser_no();
 #if (AP_PART_ENABLED)
             LED_state = LED_STATE_AP_MODE;
             reset_mqtt();

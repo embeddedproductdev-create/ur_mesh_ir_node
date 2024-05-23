@@ -75,6 +75,10 @@ void LTE_UART_INIT(void)
  */
 int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 {
+	if(LOG_LTE_DATA) {
+		sprintf(lte_log_buffer, "START | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
+		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+	}
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
 	if(LTE_UART_data==NULL)
 	{
@@ -90,7 +94,6 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 		{
 			if(check_response(LTE_UART_data, check_string)==SUCCESS)
 			{
-
 				if(LOG_LTE_DATA) {
 					sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
 					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
@@ -100,7 +103,11 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
 					parse_json_packet(LTE_UART_data);
 				}
-				free(LTE_UART_data); 
+				free(LTE_UART_data);
+				if(LOG_LTE_DATA) {
+					sprintf(lte_log_buffer, "END | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
+					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+				}
 				return SUCCESS; 
 			}
 			else
@@ -110,6 +117,10 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 					red_printf(LTE_ERROR_TAG, lte_log_buffer);
 				} 
 				free(LTE_UART_data); 
+				if(LOG_LTE_DATA) {
+					sprintf(lte_log_buffer, "END | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
+					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+				}
 				return FAILURE; 
 			}
 		}
@@ -117,7 +128,11 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 	sprintf(lte_log_buffer, "No Data recevied from LTE");
 	network_flag = 0;
 	red_printf(LTE_ERROR_TAG, lte_log_buffer);
-	free(LTE_UART_data); 
+	free(LTE_UART_data);
+	if(LOG_LTE_DATA) {
+		sprintf(lte_log_buffer, "END | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
+		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+	} 
 	return FAILURE;
 }
 
@@ -184,28 +199,30 @@ int8_t publish_to_mqtt()
 	publishing_flag = true;
 	char MQTT_PUBLISH_MESG_CMD[PUBMESG_LEN];
 	sprintf(MQTT_PUBLISH_MESG_CMD, "%s%d,%d,%d,%d,\"%s\",%d\r\n", PUBLISH_TO_MQTT, MQTT_CLIENT_INDEX, MQTT_MSGID, MQTT_QOS, MQTT_RETAIN, pubmesg_queue_head->topic, strlen(pubmesg_queue_head->message));
-	if(!sending_at_cmd)
+	if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
 	{
-		if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
+		if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
 		{
-			if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
-			{
-				publishing_flag = false;
-				sprintf(queue_log_buffer, "Published :");
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				return SUCCESS;
-			}
-			else
-			{
-				sprintf(queue_log_buffer, "Publishing to MQTT Failed");
-				red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-				return FAILURE;
-			}
+			publishing_flag = false;
+			sprintf(queue_log_buffer, "Published :");
+			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+			sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
+			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+			return SUCCESS;
+		}
+		else
+		{
+			sprintf(queue_log_buffer, "Publishing to MQTT Failed");
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			return FAILURE;
 		}
 	}
-	return FAILURE;
+	else 
+	{
+		sprintf(queue_log_buffer, "PUBLISH_PROMPT not received");
+		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		return FAILURE;
+	}
 }
 
 /**
