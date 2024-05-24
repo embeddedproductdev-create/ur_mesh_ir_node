@@ -120,7 +120,7 @@ enum AT_cmd_id{
 
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[2048];
-extern bool LOG_LTE_DATA;
+extern bool LOG_DATA;
 extern bool sending_at_cmd;
 
 /*Responses*/

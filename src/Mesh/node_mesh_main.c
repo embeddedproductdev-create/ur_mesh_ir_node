@@ -844,10 +844,10 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         break;
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
+        send_unprovisioned_ack_to_gwy();
         esp_ble_mesh_node_local_reset();
         provisioned = false;
         ELEMENT_ADDR = 0;
-        send_unprovisioned_ack_to_gwy();
         vTaskDelay(pdMS_TO_TICKS(100));
         esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
         break;

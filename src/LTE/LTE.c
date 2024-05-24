@@ -20,7 +20,7 @@ uint8_t MQTT_CLIENT_INDEX=5;
 
 char mqtt_client_id[100];
 
-bool LOG_LTE_DATA = true;
+bool LOG_DATA = true;
 
 bool network_flag = false;
 bool client_flag = false;
@@ -29,6 +29,7 @@ bool mqtt_connected = false;
 bool registered = false;
 bool publishing_flag = false;
 bool sending_at_cmd = false;
+bool hold_adding_to_pubmesg = false;
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
@@ -75,8 +76,9 @@ void LTE_UART_INIT(void)
  */
 int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 {
-	if(LOG_LTE_DATA) {
-		sprintf(lte_log_buffer, "START | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
+	static uint8_t uart_reinit_count = 0;
+	if(LOG_DATA) {
+		sprintf(lte_log_buffer, "Heap Free size : %d bytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
 		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	}
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
@@ -92,9 +94,11 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 500);
 		if(length > 0) 
 		{
+			//It's safe to add to pubmesg now that we've received some data over UART from LTE
+			hold_adding_to_pubmesg = false;
 			if(check_response(LTE_UART_data, check_string)==SUCCESS)
 			{
-				if(LOG_LTE_DATA) {
+				if(LOG_DATA) {
 					sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
 					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 				}
@@ -104,35 +108,37 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 					parse_json_packet(LTE_UART_data);
 				}
 				free(LTE_UART_data);
-				if(LOG_LTE_DATA) {
-					sprintf(lte_log_buffer, "END | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
-					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-				}
 				return SUCCESS; 
 			}
 			else
 			{
-				if(LOG_LTE_DATA) {
+				if(LOG_DATA) {
 					sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
 					red_printf(LTE_ERROR_TAG, lte_log_buffer);
 				} 
 				free(LTE_UART_data); 
-				if(LOG_LTE_DATA) {
-					sprintf(lte_log_buffer, "END | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
-					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-				}
 				return FAILURE; 
 			}
 		}
 	}
 	sprintf(lte_log_buffer, "No Data recevied from LTE");
+	
+	//To avoid mem leak due to LTE no reponse issue, we're using this flag to hold publishing more to the pubmesg queue,
+	//cuz it's of no use, when LTE is not responding. This leads to loss of data. We need to fix this later
+	hold_adding_to_pubmesg = true;
+
+	uart_reinit_count++;
+	if(uart_reinit_count>5)
+	{
+		uart_reinit_count=0;
+		sprintf(lte_log_buffer, "Re-initializing LTE UART");
+		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+		LTE_UART_INIT();
+	}
+
 	network_flag = 0;
 	red_printf(LTE_ERROR_TAG, lte_log_buffer);
 	free(LTE_UART_data);
-	if(LOG_LTE_DATA) {
-		sprintf(lte_log_buffer, "END | Heap Free size : %dbytes",heap_caps_get_free_size(MALLOC_CAP_8BIT));
-		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-	} 
 	return FAILURE;
 }
 
@@ -199,15 +205,18 @@ int8_t publish_to_mqtt()
 	publishing_flag = true;
 	char MQTT_PUBLISH_MESG_CMD[PUBMESG_LEN];
 	sprintf(MQTT_PUBLISH_MESG_CMD, "%s%d,%d,%d,%d,\"%s\",%d\r\n", PUBLISH_TO_MQTT, MQTT_CLIENT_INDEX, MQTT_MSGID, MQTT_QOS, MQTT_RETAIN, pubmesg_queue_head->topic, strlen(pubmesg_queue_head->message));
-	if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
 	{
 		if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
 		{
 			publishing_flag = false;
-			sprintf(queue_log_buffer, "Published :");
-			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-			sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
-			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+			if(LOG_DATA)
+			{
+				sprintf(queue_log_buffer, "Published :");
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
+				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+			}
 			return SUCCESS;
 		}
 		else
@@ -305,7 +314,7 @@ void establishMQTTConnection()
 	static uint8_t retry_count = 0;
 	if(!sending_at_cmd && !sending)
 	{	
-		if(LOG_LTE_DATA) {
+		if(LOG_DATA) {
 			sprintf(lte_log_buffer, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
 			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 		}
@@ -320,9 +329,9 @@ void establishMQTTConnection()
 		//See if we have connected with Network first
 		else if(!network_flag) 
 		{	
-			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE", OK_RESPONSE, 1000)==FAILURE) retry_count++;
+			if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE", OK_RESPONSE, 1000)==FAILURE) retry_count++;
 			else retry_count = 0;
-			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1000)==FAILURE)
+			if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", OK_RESPONSE, 1000)==FAILURE)
 			{ 
 				retry_count++;
 			}
@@ -332,8 +341,8 @@ void establishMQTTConnection()
 		//Then see if we have established a client connection
 		else if(network_flag && !client_flag)
 		{ 
-			send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_DISCONN_CMD, "MQTT_CLIENT_DISCONN_CMD", OK_RESPONSE, 1000);
-			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", OK_RESPONSE, 1000)==FAILURE)
+			send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_DISCONN_CMD, "MQTT_CLIENT_DISCONN_CMD", OK_RESPONSE, 1000);
+			if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", OK_RESPONSE, 1000)==FAILURE)
 			{
 				retry_count++; network_flag = 0;
 			} 
@@ -343,7 +352,7 @@ void establishMQTTConnection()
 		//Check if we have also subscribed to the topic
 		else if(network_flag && client_flag && !subscribe_flag)
 		{
-			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", OK_RESPONSE, 1000)==FAILURE)
+			if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", OK_RESPONSE, 1000)==FAILURE)
 			{
 				retry_count++; client_flag = 0;		
 			}
@@ -353,7 +362,7 @@ void establishMQTTConnection()
 		//If everything looks good, then we are good to check if we have recvd any message from MQTT on the topic we have subscribed
 		if(mqtt_connected && !publishing_flag) 
 		{
-			if(send_cmd_and_check_response(LOG_LTE_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200)==FAILURE) {
+			if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200)==FAILURE) {
 				retry_count++; mqtt_connected = 0; subscribe_flag = 0;
 			} 
 			else retry_count = 0;
@@ -372,7 +381,7 @@ void LTE_task(void *args)
 	LTE_gpio_configuration();
 	powerCycleLTE();
 	LTE_UART_INIT();
-	send_cmd_and_check_response(LOG_LTE_DATA, TURN_OFF_ECHO_CMD, "TURN_OFF_ECHO_CMD", OK_RESPONSE, 100);
+	send_cmd_and_check_response(LOG_DATA, TURN_OFF_ECHO_CMD, "TURN_OFF_ECHO_CMD", OK_RESPONSE, 100);
 	while (1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));

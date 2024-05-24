@@ -309,6 +309,7 @@ extern bool send_control_packet;
 extern bool network_flag;
 extern bool client_flag;
 extern bool subscribe_flag;
+extern bool hold_adding_to_pubmesg;
 
 /*===============GWY====================*/
 

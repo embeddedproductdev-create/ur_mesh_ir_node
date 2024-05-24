@@ -78,25 +78,6 @@
 #endif
 
 #define TAG "UART"
-#define MAIN_DEBUG_TAG          "[MAIN_DEBUG]   : "
-#define MAIN_ERROR_TAG          "[MAIN_ERROR]   : "
-#define LTE_DEBUG_TAG           "[LTE_DEBUG]    : "
-#define LTE_ERROR_TAG           "[LTE_ERROR]    : "
-#define LED_DEBUG_TAG           "[LED_DEBUG]    : "
-#define LED_ERROR_TAG           "[LED_ERROR]    : "
-#define QUEUE_DEBUG_TAG         "[QUEUE_DEBUG]  : "
-#define QUEUE_ERROR_TAG         "[QUEUE_ERROR]  : "
-#define AP_DEBUG_TAG            "[AP_DEBUG]     : "
-#define AP_ERROR_TAG            "[AP_ERROR]     : "
-#define BUTTON_DEBUG_TAG        "[BUTTON_DEBUG] : "
-#define BUTTON_ERROR_TAG        "[BUTTON_ERROR] : "
-#define IR_DEBUG_TAG            "[IR_DEBUG]     : "
-#define IR_ERROR_TAG            "[IR_ERROR]     : "
-#define MESH_DEBUG_TAG          "[MESH_DEBUG]   : " 
-#define MESH_ERROR_TAG          "[MESH_ERROR]   : "  
-#define TEMPERATURE_DEBUG_TAG   "[TEMP_DEBUG]   : "
-#define TEMPERATURE_ERROR_TAG   "[TEMP_ERROR]   : "
-#define SETUP_TAG               "[SETUP_DEBUG]  : "
 #define BAUD_RATE 115200
 
 #define IR_RECV_PART_ENABLED true

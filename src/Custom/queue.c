@@ -48,8 +48,6 @@ void remove_from_node_pub_conf_queue()
 
 void add_to_node_pub_conf_queue()
 {
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE | Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 	pub_conf_t *pub_conf_node = (pub_conf_t *)malloc(sizeof(pub_conf_t));
 	if(pub_conf_node!=NULL) *pub_conf_node = node_pub_conf_t;
 	else
@@ -71,8 +69,11 @@ void add_to_node_pub_conf_queue()
 		node_pub_conf_queue_tail->next->next = NULL;
 		node_pub_conf_queue_tail = pub_conf_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER | Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	if(LOG_DATA)
+	{
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
 }
 
 /**
@@ -104,7 +105,7 @@ void maintain_node_pubconf_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing %d NodePubConf request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d",
 			JSON_PACKET_ID_KEY, NODE_PUB_CONF_PACKET,
@@ -116,9 +117,7 @@ void maintain_node_pubconf_queue()
 			PUBLISH_PERIOD_KEY, temp->pub_conf_period_in_sec,
 			ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			temp=temp->next;
 			remove_from_node_pub_conf_queue();
-			continue;
 		}
 		temp=temp->next;
 	}
@@ -163,8 +162,6 @@ void remove_from_node_reconf_queue()
 
 void add_to_node_reconf_queue()
 {
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE | Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 	reconf_t *reconf_node = (reconf_t *)malloc(sizeof(reconf_t));
 	if(reconf_node!=NULL) *reconf_node = node_reconf_t;
 	else
@@ -186,8 +183,11 @@ void add_to_node_reconf_queue()
 		node_reconf_queue_tail->next->next = NULL;
 		node_reconf_queue_tail = reconf_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER | Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	if(LOG_DATA)
+	{
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
 }
 
 /**
@@ -219,7 +219,7 @@ void maintain_node_reconf_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing %d NodeReconf request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d",
 			JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
@@ -230,9 +230,7 @@ void maintain_node_reconf_queue()
 			ELMNT_ADDR_KEY, temp->base_data.elementAddr,
 			ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			temp=temp->next;
 			remove_from_node_reconf_queue();
-			continue;
 		}
 		temp=temp->next;
 	}
@@ -275,8 +273,6 @@ void remove_from_node_control_queue()
 
 void add_to_node_control_queue()
 {
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE | Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 	control_t *control_node = (control_t *)malloc(sizeof(control_t));
 	if(control_node!=NULL) *control_node = node_ac_control_t;
 	else
@@ -298,8 +294,11 @@ void add_to_node_control_queue()
 		node_ac_control_queue_tail->next->next = NULL;
 		node_ac_control_queue_tail = control_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER | Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	if(LOG_DATA)
+	{
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
 }
 
 /**
@@ -331,7 +330,7 @@ void maintain_node_ac_control_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing %d NodeACControl request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer); 
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d,, %s : %s, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
@@ -353,9 +352,7 @@ void maintain_node_ac_control_queue()
 				TEMP_LOCK_LOW_LIMIT_KEY, temp->TempLowLimit,
                 ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			temp=temp->next;
 			remove_from_node_control_queue();
-			continue;
 		}
 		temp=temp->next;
 	}
@@ -400,8 +397,6 @@ void remove_from_unprov_queue()
 
 void add_to_unprov_queue()
 {
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE | Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 	unprov_t *unprov_node = (unprov_t *)malloc(sizeof(unprov_t));
 	if(unprov_node!=NULL) *unprov_node = unprovision_t;
 	else
@@ -423,8 +418,11 @@ void add_to_unprov_queue()
 		unprov_queue_tail->next->next = NULL;
 		unprov_queue_tail = unprov_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER | Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	if(LOG_DATA)
+	{
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
 }
 
 /**
@@ -456,7 +454,7 @@ void maintain_unprov_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing %d NodeUnprov request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d",
 				JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
@@ -467,9 +465,7 @@ void maintain_unprov_queue()
 				ELMNT_ADDR_KEY, temp->base_data.elementAddr,
 				ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			temp=temp->next;
 			remove_from_unprov_queue();
-			continue;
 		}
 		temp=temp->next;
 	}
@@ -514,8 +510,6 @@ void remove_from_prov_queue()
 
 void add_to_prov_queue()
 {
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE | Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 	prov_t *prov_node = (prov_t *)malloc(sizeof(prov_t));
 	if(prov_node!=NULL) *prov_node = provision_t;
 	else 
@@ -537,8 +531,11 @@ void add_to_prov_queue()
 		prov_queue_tail->next->next = NULL;
 		prov_queue_tail = prov_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER | Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	if(LOG_DATA)
+	{
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
 }
 
 /**
@@ -570,7 +567,7 @@ void maintain_prov_queue()
 	{
 		if(esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing %d Prov request due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
@@ -581,10 +578,8 @@ void maintain_prov_queue()
 					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
 					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
-				add_to_pubmesg_queue(pubmessage, publish_topic);
-			temp=temp->next;
+			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_prov_queue();
-			continue;
 		}
 		temp=temp->next;
 	}
@@ -618,31 +613,36 @@ void remove_from_pubmesg_queue()
  */
 void add_to_pubmesg_queue(char *msg, char *topic)
 {
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "BEFORE | Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
-	if(pubmesg_node == NULL) 
+	//If it's bad time to add to pubmesg due to LTE no response, then hold off and don't keep adding. This will lead to OOM eventually.
+	if(!hold_adding_to_pubmesg)
 	{
-		sprintf(queue_log_buffer, "Memory allocation failed in add_to_pubmesg_queue\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-		return;
+		struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
+		if(pubmesg_node == NULL) 
+		{
+			sprintf(queue_log_buffer, "Memory allocation failed in add_to_pubmesg_queue\r\n");
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			return;
+		}
+		strcpy(pubmesg_node->message,msg);
+		pubmesg_node->topic = topic;
+		if(pubmesg_queue_head == NULL)
+		{
+			pubmesg_queue_head = pubmesg_queue_tail = pubmesg_node;
+			pubmesg_node->prev = pubmesg_node->next = NULL;
+		}
+		else
+		{
+			pubmesg_queue_tail->next = pubmesg_node;
+			pubmesg_queue_tail->next->prev = pubmesg_queue_tail;
+			pubmesg_queue_tail->next->next = NULL;
+			pubmesg_queue_tail = pubmesg_node;
+		}
+		if(LOG_DATA)
+		{
+			snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
+			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+		}
 	}
-	strcpy(pubmesg_node->message,msg);
-	pubmesg_node->topic = topic;
-	if(pubmesg_queue_head == NULL)
-	{
-		pubmesg_queue_head = pubmesg_queue_tail = pubmesg_node;
-		pubmesg_node->prev = pubmesg_node->next = NULL;
-	}
-	else
-	{
-		pubmesg_queue_tail->next = pubmesg_node;
-		pubmesg_queue_tail->next->prev = pubmesg_queue_tail;
-		pubmesg_queue_tail->next->next = NULL;
-		pubmesg_queue_tail = pubmesg_node;
-	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "AFTER | Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 /**
@@ -685,45 +685,60 @@ void queue_handler(void *args)
 			{
 				maintain_prov_queue();
 				//Don't keep sending the requests again and again
-				if(!prov_queue_head->base_data.request_sent_to_node_flag) {
-					prov_queue_head->base_data.request_sent_to_node_flag = true;
-					send_prov_packet_to_node(prov_queue_head);
+				if(prov_queue_head != NULL)
+				{
+					if(!prov_queue_head->base_data.request_sent_to_node_flag) {
+						prov_queue_head->base_data.request_sent_to_node_flag = true;
+						send_prov_packet_to_node(prov_queue_head);
+					}
 				}
 			}
 			if(unprov_queue_head != NULL)
 			{
 				maintain_unprov_queue();
 				//Don't keep sending the requests again and again
-				if(!unprov_queue_head->base_data.request_sent_to_node_flag) {
-					unprov_queue_head->base_data.request_sent_to_node_flag = true;
-					send_unprov_packet_to_node(unprov_queue_head);
+				if(unprov_queue_head != NULL)
+				{
+					if(!unprov_queue_head->base_data.request_sent_to_node_flag) {
+						unprov_queue_head->base_data.request_sent_to_node_flag = true;
+						send_unprov_packet_to_node(unprov_queue_head);
+					}
 				}
 			}
 			if(node_reconf_queue_head != NULL)
 			{
 				maintain_node_reconf_queue();
 				//Don't keep sending the requests again and again
-				if(!node_reconf_queue_head->base_data.request_sent_to_node_flag) {
-					node_reconf_queue_head->base_data.request_sent_to_node_flag = true;
-					send_reconf_packet_to_node(node_reconf_queue_head);
+				if(node_reconf_queue_head != NULL)
+				{
+					if(!node_reconf_queue_head->base_data.request_sent_to_node_flag) {
+						node_reconf_queue_head->base_data.request_sent_to_node_flag = true;
+						send_reconf_packet_to_node(node_reconf_queue_head);
+					}
 				}
 			}	
 			if(node_ac_control_queue_head != NULL)
 			{
 				maintain_node_ac_control_queue();
 				//Don't keep sending the requests again and again
-				if(!node_ac_control_queue_head->base_data.request_sent_to_node_flag) {
-					node_ac_control_queue_head->base_data.request_sent_to_node_flag = true;
-					send_ac_control_packet_to_node(node_ac_control_queue_head);
+				if(node_ac_control_queue_head != NULL)
+				{
+					if(!node_ac_control_queue_head->base_data.request_sent_to_node_flag) {
+						node_ac_control_queue_head->base_data.request_sent_to_node_flag = true;
+						send_ac_control_packet_to_node(node_ac_control_queue_head);
+					}
 				}
 			}
 			if(node_pub_conf_queue_head != NULL)
 			{
 				maintain_node_pubconf_queue();
 				//Don't keep sending the requests again and again
-				if(!node_pub_conf_queue_head->base_data.request_sent_to_node_flag) {
-					node_pub_conf_queue_head->base_data.request_sent_to_node_flag = true;
-					send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+				if(node_pub_conf_queue_head != NULL)
+				{
+					if(!node_pub_conf_queue_head->base_data.request_sent_to_node_flag) {
+						node_pub_conf_queue_head->base_data.request_sent_to_node_flag = true;
+						send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+					}
 				}	
 			}
 			//Don't try to publish in the middle of sending an IR command or while sending another AT command
@@ -732,8 +747,11 @@ void queue_handler(void *args)
 			{
 				if(publish_to_mqtt() == SUCCESS){ 
 					remove_from_pubmesg_queue();
-					snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
-					yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+					if(LOG_DATA)
+					{
+						snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
+						yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+					}
 				}
 				else {
 					snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
