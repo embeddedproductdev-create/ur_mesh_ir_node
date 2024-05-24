@@ -50,7 +50,8 @@
     "flash.h": "c",
     "esp_http_server.h": "c",
     "uart.h": "c",
-    "printf_custom.h": "c"
+    "printf_custom.h": "c",
+    "freertosconfig.h": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

@@ -182,9 +182,12 @@ void app_main()
 #endif
 
 #if (IR_RECV_PART_ENABLED)
+    // xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task", 8192, (void *)1, 10, &xHandle, 1);
+    TaskHandle_t IR_task_handle;
     xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
-                            4096, (void *)1, 10, &xHandle);
-    if (xReturned != pdPASS)
+                            4096, (void *)1, 10, &IR_task_handle);
+    vTaskCoreAffinitySet(IR_task_handle, 1);
+    if (xReturned != pdPASS) 
     {
         perror("Error in taskCreate for IR recv task : ");
         exit(FAILURE);

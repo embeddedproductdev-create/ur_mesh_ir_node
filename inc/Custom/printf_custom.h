@@ -18,26 +18,6 @@
 #define ANSI_COLOR_WHITE   "\x1b[37m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
-#define MAIN_DEBUG_TAG          "[MAIN_DEBUG]   : "
-#define MAIN_ERROR_TAG          "[MAIN_ERROR]   : "
-#define LTE_DEBUG_TAG           "[LTE_DEBUG]    : "
-#define LTE_ERROR_TAG           "[LTE_ERROR]    : "
-#define LED_DEBUG_TAG           "[LED_DEBUG]    : "
-#define LED_ERROR_TAG           "[LED_ERROR]    : "
-#define QUEUE_DEBUG_TAG         "[QUEUE_DEBUG]  : "
-#define QUEUE_ERROR_TAG         "[QUEUE_ERROR]  : "
-#define AP_DEBUG_TAG            "[AP_DEBUG]     : "
-#define AP_ERROR_TAG            "[AP_ERROR]     : "
-#define BUTTON_DEBUG_TAG        "[BUTTON_DEBUG] : "
-#define BUTTON_ERROR_TAG        "[BUTTON_ERROR] : "
-#define IR_DEBUG_TAG            "[IR_DEBUG]     : "
-#define IR_ERROR_TAG            "[IR_ERROR]     : "
-#define MESH_DEBUG_TAG          "[MESH_DEBUG]  " 
-#define MESH_ERROR_TAG          "[MESH_ERROR]  "  
-#define TEMPERATURE_DEBUG_TAG   "[TEMP_DEBUG]   : "
-#define TEMPERATURE_ERROR_TAG   "[TEMP_ERROR]   : "
-#define SETUP_TAG               "[SETUP_DEBUG]  : "
-
 /* GLOBAL VARIABLES */
 extern char lte_log_buffer[2048];
 extern char queue_log_buffer[2048];
@@ -45,6 +25,26 @@ extern char ir_log_buffer[2048];
 extern char mesh_log_buffer[2048];
 extern char temperature_log_buffer[2048];
 extern char button_log_buffer[2048];
+
+extern char MAIN_DEBUG_TAG[20];
+extern char MAIN_ERROR_TAG[20];
+extern char LTE_DEBUG_TAG[20];
+extern char LTE_ERROR_TAG[20];
+extern char LED_DEBUG_TAG[20];
+extern char LED_ERROR_TAG[20];
+extern char QUEUE_DEBUG_TAG[20];
+extern char QUEUE_ERROR_TAG[20];
+extern char AP_DEBUG_TAG[20];
+extern char AP_ERROR_TAG[20];
+extern char BUTTON_DEBUG_TAG[20];
+extern char BUTTON_ERROR_TAG[20];
+extern char IR_DEBUG_TAG[20];
+extern char IR_ERROR_TAG[20];
+extern char MESH_DEBUG_TAG[20];
+extern char MESH_ERROR_TAG[20];
+extern char TEMPERATURE_DEBUG_TAG[20];
+extern char TEMPERATURE_ERROR_TAG[20];
+extern char SETUP_TAG[20];
 
 /* FUNCTION DECLARATIONS */
 #ifdef __cplusplus

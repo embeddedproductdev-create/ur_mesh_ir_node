@@ -17,6 +17,7 @@ char temp4[10];
 char temp5[10];
 char temp6[10];
 char temp7[10];
+
 char lte_log_buffer[2048];
 char queue_log_buffer[2048];
 char ir_log_buffer[2048];
@@ -24,45 +25,64 @@ char mesh_log_buffer[2048];
 char temperature_log_buffer[2048];
 char button_log_buffer[2048];
 
+char MAIN_DEBUG_TAG[20] = "[MAIN_DEBUG]   : ";
+char MAIN_ERROR_TAG[20] = "[MAIN_ERROR]   : ";
+char LTE_DEBUG_TAG[20] = "[LTE_DEBUG]    : ";
+char LTE_ERROR_TAG[20] = "[LTE_ERROR]    : ";
+char LED_DEBUG_TAG[20] = "[LED_DEBUG]    : ";
+char LED_ERROR_TAG[20] = "[LED_ERROR]    : ";
+char QUEUE_DEBUG_TAG[20] = "[QUEUE_DEBUG]  : ";
+char QUEUE_ERROR_TAG[20] = "[QUEUE_ERROR]  : ";
+char AP_DEBUG_TAG[20] = "[AP_DEBUG]     : ";
+char AP_ERROR_TAG[20] = "[AP_ERROR]     : ";
+char BUTTON_DEBUG_TAG[20] = "[BUTTON_DEBUG] : ";
+char BUTTON_ERROR_TAG[20] = "[BUTTON_ERROR] : ";
+char IR_DEBUG_TAG[20] = "[IR_DEBUG]     : ";
+char IR_ERROR_TAG[20] = "[IR_ERROR]     : ";
+char MESH_DEBUG_TAG[20] = "[MESH_DEBUG]  ";
+char MESH_ERROR_TAG[20] = "[MESH_ERROR]  ";
+char TEMPERATURE_DEBUG_TAG[20] = "[TEMP_DEBUG]   : ";
+char TEMPERATURE_ERROR_TAG[20] = "[TEMP_ERROR]   : ";
+char SETUP_TAG[20] = "[SETUP_DEBUG]  : ";
+
 void white_printf(char *tag, char *msg)
 {
     sprintf(temp1, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_WHITE"(%s) %s%s\n"ANSI_COLOR_RESET,temp1,tag,msg);
+    printf(ANSI_COLOR_WHITE "(%s) %s%s\n" ANSI_COLOR_RESET, temp1, tag, msg);
 }
 
 void red_printf(char *tag, char *msg)
 {
     sprintf(temp2, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_RED"(%s) %s%s\n"ANSI_COLOR_RESET,temp2,tag,msg);
+    printf(ANSI_COLOR_RED "(%s) %s%s\n" ANSI_COLOR_RESET, temp2, tag, msg);
 }
 
 void green_printf(char *tag, char *msg)
 {
     sprintf(temp3, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_GREEN"(%s) %s%s\n"ANSI_COLOR_RESET,temp3,tag,msg);
+    printf(ANSI_COLOR_GREEN "(%s) %s%s\n" ANSI_COLOR_RESET, temp3, tag, msg);
 }
 
 void blue_printf(char *tag, char *msg)
 {
     sprintf(temp4, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_BLUE"(%s) %s%s\n"ANSI_COLOR_RESET,temp4,tag,msg);
+    printf(ANSI_COLOR_BLUE "(%s) %s%s\n" ANSI_COLOR_RESET, temp4, tag, msg);
 }
 
 void cyan_printf(char *tag, char *msg)
 {
     sprintf(temp5, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_CYAN"(%s) %s%s\n"ANSI_COLOR_RESET,temp5,tag,msg);
+    printf(ANSI_COLOR_CYAN "(%s) %s%s\n" ANSI_COLOR_RESET, temp5, tag, msg);
 }
 
 void yellow_printf(char *tag, char *msg)
 {
     sprintf(temp6, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_YELLOW"(%s) %s%s\n"ANSI_COLOR_RESET,temp6,tag,msg);
+    printf(ANSI_COLOR_YELLOW "(%s) %s%s\n" ANSI_COLOR_RESET, temp6, tag, msg);
 }
 
 void magenta_printf(char *tag, char *msg)
 {
     sprintf(temp7, "%lld", esp_timer_get_time());
-    printf(ANSI_COLOR_MAGENTA"(%s) %s%s\n"ANSI_COLOR_RESET,temp7,tag,msg);
+    printf(ANSI_COLOR_MAGENTA "(%s) %s%s\n" ANSI_COLOR_RESET, temp7, tag, msg);
 }
-
