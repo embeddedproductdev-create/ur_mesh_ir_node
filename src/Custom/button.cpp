@@ -97,7 +97,7 @@ void button_task(void *args)
     while (1)
     {
         vTaskDelay(pdMS_TO_TICKS(100));
-        if (!sending)
+        if (!needToSendIRComamnd)
         {
             if (!digitalRead(USER_SWITCH)) // button is pressed
             {

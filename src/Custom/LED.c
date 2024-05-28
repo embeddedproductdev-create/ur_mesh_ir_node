@@ -32,7 +32,7 @@ void LED_task(void *args)
     LED_initial_setup();
     while (1)
     {
-        if(!sending)
+        if(!needToSendIRComamnd)
         {
             vTaskDelay(pdMS_TO_TICKS(50));
             if (sending)

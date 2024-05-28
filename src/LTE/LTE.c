@@ -312,7 +312,7 @@ void rotate_client_index()
 void establishMQTTConnection()
 {
 	static uint8_t retry_count = 0;
-	if(!sending_at_cmd && !sending)
+	if(!sending_at_cmd && !needToSendIRComamnd)
 	{	
 		if(LOG_DATA) {
 			sprintf(lte_log_buffer, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);

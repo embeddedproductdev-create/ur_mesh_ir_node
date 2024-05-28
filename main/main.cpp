@@ -107,8 +107,8 @@ void create_AP_task()
     ESP_LOGI(MAIN_DEBUG_TAG, "Creating AP task\n");
     BaseType_t xReturned;
     TaskHandle_t xHandle = NULL;
-    xReturned = xTaskCreate(AP_task, "AccessPoint Task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    xReturned = xTaskCreatePinnedToCore(AP_task, "AccessPoint Task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
     if (xReturned != pdPASS)
         perror("Error in taskCreate for AP mode : ");
 }
@@ -126,9 +126,9 @@ void app_main()
 
 #if (IS_GWY)
     fill_gwy_ser_no_str();
-    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
-    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     init_structures();
 #endif
 
@@ -141,8 +141,8 @@ void app_main()
 #endif
 
 #if (LED_PART_ENABLED)
-    xReturned = xTaskCreate(LED_task, "LED task",
-                            4096, (void *)1, 1, &xHandle);
+    xReturned = xTaskCreatePinnedToCore(LED_task, "LED task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LED task : ");
@@ -182,11 +182,9 @@ void app_main()
 #endif
 
 #if (IR_RECV_PART_ENABLED)
-    // xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task", 8192, (void *)1, 10, &xHandle, 1);
     TaskHandle_t IR_task_handle;
-    xReturned = xTaskCreate(IR_receiver_task, "IR recv task",
-                            4096, (void *)1, 10, &IR_task_handle);
-    vTaskCoreAffinitySet(IR_task_handle, 1);
+    xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task",
+                            4096, (void *)1, 10, &IR_task_handle, CORE1);
     if (xReturned != pdPASS) 
     {
         perror("Error in taskCreate for IR recv task : ");
@@ -195,8 +193,8 @@ void app_main()
 #endif
 
 #if (LTE_PART_ENABLED)
-    xReturned = xTaskCreate(LTE_task, "LTE Task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    xReturned = xTaskCreatePinnedToCore(LTE_task, "LTE Task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LTE task : ");
@@ -205,8 +203,8 @@ void app_main()
 #endif
 
 #if (QUEUE_PART_ENABLED)
-    xReturned = xTaskCreate(queue_handler, "Queue Task",
-                            8192, (void *)1, tskIDLE_PRIORITY, &xHandle);
+    xReturned = xTaskCreatePinnedToCore(queue_handler, "Queue Task",
+                            8192, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for Queue task : ");
@@ -215,8 +213,8 @@ void app_main()
 #endif
 
 #if (BUTTON_PART_ENABLED)
-    xReturned = xTaskCreate(button_task, "button task",
-                            4096, (void *)1, 0, &xHandle);
+    xReturned = xTaskCreatePinnedToCore(button_task, "button task",
+                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for button task : ");

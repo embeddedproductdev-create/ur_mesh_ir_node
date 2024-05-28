@@ -191,11 +191,11 @@ uint16_t IRsend::mark(uint16_t usec) {
       return counter;  // LED is now off & we've passed our allotted time.
     // Wait for the lesser of the rest of the duty cycle, or the time remaining.
     // _delayMicroseconds(
-        // std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
-        ets_delay_us(std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
-        // ets_delay_us(offTimePeriod);
+    // std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
+    ets_delay_us(std::min(usec - elapsed - onTimePeriod, (uint32_t)offTimePeriod));
+    // ets_delay_us(offTimePeriod);
     // elapsed = usecTimer.elapsed();  // Update & recache the actual elapsed time.
-        elapsed = esp_timer_get_time() - usectimer;
+    elapsed = esp_timer_get_time() - usectimer;
   }
   return counter;
 }
@@ -372,7 +372,6 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
   // Setup
   enableIROut(frequency, dutycycle);
   IRtimer usecs = IRtimer();
-
 
   // We always send a message, even for repeat=0, hence '<= repeat'.
   for (uint16_t r = 0; r <= repeat; r++) {

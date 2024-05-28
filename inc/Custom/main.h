@@ -80,6 +80,9 @@
 #define TAG "UART"
 #define BAUD_RATE 115200
 
+#define CORE0 0
+#define CORE1 1
+
 #define IR_RECV_PART_ENABLED true
 #define IR_RECV_LOG_ENABLED true
 #define TEMPERATURE_SENSOR_PART_ENABLED true

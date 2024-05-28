@@ -150,7 +150,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
         ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
         ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin280.send();
         sprintf(ir_log_buffer, "Sending Daikin280");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -163,7 +162,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikin200.setFan(gwy_ac_control_t.fan);
         ac_daikin200.setTemp(gwy_ac_control_t.temp);
         ac_daikin200.setMode(ac_daikin200.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin200.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin200\r\n");
         break;
@@ -180,7 +178,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
         ac_daikin216.setFan(gwy_ac_control_t.fan);
         ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin216.send();
         sprintf(ir_log_buffer, "Sending Daikin216");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -202,7 +199,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikin2.enableOffTimer(gwy_ac_control_t.OffTimer);
         ac_daikin2.enableOnTimer(gwy_ac_control_t.OnTimer);
         ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin2.send();
         sprintf(ir_log_buffer, "Sending Daikin2");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -216,7 +212,6 @@ void IR_transmit(uint16_t protocol)
             ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
         ac_daikin160.setFan(gwy_ac_control_t.fan);
         ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin160.send();
         sprintf(ir_log_buffer, "Sending Daikin160");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -232,7 +227,6 @@ void IR_transmit(uint16_t protocol)
             ac_daikin176.setSwingHorizontal(kDaikin176SwingHOff);
         ac_daikin176.setFan(gwy_ac_control_t.fan);
         ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin176.send();
         sprintf(ir_log_buffer, "Sending Daikin176");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -247,7 +241,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikinac64.setOnTime(gwy_ac_control_t.OffTimer);
         ac_daikinac64.setOffTime(gwy_ac_control_t.OnTimer);
         ac_daikinac64.setMode(ac_daikinac64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikinac64.send();
         sprintf(ir_log_buffer, "Sending Daikin64");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -260,7 +253,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikin152.setSwingV(gwy_ac_control_t.swingV);
         ac_daikin152.setFan(gwy_ac_control_t.fan);
         ac_daikin152.setMode(ac_daikin152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin152.send();
         sprintf(ir_log_buffer, "Sending Daikin152");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -275,7 +267,6 @@ void IR_transmit(uint16_t protocol)
         ac_daikin128.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_daikin128.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_daikin128.send();
         sprintf(ir_log_buffer, "Sending Daikin128");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -287,7 +278,6 @@ void IR_transmit(uint16_t protocol)
         ac_hitachi296.setTemp(gwy_ac_control_t.temp);
         ac_hitachi296.setFan(gwy_ac_control_t.fan);
         ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_hitachi296.send();
         sprintf(ir_log_buffer, "Sending Hitachi296");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -301,7 +291,6 @@ void IR_transmit(uint16_t protocol)
         ac_hitachi224.setSwingHorizontal(gwy_ac_control_t.swingH);
         ac_hitachi224.setSwingVertical(gwy_ac_control_t.swingV);
         ac_hitachi224.setMode(ac_hitachi224.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_hitachi224.send();
         sprintf(ir_log_buffer, "Sending HitachiAc224");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -317,7 +306,6 @@ void IR_transmit(uint16_t protocol)
         ac_hitachi104.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_hitachi104.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_hitachi104.setMode(ac_hitachi104.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_hitachi104.send();
         sprintf(ir_log_buffer, "Sending HitachiAc104");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -330,7 +318,6 @@ void IR_transmit(uint16_t protocol)
         ac_hitachi424.setFan(gwy_ac_control_t.fan);
         ac_hitachi424.setSwingVToggle(gwy_ac_control_t.swingV);
         ac_hitachi424.setMode(ac_hitachi424.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_hitachi424.send();
         sprintf(ir_log_buffer, "Sending HitachiAc424");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -340,7 +327,6 @@ void IR_transmit(uint16_t protocol)
         strcpy(protocol_chosen_str, "HitachiAc344");
         ac_hitachi344.setSwingH(gwy_ac_control_t.swingH);
         ac_hitachi344.setSwingV(gwy_ac_control_t.swingV);
-        sending = true;
         ac_hitachi344.send();
         sprintf(ir_log_buffer, "Sending HitachiAc344");
         break;
@@ -348,7 +334,6 @@ void IR_transmit(uint16_t protocol)
     case HITACHI_AC264:
         strcpy(protocol_chosen_str, "HitachiAc264");
         ac_hitachi264.setFan(gwy_ac_control_t.fan);
-        sending = true;
         ac_hitachi264.send();
         sprintf(ir_log_buffer, "Sending HitachiAc264");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -364,7 +349,6 @@ void IR_transmit(uint16_t protocol)
         ac_voltas.setOffTime(gwy_ac_control_t.OffTimer);
         ac_voltas.setOnTime(gwy_ac_control_t.OnTimer);
         ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_voltas.send();
         sprintf(ir_log_buffer, "Sending Voltas\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -380,7 +364,6 @@ void IR_transmit(uint16_t protocol)
         ac_samsung.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_samsung.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_samsung.setMode(ac_samsung.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_samsung.send();
         sprintf(ir_log_buffer, "Sending Samsung\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -395,7 +378,6 @@ void IR_transmit(uint16_t protocol)
         ac_haier.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_haier.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_haier.send();
         sprintf(ir_log_buffer, "Sending Haier\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -411,7 +393,6 @@ void IR_transmit(uint16_t protocol)
         ac_haier176.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_haier176.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_haier176.send();
         sprintf(ir_log_buffer, "Sending Haier176\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -427,7 +408,6 @@ void IR_transmit(uint16_t protocol)
         ac_haier160.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_haier160.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_haier160.send();
         sprintf(ir_log_buffer, "Sending Haier160\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -443,7 +423,6 @@ void IR_transmit(uint16_t protocol)
         ac_carrier64.setOffTimer(gwy_ac_control_t.OffTimer);
         ac_carrier64.setOnTimer(gwy_ac_control_t.OnTimer);
         ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_carrier64.send();
         sprintf(ir_log_buffer, "Sending CarrierAC64\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -459,7 +438,6 @@ void IR_transmit(uint16_t protocol)
         ac_lg.setSwingV(gwy_ac_control_t.swingV);
         ac_lg.setFan(gwy_ac_control_t.fan);
         ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_lg.send();
         sprintf(ir_log_buffer, "Sending LG\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -482,7 +460,6 @@ void IR_transmit(uint16_t protocol)
             ac_toshiba.setSwing(kToshibaAcSwingOff);
         }
         ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_toshiba.send();
         sprintf(ir_log_buffer, "Sending Toshiba\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -497,7 +474,6 @@ void IR_transmit(uint16_t protocol)
         ac_mitsubishi112.setSwingV(gwy_ac_control_t.swingV);
         ac_mitsubishi112.setFan(gwy_ac_control_t.fan);
         ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_mitsubishi112.send();
         sprintf(ir_log_buffer, "Sending Mitsubishi112\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -514,7 +490,6 @@ void IR_transmit(uint16_t protocol)
         }
         ac_mitsubishi136.setFan(gwy_ac_control_t.fan);
         ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_mitsubishi136.send();
         sprintf(ir_log_buffer, "Sending Mitsubishi136\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -527,7 +502,6 @@ void IR_transmit(uint16_t protocol)
         ac_mitsubishi144.setTemp(gwy_ac_control_t.temp);
         ac_mitsubishi144.setFan(gwy_ac_control_t.fan);
         ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_mitsubishi144.send();
         sprintf(ir_log_buffer, "Sending MitsubishiAc\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -548,7 +522,6 @@ void IR_transmit(uint16_t protocol)
         else
             ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVOff);
         ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_mitsubishi88.send();
         sprintf(ir_log_buffer, "Sending MitsubishiHeavy88\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -569,7 +542,6 @@ void IR_transmit(uint16_t protocol)
         else
             ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88SwingVOff);
         ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
-        sending = true;
         ac_mitsubishi152.send();
         sprintf(ir_log_buffer, "Sending MitsubishiHeavy152\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -580,7 +552,6 @@ void IR_transmit(uint16_t protocol)
         break;
     }
     needToSendIRComamnd = false;
-    sending = false;
 }
 
 /**
@@ -610,7 +581,7 @@ void locking_feature(char *result_description_char_str)
     white_printf(IR_DEBUG_TAG, ir_log_buffer);
     add_to_pubmesg_queue(result_description_char_str, publish_topic);
 #endif
-#if(!IS_GWY)
+#if (!IS_GWY)
     send_locking_feature_ack_to_gwy(result_description_char_str);
 #endif
     if (temperature != 0 && (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit))
@@ -718,9 +689,10 @@ void IR_receiver_task(void *args)
 #endif
             }
 
-            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
+            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode && !sending)
                 locking_feature(result_description_char_str);
-            yield();
+            if(sending) sending=false;
+            // yield();
         }
     }
     vTaskDelete(NULL);
