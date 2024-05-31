@@ -138,9 +138,9 @@ void init_digital_temperature_sensor()
 static void publish_temperature_cb(void *arg)
 {
     char pubmessage[PUBMESG_LEN];
-    read_analog_temperature(&measured_temperature);
+    read_analog_temperature(&measured_temperature); 
 #if (IS_GWY)
-    if (registered && !needToSendIRComamnd)
+    if (registered && !needToSendIRComamnd && !hold_adding_to_pubmesg)
     {
         if(LOG_DATA)
         {

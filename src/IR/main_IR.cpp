@@ -691,7 +691,8 @@ void IR_receiver_task(void *args)
 
             if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode && !sending)
                 locking_feature(result_description_char_str);
-            if(sending) sending=false;
+            if (sending)
+                sending = false;
             // yield();
         }
     }

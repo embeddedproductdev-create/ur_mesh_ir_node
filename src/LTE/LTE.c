@@ -116,7 +116,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 					sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
 					red_printf(LTE_ERROR_TAG, lte_log_buffer);
 				} 
-				free(LTE_UART_data); 
+				free(LTE_UART_data);
 				return FAILURE; 
 			}
 		}
@@ -167,6 +167,8 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 char *cmdName, char *check_string, uint32_t timeout_ms)
 {
 	sending_at_cmd = true;
+	// uart_flush(UART_NUM_1);
+
 	if(logging) {
 		sprintf(lte_log_buffer, "%s", cmdName);
 		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
@@ -205,33 +207,37 @@ int8_t publish_to_mqtt()
 	publishing_flag = true;
 	char MQTT_PUBLISH_MESG_CMD[PUBMESG_LEN];
 	sprintf(MQTT_PUBLISH_MESG_CMD, "%s%d,%d,%d,%d,\"%s\",%d\r\n", PUBLISH_TO_MQTT, MQTT_CLIENT_INDEX, MQTT_MSGID, MQTT_QOS, MQTT_RETAIN, pubmesg_queue_head->topic, strlen(pubmesg_queue_head->message));
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
+	if(!sending_at_cmd)
 	{
-		if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
+		if(send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", PROMPT, 1000) == SUCCESS)
 		{
-			publishing_flag = false;
-			if(LOG_DATA)
+			if(uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message,strlen(pubmesg_queue_head->message))!=FAILURE)
 			{
-				sprintf(queue_log_buffer, "Published :");
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				publishing_flag = false;
+				if(LOG_DATA)
+				{
+					sprintf(queue_log_buffer, "Published :");
+					yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+					sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
+					yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				}
+				return SUCCESS;
 			}
-			return SUCCESS;
+			else
+			{
+				sprintf(queue_log_buffer, "Publishing to MQTT Failed");
+				red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+				return FAILURE;
+			}
 		}
-		else
+		else 
 		{
-			sprintf(queue_log_buffer, "Publishing to MQTT Failed");
+			sprintf(queue_log_buffer, "PUBLISH_PROMPT not received");
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			return FAILURE;
 		}
 	}
-	else 
-	{
-		sprintf(queue_log_buffer, "PUBLISH_PROMPT not received");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-		return FAILURE;
-	}
+	return FAILURE;
 }
 
 /**
@@ -312,6 +318,9 @@ void rotate_client_index()
 void establishMQTTConnection()
 {
 	static uint8_t retry_count = 0;
+	//Do not try to send an AT command in the following cases
+	//Already an AT command is in progress
+	//IR command is being sent out
 	if(!sending_at_cmd && !needToSendIRComamnd)
 	{	
 		if(LOG_DATA) {
@@ -325,7 +334,7 @@ void establishMQTTConnection()
 			rotate_client_index();
 			powerCycleLTE();
 		}
-		
+
 		//See if we have connected with Network first
 		else if(!network_flag) 
 		{	
