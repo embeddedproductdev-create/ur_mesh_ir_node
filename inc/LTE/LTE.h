@@ -74,15 +74,15 @@
 #define MQTT_CHECK_READ_BUFFER_CMD "AT+QMTRECV?\r"
 
 /*MQTT RESPONSES*/
-#define MQTT_NETWORK_OPEN_RESPONSE "+QMTOPEN: "
+//#define MQTT_NETWORK_OPEN_RESPONSE "+QMTOPEN: "
 #define MQTT_NETWORK_CLOSE_RESPONSE "+QMTCLOSE: "
-#define MQTT_CLIENT_CONN_RESPONSE "+QMTCONN: "
+//#define MQTT_CLIENT_CONN_RESPONSE "+QMTCONN: "
 #define MQTT_CLIENT_DISCONN_RESPONSE "+QMTDISC: "
 #define MQTT_READ_MSG_RESPONSE "+QMTRECV: "
 #define STATUS_MQTT_NETWORK "+QMTSTAT:1,1"
-#define MQTT_SUB_RESPONSE "+QMTSUB: "
+//#define MQTT_SUB_RESPONSE "+QMTSUB: "
 #define MQTT_UNSUB_RESPONSE "+QMTUNS: "
-#define MQTT_PUB_MSG_RESPONSE "+QMTPUBEX: "
+//#define MQTT_PUB_MSG_RESPONSE "+QMTPUBEX: "
 #define OK_RESPONSE "OK\r\n"
 #define CONNECT_RESPONSE "CONNECT\r\n"
 #define INDICATOR_STATE_RESPONSE "+CIND: "
@@ -123,9 +123,6 @@ extern char LTE_UART_data[2048];
 extern bool LOG_DATA;
 extern bool sending_at_cmd;
 
-/*Responses*/
-extern char NETWORK_CONNECTION_SUCCESSFUL_RESPONSE[30];
-
 #ifdef __cplusplus
 extern "C"
 {
@@ -137,6 +134,7 @@ extern "C"
     void LTE_gpio_configuration(void);
     void powerCycleLTE(void);
     void establishMQTTConnection(void);
+    void establishMQTTConnectionNew(void);
     void get_mode_value();
     uint16_t get_gwy_ser_no();
     void init_structures();
