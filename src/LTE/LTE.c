@@ -38,16 +38,27 @@ char publish_topic[MQTT_TOPIC_CHAR_LEN];
 char QMTSTAT_1_ERROR[20];
 char QMTOPEN_2_ERROR[20];
 char QMTOPEN_3_ERROR[20];
+
+/*MQTTConfig*/
+char CLEAN_SESSION_CMD[50];
+char KEEP_ALIVE_CMD[50];
+char MSG_RECV_MODE_CMD[50];
+
+/*NetworkOpening*/
 char MQTT_NETWORK_OPEN_CMD[100];
 char MQTT_NETWORK_OPEN_RESP[100];
 char CHECK_NETWORK[15];
-char CHECK_CLIENT_CONN[15];
 char NETWORK_OK[100];
-char CLIENT_CONN_OK[100];
 char MQTT_NETWORK_CLOSE_CMD[100];
+
+/*ClientConnection*/
+char CHECK_CLIENT_CONN[15];
+char CLIENT_CONN_OK[100];
 char MQTT_CLIENT_DISCONN_CMD[30];
 char MQTT_CLIENT_CONN_CMD[300];
 char MQTT_CLIENT_CONN_RESP[300];
+
+/*Subscription*/
 char MQTT_SUB_CMD[100];
 char MQTT_SUB_RESP[100];
 char MQTT_READ_MSG_CMD[30];
@@ -180,8 +191,6 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 								   char *cmdName, char *check_string, uint32_t timeout_ms)
 {
 	sending_at_cmd = true;
-	// uart_flush(UART_NUM_1);
-
 	if (logging)
 	{
 		sprintf(lte_log_buffer, "%s", cmdName);
@@ -268,6 +277,15 @@ void init_Strings()
 	sprintf(subscribe_topic, "%s/commands", GWY_SER_NO_IN_STRING);
 	sprintf(publish_topic, "%s/messages", GWY_SER_NO_IN_STRING);
 	sprintf(mqtt_client_id, "%s/07ebf099-2d3e-451e-9f8b-0cf34838a246", GWY_SER_NO_IN_STRING);
+
+	/*CleanSession configuration*/
+	sprintf(CLEAN_SESSION_CMD, "AT+QMTCFG=\"session\",%d,1\r",MQTT_CLIENT_INDEX);
+
+	/*KeepAlive configuration*/
+	sprintf(KEEP_ALIVE_CMD, "AT+QMTCFG=\"keepalive\",%d,3000\r",MQTT_CLIENT_INDEX);
+
+	/*MsgRecvMode configuration*/
+	sprintf(MSG_RECV_MODE_CMD, "AT+QMTCFG=\"recv/mode\",%d,0\r",MQTT_CLIENT_INDEX);
 
 	/*Network Open*/
 	sprintf(MQTT_NETWORK_OPEN_CMD, "%s%d,\"%s\",%d\r", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, mqtt_server_ip, mqtt_port);
@@ -375,6 +393,23 @@ void establishMQTTConnectionNew()
 					sprintf(lte_log_buffer, "MQTT is connected and working");
 					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 				}
+				//Don't try to publish in the middle of sending an IR command or while sending another AT command
+				//Some form of synchronization is required here.
+				if(pubmesg_queue_head != NULL && mqtt_connected && !sending_at_cmd)
+				{
+					if(publish_to_mqtt() == SUCCESS){ 
+						remove_from_pubmesg_queue();
+						if(LOG_DATA)
+						{
+							snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
+							yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+						}
+					}
+					else {
+						snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
+						red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+					}
+				}
 				else 
 				{
 					mqtt_connected=false;
@@ -387,7 +422,7 @@ void establishMQTTConnectionNew()
 		{
 			mqtt_connected=false;
 			retry_count++;
-			send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN", MQTT_CLIENT_CONN_RESP, 1000);
+			send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN", MQTT_CLIENT_CONN_RESP, 5000);
 		}
 	}
 	else
@@ -497,7 +532,37 @@ void establishMQTTConnection()
 			else
 				retry_count = 0;
 		}
+
+		//Don't try to publish in the middle of sending an IR command or while sending another AT command
+		//Some form of synchronization is required here.
+		if(pubmesg_queue_head != NULL && mqtt_connected && !sending_at_cmd)
+		{
+			if(publish_to_mqtt() == SUCCESS){ 
+				remove_from_pubmesg_queue();
+				if(LOG_DATA)
+				{
+					snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
+					yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+				}
+			}
+			else {
+				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
+				red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			}
+		}
 	}
+}
+
+/**
+ * @brief Function that takes care of configuring the MQTT communication 
+ * @param none
+ * @retval none
+ */
+void MQTT_config()
+{
+	while(send_cmd_and_check_response(LOG_DATA, CLEAN_SESSION_CMD, "CLEAN_SESSION_CMD", OK_RESPONSE, 1000)!=SUCCESS);
+	while(send_cmd_and_check_response(LOG_DATA, KEEP_ALIVE_CMD, "KEEP_ALIVE_CMD", OK_RESPONSE, 3000)!=SUCCESS);
+	// while(send_cmd_and_check_response(LOG_DATA, MSG_RECV_MODE_CMD, "MESG_RECV_MODE_CMD", OK_RESPONSE, 1000)!=SUCCESS);
 }
 
 /**
@@ -511,11 +576,12 @@ void LTE_task(void *args)
 	LTE_gpio_configuration();
 	powerCycleLTE();
 	LTE_UART_INIT();
+	// MQTT_config();
 	// send_cmd_and_check_response(LOG_DATA, TURN_OFF_ECHO_CMD, "TURN_OFF_ECHO_CMD", OK_RESPONSE, 100);
-	// send_cmd_and_check_response(LOG_DATA, "AT+CMEE=2\r\n", "TURN ON VERBOSE LOGGING", OK_RESPONSE, 100);
+	// send_cmd_and_check_response(LOG_DATA, "AT+CMEE=2\r\n", "TURN ON VERBOSE LOGGING", OK_RESPONSE, 1000);
 	while (1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(50));
-		if(LOG_DATA) establishMQTTConnectionNew();
+		if(LOG_DATA) establishMQTTConnection();
 	}
 }

@@ -132,6 +132,7 @@ extern "C"
     void LTE_task(void *args);
     void LTE_restart(void);
     void LTE_gpio_configuration(void);
+    void MQTT_config();
     void powerCycleLTE(void);
     void establishMQTTConnection(void);
     void establishMQTTConnectionNew(void);
