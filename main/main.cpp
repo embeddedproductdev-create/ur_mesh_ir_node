@@ -19,7 +19,7 @@ uint16_t GWY_SER_NO = 100;
 uint16_t NODE_SER_NO = 100;
 #endif
 #if (!CLIENT_RELEASE)
-uint16_t GWY_SER_NO = 1;
+uint16_t GWY_SER_NO = 15;
 uint16_t NODE_SER_NO = 2;
 #endif
 char GWY_SER_NO_IN_STRING[15];

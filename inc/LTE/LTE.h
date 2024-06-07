@@ -15,7 +15,7 @@
 #include "../Custom/main.h" 
 
 #define MAX_WAIT_MS 100
-#define BUF_SIZE 2048
+#define BUF_SIZE 1024
 
 /*CME ERRORS*/
 #define CME_ERROR_10 "+CME ERROR: 10"
@@ -140,7 +140,7 @@ extern "C"
     uint16_t get_gwy_ser_no();
     void init_structures();
     void init_Strings();
-    int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string);
+    int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_name);
     int8_t send_cmd_and_check_response(
         bool logging,
         char *cmd, 

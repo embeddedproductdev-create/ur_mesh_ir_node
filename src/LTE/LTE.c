@@ -90,14 +90,11 @@ void LTE_UART_INIT(void)
  * @param check_string String that is used to check against the response to know if it is valid or not
  * @return int8_t
  */
-int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
+int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_name)
 {
+	size_t ring_buf_len;
+	static uint32_t fetch_success_counter = 0;
 	static uint8_t uart_reinit_count = 0;
-	if (LOG_DATA)
-	{
-		sprintf(lte_log_buffer, "Heap Free size : %d bytes", heap_caps_get_free_size(MALLOC_CAP_8BIT));
-		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-	}
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
 	if (LTE_UART_data == NULL)
 	{
@@ -108,13 +105,17 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 	uint32_t in_time = esp_timer_get_time();
 	while ((esp_timer_get_time() - in_time) / 1000 < timeout_ms)
 	{
-		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 500);
+		uart_get_buffered_data_len(UART_NUM_1, &ring_buf_len);
+		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, pdMS_TO_TICKS(1000));
 		if (length > 0)
 		{
+			fetch_success_counter++;
+			sprintf(lte_log_buffer, "AT_CMD sent : %s | HEAP : %d BYTES | COUNTER : %ld | BUF_LEN : %d | UART_RX_BUF_LEN : %d",cmd_name, heap_caps_get_free_size(MALLOC_CAP_8BIT), fetch_success_counter,strlen(LTE_UART_data), ring_buf_len);
+			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 			// It's safe to add to pubmesg now that we've received some data over UART from LTE
 			hold_adding_to_pubmesg = false;
 			if (check_response(LTE_UART_data, check_string) == SUCCESS)
-			{
+			{ 
 				if (LOG_DATA)
 				{
 					sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
@@ -141,7 +142,14 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string)
 			}
 		}
 	}
-	sprintf(lte_log_buffer, "No Data recevied from LTE");
+	sprintf(lte_log_buffer, "No Data | counter : %ld | data_len : %d | ring_buf_len : %d",fetch_success_counter,strlen(LTE_UART_data), ring_buf_len);
+
+	//Let's try maybe deleting and re-installing the driver to see if it resolves the long run issue 
+	uart_driver_delete(UART_NUM_1);
+	// LTE_UART_INIT();
+	uart_flush_input(UART_NUM_1);
+    uart_disable_rx_intr(UART_NUM_1);
+    uart_flush_input(UART_NUM_1);
 
 	// To avoid mem leak due to LTE no reponse issue, we're using this flag to hold publishing more to the pubmesg queue,
 	// cuz it's of no use, when LTE is not responding. This leads to loss of data. We need to fix this later
@@ -191,19 +199,9 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 								   char *cmdName, char *check_string, uint32_t timeout_ms)
 {
 	sending_at_cmd = true;
-	if (logging)
-	{
-		sprintf(lte_log_buffer, "%s", cmdName);
-		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-	}
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
 	{
-		if (logging)
-		{
-			sprintf(lte_log_buffer, "Command sent : %s", cmd);
-			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-		}
-		if (fetch_and_check_data(timeout_ms, check_string) == SUCCESS)
+		if (fetch_and_check_data(timeout_ms, check_string, cmdName) == SUCCESS)
 		{
 			sending_at_cmd = false;
 			return SUCCESS;
@@ -387,7 +385,7 @@ void establishMQTTConnectionNew()
 		{
 			if (send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB", MQTT_SUB_RESP, 1000) == SUCCESS)
 			{
-				if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200) == SUCCESS)
+				if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 				{
 					mqtt_connected=true;
 					sprintf(lte_log_buffer, "MQTT is connected and working");
@@ -422,14 +420,14 @@ void establishMQTTConnectionNew()
 		{
 			mqtt_connected=false;
 			retry_count++;
-			send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN", MQTT_CLIENT_CONN_RESP, 5000);
+			send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN", MQTT_CLIENT_CONN_RESP, 1000);
 		}
 	}
 	else
 	{
 		mqtt_connected=false;
 		retry_count++;
-		send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000);
+		while(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000)!=SUCCESS);
 	}
 	// If we've retried and failed more than RETRY_COUNT times, it's better we rotate client_index before retrying again.
 	if (retry_count > RETRY_COUNT)

@@ -83,17 +83,17 @@
 #define CORE0 0
 #define CORE1 1
 
-#define IR_RECV_PART_ENABLED true
-#define IR_RECV_LOG_ENABLED true
-#define TEMPERATURE_SENSOR_PART_ENABLED true
-#define BUTTON_PART_ENABLED true
+#define IR_RECV_PART_ENABLED false
+#define IR_RECV_LOG_ENABLED false
+#define TEMPERATURE_SENSOR_PART_ENABLED false
+#define BUTTON_PART_ENABLED false
 #define LED_PART_ENABLED true
-#define MESH_PART_ENABLED true
-#define TEACHING_PART_ENABLED true
+#define MESH_PART_ENABLED false
+#define TEACHING_PART_ENABLED false
 #if(IS_GWY)
     #define LTE_PART_ENABLED true
     #define AP_PART_ENABLED false
-    #define QUEUE_PART_ENABLED true
+    #define QUEUE_PART_ENABLED false
 #endif
 #if(!IS_GWY)
     #define AP_PART_ENABLED false
