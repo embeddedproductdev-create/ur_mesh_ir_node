@@ -741,23 +741,6 @@ void queue_handler(void *args)
 					}
 				}	
 			}
-			// //Don't try to publish in the middle of sending an IR command or while sending another AT command
-			// //Some form of synchronization is required here.
-			// if(pubmesg_queue_head != NULL && mqtt_connected && !sending_at_cmd)
-			// {
-			// 	if(publish_to_mqtt() == SUCCESS){ 
-			// 		remove_from_pubmesg_queue();
-			// 		if(LOG_DATA)
-			// 		{
-			// 			snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
-			// 			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-			// 		}
-			// 	}
-			// 	else {
-			// 		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
-			// 		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			// 	}
-			// }
 		}
 	}
 }

@@ -114,12 +114,49 @@ void create_AP_task()
 }
 
 /**
+ * @brief Function that takes care of fetching data from flash reg. registration and configuration status
+ * @param none
+ * @retval none
+ */
+void fetch_from_flash()
+{
+    uint8_t temp = 0;
+    #if (IS_GWY)
+        registered = eeprom_read_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR);
+        if(registered) registered = false;
+        else registered = true;
+    #endif
+    #if (!IS_GWY)
+        provisioned = eeprom_read_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR);
+    #endif
+    configured = eeprom_read_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR);
+    if(configured) configured = false;
+    else configured = true;
+    protocol_selected_num = eeprom_read_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR);
+    protocol_selected_num <<= 8;
+    protocol_selected_num |= eeprom_read_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR+1);
+    #if (IS_GWY)
+    ESP_LOGI(MAIN_DEBUG_TAG, "REG : %d | CONF : %d | PROTOCOL : %d", registered, configured, protocol_selected_num);
+    #endif
+    #if (!IS_GWY)
+    ESP_LOGI(MAIN_DEBUG_TAG, "PROV : %d | CONF : %d | PROTOCOL : %d",provisioned, configured, protocol_selected_num);
+    #endif
+}
+
+/**
  * @brief Starting point for the whole program
  * @param none
  * @retval none
  */
 void app_main()
 {
+    initialize_i2c();
+    // eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, 0XFF);
+    // vTaskDelay(pdMS_TO_TICKS(5));
+    // eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0XFF);
+    // vTaskDelay(pdMS_TO_TICKS(5));
+    fetch_from_flash();
+
     // these two are needed incase if we're creating tasks using RTOS
     BaseType_t xReturned;
     TaskHandle_t xHandle = NULL;

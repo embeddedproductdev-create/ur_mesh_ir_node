@@ -99,7 +99,6 @@ void fill_macid()
         strncat(hex_char_str, &macid[i], 1);
         strncat(hex_char_str, &macid[i + 1], 1);
         provision_t.macid[index] = strtol(hex_char_str, NULL, 16);
-        strcpy(hex_char_str, "");
     }
 }
 
@@ -602,6 +601,8 @@ void parse_json_packet(char *json_packet)
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             registered = true;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, false);
+            vTaskDelay(pdMS_TO_TICKS(5));
             break;
 
         case GWY_UNREG_PACKET:
@@ -611,6 +612,14 @@ void parse_json_packet(char *json_packet)
             strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             registered = false;
             configured = false;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, true);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, 0);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR+1, 0);
+            vTaskDelay(pdMS_TO_TICKS(5));
             break;
 
         case GWY_AC_CONTROL_PACKET:
@@ -648,6 +657,7 @@ void parse_json_packet(char *json_packet)
             cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            delete_Temperature_data_publish_timer();
             create_Temperature_data_publish_timer();
             break;
 

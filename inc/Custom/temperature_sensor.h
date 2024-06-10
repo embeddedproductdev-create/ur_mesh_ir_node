@@ -52,6 +52,7 @@ extern "C"
 
 /* COMMON FUNCTION DECLARATIONS */
 void create_Temperature_data_publish_timer();
+void delete_Temperature_data_publish_timer();
 void temperature_sensing_init();
 
 /* ANALOG TEMPERATURE SENSOR FUNCTION DECLARATIONS */

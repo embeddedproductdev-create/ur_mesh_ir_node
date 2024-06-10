@@ -19,6 +19,7 @@
 #define ANSI_COLOR_RESET   "\x1b[0m"
 
 /* GLOBAL VARIABLES */
+extern char log_buffer[2048];
 extern char lte_log_buffer[2048];
 extern char queue_log_buffer[2048];
 extern char ir_log_buffer[2048];

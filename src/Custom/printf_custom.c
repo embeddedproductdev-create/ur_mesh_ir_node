@@ -18,6 +18,7 @@ char temp5[10];
 char temp6[10];
 char temp7[10];
 
+char log_buffer[2048];
 char lte_log_buffer[2048];
 char queue_log_buffer[2048];
 char ir_log_buffer[2048];

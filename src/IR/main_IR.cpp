@@ -665,10 +665,16 @@ void IR_receiver_task(void *args)
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
                 protocol_selected_num = protocol_detected;
+                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR+1, protocol_selected_num);
+                vTaskDelay(pdMS_TO_TICKS(5));
+                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, protocol_selected_num>>8);
+                vTaskDelay(pdMS_TO_TICKS(5));
 #if (IS_GWY)
                 if (registered)
                 {
                     configured = true;
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                    vTaskDelay(pdMS_TO_TICKS(5));
                     char pubmessage[PUBMESG_LEN];
                     sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
                             JSON_PACKET_ID_KEY, GWY_CONF_PACKET,

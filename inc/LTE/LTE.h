@@ -121,7 +121,6 @@ enum AT_cmd_id{
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[2048];
 extern bool LOG_DATA;
-extern bool sending_at_cmd;
 
 #ifdef __cplusplus
 extern "C"
@@ -129,16 +128,19 @@ extern "C"
 #endif
 
     /* FUNCTION DECLARATIONS */
+    void LTE_UART_INIT();
     void LTE_task(void *args);
     void LTE_restart(void);
     void LTE_gpio_configuration(void);
     void MQTT_config();
     void powerCycleLTE(void);
+    void basic_LTE_checks();
     void establishMQTTConnection(void);
     void establishMQTTConnectionNew(void);
     void get_mode_value();
     uint16_t get_gwy_ser_no();
     void init_structures();
+    void init_const_AT_cmd_strings();
     void init_Strings();
     int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_name);
     int8_t send_cmd_and_check_response(

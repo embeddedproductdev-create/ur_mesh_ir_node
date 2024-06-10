@@ -131,7 +131,6 @@ void init_analog_temperature_sensor()
  */
 void init_digital_temperature_sensor()
 {
-    initialize_i2c();
     i2c_write(POINTER_REGISTER);
 }
 
@@ -176,6 +175,18 @@ void init_temperature_sensor()
 }
 
 /**
+ * @brief Function that deletes the already configured repeated timer
+ * whenever we receive a GWY_PUB_CONF packet
+ * @param none
+ * @retval none
+ */
+void delete_Temperature_data_publish_timer()
+{
+    ESP_ERROR_CHECK(esp_timer_stop(temp_publish_timer));
+    ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
+}
+
+/**
  * @brief Function that creates a repeating timer that measures temperature data with
  * on-board temperature sensor and publishes it as per desired frequency to the cloud
  * @param none
@@ -183,11 +194,6 @@ void init_temperature_sensor()
  */
 void create_Temperature_data_publish_timer()
 {
-    if (registered)
-    {
-        ESP_ERROR_CHECK(esp_timer_stop(temp_publish_timer));
-        ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
-    }
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &temp_publish_timer));
     if (gwy_pub_conf_t.pub_conf_period_in_sec >= 5)
         ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_pub_conf_t.pub_conf_period_in_sec * 1000000));

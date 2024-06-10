@@ -883,6 +883,8 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                         param->value.state_change.mod_app_bind.company_id,
                         param->value.state_change.mod_app_bind.model_id);
                 provisioned = true;
+                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, false);
+                vTaskDelay(pdMS_TO_TICKS(5));
                 ELEMENT_ADDR = param->value.state_change.mod_app_bind.element_addr;
                 provision_t.base_data.json_packet_id =  NODE_PROV_PACKET;
                 provision_t.base_data.elementAddr = ELEMENT_ADDR;
@@ -893,6 +895,8 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
                 esp_ble_mesh_node_local_reset();
                 provisioned = false;
+                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, true);
+                vTaskDelay(pdMS_TO_TICKS(5));
                 ELEMENT_ADDR = 0;
                 send_unprovisioned_ack_to_gwy();
                 vTaskDelay(pdMS_TO_TICKS(100));
