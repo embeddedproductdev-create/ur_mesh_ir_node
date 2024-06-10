@@ -551,6 +551,7 @@ void IR_transmit(uint16_t protocol)
         printf("Error in choosing the protocol for send");
         break;
     }
+    vTaskDelay(pdMS_TO_TICKS(50));//Let's add this delay here so that the sent IR command stays from being captured by the same device's IR receiver
     needToSendIRComamnd = false;
 }
 
@@ -695,7 +696,7 @@ void IR_receiver_task(void *args)
 #endif
             }
 
-            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode && !sending)
+            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode && !needToSendIRComamnd)
                 locking_feature(result_description_char_str);
             if (sending)
                 sending = false;
