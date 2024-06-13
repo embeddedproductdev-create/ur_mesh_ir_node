@@ -1,22 +1,45 @@
 
 # IR BLE Mesh AC Controller
-The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely.
+The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely
+
+- Project Start Date   : 
+- Project End Data     : 
 
 ## Project Members
 - **Project Manager** : K.N.Singh
 - **Project Lead**    : Kulasekaran
 - **Project Members** : Umamaheswari, Adhikesavan
 
-## Dependencies
+# High level overview
+- An open source IR Library for Transmission and reception of IR Signals.
+- Uses LTE for MQTT communication
+- Uses BLE Mesh network
+- Custom MQTT packets designed according to Project requirements. More details about this in Software documentation. (link provided below)
+- Uses IDF-FreeRTOS for implementing Multi-processing application.
+- Uses on-board EEPROM for flash storage
+
+## Hardware Details
+- [Schematics]()
+
+## Software Documentation and other Helper documents
+- Software Documentation : [Link to Software Documentation]()
+- MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
+- LTE : Quectel's EC200U [Datasheet]()
+- [AT commands manual]()
+- [TCP/IP command manual]()
+- [MQTT commands manual]()
+
+## Software Dependencies
 - VS Code IDE
 - VS Code ESP-IDF Extension
-- ESP32-S3
 - ESP-IDF v5.0 or above
 - Arduino as ESP component. Check this tutorial : [Adding Arduino as ESP IDF component](https://www.youtube.com/watch?v=hHzGX-K6lmo&pp=ygUfQWRkaW5nIGFyZHVpbm8gYXMgZXNwIGNvbXBvbmVudA%3D%3D)
 - IRremoteESP8266 Library
+- FreeRTOS
+- BLE Mesh
+- MQTT
 
-## Instructions
-
+## Instructions to Build and compile the project
 1. Install VS Code in your PC. [Link to VS Code](https://code.visualstudio.com/download)
 2. Once Installed, click on extensions and download **ESP-IDF** extension.
    1. Press **ctrl+shift+P** to open command palette. In that, choose **ESP-IDF: Configure ESP-IDF extension**.
@@ -42,4 +65,4 @@ These steps will guide you in including a custom library and using it in this pr
 2. Unzip it and you will find a folder named **IRremoteESP8266-master**. Copy this entire folder to `"Project directory/components/arduino/libraries"` path.
 3. Inside the `Project directory/components/arduino/` there will be a file named **CMakeLists.txt**. 
    1. **NOTE**: The following instruction may not apply to you exactly because it may differ based on the ESP-IDF version that you are going to use in future. I started this project with using **`ESP-IDF v5.1.2`**. But the overall procedure will be same. The compiler needs to know that there is a file in this location that it can use during compilation. Let's continue with the procedure ...
-   1. In this file, there will be a line **set(includedirs**. To this, include the following: `libraries/IRremoteESP8266/src`.
+   1. In this file, there will be a line **set(includedirs**. Inside that, include the following: `libraries/IRremoteESP8266/src`.
