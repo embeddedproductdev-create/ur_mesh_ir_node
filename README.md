@@ -1,19 +1,45 @@
-| Supported Targets | ESP32 | ESP32-C3 | ESP32-C6 | ESP32-S3 |
-| ----------------- | ----- | -------- | -------- | -------- |
 
-ESP BLE Mesh Node demo
-==========================
+# IR BLE Mesh AC Controller
+The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely.
 
-This demo shows how BLE Mesh device can be set up as a node with the following features:
+## Project Members
+- **Project Manager** : K.N.Singh
+- **Project Lead**    : Kulasekaran
+- **Project Members** : Umamaheswari, Adhikesavan
 
-- One element
-- Two SIG models
-	- **Configuration Server model**: The role of this model is mainly to configure Provisioner device’s AppKey and set up its relay function, TTL size, subscription, etc.
-   - **OnOff Server model**: This model implements the most basic function of turning the lights on and off.
+## Dependencies
+- VS Code IDE
+- VS Code ESP-IDF Extension
+- ESP32-S3
+- ESP-IDF v5.0 or above
+- Arduino as ESP component. Check this tutorial : [Adding Arduino as ESP IDF component](https://www.youtube.com/watch?v=hHzGX-K6lmo&pp=ygUfQWRkaW5nIGFyZHVpbm8gYXMgZXNwIGNvbXBvbmVudA%3D%3D)
+- IRremoteESP8266 Library
 
-The default purpose of this demo is to enable the advertising function with 20-ms non-connectable interval in BLE 5.0. You can disable this function through menuconfig: `idf.py menuconfig --> Example Configuration --> This option facilitates sending with 20ms non-connectable interval...`
+## Instructions
 
-For a better demonstration effect, an RGB LED can be soldered onto the ESP32-DevKitC board, by connecting their corresponding GPIO pins are GPIO\_NUM\_25, GPIO\_NUM\_26, GPIO\_NUM\_27. Then you need to select the following option in menuconfig:
-   `idf.py menuconfig --> Example Configuration --> Board selection for BLE Mesh --> ESP-WROOM-32`
+1. Install VS Code in your PC. [Link to VS Code](https://code.visualstudio.com/download)
+2. Once Installed, click on extensions and download **ESP-IDF** extension.
+   1. Press **ctrl+shift+P** to open command palette. In that, choose **ESP-IDF: Configure ESP-IDF extension**.
+   2. ESP-IDF configuration window opens
+   3. Choose **Express** option.
+      1. Let `Download server` be **Github**
+      2. Choose ESP-IDF version that's greater than 5.1 for arduion component to be compatible with the build.
+      3. Set the `ESP-IDF directory (IDF_PATH)` as **"C:\Espressif"**
+      4. Set the `ESP-IDF Tools directory` as **"C:\Espressif\frameworks\tools"**
+      5. Click on Install and wait for atleast 0.5 hour to 1 hour depending on your network speed.
+3. Clone this repository to your system
+4. Open the Project directory in VS Code
+5. Press **ctrl+shift+P** to open command palette. In that, choose **ESP-IDF: Add Arduino ESP32 as ESP-IDF component**
+   1. Now, this process may sometimes fail with error code 128. I'v faced this myself many times. I'm not sure of the reason. With any effort, make this process succeed.
+   2. After successful completion of the process, a folder called **components\arduino** will have been generated in the project directory. This enables us to use functions that are generally available in arduion environment in ESP environment. 
+6. **NOTE**: 
+   1. The next step is required only if you are creating the project from scratch. By default the IRremoteESP8266 library being used in this project is not available in the components/arduino folder. So, we need to manually download the library, add the source and header files at locations and make necessary changes to the CMakeLists.txt inside the components/arduino folder in order for the compiler to be able to pick up these custom files.
+   2. It's not mandatory that the custom libraries also needs to reside inside the arduino/components folder. But since it already has a structure, I placed inside it to avoid too much head scratching in trying to fix bug that'll rise upon compiling. If you can figure out a better and efficient way, kudos to you.
 
-Please check the [tutorial](tutorial/BLE_Mesh_Node_OnOff_Server_Example_Walkthrough.md) for more information about this example.
+## Steps to include custom library files
+These steps will guide you in including a custom library and using it in this project. I've taken the IRremoteESP8266 library as an example. It is available [here](https://github.com/crankyoldgit/IRremoteESP8266)
+1. Download the library as a zip file.
+2. Unzip it and you will find a folder named **IRremoteESP8266-master**. Copy this entire folder to `"Project directory/components/arduino/libraries"` path.
+3. Inside the `Project directory/components/arduino/` there will be a file named **CMakeLists.txt**. 
+   1. **NOTE**: The following instruction may not apply to you exactly because it may differ based on the ESP-IDF version that you are going to use in future. I started this project with using **`ESP-IDF v5.1.2`**. But the overall procedure will be same. The compiler needs to know that there is a file in this location that it can use during compilation. Let's continue with the procedure ...
+   1. In this file, there will be a line **set(includedirs**. To this, include the following: `libraries/IRremoteESP8266/src`.
