@@ -53,12 +53,13 @@ extern "C" {
 #endif
 void white_printf(char *tag, char *msg);
 void blue_printf(char *tag, char *msg);
-#ifdef __cplusplus
-}
-#endif
-
 void red_printf(char *tag, char *msg);
 void green_printf(char *tag, char *msg);
 void yellow_printf(char *tag, char *msg);
 void magenta_printf(char *tag, char *msg);
 void cyan_printf(char *tag, char *msg);
+#ifdef __cplusplus
+}
+#endif
+
+

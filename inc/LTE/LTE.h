@@ -119,7 +119,7 @@ enum AT_cmd_id{
 };
 
 /* GLOBAL VARIABLES */
-extern char LTE_UART_data[2048];
+extern char LTE_UART_data[1024];
 extern bool LOG_DATA;
 
 #ifdef __cplusplus

@@ -101,16 +101,10 @@
     #define LTE_PART_ENABLED false
 #endif
 
-#if (IS_GWY)
 #define REGISTERED_FLAG_FLASH_ADDR 0x0000
-#endif
-
 #define CONFIGURED_FLAG_FLASH_ADDR 0x0001
 #define PROTOCOL_SEL_FLASH_ADDR 0x0002
-
-#if (!IS_GWY)
-#define PROVISIONED_FLAG_FLASH_ADDR 500
-#endif
+#define PROVISIONED_FLAG_FLASH_ADDR 0x0000
 
 /* GLOBAL VARIABLES */
 extern bool mqtt_connected;

@@ -19,6 +19,7 @@
 uint8_t MQTT_CLIENT_INDEX = 5;
 
 char mqtt_client_id[100];
+char LTE_UART_data[1024];
 
 bool LOG_DATA = true;
 
@@ -104,13 +105,19 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 {
 	size_t ring_buf_len;
 	static uint8_t uart_reinit_count = 0;
-	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
-	if (LTE_UART_data == NULL)
-	{
-		snprintf(lte_log_buffer, sizeof(lte_log_buffer), "Memory allocation failed for LTE_uart_data");
-		red_printf(LTE_ERROR_TAG, lte_log_buffer);
-		return FAILURE;
-	}
+
+	//Let's nullify the string before we process it again
+	memset(LTE_UART_data, 0, sizeof(LTE_UART_data));
+
+	// char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
+	// if (LTE_UART_data == NULL)
+	// {
+	// 	snprintf(lte_log_buffer, sizeof(lte_log_buffer), "Memory allocation failed for LTE_uart_data");
+	// 	red_printf(LTE_ERROR_TAG, lte_log_buffer);
+	// 	return FAILURE;
+	// }
+	sprintf(lte_log_buffer, "HEAP FREE : %ld",ESP.getFreeHeap());
+	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	uint32_t in_time = esp_timer_get_time();
 	while ((esp_timer_get_time() - in_time) / 1000 < timeout_ms)
 	{
@@ -119,7 +126,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 		if (length > 0)
 		{
 			uart_reinit_count = 0; //reset the counter
-			sprintf(lte_log_buffer, "AT_CMD sent : %s | HEAP : %d BYTES | BUF_LEN : %d | UART_RX_BUF_LEN : %d", cmd_name, heap_caps_get_free_size(MALLOC_CAP_8BIT), strlen(LTE_UART_data), ring_buf_len);
+			sprintf(lte_log_buffer, "AT_CMD sent : %s | BUF_LEN : %d | UART_RX_BUF_LEN : %d", cmd_name, strlen(LTE_UART_data), ring_buf_len);
 			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 			// It's safe to add to pubmesg now that we've received some data over UART from LTE
 			hold_adding_to_pubmesg = false;
@@ -136,7 +143,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
 					parse_json_packet(LTE_UART_data);
 				}
-				free(LTE_UART_data);
+				// free(LTE_UART_data);
 				return SUCCESS;
 			}
 			else
@@ -146,23 +153,19 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 					sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
 					red_printf(LTE_ERROR_TAG, lte_log_buffer);
 				}
-				free(LTE_UART_data);
+				// free(LTE_UART_data);
 				return FAILURE;
 			}
 		}
 	}
 	sprintf(lte_log_buffer, "No Data | data_len : %d | ring_buf_len : %d", strlen(LTE_UART_data), ring_buf_len);
+	red_printf(LTE_ERROR_TAG, lte_log_buffer);
 
 	// To avoid mem leak due to LTE no reponse issue, we're using this flag to hold publishing more to the pubmesg queue,
 	// cuz it's of no use, when LTE is not responding. This leads to loss of data. We need to fix this later
 	hold_adding_to_pubmesg = true;
-
 	uart_reinit_count++;
-	if (uart_reinit_count > 30) esp_restart_flag = true;
-
 	network_flag = 0;
-	red_printf(LTE_ERROR_TAG, lte_log_buffer);
-	free(LTE_UART_data);
 	return FAILURE;
 }
 
@@ -341,12 +344,11 @@ void powerCycleLTE()
 {
 	sprintf(lte_log_buffer, "Power cycling LTE starts");
 	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-	gpio_set_level(GPIO_LTE_ONOFF, 0);
-	gpio_set_level(GPIO_LTE_RESET, 0);
+	gpio_set_level((gpio_num_t)GPIO_LTE_ONOFF, 0);
 	vTaskDelay(pdMS_TO_TICKS(100));
-	gpio_set_level(GPIO_LTE_ONOFF, 1);
+	gpio_set_level((gpio_num_t)GPIO_LTE_ONOFF, 1);
 	vTaskDelay(pdMS_TO_TICKS(2500));
-	gpio_set_level(GPIO_LTE_ONOFF, 0);
+	gpio_set_level((gpio_num_t)GPIO_LTE_ONOFF, 0);
 	sprintf(lte_log_buffer, "Power cycling LTE end");
 	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 }
@@ -408,7 +410,6 @@ void establishMQTTConnectionNew()
 	 * - Start checking for msgs from Broker
 	 */
 	static uint8_t retry_count = 0;
-
 	//If we had recvd QMTOPEN 3 error, then it means PDP has not been activated and no point in trying further
 	//Let's actiate it first
 	// if(need_to_activate_pdp)
@@ -426,6 +427,14 @@ void establishMQTTConnectionNew()
 	// 		}
 	// 	}
 	// }
+
+	//Printing the whole heap information
+	// multi_heap_info_t *heap_data = NULL;
+	// heap_caps_get_info(heap_data, MALLOC_CAP_DEFAULT);
+	// printf("Allocated Blocks : %d\nFree Blocks : %d\nLargest Free Block : %d\nMinimum Free Block : %d\nTotal Allocated Bytes : %d\nTotal Free Bytes : %d\nTotal Blocks  %d\n",
+	// heap_data->allocated_blocks, heap_data->free_blocks, heap_data->largest_free_block, 
+	// heap_data->minimum_free_bytes, heap_data->total_allocated_bytes, heap_data->total_free_bytes, heap_data->total_blocks);
+
 	if (send_cmd_and_check_response(LOG_DATA, CHECK_NETWORK, "CHECK_NETWORK", NETWORK_OK, 1000) == SUCCESS)
 	{
 		if (send_cmd_and_check_response(LOG_DATA, CHECK_CLIENT_CONN, "CHECK_CLIENT_CONN", CLIENT_CONN_OK, 1000) == SUCCESS)
@@ -461,8 +470,10 @@ void establishMQTTConnectionNew()
 						}
 						else
 						{
+							mqtt_connected=false;
 							snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
 							red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+							break;
 						}
 					}
 				}
