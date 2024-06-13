@@ -1,6 +1,0 @@
-daikin
-hitachi
-temp
-bluestar
-coolix
-voltas

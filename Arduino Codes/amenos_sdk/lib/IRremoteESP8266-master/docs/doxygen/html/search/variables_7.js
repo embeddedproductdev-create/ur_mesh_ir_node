@@ -1,4 +1,0 @@
-var searchData=
-[
-  ['heat_5fmode_4527',['heat_mode',['../classIRArgoAC.html#a255762f71502b9ffeb0686759991ec53',1,'IRArgoAC']]]
-];
