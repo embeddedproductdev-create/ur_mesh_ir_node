@@ -11,23 +11,37 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - **Project Members** : Umamaheswari, Adhikesavan
 
 # High level overview
-- An open source IR Library for Transmission and reception of IR Signals.
+- Uses BLE Mesh network. So, we have two kinds of devices:
+   1. Gateway (Acts as BLE Mesh Provisioner - communicates with Cloud over MQTT)
+   2. Node (Acts as BLE Mesh slave - communicates with Gateway and other nodes)
+- **IMPORTANT NOTE**: Same code base is used to program both Gateway and Node. Only thing to change is a MACRO named **IS_GWY** declared in `main.h` file. It will take care of everything else.
+- An open source IR Library called IRremoteESP8366 is used for Transmission and reception of IR Signals. Supports the following brand ACs:
+   1. Daikin
+   2. LG
+   3. Voltas
+   4. Samsung
+   5. Hitachi
+   6. Haier
+   7. Carrier
+   8. Toshiba
+   9. Mitshubishi
+- **IMPORTANT NOTE**: Support for the above brands doesn;t mean all models of the above brand AC's would work. The same brand uses different protocols for different models. 
+- In order to make Universal support (for controlling temperature between 19 and 28 only), we have included a process called Teaching Mode. (More information about this provided below)
 - Uses LTE for MQTT communication
-- Uses BLE Mesh network
 - Custom MQTT packets designed according to Project requirements. More details about this in Software documentation. (link provided below)
 - Uses IDF-FreeRTOS for implementing Multi-processing application.
 - Uses on-board EEPROM for flash storage
 
 ## Hardware Details
-- [Schematics]()
+- [Schematics](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EcAzDj2xZpRPheBzz8MhQ4MBeOw5IVayl4XTD_MZNdEs2Q?e=pJdu1H)
 
 ## Software Documentation and other Helper documents
-- Software Documentation : [Link to Software Documentation]()
+- Software Documentation : [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EQggUzaKN6BKpGuAlJVJPAcBsA2TF-sA6TgrwF00lDKbVw?e=lfapWI)
 - MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
-- LTE : Quectel's EC200U [Datasheet]()
-- [AT commands manual]()
-- [TCP/IP command manual]()
-- [MQTT commands manual]()
+- LTE : [Quectel's EC200U Hardware design document](https://forums.quectel.com/uploads/short-url/j0qEXlvPl25PfUDBf4QEkc9AQyx.pdf)
+- [AT commands manual](https://forums.quectel.com/uploads/short-url/dV5cK9eteeQmwyGPgfWB351oZde.pdf)
+- [TCP/IP command manual](https://forums.quectel.com/uploads/short-url/1loXiVyd118F6AYTRvznNkCbh1L.pdf)
+- [MQTT commands manual](https://auroraevernet.ru/upload/iblock/c81/rfhactu9l14ymr9cxt3pebdqxfu39h5v.pdf)
 
 ## Software Dependencies
 - VS Code IDE
@@ -66,3 +80,25 @@ These steps will guide you in including a custom library and using it in this pr
 3. Inside the `Project directory/components/arduino/` there will be a file named **CMakeLists.txt**. 
    1. **NOTE**: The following instruction may not apply to you exactly because it may differ based on the ESP-IDF version that you are going to use in future. I started this project with using **`ESP-IDF v5.1.2`**. But the overall procedure will be same. The compiler needs to know that there is a file in this location that it can use during compilation. Let's continue with the procedure ...
    1. In this file, there will be a line **set(includedirs**. Inside that, include the following: `libraries/IRremoteESP8266/src`.
+
+
+## Steps to perform Teaching Mode
+1. Make sure Gateway is registered / Make sure Node is provisioned.
+2. **IMPORTANT NOTE (before making the device enter Teaching mode)**: Take the AC remote and bring down the temperature to 19 and power ON the AC. So that, when you press the power button again, it should send the POWER OFF signal . This is very important in-order to successfully register the commands to EEPROM on-board and complete the teaching process. The sequence of IR signals for teaching mode is as follows:
+   1. POWER OFF | TEMP 19
+   2. POWER ON  | TEMP 19
+   3. POWER ON  | TEMP 20
+   4. POWER ON  | TEMP 21
+   5. POWER ON  | TEMP 22
+   6. POWER ON  | TEMP 23
+   7. POWER ON  | TEMP 24
+   8. POWER ON  | TEMP 25
+   9. POWER ON  | TEMP 26
+   10. POWER ON | TEMP 27
+   11. POWER ON | TEMP 28
+3. Double press the side-button on the device. The LED will start blinking BLUE (once every 200ms) to indicate it has entered teaching mode.
+4. Press the POWER ON button on the AC remote with remote pointing towards to IR receiver on-board for successful reception and prevent false recording.
+5. The device will read the IR signal from the remote and store it in flash. While this process is happening, the light will turn off momentarily to indicate that no other buttons must be pressed to let the process go on without disturbance. Also, make sure you are doing this process in a IR disturbance free environment. Most smartphones these days use IR emitters, so it's one thing that I experience during my development. 
+6. Once the LED starts blinking BLUE again, it's time to record the next IR signal. The next signal is `POWER ON | TEMP 19`. 
+7. Similarly, go one-by-one all the way up to `POWER ON | TEMP 28`. If everything was done right, then, when the last IR signal was sent, the LED will change to SOLID GREEN to indicate successful completion of the process.
+
