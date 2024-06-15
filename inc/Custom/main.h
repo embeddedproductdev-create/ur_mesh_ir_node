@@ -14,6 +14,7 @@
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -64,12 +65,12 @@
  * ===================================================================
  */
 #define IS_GWY true
-#define CLIENT_RELEASE false
+#define CLIENT_RELEASE true
 /*====================================================================*/
 
 #if(IS_GWY)
 #define MAJ_VERSION 0
-#define MIN_VERSION 6
+#define MIN_VERSION 7
 #endif
 
 #if(!IS_GWY)
