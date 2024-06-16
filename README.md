@@ -21,14 +21,6 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 </center>
 
 # High level overview
-- An open source IR Library for Transmission and reception of IR Signals.
-- Uses LTE for MQTT communication
-- Uses BLE Mesh network
-- Custom MQTT packets designed according to Project requirements. More details about this in Software documentation. (link provided below)
-- Uses IDF-FreeRTOS for implementing Multi-processing application.
-- Uses on-board EEPROM for flash storage
-
-# High level overview
 - Uses BLE Mesh network. So, we have two kinds of devices:
    1. Gateway (Acts as BLE Mesh Provisioner - communicates with Cloud over MQTT)
    2. Node (Acts as BLE Mesh slave - communicates with Gateway and other nodes)
