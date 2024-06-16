@@ -1,8 +1,8 @@
 
 # IR BLE Mesh AC Controller
-The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely
+The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely.
 
-- Project Start Date   : 
+- Project Start Date   : 14th December, 2023
 - Project End Data     : 
 
 ## Project Members
@@ -15,7 +15,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 
 | No | Release Version | Release date | Author | Changes | Link To Binaries |
 |----|-----------------|--------------|--------|---------|------------------|
-|1|0.6|())|Kulasekaran|1)|[Ver 0.6](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/EsAfWCuAF5pDgIHuPiZqN0sB0QvNj8S_XqIxa7qbzuJ3xw?e=lQr8X0)|
+|1|0.6|24.04.2024)|Kulasekaran|1) Fixed Teaching mode bug - Umamaheswari|[Ver 0.6](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/EsAfWCuAF5pDgIHuPiZqN0sB0QvNj8S_XqIxa7qbzuJ3xw?e=lQr8X0)|
 |2|0.7|15.06.2024|Kulasekaran|1) Long run LTE issue workaround with Rebooting|[Ver 0.7](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/ElOpzTQT0UdEvAXS_M6xHUoBCObxUryYEZ7gFOrPOhTN-Q?e=Iybtim)|
 
 </center>
