@@ -1,7 +1,41 @@
 
-# IR BLE Mesh AC Controller
-The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely.
+<!-- PROJECT LOGO AND PROJECT INFORMATION -->
+<br />
+<div align="center">
+  <a href="https://github.com/othneildrew/Best-README-Template">
+    <img src="https://qmaxltd-my.sharepoint.com/:i:/g/personal/embedded_qmaxsys_com/EVhQVnE72oRDhUoq0pP9glMB12hSGYrBOMC3NwKKXQbhGQ?e=m7dou1" alt="Logo" width="80" height="80">
+  </a>
 
+  <h1 align="center">IR BLE Mesh AC Controller</h1>
+
+  <p align="center">
+    <strong>BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely ! </strong><br><br>
+    <a href="">View Demo</a>
+    ·
+    <a href="">Report Bug</a>
+    ·
+    <a href="">Request Feature</a>
+  </p>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="">Project Timeline</a></li>
+    <li><a href="">Project Members</a></li>
+    <li><a href="">Releases</a></li>
+    <li><a href="">High Level Overview</a></li>
+    <li><a href="">Hardware Details</a></li>
+    <li><a href="">Software References</a></li>
+    <li><a href="">Software Dependencies</a></li>
+    <li><a href="">Instructions to Build and compile the project</a></li>
+    <li><a href="">Steps to include custom library files</a></li>
+    <li><a href="">Steps to perform Teaching Mode</a></li>
+  </ol>
+</details><br>
+
+## Project Timeline
 - Project Start Date   : 14th December, 2023
 - Project End Data     : 
 
@@ -9,6 +43,12 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - **Project Manager** : K.N.Singh
 - **Project Lead**    : Kulasekaran
 - **Project Members** : Umamaheswari, Adhikesavan
+
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
 ## Releases
 <center>
@@ -45,7 +85,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 ## Hardware Details
 - [Schematics](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EcAzDj2xZpRPheBzz8MhQ4MBeOw5IVayl4XTD_MZNdEs2Q?e=pJdu1H)
 
-## Software Documentation and other Helper documents
+## Software References
 - Software Documentation : [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EQggUzaKN6BKpGuAlJVJPAcBsA2TF-sA6TgrwF00lDKbVw?e=lfapWI)
 - MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
 - LTE : [Quectel's EC200U Hardware design document](https://forums.quectel.com/uploads/short-url/j0qEXlvPl25PfUDBf4QEkc9AQyx.pdf)
@@ -111,3 +151,19 @@ These steps will guide you in including a custom library and using it in this pr
 5. The device will read the IR signal from the remote and store it in flash. While this process is happening, the light will turn off momentarily to indicate that no other buttons must be pressed to let the process go on without disturbance. Also, make sure you are doing this process in a IR disturbance free environment. Most smartphones these days use IR emitters, so it's one thing that I experience during my development. 
 6. Once the LED starts blinking BLUE again, it's time to record the next IR signal. The next signal is `POWER ON | TEMP 19`. 
 7. Similarly, go one-by-one all the way up to `POWER ON | TEMP 28`. If everything was done right, then, when the last IR signal was sent, the LED will change to SOLID GREEN to indicate successful completion of the process.
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
+[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
+[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
+[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
+[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
+[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
+[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
+[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
+[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/othneildrew
