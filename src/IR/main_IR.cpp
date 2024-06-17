@@ -551,7 +551,7 @@ void IR_transmit(uint16_t protocol)
         printf("Error in choosing the protocol for send");
         break;
     }
-    vTaskDelay(pdMS_TO_TICKS(50));//Let's add this delay here so that the sent IR command stays from being captured by the same device's IR receiver
+    vTaskDelay(pdMS_TO_TICKS(1000));//Let's add this delay here so that the sent IR command stays from being captured by the same device's IR receiver
     needToSendIRComamnd = false;
 }
 
@@ -587,6 +587,8 @@ void locking_feature(char *result_description_char_str)
 #endif
     if (temperature != 0 && (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit))
     {
+        sprintf(ir_log_buffer, "Someone manually controlled the AC ... beyond limits ... reverting ");
+        white_printf(IR_DEBUG_TAG, ir_log_buffer);
         // Someone controlled the AC using remote with exceeding temperature limits
         IR_transmit(protocol_selected_num);
     }
@@ -607,8 +609,11 @@ void IR_receiver_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-        if (needToSendIRComamnd)
+        if (needToSendIRComamnd) {
+            sprintf(ir_log_buffer, "Sending out an IR command ... ");
+            white_printf(IR_DEBUG_TAG, ir_log_buffer);
             IR_transmit(protocol_selected_num);
+        }
         if (esp_restart_flag)
             ESP.restart();
         if (irrecv.decode(&results))
@@ -698,9 +703,6 @@ void IR_receiver_task(void *args)
 
             if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode && !needToSendIRComamnd)
                 locking_feature(result_description_char_str);
-            if (sending)
-                sending = false;
-            // yield();
         }
     }
     vTaskDelete(NULL);
