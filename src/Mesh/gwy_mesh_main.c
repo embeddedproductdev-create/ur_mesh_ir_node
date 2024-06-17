@@ -283,6 +283,7 @@ static struct esp_ble_mesh_key
     uint16_t net_idx;
     uint16_t app_idx;
     uint8_t app_key[ESP_BLE_MESH_OCTET16_LEN];
+    uint8_t net_key[ESP_BLE_MESH_OCTET16_LEN];
 } prov_key;
 
 static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *common,
@@ -1714,7 +1715,29 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         break;
     }
 }
+void net_keys_handler()
+{
+    uint16_t *net_key_local;
+    esp_ble_mesh_provisioner_add_local_net_key(NULL, 0xFFFF);
+    net_key_local = esp_ble_mesh_provisioner_get_local_net_key(prov_key.net_idx);
+    for(uint8_t i=0; i<16 ; i++)
+    {
+        prov_key.net_key[i] = net_key_local[i];
 
+    }
+}
+
+void app_keys_handler()
+{
+    uint16_t *app_key_local;
+    err = esp_ble_mesh_provisioner_add_local_app_key(NULL, prov_key.net_idx, 0xFFFF);
+    app_key_local = esp_ble_mesh_provisioner_get_local_app_key(prov_key.net_idx,prov_key.app_idx);
+    for(uint8_t i=0; i<16 ; i++)
+    {
+        prov_key.app_key[i] = app_key_local[i];
+
+    }
+}
 static esp_err_t ble_mesh_init(void)
 {
     uint8_t match[8] = {0xcd, 0xdc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
@@ -1759,7 +1782,8 @@ static esp_err_t ble_mesh_init(void)
         return err;
     }
 
-    err = esp_ble_mesh_provisioner_add_local_app_key(prov_key.app_key, prov_key.net_idx, prov_key.app_idx);
+    app_keys_handler();
+   
     if (err != ESP_OK)
     {
         ESP_LOGE(MESH_ERROR_TAG, "Failed to add local AppKey");
@@ -1803,7 +1827,11 @@ void gwy_mesh_main_init(void)
 
     ble_mesh_get_dev_uuid(dev_uuid);
     ESP_LOGE(MESH_ERROR_TAG, "Gpio detect");
-    esp_ble_mesh_provisioner_add_local_net_key(NULL, 0);
+
+    net_keys_handler();
+    
+    //send this to cloud
+
     ESP_LOGE(MESH_ERROR_TAG, "Gpio detect");
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
@@ -1816,6 +1844,20 @@ void gwy_mesh_main_init(void)
 
 esp_err_t err;
 uint32_t opcode;
+
+void update_the_provisioner_net_key(uint8_t *netkey)
+{   
+
+    esp_ble_mesh_provisioner_update_local_net_key(netkey,prov_key.net_idx);
+
+}
+
+void update_the_provisioner_app_key(uint8_t *appkey)
+{   
+
+    esp_ble_mesh_provisioner_update_local_app_key(appkey,prov_key.net_idx,prov_key.app_idx);
+
+}
 void send_prov_packet_to_node(prov_t *prov_packet)
 {
     uint8_t match[8] = {0xcd, 0xdc};
