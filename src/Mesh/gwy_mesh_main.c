@@ -1575,7 +1575,20 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             vTaskDelay(20);
         }
         else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
-        {
+        {   
+            esp_ble_mesh_sensor_client_cb_param_t params;
+
+            struct net_buf_simple temp_struct;
+
+            uint8_t temp_data[30]={0};
+
+            params.status_cb.sensor_status.marshalled_sensor_data=&temp_struct;
+
+            params.status_cb.sensor_status.marshalled_sensor_data->data=temp_data;
+
+            params.status_cb.sensor_status.marshalled_sensor_data->data[0]=103;
+
+            store_data_to_node_structures(&params);
             ESP_LOGI(MESH_DEBUG_TAG, " Node reset successfull ");
             vTaskDelay(20);
         }
