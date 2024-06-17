@@ -1445,7 +1445,12 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_PROVISIONER_STORE_NODE_COMP_DATA_COMP_EVT, err_code %d", param->provisioner_store_node_comp_data_comp.err_code);
         break;
     case ESP_BLE_MESH_NODE_ADD_LOCAL_NET_KEY_COMP_EVT:
-        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_ADD_LOCAL_NET_KEY_COMP_EVT, err_code %d", param->node_add_net_key_comp.err_code);
+        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_ADD_LOCAL_NET_KEY_COMP_EVT, err_code %d ,net_idx %d", param->node_add_net_key_comp.err_code , param->node_add_net_key_comp.net_idx);
+        prov_key.net_idx = param->node_add_net_key_comp.net_idx;
+        break;
+    case ESP_BLE_MESH_NODE_ADD_LOCAL_APP_KEY_COMP_EVT:
+        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_ADD_LOCAL_NET_KEY_COMP_EVT, err_code %d ,net_idx %d", param->node_add_app_key_comp.err_code , param->node_add_app_key_comp.app_idx);
+        prov_key.app_idx = param->node_add_app_key_comp.app_idx;
         break;
     case ESP_BLE_MESH_NODE_BIND_APP_KEY_TO_MODEL_COMP_EVT:
         ESP_LOGE(MESH_ERROR_TAG, "ESP_BLE_MESH_NODE_BIND_APP_KEY_TO_MODEL_COMP_EVT");
@@ -1717,7 +1722,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 }
 void net_keys_handler()
 {
-    uint16_t *net_key_local;
+    uint8_t *net_key_local;
     esp_ble_mesh_provisioner_add_local_net_key(NULL, 0xFFFF);
     net_key_local = esp_ble_mesh_provisioner_get_local_net_key(prov_key.net_idx);
     for(uint8_t i=0; i<16 ; i++)
@@ -1729,7 +1734,7 @@ void net_keys_handler()
 
 void app_keys_handler()
 {
-    uint16_t *app_key_local;
+    uint8_t *app_key_local;
     err = esp_ble_mesh_provisioner_add_local_app_key(NULL, prov_key.net_idx, 0xFFFF);
     app_key_local = esp_ble_mesh_provisioner_get_local_app_key(prov_key.net_idx,prov_key.app_idx);
     for(uint8_t i=0; i<16 ; i++)
