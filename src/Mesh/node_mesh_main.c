@@ -1019,6 +1019,14 @@ static esp_err_t ble_mesh_init(void)
     }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+    if(esp_ble_mesh_node_is_provisioned())
+    {
+        provisioned = true;
+    }
+    else
+    {
+        provisioned = true;
+    }
     if (err != ESP_OK)
     {
         ESP_LOGE(MESH_DEBUG_TAG, "Failed to enable mesh node");
