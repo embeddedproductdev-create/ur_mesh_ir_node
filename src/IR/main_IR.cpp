@@ -680,7 +680,7 @@ void IR_receiver_task(void *args)
                     eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
                     vTaskDelay(pdMS_TO_TICKS(5));
                     char pubmessage[PUBMESG_LEN];
-                    sprintf(pubmessage, "%s : %d, %s : %s, %s : %s, %s : %d",
+                    sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d}",
                             JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
                             JSON_ACK_NAME_KEY, GWY_CONF_ACK,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
@@ -706,7 +706,7 @@ void IR_receiver_task(void *args)
              * 3) Device must not be in teaching mode
              * 4) Locking feature must be enabled in Gwy AC Control Packet 
              */
-            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
+            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.Locking && !teaching_mode)
                 locking_feature(result_description_char_str);
         }
     }

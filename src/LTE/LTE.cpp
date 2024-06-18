@@ -109,7 +109,6 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 
 	//Let's nullify the string before we process it again
 	memset(LTE_UART_data, 0, sizeof(LTE_UART_data));
-
 	sprintf(lte_log_buffer, "HEAP FREE : %ld",ESP.getFreeHeap());
 	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	uint32_t in_time = esp_timer_get_time();
@@ -122,9 +121,10 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			//reset the counters
 			rotate_client_index_counter = 0; 
 			long_run_issue_counter = 0;
-
-			sprintf(lte_log_buffer, "AT_CMD sent : %s | BUF_LEN : %d | UART_RX_BUF_LEN : %d", cmd_name, strlen(LTE_UART_data), ring_buf_len);
-			cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+			if(LOG_DATA) {
+				sprintf(lte_log_buffer, "AT_CMD sent : %s | BUF_LEN : %d | UART_RX_BUF_LEN : %d", cmd_name, strlen(LTE_UART_data), ring_buf_len);
+				cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+			}
 			// It's safe to add to pubmesg now that we've received some data over UART from LTE
 			hold_adding_to_pubmesg = false;
 			if (check_response(LTE_UART_data, check_string) == SUCCESS)
@@ -443,7 +443,7 @@ void establishMQTTConnectionNew()
 			{
 				while(1)
 				{
-					vTaskDelay(1);
+					vTaskDelay(pdMS_TO_TICKS(1000)); //Adding a 1s delay to see if this improves the time after which the LTE long run issue occurs
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{
 						mqtt_connected = true;
@@ -642,7 +642,7 @@ void LTE_task(void *args)
 	// send_cmd_and_check_response(LOG_DATA, "AT+CMEE=2\r\n", "TURN ON VERBOSE LOGGING", OK_RESPONSE, 100);
 	while(1)
 	{
-		vTaskDelay(1);
+		vTaskDelay(pdMS_TO_TICKS(2000));
 		if (LOG_DATA)
 			establishMQTTConnectionNew();
 	}

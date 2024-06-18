@@ -946,6 +946,11 @@ static void store_data_to_node_structures()
             node_pub_conf_t = *vendor_node_pub_conf_t;
             break;
 
+        case NODE_TEACHING_MODE_START_PACKET:
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START PACKET \r\n");
+            //Adhikesavan's development pending here
+            break;
+
         default:
             ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Gwy\r\n");
             break;

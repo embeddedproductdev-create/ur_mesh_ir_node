@@ -656,6 +656,114 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 }
 
 /**
+ * @brief Get the node teaching mode queue count
+ * @param none
+ * @return Number of elements currently in node teaching mode queue
+ */
+uint8_t get_node_teaching_mode_queue_count(teaching_mode_t *head)
+{
+	uint8_t count = 0;
+	while (head != NULL)
+	{
+		count++;
+		head = head->next;
+	}
+	return count;
+}
+
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_node_teaching_mode_queue_head()
+{
+	teaching_mode_t *temp = node_teaching_mode_queue_head;
+	while (temp != NULL)
+	{
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		{
+			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
+					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK,
+					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, GWY_SER_NO,
+					NODE_SER_NO_KEY, temp->base_data.node_ser_no,
+					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					LOCATION_KEY, temp->base_data.location,
+					ERROR_CODE_KEY, NODE_TIMEOUT);
+			add_to_pubmesg_queue(pubmessage, publish_topic);
+			remove_from_node_teaching_mode_queue();
+		}
+		temp = temp->next;
+	}
+}
+
+/**
+ * @brief Function that removes elements from node teaching mode queue
+ * @param none
+ * @retval none
+ */
+void remove_from_node_teaching_mode_queue()
+{
+	if (node_teaching_mode_queue_head == NULL)
+	{
+		red_printf(QUEUE_ERROR_TAG, "node teaching mode queue is empty");
+		return;
+	}
+	else
+	{
+		struct teaching_mode_t *temp = node_teaching_mode_queue_head;
+		node_teaching_mode_queue_head = node_teaching_mode_queue_head->next;
+		free(temp);
+		if (node_teaching_mode_queue_head == NULL)
+			node_teaching_mode_queue_tail = NULL;
+	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_node_teaching_mode_queue_count(node_teaching_mode_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+}
+
+/**
+ * @brief Function that takes care of adding NODE_TEACHING_MODE_START requests from cloud to a queue
+ * @param none
+ * @retval none
+ */
+void add_to_node_teaching_mode_queue()
+{
+	teaching_mode_t *teaching_mode_node = (teaching_mode_t *)malloc(sizeof(teaching_mode_t));
+	if (teaching_mode_node != NULL)
+		*teaching_mode_node = node_teaching_mode_t;
+	else
+	{
+		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_node_teaching_mode_queue");
+		return;
+	}
+	if (node_teaching_mode_queue_head == NULL)
+	{
+		// Adding the first element into the queue
+		node_teaching_mode_queue_head = node_teaching_mode_queue_tail = teaching_mode_node;
+		teaching_mode_node->next = teaching_mode_node->prev = NULL;
+	}
+	else
+	{
+		node_teaching_mode_queue_tail->next = teaching_mode_node;
+		node_teaching_mode_queue_tail->next->prev = node_teaching_mode_queue_tail;
+		node_teaching_mode_queue_tail->next->next = NULL;
+		node_teaching_mode_queue_tail = teaching_mode_node;
+	}
+	if (LOG_DATA)
+	{
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_node_teaching_mode_queue_count(node_teaching_mode_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
+}
+
+
+
+/**
  * @brief Get the pubmesg queue count
  * @param none
  * @return Number of elements currently in Pubmesg queue
@@ -751,6 +859,19 @@ void queue_handler(void *args)
 				{
 					node_pub_conf_queue_head->base_data.request_sent_to_node_flag = true;
 					send_pub_conf_packet_to_node(node_pub_conf_queue_head);
+				}
+			}
+		}
+		if (node_teaching_mode_queue_head != NULL)
+		{
+			maintain_node_teaching_mode_queue_head();
+			// Don't keep sending the requests again and again
+			if (node_teaching_mode_queue_head != NULL)
+			{
+				if (!node_teaching_mode_queue_head->base_data.request_sent_to_node_flag)
+				{
+					node_teaching_mode_queue_head->base_data.request_sent_to_node_flag = true;
+					send_node_teaching_mode_packet_to_node(node_pub_conf_queue_head);
 				}
 			}
 		}

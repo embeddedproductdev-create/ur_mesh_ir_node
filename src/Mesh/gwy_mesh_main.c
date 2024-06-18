@@ -1967,4 +1967,14 @@ void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
     // ESP_LOGI(MESH_DEBUG_TAG, "err err: %d", err);
 }
 
+/**
+ * @brief Function that takes care of sending teaching mode packet to the node 
+ * @param node_teaching_mode_packet Pointer to the packet
+ * @retval none 
+ */
+void send_node_teaching_mode_packet_to_node(teaching_mode_t *node_teaching_mode_packet)
+{
+    ;//Adhikesavan's development pending here
+}
+
 #endif

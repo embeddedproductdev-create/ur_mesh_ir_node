@@ -375,6 +375,8 @@ extern pub_conf_t *node_pub_conf_queue_tail;
 
 /*node teaching mode*/
 extern teaching_mode_t node_teaching_mode_t;
+extern teaching_mode_t *node_teaching_mode_queue_head;
+extern teaching_mode_t *node_teaching_mode_queue_tail;
 
 /*===================================*/
 

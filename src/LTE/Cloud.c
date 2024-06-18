@@ -600,7 +600,7 @@ void parse_json_packet(char *json_packet)
     // Pass through only if the recvd packet contains no error
     if (json_ack_err_code == SUCCESS)
     {
-        if (strcmp(json_packet_id, GWY_REG_PACKET) == 0)
+        if (json_packet_id == GWY_REG_PACKET)
         {
             cyan_printf(LTE_DEBUG_TAG, "Gwy Registration packet");
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -705,7 +705,8 @@ void parse_json_packet(char *json_packet)
                 cyan_printf(LTE_DEBUG_TAG, "Node Teaching Mode Start Packet");
                 node_teaching_mode_t.base_data.node_ser_no = 
                 strcpy(node_teaching_mode_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-
+                add_to_node_teaching_mode_queue();
+                break;
 
             case NODE_RECONF_PACKET:
                 cyan_printf(LTE_DEBUG_TAG, "Node Reconfiguration packet");

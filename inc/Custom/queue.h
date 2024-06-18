@@ -43,7 +43,7 @@ extern "C"
     uint8_t get_node_control_queue_count(control_t *);
     void maintain_node_ac_control_queue();
 
-    //Node reconf
+    //Node Reconf
     void search_node_reconf_queue(uint16_t messageNum);
     void remove_from_node_reconf_queue();
     void add_to_node_reconf_queue();
@@ -56,6 +56,13 @@ extern "C"
     void add_to_node_pub_conf_queue();
     uint8_t get_node_pub_conf_queue_count(pub_conf_t *);
     void maintain_node_pubconf_queue();
+
+    //Node Teaching Mode
+    void search_node_teaching_mode_queue(uint16_t messageNum);
+    void remove_from_node_teaching_mode_queue();
+    void add_to_node_teaching_mode_queue();
+    uint8_t get_node_teaching_mode_queue_count();
+    void maintain_node_teaching_mode_queue();
     
     void queue_handler(void *args);
 #ifdef __cplusplus

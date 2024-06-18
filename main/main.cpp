@@ -19,7 +19,7 @@ uint16_t GWY_SER_NO = 100;
 uint16_t NODE_SER_NO = 100;
 #endif
 #if (!CLIENT_RELEASE)
-uint16_t GWY_SER_NO = 1;
+uint16_t GWY_SER_NO = 2;
 uint16_t NODE_SER_NO = 3;
 #endif
 char GWY_SER_NO_IN_STRING[15];
@@ -62,6 +62,10 @@ pub_conf_t *node_pub_conf_queue_head;
 pub_conf_t *node_pub_conf_queue_tail;
 
 temperature_data_t node_temperature_data_t;
+
+teaching_mode_t node_teaching_mode_t;
+teaching_mode_t *node_teaching_mode_queue_head;
+teaching_mode_t *node_teaching_mode_queue_tail;
 
 void fill_gwy_ser_no_str()
 {
@@ -151,10 +155,6 @@ void fetch_from_flash()
 void app_main()
 {
     initialize_i2c();
-    // eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, 0XFF);
-    // vTaskDelay(pdMS_TO_TICKS(5));
-    // eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0XFF);
-    // vTaskDelay(pdMS_TO_TICKS(5));
     fetch_from_flash();
 
     // these two are needed incase if we're creating tasks using RTOS
@@ -221,7 +221,7 @@ void app_main()
 #if (IR_RECV_PART_ENABLED)
     TaskHandle_t IR_task_handle;
     xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task",
-                            4096, (void *)1, 10, &IR_task_handle, CORE1);
+                            4096, (void *)1, tskIDLE_PRIORITY, &IR_task_handle, CORE0);
     if (xReturned != pdPASS) 
     {
         perror("Error in taskCreate for IR recv task : ");
@@ -230,8 +230,9 @@ void app_main()
 #endif
 
 #if (LTE_PART_ENABLED)
+    TaskHandle_t LTE_task_handle;
     xReturned = xTaskCreatePinnedToCore(LTE_task, "LTE Task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
+                            4096, (void *)1, 10, &LTE_task_handle, CORE1);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LTE task : ");
@@ -240,8 +241,9 @@ void app_main()
 #endif
 
 #if (QUEUE_PART_ENABLED)
+    TaskHandle_t queue_task_handle;
     xReturned = xTaskCreatePinnedToCore(queue_handler, "Queue Task",
-                            8192, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
+                            8192, (void *)1, tskIDLE_PRIORITY, &queue_task_handle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for Queue task : ");
@@ -250,12 +252,14 @@ void app_main()
 #endif
 
 #if (BUTTON_PART_ENABLED)
+    TaskHandle_t button_task_handle;
     xReturned = xTaskCreatePinnedToCore(button_task, "button task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
+                            4096, (void *)1, tskIDLE_PRIORITY, &button_task_handle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for button task : ");
         exit(FAILURE);
     }
 #endif
+
 }
