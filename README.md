@@ -56,7 +56,7 @@
 | No | Release Version | Release date | Author | Changes | Link To Binaries |
 |----|-----------------|--------------|--------|---------|------------------|
 |1|0.6|24.04.2024)|Kulasekaran|1) Fixed Teaching mode bug - Umamaheswari|[Ver 0.6](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/EsAfWCuAF5pDgIHuPiZqN0sB0QvNj8S_XqIxa7qbzuJ3xw?e=lQr8X0)|
-|2|0.7|15.06.2024|Kulasekaran|1) Long run LTE issue workaround with Rebooting|[Ver 0.7](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/ElOpzTQT0UdEvAXS_M6xHUoBCObxUryYEZ7gFOrPOhTN-Q?e=Iybtim)|
+|2|0.7|15.06.2024|Kulasekaran|1) Long run LTE issue workaround with Rebooting<br>2) Added Send function support for Daikin200<br>3) Added colored logs<br>4) Modified MQTT communication logic<br>5) Integrated Node and Gwy codebase as one|[Ver 0.7](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/ElOpzTQT0UdEvAXS_M6xHUoBCObxUryYEZ7gFOrPOhTN-Q?e=Iybtim)|
 
 </center>
 
