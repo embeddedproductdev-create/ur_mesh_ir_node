@@ -68,7 +68,7 @@
 #if (IS_GWY)
 
 control_t *vendor_node_ac_control_t;
-control_t *vendor_node_ac_locking_t;
+control_t *vendor_node_manual_ac_control_t;
 prov_t *vendor_provision_t;
 unprov_t *vendor_unprovision_t;
 reconf_t *vendor_node_reconf_t;
@@ -927,23 +927,23 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
             break;
 
-        case NODE_AC_LOCKING_PACKET:
-            vendor_node_ac_locking_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC LOCKING ACK | FROM ELEMADDR : %d", vendor_node_ac_locking_t->base_data.elementAddr);
+        case NODE_MANUAL_AC_CONTROL_ACK_PACKET:
+            vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_AC_LOCKING_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_LOCKING_ACK,
-                    MSG_SEQ_NO_KEY, vendor_node_ac_locking_t->base_data.msg_seq_no,
+                    JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK,
+                    MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_ac_locking_t->base_data.elementAddr,
-                    POWER_KEY, vendor_node_ac_locking_t->power,
-                    MODE_KEY, vendor_node_ac_locking_t->mode_str,
-                    FAN_SPEED_KEY, vendor_node_ac_locking_t->fan,
-                    TEMPERATURE_KEY, vendor_node_ac_locking_t->temp,
-                    SWING_H_KEY, vendor_node_ac_locking_t->swingH,
-                    SWING_V_KEY, vendor_node_ac_locking_t->swingV,
-                    ONTIMER_KEY, vendor_node_ac_locking_t->OnTimer,
-                    OFFTIMER_KEY, vendor_node_ac_locking_t->OffTimer);
+                    NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
+                    POWER_KEY, vendor_node_manual_ac_control_t->power,
+                    MODE_KEY, vendor_node_manual_ac_control_t->mode_str,
+                    FAN_SPEED_KEY, vendor_node_manual_ac_control_t->fan,
+                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->temp,
+                    SWING_H_KEY, vendor_node_manual_ac_control_t->swingH,
+                    SWING_V_KEY, vendor_node_manual_ac_control_t->swingV,
+                    ONTIMER_KEY, vendor_node_manual_ac_control_t->OnTimer,
+                    OFFTIMER_KEY, vendor_node_manual_ac_control_t->OffTimer);
             break;
 
         case NODE_TEMPERATURE_DATA_PACKET:

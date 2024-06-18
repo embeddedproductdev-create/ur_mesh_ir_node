@@ -46,7 +46,7 @@
 #define GWY_CONF_ACK "Gwy Configuration Ack"
 #define GWY_RECONF_ACK "Gwy Reconfiguration Ack"
 #define GWY_AC_CONTROL_ACK "Gwy AC Control Ack"
-#define GWY_LOCKING_ACK "Gwy Locking Feature Ack"
+#define GWY_MANUAL_AC_CONTROL_ACK "Gwy Manual AC control Ack"
 #define GWY_TEMPERATURE_DATA_ACK "Gwy Temperature Data Ack"
 #define GWY_PUB_CONF_ACK "Gwy Publish Configuration Ack"
 #define GWY_RESET_MQTT_ACK "Gwy Reset MQTT Ack"
@@ -57,7 +57,7 @@
 #define NODE_CONF_ACK "Node Configuration Ack"
 #define NODE_RECONF_ACK "Node Reconfiguration Ack"
 #define NODE_AC_CONTROL_ACK "Node AC Control Ack"
-#define NODE_LOCKING_ACK "Node Locking Feature Ack"
+#define NODE_MANUAL_AC_CONTROL_ACK "Node Manual AC Control Ack"
 #define NODE_TEMPERATURE_DATA_ACK "Node Temperature Data Ack"
 #define NODE_PUB_CONF_ACK "Node Publish Configuration Ack"
 #define NODE_TEACHING_MODE_START_ACK "Node Teaching Mode Start Ack"
@@ -156,8 +156,6 @@ typedef struct control_struct
 typedef struct teaching_mode_struct
 {
 	struct base_data_t base_data;
-	uint8_t starting_temperature;
-	uint8_t ending_temperature;
 	struct teaching_mode_struct *next;
 	struct teaching_mode_struct *prev;
 } teaching_mode_t;
@@ -210,7 +208,7 @@ enum json_packet_enum
 	GWY_CONF_PACKET,
 	GWY_UNREG_PACKET,
 	GWY_AC_CONTROL_PACKET,
-	GWY_AC_LOCKING_PACKET,
+	GWY_MANUAL_AC_CONTROL_ACK_PACKET,
 	GWY_RECONF_PACKET,
 	GWY_TEMPERATURE_DATA_PACKET,
 	GWY_PUB_CONF_PACKET,
@@ -222,7 +220,7 @@ enum json_packet_enum
 	NODE_CONF_PACKET,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
-	NODE_AC_LOCKING_PACKET,
+	NODE_MANUAL_AC_CONTROL_ACK_PACKET,
 	NODE_RECONF_PACKET,
 	NODE_TEMPERATURE_DATA_PACKET,
 	NODE_PUB_CONF_PACKET,

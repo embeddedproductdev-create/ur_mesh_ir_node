@@ -122,6 +122,9 @@ enum AT_cmd_id{
 extern char LTE_UART_data[1024];
 extern bool LOG_DATA;
 
+/* GLOBAL VARIABLES - TEACHING MODE*/
+extern bool teachMode_size_done;
+
 #ifdef __cplusplus
 extern "C"
 {

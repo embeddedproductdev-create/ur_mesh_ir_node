@@ -75,7 +75,7 @@
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
-#define MIN_VERSION 3
+#define MIN_VERSION 7
 #endif
 
 #define TAG "UART"

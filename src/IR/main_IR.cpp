@@ -551,7 +551,6 @@ void IR_transmit(uint16_t protocol)
         printf("Error in choosing the protocol for send");
         break;
     }
-    vTaskDelay(pdMS_TO_TICKS(1000));//Let's add this delay here so that the sent IR command stays from being captured by the same device's IR receiver
     needToSendIRComamnd = false;
 }
 
@@ -572,14 +571,13 @@ void locking_feature(char *result_description_char_str)
         temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: ")) + 6);
         temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: ")) + 7);
         temperature = atoi(temperature_in_string);
-        sprintf(ir_log_buffer, "Manually set Temperature : %s", temperature_in_string);
+        sprintf(ir_log_buffer, "Manually set Temperature (in string) : %s", temperature_in_string);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        sprintf(ir_log_buffer, "Manually set Temperature : %d", temperature);
+        sprintf(ir_log_buffer, "Manually set Temperature (in int) : %d", temperature);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
     }
 #if (IS_GWY)
-    sprintf(ir_log_buffer, "Sending Gwy Locking feature ack");
-    white_printf(IR_DEBUG_TAG, ir_log_buffer);
+    white_printf(IR_DEBUG_TAG, "Sending Gwy AC Manual control ack");
     add_to_pubmesg_queue(result_description_char_str, publish_topic);
 #endif
 #if (!IS_GWY)
@@ -587,10 +585,8 @@ void locking_feature(char *result_description_char_str)
 #endif
     if (temperature != 0 && (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit))
     {
-        sprintf(ir_log_buffer, "Someone manually controlled the AC ... beyond limits ... reverting ");
-        white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        // Someone controlled the AC using remote with exceeding temperature limits
-        IR_transmit(protocol_selected_num);
+        white_printf(IR_DEBUG_TAG, "Someone manually controlled the AC ... beyond limits ... reverting ");
+        needToSendIRComamnd = true;
     }
 }
 
@@ -610,9 +606,9 @@ void IR_receiver_task(void *args)
     {
         vTaskDelay(1);
         if (needToSendIRComamnd) {
-            sprintf(ir_log_buffer, "Sending out an IR command ... ");
-            white_printf(IR_DEBUG_TAG, ir_log_buffer);
             IR_transmit(protocol_selected_num);
+            vTaskDelay(pdMS_TO_TICKS(1500)); //Let's wait here for a 1.5 seconds to avoid false detection by the same device's IR recv
+            continue;
         }
         if (esp_restart_flag)
             ESP.restart();
@@ -623,7 +619,6 @@ void IR_receiver_task(void *args)
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
-#if (IR_RECV_LOG_ENABLED)
             printf("IR RAW VALUES : { ");
             for (uint16_t i = 0; i < results.rawlen; i++)
             {
@@ -637,7 +632,8 @@ void IR_receiver_task(void *args)
                 sprintf(ir_log_buffer, "%s", result_description_char_str);
                 white_printf(IR_DEBUG_TAG, ir_log_buffer);
             }
-#endif
+
+            /* Teaching Mode Process */
             if (teaching_mode)
             {
                 protocol_selected_num = RAW;
@@ -666,8 +662,10 @@ void IR_receiver_task(void *args)
                 eeprom_addr_cal++;
                 printf("EEPROM ADDR : %d", eeprom_addr);
                 write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
+                white_printf(IR_DEBUG_TAG, "Proceed to next IR command .. ");
             }
 
+            /* AC Remote configuration process */
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
                 protocol_selected_num = protocol_detected;
@@ -700,8 +698,15 @@ void IR_receiver_task(void *args)
                 }
 #endif
             }
-
-            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode && !needToSendIRComamnd)
+            /**
+             * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
+             * occur only if the following conditions are met
+             * 1) Device must be registered / configured
+             * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
+             * 3) Device must not be in teaching mode
+             * 4) Locking feature must be enabled in Gwy AC Control Packet 
+             */
+            if ((registered || configured) && protocol_detected == protocol_selected_num && gwy_ac_control_t.Locking && !teaching_mode)
                 locking_feature(result_description_char_str);
         }
     }

@@ -30,7 +30,8 @@ void button_logic()
 {
     if (pressed_duration_array[0] != 0)
     {
-        if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0) // Single press
+        /* Single Press */
+        if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
 #if (IS_GWY)
             if (LOG_DATA)
@@ -43,31 +44,28 @@ void button_logic()
             blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
 #endif
         }
-        else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] != 0 && pressed_duration_array[1] < ONE_SEC_IN_MS) // Double press
+
+        /* Double Press */
+        else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] != 0 && pressed_duration_array[1] < ONE_SEC_IN_MS)
+        {
+            ; //Not assigned yet
+        }
+
+        /* Button held for 3s - 8s */
+        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3) 
         {
             if (!teaching_mode && registered)
             {
                 teaching_mode = true;
                 teachMode_size_done = true;
-                sprintf(button_log_buffer, "Start of Teaching Mode");
-                blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
-            }
-            else
-            {
-                teaching_mode = false;
-                teachMode_size_done = false;
-                sprintf(button_log_buffer, "End of Teaching Mode");
-                blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
+                blue_printf(BUTTON_DEBUG_TAG, "Start of Teaching Mode ( Due to Button press )");
             }
         }
-        else if (pressed_duration_array[0] > ONE_SEC_IN_MS * 3) // Button held for more than 3s.
+
+        /*  Button held for more than 8s */
+        else if (pressed_duration_array[0] > ONE_SEC_IN_MS * 8) // Button held for more than 8s.
         {
-            esp_restart_flag = true;
-        }
-        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 8) // Button held for more than 8s.
-        {
-            sprintf(button_log_buffer, "Currently not assigned to any operation");
-            blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
+            ESP.restart();
         }
     }
 }

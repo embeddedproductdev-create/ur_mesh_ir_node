@@ -1087,13 +1087,13 @@ void send_AC_configuration_ack_to_gwy()
 }
 
 /**
- * @brief Function to send Locking feature ack to Gwy
+ * @brief Function to send Manual AC control ack to Gwy
  * @param none
  * @retval none
  */
-void send_locking_feature_ack_to_gwy(char *description)
+void send_manual_ac_control_ack_to_gwy(char *description)
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending locking feature ack to Gwy\r\n");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ack to Gwy\r\n");
     // example_ble_mesh_send_sensor_status();
 }
 
