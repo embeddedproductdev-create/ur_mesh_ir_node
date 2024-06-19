@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains variables and definitions related to MQTT
  * @version 0.1
- * @date 2024-02-29
+ * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
 
@@ -84,12 +84,14 @@ extern uint8_t MQTT_CLIENT_INDEX;
 
 /*JSON related*/
 #define MQTT_PACKET_BUFF_SIZE 500
-#define LOCATION_STR_LEN 20
+#define LOCATION_STR_LEN 30
 #define MQTT_PACKET_NAME_LEN 40
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 1000
 #define MQTT_TOPIC_CHAR_LEN 40
 #define NODE_TIMEOUT_INTERVAL_US 10000000
+#define MIN_PUB_CONF_LIMIT 10
+
 
 #define TEMPERATURE_LOWER_LIMIT 18
 #define TEMPERATURE_UPPER_LIMIT 32

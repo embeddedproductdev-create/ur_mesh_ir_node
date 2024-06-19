@@ -71,11 +71,8 @@ void add_to_node_pub_conf_queue()
 		node_pub_conf_queue_tail->next->next = NULL;
 		node_pub_conf_queue_tail = pub_conf_node;
 	}
-	if (LOG_DATA)
-	{
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 /**
@@ -109,7 +106,7 @@ void maintain_node_pubconf_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_PUB_CONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_PUB_CONF_ACK,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -187,11 +184,8 @@ void add_to_node_reconf_queue()
 		node_reconf_queue_tail->next->next = NULL;
 		node_reconf_queue_tail = reconf_node;
 	}
-	if (LOG_DATA)
-	{
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 /**
@@ -225,7 +219,7 @@ void maintain_node_reconf_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -299,11 +293,8 @@ void add_to_node_control_queue()
 		node_ac_control_queue_tail->next->next = NULL;
 		node_ac_control_queue_tail = control_node;
 	}
-	if (LOG_DATA)
-	{
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 /**
@@ -425,11 +416,8 @@ void add_to_unprov_queue()
 		unprov_queue_tail->next->next = NULL;
 		unprov_queue_tail = unprov_node;
 	}
-	if (LOG_DATA)
-	{
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 /**
@@ -463,7 +451,7 @@ void maintain_unprov_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -540,11 +528,8 @@ void add_to_prov_queue()
 		prov_queue_tail->next->next = NULL;
 		prov_queue_tail = prov_node;
 	}
-	if (LOG_DATA)
-	{
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 /**
@@ -578,12 +563,12 @@ void maintain_prov_queue()
 		{
 			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_PROV_ACK,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, GWY_SER_NO,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no,
+					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
+					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
 					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
@@ -647,11 +632,8 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 			pubmesg_queue_tail->next->next = NULL;
 			pubmesg_queue_tail = pubmesg_node;
 		}
-		if (LOG_DATA)
-		{
-			snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-		}
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 	}
 }
 
@@ -686,12 +668,12 @@ void maintain_node_teaching_mode_queue_head()
 		{
 			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %s, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
 					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, GWY_SER_NO,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no,
+					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
+					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
 					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
@@ -754,11 +736,8 @@ void add_to_node_teaching_mode_queue()
 		node_teaching_mode_queue_tail->next->next = NULL;
 		node_teaching_mode_queue_tail = teaching_mode_node;
 	}
-	if (LOG_DATA)
-	{
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_node_teaching_mode_queue_count(node_teaching_mode_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_node_teaching_mode_queue_count(node_teaching_mode_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
 

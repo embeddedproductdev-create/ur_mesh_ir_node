@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains the main functions and definitions
  * @version 0.1
- * @date 2024-02-29
+ * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
 
@@ -65,17 +65,17 @@
  * ===================================================================
  */
 #define IS_GWY true
-#define CLIENT_RELEASE false
+#define CLIENT_RELEASE true
 /*====================================================================*/
 
 #if(IS_GWY)
 #define MAJ_VERSION 0
-#define MIN_VERSION 7
+#define MIN_VERSION 8
 #endif
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
-#define MIN_VERSION 7
+#define MIN_VERSION 8
 #endif
 
 #define TAG "UART"
@@ -108,6 +108,8 @@
 #define PROVISIONED_FLAG_FLASH_ADDR 0x0000
 
 /* GLOBAL VARIABLES */
+extern bool show_boot_indication;
+
 extern bool mqtt_connected;
 
 extern bool registered;
@@ -123,14 +125,22 @@ extern bool esp_restart_flag;
 
 extern int16_t protocol_selected_num;
 
-extern uint16_t GWY_SER_NO;
+extern uint32_t GWY_SER_NO;
 extern char GWY_SER_NO_IN_STRING[15];
-extern uint16_t NODE_SER_NO;
+extern uint32_t NODE_SER_NO;
 extern char NODE_SER_NO_IN_STRING[15];
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* GLOBAL VARIABLES */
+
+/*TaskHandles*/
+// extern TaskHandle_t LTE_task_handle;
+// extern TaskHandle_t LED_task_handle;
+// extern TaskHandle_t queue_task_handle;
+// extern TaskHandle_t button_task_handle;
 
 /* FUNCTION DECLARATIONS */
 void app_main();

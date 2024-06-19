@@ -41,7 +41,7 @@ void button_logic()
 #endif
 #if (!IS_GWY)
             sprintf(button_log_buffer, "Currently not assigned to any operation");
-            blue_printf(BUTTON_DEBUG_TAG, button_log_buffer);
+            green_printf(BUTTON_DEBUG_TAG, button_log_buffer);
 #endif
         }
 
@@ -58,7 +58,7 @@ void button_logic()
             {
                 teaching_mode = true;
                 teachMode_size_done = true;
-                blue_printf(BUTTON_DEBUG_TAG, "Start of Teaching Mode ( Due to Button press )");
+                green_printf(BUTTON_DEBUG_TAG, "Start of Teaching Mode ( Due to Button press )");
             }
         }
 

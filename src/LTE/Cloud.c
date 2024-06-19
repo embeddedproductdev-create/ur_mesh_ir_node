@@ -2,7 +2,7 @@
  * @file Cloud.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to MQTT packet handling and Sending Acknowledgements
- * @version 0.6
+ * @version 0.8
  * @date 2024-04-16
  * @copyright Copyright (c) 2024
  */
@@ -686,6 +686,7 @@ void parse_json_packet(char *json_packet)
                 cyan_printf(LTE_DEBUG_TAG, "Gwy Publish configuration packet");
                 gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
                 gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+                if(gwy_pub_conf_t.pub_conf_period_in_sec < MIN_PUB_CONF_LIMIT) gwy_pub_conf_t.pub_conf_period_in_sec = MIN_PUB_CONF_LIMIT;
                 delete_Temperature_data_publish_timer();
                 create_Temperature_data_publish_timer();
                 break;
@@ -724,6 +725,7 @@ void parse_json_packet(char *json_packet)
                 strcpy(node_pub_conf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
                 node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELMNT_ADDR_KEY)->valueint;
                 node_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+                if(node_pub_conf_t.pub_conf_period_in_sec < MIN_PUB_CONF_LIMIT) node_pub_conf_t.pub_conf_period_in_sec = MIN_PUB_CONF_LIMIT;
                 add_to_node_pub_conf_queue();
                 break;
 
@@ -759,7 +761,6 @@ void parse_json_packet(char *json_packet)
                 gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
                 gwy_reset_mqtt_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
 #if (AP_PART_ENABLED)
-                LED_state = LED_STATE_AP_MODE;
                 reset_mqtt();
 #endif
 #if (!AP_PART_ENABLED)

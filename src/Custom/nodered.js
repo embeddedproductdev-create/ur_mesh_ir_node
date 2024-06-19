@@ -1,14 +1,30 @@
-const GWY_REGISTER=0; 
-const GWY_UNREGISTER=2;
-const GWY_CONTROL=3;
-const GWY_RECONF=5;
-const GWY_PUBCONF=7;
+const json_packet_enum = Object.freeze({
+    /* GWY PACKETS */
+	GWY_REG_PACKET,
+	GWY_CONF_PACKET,
+	GWY_UNREG_PACKET,
+	GWY_AC_CONTROL_PACKET,
+	GWY_MANUAL_AC_CONTROL_ACK_PACKET,
+	GWY_RECONF_PACKET,
+	GWY_TEMPERATURE_DATA_PACKET,
+	GWY_PUB_CONF_PACKET,
+	RESET_MQTT,
+	GWY_TEACHING_MODE_START_PACKET,
 
-const NODE_PROV=100;
-const NODE_UNPROV=102;
-const NODE_CONTROL=103;
-const NODE_RECONF=105;
-const NODE_PUBCONF=107;
+    /* NODE PACKETS */
+	NODE_PROV_PACKET: 100,
+	NODE_CONF_PACKET,
+	NODE_UNPROV_PACKET,
+	NODE_AC_CONTROL_PACKET,
+	NODE_MANUAL_AC_CONTROL_ACK_PACKET,
+	NODE_RECONF_PACKET,
+	NODE_TEMPERATURE_DATA_PACKET,
+	NODE_PUB_CONF_PACKET,
+	NODE_TEACHING_MODE_START_PACKET,
+
+    /* MISC PACKETS */
+	UNKNOWN_PACKET: 99
+});
 
 let randNum = Math.floor((Math.random() * 65535) + 1);
 
@@ -19,7 +35,7 @@ let Gwybasejson = {
 let json, mergedjson;
 switch(msg.payload)
 {
-    case GWY_REGISTER:
+    case json_packet_enum.GWY_REG_PACKET:
         json = {
             "JsonPacketID" : 0,
             "Location" : "1st Floor"
@@ -27,7 +43,7 @@ switch(msg.payload)
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case GWY_UNREGISTER:
+    case json_packet_enum.GWY_UNREG_PACKET:
         json = {
             "JsonPacketID" : 2,
             "Location" : "1st Floor"
@@ -35,7 +51,7 @@ switch(msg.payload)
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case GWY_CONTROL:
+    case json_packet_enum.GWY_AC_CONTROL_PACKET:
         json = {
             "JsonPacketID" : 3,
             "Power" : global.get("Power"),
@@ -47,20 +63,20 @@ switch(msg.payload)
             "Locking" : global.get("Locking"),
             "OnTimer" : global.get("OnTimer"),
             "OffTimer" : global.get("OffTimer"),
-            "TempUpLockLimit" : global.get("TempUpLockLimit"),
-            "TempLowLockLimit" : global.get("TempLowLockLimit")
+            "TempLockUpLimit" : global.get("TempLockUpLimit"),
+            "TempLockLowLimit" : global.get("TempLockLowLimit")
         };
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case GWY_RECONF:
+    case json_packet_enum.GWY_RECONF_PACKET:
         json = {
             "JsonPacketId" : 5
         };
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case GWY_PUBCONF:
+    case json_packet_enum.GWY_PUB_CONF_PACKET:
         json = {
             "JsonPacketId" : 7,
             "PublishPeriodSec" : global.get("GwyPublishPeriod")
@@ -68,7 +84,7 @@ switch(msg.payload)
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case NODE_PROV:
+    case json_packet_enum.NODE_PROV_PACKET:
         json = {
             "JsonPacketId" : 100,
             "Location" : "1st Floor",
@@ -78,7 +94,7 @@ switch(msg.payload)
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case NODE_UNPROV:
+    case json_packet_enum.NODE_UNPROV_PACKET:
         json = {
             "JsonPacketId" : 102,
             "ElementAddr" : global.get("ElementAddr"),
@@ -87,7 +103,7 @@ switch(msg.payload)
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case NODE_CONTROL:
+    case json_packet_enum.NODE_AC_CONTROL_PACKET:
         json = {
             "NodeSerNo" : global.get("NodeSerNo"),
             "ElementAddr" : global.get("ElementAddr"),
@@ -101,13 +117,13 @@ switch(msg.payload)
             "Locking" : global.get("Locking"),
             "OnTimer" : global.get("OnTimer"),
             "OffTimer" : global.get("OffTimer"),
-            "TempUpLockLimit" : global.get("TempUpLockLimit"),
-            "TempLowLockLimit" : global.get("TempLowLockLimit")
+            "TempLockUpLimit" : global.get("TempLockUpLimit"),
+            "TempLockLowLimit" : global.get("TempLockLowLimit")
         };
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
         
-    case NODE_RECONF:
+    case json_packet_enum.NODE_RECONF_PACKET:
         json = {
             "JsonPacketId" : 105,
             "ElementAddr" : global.get("ElementAddr"),
@@ -117,7 +133,7 @@ switch(msg.payload)
         break;
         
         
-    case NODE_PUBCONF:
+    case json_packet_enum.NODE_PUB_CONF_PACKET:
         json = {
             "JsonPacketId" : 107,
             "ElementAddr" : global.get("ElementAddr"),
@@ -126,5 +142,7 @@ switch(msg.payload)
         };
         msg = {payload : Object.assign({}, Gwybasejson, json)};
         break;
+    
+    case 
 }
 return msg;

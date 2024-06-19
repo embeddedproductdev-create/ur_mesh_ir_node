@@ -44,6 +44,9 @@
 #define TEACH_DATA_PON_32C TEACH_DATA_PON_31C + MAX_OFFSET
 #define NEXT_ADDR TEACH_DATA_PON_32C + MAX_OFFSET
 
+/* GLOBAL VARIABLES */
+extern bool storing_IR_data_to_flash;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

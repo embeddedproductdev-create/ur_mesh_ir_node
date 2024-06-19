@@ -2,8 +2,8 @@
  * @file LTE.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions related to LTE communication
- * @version 0.6
- * @date 2024-02-29
+ * @version 0.8
+ * @date 2024-06-19
  * @link https://evelta.com/content/datasheets/027-EC200UCNAA.pdf <-- Hardware design document link
  * @link https://auroraevernet.ru/upload/iblock/c81/rfhactu9l14ymr9cxt3pebdqxfu39h5v.pdf <-- MQTT AT commands manual
  * @copyright Copyright (c) 2024
@@ -109,7 +109,9 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 
 	//Let's nullify the string before we process it again
 	memset(LTE_UART_data, 0, sizeof(LTE_UART_data));
-	sprintf(lte_log_buffer, "HEAP FREE : %ld",ESP.getFreeHeap());
+	if(LOG_DATA) {
+		sprintf(lte_log_buffer, "HEAP FREE : %ld",ESP.getFreeHeap());
+	}
 	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	uint32_t in_time = esp_timer_get_time();
 	while ((esp_timer_get_time() - in_time) / 1000 < timeout_ms)
@@ -129,11 +131,8 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			hold_adding_to_pubmesg = false;
 			if (check_response(LTE_UART_data, check_string) == SUCCESS)
 			{
-				if (LOG_DATA)
-				{
-					sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
-					cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-				}
+				sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
+				cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 				/*If its the case of READ MESG, then we need to parse JSON*/
 				if (strstr(LTE_UART_data, "{"))
 				{
@@ -144,11 +143,8 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			}
 			else
 			{
-				if (LOG_DATA)
-				{
-					sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
-					red_printf(LTE_ERROR_TAG, lte_log_buffer);
-				}
+				sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
+				red_printf(LTE_ERROR_TAG, lte_log_buffer);
 				rotate_client_index_counter++;
 				if(rotate_client_index_counter > RETRY_COUNT)
 				{
@@ -237,13 +233,10 @@ int8_t publish_to_mqtt()
 		{
 			sleep(1); // We'll waste a second here to see if it helps with QMTSTAT 1 error
 			publishing_flag = false;
-			if (LOG_DATA)
-			{
-				sprintf(queue_log_buffer, "Published :");
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-				sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-			}
+			sprintf(queue_log_buffer, "Published :");
+			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+			sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
+			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 			return SUCCESS;
 		}
 		else
@@ -443,7 +436,8 @@ void establishMQTTConnectionNew()
 			{
 				while(1)
 				{
-					vTaskDelay(pdMS_TO_TICKS(1000)); //Adding a 1s delay to see if this improves the time after which the LTE long run issue occurs
+					vTaskDelay(pdMS_TO_TICKS(50));
+					// vTaskDelay(pdMS_TO_TICKS(1000)); //Adding a 1s delay to see if this improves the time after which the LTE long run issue occurs
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{
 						mqtt_connected = true;
@@ -462,11 +456,8 @@ void establishMQTTConnectionNew()
 						if (publish_to_mqtt() == SUCCESS)
 						{
 							remove_from_pubmesg_queue();
-							if (LOG_DATA)
-							{
-								snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
-								yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-							}
+							snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
+							yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 						}
 						else
 						{
@@ -511,11 +502,8 @@ void establishMQTTConnection()
 	// Do not try to send an AT command in the following cases
 	// Already an AT command is in progress
 	// IR command is being sent out
-	if (LOG_DATA)
-	{
-		sprintf(lte_log_buffer, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
-		cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-	}
+	sprintf(lte_log_buffer, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
+	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	// If we are stuck at retrying for more than RETRY_COUNT times, then it's better to power cycle the LTE
 	if (retry_count > RETRY_COUNT)
 	{
@@ -597,11 +585,8 @@ void establishMQTTConnection()
 		if (publish_to_mqtt() == SUCCESS)
 		{
 			remove_from_pubmesg_queue();
-			if (LOG_DATA)
-			{
-				snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
-				yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-			}
+			snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
+			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 		}
 		else
 		{
@@ -643,7 +628,6 @@ void LTE_task(void *args)
 	while(1)
 	{
 		vTaskDelay(pdMS_TO_TICKS(2000));
-		if (LOG_DATA)
-			establishMQTTConnectionNew();
+		establishMQTTConnectionNew();
 	}
 }

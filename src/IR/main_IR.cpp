@@ -2,8 +2,8 @@
  * @file main_IR_recv.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions related to the IR receiver part
- * @version 0.6
- * @date 2024-02-29
+ * @version 0.8
+ * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
 #include "../../inc/IR/main_IR.h"
@@ -28,7 +28,9 @@ uint16_t eeprom_addr = 0;
 uint16_t eeprom_addr_cal = 0;
 uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 uint8_t custom_raw_buffer_index = 0;
-bool data_processing = 0;
+uint8_t temp_min_val = 19;
+uint8_t temp_max_val = 28;
+bool storing_IR_data_to_flash = 0;
 bool teachMode_size_done = 0;
 
 // Initialization - Transmitter
@@ -607,7 +609,7 @@ void IR_receiver_task(void *args)
         vTaskDelay(1);
         if (needToSendIRComamnd) {
             IR_transmit(protocol_selected_num);
-            vTaskDelay(pdMS_TO_TICKS(1500)); //Let's wait here for a 1.5 seconds to avoid false detection by the same device's IR recv
+            sleep(1); // let's waste a second here and see if it avoid locking feature getting triggered
             continue;
         }
         if (esp_restart_flag)
@@ -633,39 +635,54 @@ void IR_receiver_task(void *args)
                 white_printf(IR_DEBUG_TAG, ir_log_buffer);
             }
 
-            /* Teaching Mode Process */
-            if (teaching_mode)
-            {
+            if (teaching_mode){
                 protocol_selected_num = RAW;
-                if (teachMode_size_done)
-                {
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR, EEPROM_CONF_FAC, TEACHING_FAC);
-                    vTaskDelay(20 / portTICK_PERIOD_MS);
-                    if (results.rawlen > 1)
-                        convert_data = ((results.rawlen) - 1) * 2;
-                    convert_16bit_to_8bit(convert_data, convert_buffer);
-                    eeprom_addr = TEACH_DATA_LEN;
-                    eeprom_write(EEPROM_SLAVE_ADDR, eeprom_addr, convert_buffer, 2);
-                    vTaskDelay(20 / portTICK_PERIOD_MS);
-                    teachMode_size_done = false;
+                if(teachMode_size_done){
+                    eeprom_addr_cal=0;
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
+                    vTaskDelay(20/portTICK_PERIOD_MS);
+                    if(results.rawlen>1)    convert_data=((results.rawlen)-1)*2;
+                    convert_16bit_to_8bit(convert_data,convert_buffer);
+                    eeprom_addr=TEACH_DATA_LEN;
+                    eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
+                    vTaskDelay(20/portTICK_PERIOD_MS);
+                    teachMode_size_done=false;
                 }
-                sprintf(ir_log_buffer, "Writing Data");
-                white_printf(IR_DEBUG_TAG, ir_log_buffer);
-                if (!eeprom_addr_cal)
-                {
-                    eeprom_addr = TEACH_DATA_POFF;
+                if(!eeprom_addr_cal) { 
+                    eeprom_addr=TEACH_DATA_POFF;
                 }
-                else
-                {
-                    eeprom_addr = TEACH_DATA_POFF + ((eeprom_addr_cal + (TEACHING_MODE_STARTING_TEMPERATURE - 16)) * MAX_OFFSET);
+                else {
+                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
                 }
+                if(eeprom_addr_cal<=(temp_max_val-temp_min_val+1)){
+                    printf("EEPROM ADDR : %d",eeprom_addr);
+                    ESP_LOGI(IR_DEBUG_TAG,"Writing Data...");
+                    storing_IR_data_to_flash=true;
+                    write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
+                    if(eeprom_addr_cal==(temp_max_val-temp_min_val+1)){
+                        configured = true;
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                        vTaskDelay(pdMS_TO_TICKS(5));
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR+1, protocol_selected_num);
+                        vTaskDelay(pdMS_TO_TICKS(5));
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, protocol_selected_num>>8);
+                        vTaskDelay(pdMS_TO_TICKS(5));
+                        teaching_mode = false;
+                        teachMode_size_done=false;
+                        storing_IR_data_to_flash=false;
+                        ESP_LOGI(IR_DEBUG_TAG,"End of Teaching Mode");
+                    }
+                    else{
+                        storing_IR_data_to_flash=false;
+                        ESP_LOGI(IR_DEBUG_TAG,"Proceed for next");
+                    }
+                }  
                 eeprom_addr_cal++;
-                printf("EEPROM ADDR : %d", eeprom_addr);
-                write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
-                white_printf(IR_DEBUG_TAG, "Proceed to next IR command .. ");
             }
 
             /* AC Remote configuration process */
+            //Here's where we need to add something like protocol_detected > something and < something
+            //After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
                 protocol_selected_num = protocol_detected;
@@ -694,6 +711,8 @@ void IR_receiver_task(void *args)
                 if (provisioned)
                 {
                     configured = true;
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                    vTaskDelay(pdMS_TO_TICKS(5));
                     send_AC_configuration_ack_to_gwy();
                 }
 #endif

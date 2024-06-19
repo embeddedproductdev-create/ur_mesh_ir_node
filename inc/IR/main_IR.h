@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions and definitions related to IR receiver part
  * @version 0.1
- * @date 2024-02-29
+ * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
 

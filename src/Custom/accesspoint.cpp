@@ -2,7 +2,7 @@
  * @file accesspoint.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to the Access point hosting for MQTT parameter initialization
- * @version 0.6
+ * @version 0.8
  * @date 2024-03-07
  * @ref https://www.upesy.com/blogs/tutorials/how-create-a-wifi-acces-point-with-esp32
  * @ref https://randomnerdtutorials.com/esp32-access-point-ap-web-Server/

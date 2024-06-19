@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions and definitions related to on-Board LED
  * @version 0.1
- * @date 2024-02-29
+ * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
 
@@ -20,6 +20,8 @@
 #define FAST_BLINK_MS 200
 
 enum LED_STATES{
+    LED_STATE_DEVICE_BOOT_SUCCESSFUL,
+    LED_STATE_OFF,
     LED_STATE_IDLE,
     LED_STATE_UNREGISTERED,
     LED_STATE_UNPROVISIONED,

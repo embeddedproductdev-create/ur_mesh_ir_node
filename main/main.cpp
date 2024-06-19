@@ -1,9 +1,9 @@
 /**
  * @file main.cpp
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
- * @brief This is the starting point for the whole program
- * @version 0.6
- * @date 2024-02-29
+ * @brief This file is the starting point for the whole program
+ * @version 0.8
+ * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
 
@@ -13,14 +13,15 @@
 #include "../../inc/Custom/button.h"
 
 // Initialization
+bool show_boot_indication = true;
 bool esp_restart_flag = false;
 #if (CLIENT_RELEASE)
-uint16_t GWY_SER_NO = 100;
-uint16_t NODE_SER_NO = 100;
+uint32_t GWY_SER_NO = 100;
+uint32_t NODE_SER_NO = 100;
 #endif
 #if (!CLIENT_RELEASE)
-uint16_t GWY_SER_NO = 2;
-uint16_t NODE_SER_NO = 3;
+uint32_t GWY_SER_NO = 2;
+uint32_t NODE_SER_NO = 3;
 #endif
 char GWY_SER_NO_IN_STRING[15];
 char NODE_SER_NO_IN_STRING[15];
@@ -67,6 +68,7 @@ teaching_mode_t node_teaching_mode_t;
 teaching_mode_t *node_teaching_mode_queue_head;
 teaching_mode_t *node_teaching_mode_queue_tail;
 
+#if (IS_GWY)
 void fill_gwy_ser_no_str()
 {
     strcpy(GWY_SER_NO_IN_STRING, "GWY");
@@ -74,7 +76,7 @@ void fill_gwy_ser_no_str()
     char zerostr[20];
     strcpy(serialNo, "");
     strcpy(zerostr, "");
-    sprintf(serialNo, "%d", GWY_SER_NO);
+    sprintf(serialNo, "%ld", GWY_SER_NO);
     uint8_t len = strlen(GWY_SER_NO_IN_STRING) + strlen(serialNo);
     for (uint8_t i = 0; i < (8 - len); i++)
     {
@@ -83,7 +85,9 @@ void fill_gwy_ser_no_str()
     strcat(GWY_SER_NO_IN_STRING, zerostr);
     strcat(GWY_SER_NO_IN_STRING, serialNo);
 }
+#endif
 
+#if (!IS_GWY)
 void fill_node_ser_no_str()
 {
     strcpy(NODE_SER_NO_IN_STRING, "N");
@@ -91,7 +95,7 @@ void fill_node_ser_no_str()
     char zerostr[20];
     strcpy(serialNo, "");
     strcpy(zerostr, "");
-    sprintf(serialNo, "%d", NODE_SER_NO);
+    sprintf(serialNo, "%ld", NODE_SER_NO);
     uint8_t len = strlen(NODE_SER_NO_IN_STRING) + strlen(serialNo);
     for (uint8_t i = 0; i < (6 - len); i++)
     {
@@ -100,7 +104,9 @@ void fill_node_ser_no_str()
     strcat(NODE_SER_NO_IN_STRING, zerostr);
     strcat(NODE_SER_NO_IN_STRING, serialNo);
 }
+#endif 
 
+#if (IS_GWY)
 /**
  * @brief Function to create the AP task
  * @param none
@@ -116,6 +122,7 @@ void create_AP_task()
     if (xReturned != pdPASS)
         perror("Error in taskCreate for AP mode : ");
 }
+#endif
 
 /**
  * @brief Function that takes care of fetching data from flash reg. registration and configuration status
@@ -124,7 +131,6 @@ void create_AP_task()
  */
 void fetch_from_flash()
 {
-    uint8_t temp = 0;
     #if (IS_GWY)
         registered = eeprom_read_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR);
         if(registered) registered = false;
@@ -154,12 +160,14 @@ void fetch_from_flash()
  */
 void app_main()
 {
+
+    //First step we need to do is to fetch registered, configured, provisioned, protocol_Sel_num details from flash
     initialize_i2c();
     fetch_from_flash();
 
-    // these two are needed incase if we're creating tasks using RTOS
+    //Needed by freeRTOS
     BaseType_t xReturned;
-    TaskHandle_t xHandle = NULL;
+    
 
 #if (IS_GWY)
     fill_gwy_ser_no_str();
@@ -178,8 +186,9 @@ void app_main()
 #endif
 
 #if (LED_PART_ENABLED)
+    TaskHandle_t LED_task_handle = NULL;
     xReturned = xTaskCreatePinnedToCore(LED_task, "LED task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
+                            4096, (void *)1, tskIDLE_PRIORITY, &LED_task_handle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LED task : ");
@@ -221,7 +230,7 @@ void app_main()
 #if (IR_RECV_PART_ENABLED)
     TaskHandle_t IR_task_handle;
     xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task",
-                            4096, (void *)1, tskIDLE_PRIORITY, &IR_task_handle, CORE0);
+                            4096, (void *)1, tskIDLE_PRIORITY, &IR_task_handle, CORE1);
     if (xReturned != pdPASS) 
     {
         perror("Error in taskCreate for IR recv task : ");
