@@ -1,42 +1,7 @@
 
-<!-- PROJECT LOGO AND PROJECT INFORMATION -->
-<br />
-<div align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
-    <img src="https://qmaxltd-my.sharepoint.com/:i:/g/personal/embedded_qmaxsys_com/EVhQVnE72oRDhUoq0pP9glMB12hSGYrBOMC3NwKKXQbhGQ?e=m7dou1" alt="Logo" width="80" height="80">
-  </a>
+# IR BLE Mesh AC Controller
+The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely.
 
-  <h1 align="center">IR BLE Mesh AC Controller</h1>
-
-  <p align="center">
-    <strong>BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely ! </strong><br><br>
-    <a href="">View Demo</a>
-    ·
-    <a href="">Report Bug</a>
-    ·
-    <a href="">Request Feature</a>
-  </p>
-</div>
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li><a href="">Project Timeline</a></li>
-    <li><a href="">Project Members</a></li>
-    <li><a href="">Releases</a></li>
-    <li><a href="">High Level Overview</a></li>
-    <li><a href="">Hardware Details</a></li>
-    <li><a href="">Software References</a></li>
-    <li><a href="">Software Dependencies</a></li>
-    <li><a href="">Instructions to Build and compile the project</a></li>
-    <li><a href="">Steps to include custom library files</a></li>
-    <li><a href="">Steps to perform Teaching Mode</a></li>
-    <li><a href="">Custom Changes made to open sources</a><li>
-  </ol>
-</details><br>
-
-## Project Timeline
 - Project Start Date   : 14th December, 2023
 - Project End Data     : 
 
@@ -45,21 +10,24 @@
 - **Project Lead**    : Kulasekaran
 - **Project Members** : Umamaheswari, Adhikesavan
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
 ## Releases
 <center>
 
 | No | Release Version | Release date | Author | Changes | Link To Binaries |
 |----|-----------------|--------------|--------|---------|------------------|
 |1|0.6|24.04.2024)|Kulasekaran|1) Fixed Teaching mode bug - Umamaheswari|[Ver 0.6](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/EsAfWCuAF5pDgIHuPiZqN0sB0QvNj8S_XqIxa7qbzuJ3xw?e=lQr8X0)|
-|2|0.7|15.06.2024|Kulasekaran|1) Long run LTE issue workaround with Rebooting<br>2) Added Send function support for Daikin200<br>3) Added colored logs<br>4) Modified MQTT communication logic<br>5) Integrated Node and Gwy codebase as one|[Ver 0.7](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/ElOpzTQT0UdEvAXS_M6xHUoBCObxUryYEZ7gFOrPOhTN-Q?e=Iybtim)|
+|2|0.7|15.06.2024|Kulasekaran|1) Long run LTE issue workaround with Rebooting|[Ver 0.7](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/ElOpzTQT0UdEvAXS_M6xHUoBCObxUryYEZ7gFOrPOhTN-Q?e=Iybtim)|
+|3|0.8|19.06.2024|Kulasekaran|1) Location string length increased from 20 to 30 <br> 2) Corrected out Gwy Temperature Data Ack format <br> 3) Minimum value for Temperature Data Ack publish configuration increased from 5 to 10|[Ver 0.8](   )|
 
 </center>
+
+# High level overview
+- An open source IR Library for Transmission and reception of IR Signals.
+- Uses LTE for MQTT communication
+- Uses BLE Mesh network
+- Custom MQTT packets designed according to Project requirements. More details about this in Software documentation. (link provided below)
+- Uses IDF-FreeRTOS for implementing Multi-processing application.
+- Uses on-board EEPROM for flash storage
 
 # High level overview
 - Uses BLE Mesh network. So, we have two kinds of devices:
@@ -86,7 +54,7 @@
 ## Hardware Details
 - [Schematics](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EcAzDj2xZpRPheBzz8MhQ4MBeOw5IVayl4XTD_MZNdEs2Q?e=pJdu1H)
 
-## Software References
+## Software Documentation and other Helper documents
 - Software Documentation : [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EQggUzaKN6BKpGuAlJVJPAcBsA2TF-sA6TgrwF00lDKbVw?e=lfapWI)
 - MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
 - LTE : [Quectel's EC200U Hardware design document](https://forums.quectel.com/uploads/short-url/j0qEXlvPl25PfUDBf4QEkc9AQyx.pdf)
@@ -123,7 +91,6 @@
 6. **NOTE**: 
    1. The next step is required only if you are creating the project from scratch. By default the IRremoteESP8266 library being used in this project is not available in the components/arduino folder. So, we need to manually download the library, add the source and header files at locations and make necessary changes to the CMakeLists.txt inside the components/arduino folder in order for the compiler to be able to pick up these custom files.
    2. It's not mandatory that the custom libraries also needs to reside inside the arduino/components folder. But since it already has a structure, I placed inside it to avoid too much head scratching in trying to fix bug that'll rise upon compiling. If you can figure out a better and efficient way, kudos to you.
-   3. **IMPORTANT NODE**: The IRremoteESP8266 Library used in this project has been customly modified at a few places in order to bend it to work to our requirements. For eg. Support for Daikin200 is not natively supported by the library at this time. So, we have manually added that. A list of Custom changes made to any open source content will be listed below.
 
 ## Steps to include custom library files
 These steps will guide you in including a custom library and using it in this project. I've taken the IRremoteESP8266 library as an example. It is available [here](https://github.com/crankyoldgit/IRremoteESP8266)
@@ -153,23 +120,3 @@ These steps will guide you in including a custom library and using it in this pr
 5. The device will read the IR signal from the remote and store it in flash. While this process is happening, the light will turn off momentarily to indicate that no other buttons must be pressed to let the process go on without disturbance. Also, make sure you are doing this process in a IR disturbance free environment. Most smartphones these days use IR emitters, so it's one thing that I experience during my development. 
 6. Once the LED starts blinking BLUE again, it's time to record the next IR signal. The next signal is `POWER ON | TEMP 19`. 
 7. Similarly, go one-by-one all the way up to `POWER ON | TEMP 28`. If everything was done right, then, when the last IR signal was sent, the LED will change to SOLID GREEN to indicate successful completion of the process.
-
-
-## Custom Changes made to Open Source 
-1. Support added for Daikin200
-2. decode_type_t enum is reordered with only supported brands. This was an optimization change done to avoid false positives during AC Remote Configuration process.
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
