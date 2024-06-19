@@ -32,6 +32,7 @@
     <li><a href="">Instructions to Build and compile the project</a></li>
     <li><a href="">Steps to include custom library files</a></li>
     <li><a href="">Steps to perform Teaching Mode</a></li>
+    <li><a href="">Custom Changes made to open sources</a><li>
   </ol>
 </details><br>
 
@@ -122,6 +123,7 @@
 6. **NOTE**: 
    1. The next step is required only if you are creating the project from scratch. By default the IRremoteESP8266 library being used in this project is not available in the components/arduino folder. So, we need to manually download the library, add the source and header files at locations and make necessary changes to the CMakeLists.txt inside the components/arduino folder in order for the compiler to be able to pick up these custom files.
    2. It's not mandatory that the custom libraries also needs to reside inside the arduino/components folder. But since it already has a structure, I placed inside it to avoid too much head scratching in trying to fix bug that'll rise upon compiling. If you can figure out a better and efficient way, kudos to you.
+   3. **IMPORTANT NODE**: The IRremoteESP8266 Library used in this project has been customly modified at a few places in order to bend it to work to our requirements. For eg. Support for Daikin200 is not natively supported by the library at this time. So, we have manually added that. A list of Custom changes made to any open source content will be listed below.
 
 ## Steps to include custom library files
 These steps will guide you in including a custom library and using it in this project. I've taken the IRremoteESP8266 library as an example. It is available [here](https://github.com/crankyoldgit/IRremoteESP8266)
@@ -152,6 +154,10 @@ These steps will guide you in including a custom library and using it in this pr
 6. Once the LED starts blinking BLUE again, it's time to record the next IR signal. The next signal is `POWER ON | TEMP 19`. 
 7. Similarly, go one-by-one all the way up to `POWER ON | TEMP 28`. If everything was done right, then, when the last IR signal was sent, the LED will change to SOLID GREEN to indicate successful completion of the process.
 
+
+## Custom Changes made to Open Source 
+1. Support added for Daikin200
+2. decode_type_t enum is reordered with only supported brands. This was an optimization change done to avoid false positives during AC Remote Configuration process.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
