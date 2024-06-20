@@ -37,6 +37,7 @@ mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
 temperature_data_t gwy_temperature_data_t;
 teaching_mode_t gwy_teaching_mode_t;
+debug_info_t gwy_debug_info_t;
 
 prov_t provision_t;
 prov_t *prov_queue_head;
@@ -67,6 +68,10 @@ temperature_data_t node_temperature_data_t;
 teaching_mode_t node_teaching_mode_t;
 teaching_mode_t *node_teaching_mode_queue_head;
 teaching_mode_t *node_teaching_mode_queue_tail;
+
+debug_info_t node_debug_info_t;
+debug_info_t *node_debug_info_queue_head;
+debug_info_t *node_debug_info_queue_tail;
 
 #if (IS_GWY)
 void fill_gwy_ser_no_str()

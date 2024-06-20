@@ -89,7 +89,7 @@ uint8_t get_node_pub_conf_queue_count(pub_conf_t *head)
 
 /**
  * @brief Function that takes care of the housekeeping work of clearing off elements from
- * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * queue when they have stayed in the queue for too long than the NODE_COMM_TIMEOUT specified.
  * @param none
  * @retval none
  */
@@ -98,7 +98,7 @@ void maintain_node_pubconf_queue()
 	pub_conf_t *temp = node_pub_conf_queue_head;
 	while (temp != NULL)
 	{
-		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
@@ -110,7 +110,7 @@ void maintain_node_pubconf_queue()
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					PUBLISH_PERIOD_KEY, temp->pub_conf_period_in_sec,
-					ERROR_CODE_KEY, NODE_TIMEOUT);
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_node_pub_conf_queue();
 		}
@@ -186,7 +186,7 @@ uint8_t get_node_reconf_queue_count(reconf_t *head)
 
 /**
  * @brief Function that takes care of the housekeeping work of clearing off elements from
- * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * queue when they have stayed in the queue for too long than the NODE_COMM_TIMEOUT specified.
  * @param none
  * @retval none
  */
@@ -195,7 +195,7 @@ void maintain_node_reconf_queue()
 	reconf_t *temp = node_reconf_queue_head;
 	while (temp != NULL)
 	{
-		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
@@ -206,7 +206,7 @@ void maintain_node_reconf_queue()
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					ERROR_CODE_KEY, NODE_TIMEOUT);
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_node_reconf_queue();
 		}
@@ -282,7 +282,7 @@ uint8_t get_node_control_queue_count(control_t *head)
 
 /**
  * @brief Function that takes care of the housekeeping work of clearing off elements from
- * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * queue when they have stayed in the queue for too long than the NODE_COMM_TIMEOUT specified.
  * @param none
  * @retval none
  */
@@ -291,7 +291,7 @@ void maintain_node_ac_control_queue()
 	control_t *temp = node_ac_control_queue_head;
 	while (temp != NULL)
 	{
-		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
@@ -313,7 +313,7 @@ void maintain_node_ac_control_queue()
 					AC_LOCKING_KEY, temp->Locking,
 					TEMP_LOCK_UP_LIMIT_KEY, temp->TempLockUpLimit,
 					TEMP_LOCK_LOW_LIMIT_KEY, temp->TempLockLowLimit,
-					ERROR_CODE_KEY, NODE_TIMEOUT);
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_node_control_queue();
 		}
@@ -389,7 +389,7 @@ uint8_t get_unprov_queue_count(unprov_t *head)
 
 /**
  * @brief Function that takes care of the housekeeping work of clearing off elements from
- * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * queue when they have stayed in the queue for too long than the NODE_COMM_TIMEOUT specified.
  * @param none
  * @retval none
  */
@@ -398,7 +398,7 @@ void maintain_unprov_queue()
 	unprov_t *temp = unprov_queue_head;
 	while (temp != NULL)
 	{
-		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
@@ -409,7 +409,7 @@ void maintain_unprov_queue()
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					ERROR_CODE_KEY, NODE_TIMEOUT);
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_unprov_queue();
 		}
@@ -485,7 +485,7 @@ uint8_t get_prov_queue_count(prov_t *head)
 
 /**
  * @brief Function that takes care of the housekeeping work of clearing off elements from
- * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
+ * queue when they have stayed in the queue for too long than the NODE_COMM_TIMEOUT specified.
  * @param none
  * @retval none
  */
@@ -494,7 +494,7 @@ void maintain_prov_queue()
 	prov_t *temp = prov_queue_head;
 	while (temp != NULL)
 	{
-		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
@@ -506,116 +506,9 @@ void maintain_prov_queue()
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					LOCATION_KEY, temp->base_data.location,
-					ERROR_CODE_KEY, NODE_TIMEOUT);
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_prov_queue();
-		}
-		temp = temp->next;
-	}
-}
-
-/*-----------------------------------------------------------------------------------------*/
-
-void remove_from_pubmesg_queue()
-{
-	if (pubmesg_queue_head == NULL)
-	{
-		sprintf(queue_log_buffer, "pubmesg queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-		return;
-	}
-	else
-	{
-		struct pub_mesg_struct *temp = pubmesg_queue_head;
-		pubmesg_queue_head = pubmesg_queue_head->next;
-		free(temp);
-		if (pubmesg_queue_head == NULL)
-			pubmesg_queue_tail = NULL;
-	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-}
-
-/**
- * @brief Function that adds messages to the pubmesg queue. These will be published one by one to
- * cloud by a handler function. If successfully published, they will be removed from the queue.
- * @param msg The message to be published to cloud
- * @param topic The topic to which the message needs to be published
- * @warning This process is not threadsafe. Need to implement it as threadsafe.
- */
-void add_to_pubmesg_queue(char *msg, char *topic)
-{
-	// If it's bad time to add to pubmesg due to LTE no response, then hold off and don't keep adding. This will lead to OOM eventually.
-	if (!hold_adding_to_pubmesg)
-	{
-		struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
-		if (pubmesg_node == NULL)
-		{
-			sprintf(queue_log_buffer, "Memory allocation failed in add_to_pubmesg_queue\r\n");
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			return;
-		}
-		strcpy(pubmesg_node->message, msg);
-		pubmesg_node->topic = topic;
-		if (pubmesg_queue_head == NULL)
-		{
-			pubmesg_queue_head = pubmesg_queue_tail = pubmesg_node;
-			pubmesg_node->prev = pubmesg_node->next = NULL;
-		}
-		else
-		{
-			pubmesg_queue_tail->next = pubmesg_node;
-			pubmesg_queue_tail->next->prev = pubmesg_queue_tail;
-			pubmesg_queue_tail->next->next = NULL;
-			pubmesg_queue_tail = pubmesg_node;
-		}
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-	}
-}
-
-/**
- * @brief Get the node teaching mode queue count
- * @param none
- * @return Number of elements currently in node teaching mode queue
- */
-uint8_t get_node_teaching_mode_queue_count(teaching_mode_t *head)
-{
-	uint8_t count = 0;
-	while (head != NULL)
-	{
-		count++;
-		head = head->next;
-	}
-	return count;
-}
-
-/**
- * @brief Function that takes care of the housekeeping work of clearing off elements from
- * queue when they have stayed in the queue for too long than the NODE_TIMEOUT specified.
- * @param none
- * @retval none
- */
-void maintain_node_teaching_mode_queue_head()
-{
-	teaching_mode_t *temp = node_teaching_mode_queue_head;
-	while (temp != NULL)
-	{
-		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US)
-		{
-			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
-					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
-					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					LOCATION_KEY, temp->base_data.location,
-					ERROR_CODE_KEY, NODE_TIMEOUT);
-			add_to_pubmesg_queue(pubmessage, publish_topic);
-			remove_from_node_teaching_mode_queue();
 		}
 		temp = temp->next;
 	}
@@ -680,6 +573,138 @@ void add_to_node_teaching_mode_queue()
 }
 
 /**
+ * @brief Get the node teaching mode queue count
+ * @param none
+ * @return Number of elements currently in node teaching mode queue
+ */
+uint8_t get_node_teaching_mode_queue_count(teaching_mode_t *head)
+{
+	uint8_t count = 0;
+	while (head != NULL)
+	{
+		count++;
+		head = head->next;
+	}
+	return count;
+}
+
+/**
+ * @brief Function that takes care of the housekeeping work of clearing off elements from
+ * queue when they have stayed in the queue for too long than the NODE_COMM_TIMEOUT specified.
+ * @param none
+ * @retval none
+ */
+void maintain_node_teaching_mode_queue_head()
+{
+	teaching_mode_t *temp = node_teaching_mode_queue_head;
+	while (temp != NULL)
+	{
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
+		{
+			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
+					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
+					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
+					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
+					LOCATION_KEY, temp->base_data.location,
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			add_to_pubmesg_queue(pubmessage, publish_topic);
+			remove_from_node_teaching_mode_queue();
+		}
+		temp = temp->next;
+	}
+}
+
+/*-----------------------------------------------------------------------------------------*/
+
+void remove_from_node_debug_info_queue()
+{
+	if (node_debug_info_queue_head == NULL)
+	{
+		red_printf(QUEUE_ERROR_TAG, "node teaching mode queue is empty");
+		return;
+	}
+	else
+	{
+		struct debug_info_t *temp = node_debug_info_queue_head;
+		node_debug_info_queue_head = node_debug_info_queue_head->next;
+		free(temp);
+		if (node_debug_info_queue_head == NULL)
+			node_debug_info_queue_tail = NULL;
+	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_node_debug_info_queue_count(node_debug_info_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+}
+
+void add_to_node_debug_info_queue()
+{
+	debug_info_t *debuf_info_node = (debug_info_t *)malloc(sizeof(debug_info_t));
+	if (debuf_info_node != NULL)
+		*debuf_info_node = node_debug_info_t;
+	else
+	{
+		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_node_debug_info_queue");
+		return;
+	}
+	if (node_debug_info_queue_head == NULL)
+	{
+		// Adding the first element into the queue
+		node_debug_info_queue_head = debuf_info_node = debuf_info_node;
+		debuf_info_node->next = debuf_info_node->prev = NULL;
+	}
+	else
+	{
+		node_debug_info_queue_tail->next = debuf_info_node;
+		node_debug_info_queue_tail->next->prev = node_debug_info_queue_tail;
+		node_debug_info_queue_tail->next->next = NULL;
+		node_debug_info_queue_tail = debuf_info_node;
+	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_node_debug_info_queue_count(node_debug_info_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+}
+
+uint8_t get_node_debug_info_queue_count(debug_info_t *head)
+{
+	uint8_t count = 0;
+	while (head != NULL)
+	{
+		count++;
+		head = head->next;
+	}
+	return count;
+}
+
+void maintain_node_debug_info_queue_count()
+{
+	debug_info_t *temp = node_debug_info_queue_head;
+	while (temp != NULL)
+	{
+		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
+		{
+			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
+					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
+					JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
+					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
+					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
+					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
+					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			add_to_node_debug_info_queue(pubmessage, publish_topic);
+			remove_from_node_debug_info_queue();
+		}
+		temp = temp->next;
+	}
+}
+
+/*-----------------------------------------------------------------------------------------*/
+
+/**
  * @brief Get the pubmesg queue count
  * @param none
  * @return Number of elements currently in Pubmesg queue
@@ -695,7 +720,67 @@ uint8_t get_pubmesg_queue_count(pubmesg_t *head)
 	return count;
 }
 
+void remove_from_pubmesg_queue()
+{
+	if (pubmesg_queue_head == NULL)
+	{
+		sprintf(queue_log_buffer, "pubmesg queue is empty\r\n");
+		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		return;
+	}
+	else
+	{
+		struct pub_mesg_struct *temp = pubmesg_queue_head;
+		pubmesg_queue_head = pubmesg_queue_head->next;
+		free(temp);
+		if (pubmesg_queue_head == NULL)
+			pubmesg_queue_tail = NULL;
+	}
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
+	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+}
+
+/**
+ * @brief Function that adds messages to the pubmesg queue. These will be published one by one to
+ * cloud by a handler function. If successfully published, they will be removed from the queue.
+ * @param msg The message to be published to cloud
+ * @param topic The topic to which the message needs to be published
+ * @warning This process is not threadsafe. Need to implement it as threadsafe.
+ */
+void add_to_pubmesg_queue(char *msg, char *topic)
+{
+	// If it's bad time to add to pubmesg due to LTE no response, then hold off and don't keep adding. This will lead to OOM eventually.
+	if (!hold_adding_to_pubmesg)
+	{
+		struct pub_mesg_struct *pubmesg_node = (struct pub_mesg_struct *)malloc(sizeof(struct pub_mesg_struct));
+		if (pubmesg_node == NULL)
+		{
+			sprintf(queue_log_buffer, "Memory allocation failed in add_to_pubmesg_queue\r\n");
+			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			return;
+		}
+		strcpy(pubmesg_node->message, msg);
+		pubmesg_node->topic = topic;
+		if (pubmesg_queue_head == NULL)
+		{
+			pubmesg_queue_head = pubmesg_queue_tail = pubmesg_node;
+			pubmesg_node->prev = pubmesg_node->next = NULL;
+		}
+		else
+		{
+			pubmesg_queue_tail->next = pubmesg_node;
+			pubmesg_queue_tail->next->prev = pubmesg_queue_tail;
+			pubmesg_queue_tail->next->next = NULL;
+			pubmesg_queue_tail = pubmesg_node;
+		}
+		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
+		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	}
+}
+
+
 /*-----------------------------------------------------------------------------------------*/
+
 
 /**
  * @brief Thread that takes care of handling all queues throught out the code

@@ -57,6 +57,12 @@ extern "C"
     void add_to_node_teaching_mode_queue();
     uint8_t get_node_teaching_mode_queue_count();
     void maintain_node_teaching_mode_queue();
+
+    //Node Debug info
+    void remove_from_node_debug_info_queue();
+    void add_to_node_debug_info_queue();
+    uint8_t get_node_debug_info_queue_count();
+    void maintain_node_debug_info_queue();
     
     void queue_handler(void *args);
 #ifdef __cplusplus

@@ -282,7 +282,7 @@ void error_check_json(uint8_t json_packet_id)
             uint8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
             if (temperature >= TEMP_ABS_LOW_LIMIT && temperature <= TEMP_ABS_UP_LIMIT);
             else {
-                json_ack_err_code = TEMP_EXCEEDING_ABS_TEMP_RANGE;
+                json_ack_err_code = TEMPERATURE_EXCEEDING_RANGE;
                 return;
             }
         }
@@ -420,7 +420,7 @@ void error_check_json(uint8_t json_packet_id)
         return;
 
     case RESET_MQTT:
-        json_ack_err_code = FORBIDDEN;
+        json_ack_err_code = FORBIDDEN_OPERATION;
         return;
     }
 }
@@ -716,16 +716,6 @@ void parse_json_packet(char *json_packet)
             vTaskDelay(pdMS_TO_TICKS(5));
 
         case GWY_AC_CONTROL_PACKET:
-            // If we've not been configured yet and recv this packet, exit beforehand.
-            if (!configured)
-            {
-                json_ack_err_code = GWY_NOT_CONFIGURED_WITH_AC_REMOTE;
-                break;
-            }
-            cyan_printf(LTE_DEBUG_TAG, "Gwy AC Control packet");
-            // filling the default values for temp up and low limit
-            gwy_ac_control_t.TempLockLowLimit = TEMP_ABS_LOW_LIMIT;
-            gwy_ac_control_t.TempLockUpLimit = TEMP_ABS_UP_LIMIT;
             gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
             strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
@@ -763,6 +753,15 @@ void parse_json_packet(char *json_packet)
             node_ac_control_t.TempLockUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
             add_to_node_control_queue();
             break;
+        
+        case NODE_DEBUG_INFO_PACKET:
+            cyan_printf(LTE_DEBUG_TAG, "Node Debug Info Packet");
+
+            break;
+
+        case GWY_DEBUG_INFO_PACKET:
+            cyan_printf(LTE_DEBUG_TAG, "Gwy Debug Info Packet");
+            break;
 
         case GWY_TEACHING_MODE_START_PACKET:
             cyan_printf(LTE_DEBUG_TAG, "Gwy Teaching Mode Start Packet");
@@ -771,12 +770,6 @@ void parse_json_packet(char *json_packet)
             break;
 
         case GWY_RECONF_PACKET:
-            // If we've not been configured yet and recv this packet, exit beforehand.
-            if (!configured)
-            {
-                json_ack_err_code = GWY_ALREADY_UNCONF;
-                break;
-            }
             cyan_printf(LTE_DEBUG_TAG, "Gwy Reconfiguration packet");
             gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             configured = false;
@@ -851,21 +844,8 @@ void parse_json_packet(char *json_packet)
             eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR + 1, 0);
             vTaskDelay(pdMS_TO_TICKS(5));
             break;
-
-        // NOTE: We were using this at the start of the project, but not anymore. We may require this feature
-        // in the future. So, let it sit here for now.
-        case RESET_MQTT:
-            cyan_printf(LTE_DEBUG_TAG, "Reset MQTT packet");
-            gwy_reset_mqtt_t.base_data.json_packet_id = json_packet_id;
-            gwy_reset_mqtt_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-#if (AP_PART_ENABLED)
-            reset_mqtt();
-#endif
-#if (!AP_PART_ENABLED)
-            ESP_LOGE(LTE_ERROR_TAG, "AP mode is not enabled. So skipping reset of MQTT");
-#endif
-            break;
         }
+
         sprintf(lte_log_buffer, "Error Code : %s", get_err_string(json_ack_err_code));
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
         handle_sending_ack_to_cloud(json_packet_id);

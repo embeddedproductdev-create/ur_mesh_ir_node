@@ -52,6 +52,7 @@
 #define GWY_RESET_MQTT_ACK_NAME "Gwy Reset MQTT Ack"
 #define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start Ack"
 #define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End Ack"
+#define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug "
 #define NODE_PROV_ACK_NAME "Node Provisioning Ack"
 #define NODE_UNPROV_ACK_NAME "Node Unprovisioing Ack"
 #define NODE_CONF_ACK_NAME "Node Configuration Ack"
@@ -62,6 +63,7 @@
 #define NODE_PUB_CONF_ACK_NAME "Node Publish Configuration Ack"
 #define NODE_TEACHING_MODE_START_ACK_NAME "Node Teaching Mode Start Ack"
 #define NODE_TEACHING_MODE_END_ACK_NAME "Node Teaching Mode End Ack"
+#define NODE_DEBUG_INFO_ACK_NAME "Node Debug Info Ack"
 
 /*AT command related*/
 extern uint8_t MQTT_CLIENT_INDEX;
@@ -89,7 +91,7 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 1000
 #define MQTT_TOPIC_CHAR_LEN 40
-#define NODE_TIMEOUT_INTERVAL_US (10*1000000) //10seconds
+#define NODE_COMM_TIMEOUT_INTERVAL_US (10*1000000) //10seconds
 #define MIN_PUB_CONF_LIMIT 10
 #define INVALID_MAC_ID_CHAR_SET ""
 
@@ -202,6 +204,14 @@ typedef struct pub_mesg_struct
 	struct pub_mesg_struct *next;
 	struct pub_mesg_struct *prev;
 }pubmesg_t;
+
+typedef struct debug_info_struct
+{
+	struct base_data_t base_data;
+	bool logging;
+	struct debug_info_struct *next;
+	struct debug_info_struct *prev;
+}debug_info_t;
 
 enum json_packet_enum
 {
@@ -339,6 +349,9 @@ extern mqtt_reset_t gwy_reset_mqtt_t;
 /*teaching mode*/
 extern teaching_mode_t gwy_teaching_mode_t;
 
+/*Debug info*/
+extern debug_info_t gwy_debug_info_t;
+
 /*===============NODE====================*/
 
 /*node provision*/
@@ -379,6 +392,11 @@ extern pub_conf_t *node_pub_conf_queue_tail;
 extern teaching_mode_t node_teaching_mode_t;
 extern teaching_mode_t *node_teaching_mode_queue_head;
 extern teaching_mode_t *node_teaching_mode_queue_tail;
+
+/*node debug info*/
+extern debug_info_t node_debug_info_t;
+extern debug_info_t *node_debug_info_queue_head;
+extern debug_info_t *node_debug_info_queue_tail;
 
 /*===================================*/
 
