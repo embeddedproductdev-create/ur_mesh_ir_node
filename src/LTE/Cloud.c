@@ -31,19 +31,6 @@ struct pub_mesg_struct *pubmesg_queue_tail = NULL;
  */
 void init_structures()
 {
-    /* GWY SER NO */
-    gwy_registration_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_unregistration_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_reconf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_ac_control_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_locking_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_reset_mqtt_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_temperature_data_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_pub_conf_t.base_data.gwy_ser_no = GWY_SER_NO;
-    gwy_teaching_mode_t.base_data.gwy_ser_no = GWY_SER_NO;
-
     /* GWY SER NO STRING */
     strcpy(gwy_registration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
@@ -56,6 +43,7 @@ void init_structures()
     strcpy(gwy_temperature_data_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
 
     /* GWY - JSON PACKET IDs */
     gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
@@ -63,11 +51,12 @@ void init_structures()
     gwy_conf_t.base_data.json_packet_id = GWY_CONF_ACK;
     gwy_reconf_t.base_data.json_packet_id = GWY_RECONF_PACKET;
     gwy_ac_control_t.base_data.json_packet_id = GWY_AC_CONTROL_PACKET;
-    gwy_locking_t.base_data.json_packet_id = GWY_MANUAL_AC_CONTROL_ACK_NAME;
+    gwy_locking_t.base_data.json_packet_id = GWY_MANUAL_AC_CONTROL_ACK;
     gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
     gwy_pub_conf_t.base_data.json_packet_id = GWY_HEARTBEAT_PUB_CONF_PACKET;
     gwy_temperature_data_t.base_data.json_packet_id = GWY_HEARTBEAT_ACK;
     gwy_teaching_mode_t.base_data.json_packet_id = GWY_TEACHING_MODE_START_PACKET;
+    gwy_debug_info_t.base_data.json_packet_id = GWY_DEBUG_INFO_PACKET;
 
     /* NODE - JSON PACKET IDs */
     provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
@@ -78,17 +67,19 @@ void init_structures()
     node_locking_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET;
     node_pub_conf_t.base_data.json_packet_id = NODE_HEARTBEAT_PUB_CONF_PACKET;
     node_temperature_data_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
+    node_debug_info_t.base_data.json_packet_id = NODE_DEBUG_INFO_PACKET;
 
     /* JSON ACK NAMES */
     strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK_NAME);
     strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK_NAME);
-    strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK);
+    strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK_NAME);
     strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK_NAME);
     strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK_NAME);
     strcpy(gwy_locking_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
     strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK_NAME);
-    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK_NAME);
-    strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK_NAME);
+    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
+    strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
+    strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
 }
 
 void fill_macid()
@@ -117,7 +108,7 @@ void isValidMacId(char *macid)
 {
     uint8_t d = 0, s = 0;
     if(strlen(macid) != 17) {
-        return false;
+        json_ack_err_code = INVALID_MAC_ID_LENGTH;
     }
     for(uint8_t i=0;i<17;i++)
     {
@@ -129,7 +120,7 @@ void isValidMacId(char *macid)
     }
     if(d==12 && s==5);
     else {
-        return json_ack_err_code = MAC_ID_CONTAINS_INVALID_CHARS_OR_INVALID_FORMAT;
+        json_ack_err_code = MAC_ID_CONTAINS_INVALID_CHARS_OR_INVALID_FORMAT;
     }
 }
 
@@ -391,7 +382,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, MAC_ID_KEY))
         {
-            char macid;
+            char macid[20];
             strcpy(macid, cJSON_GetObjectItem(json_packet_j, MAC_ID_KEY)->valuestring);
             isValidMacId(macid);
         }
@@ -499,7 +490,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         sprintf(lte_log_buffer, "Sending Gwy Manual AC control Ack");
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-                JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
+                JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK,
                 JSON_ACK_NAME_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
                 MSG_SEQ_NO_KEY, gwy_locking_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
@@ -521,7 +512,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_HEARTBEAT_PUB_CONF_PACKET,
-                JSON_ACK_NAME_KEY, GWY_PUB_CONF_ACK_NAME,
+                JSON_ACK_NAME_KEY, GWY_HEARTBEAT_PUB_CONF_ACK_NAME,
                 MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
@@ -796,8 +787,7 @@ void parse_json_packet(char *json_packet)
 
         case NODE_TEACHING_MODE_START_PACKET:
             cyan_printf(LTE_DEBUG_TAG, "Node Teaching Mode Start Packet");
-            node_teaching_mode_t.base_data.node_ser_no =
-                strcpy(node_teaching_mode_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
+            strcpy(node_teaching_mode_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             add_to_node_teaching_mode_queue();
             break;
 

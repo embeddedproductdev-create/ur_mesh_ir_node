@@ -852,12 +852,12 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
                 Bind_fl = false;
             }
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
                     JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no,
+                    NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
                     LOCATION_KEY, vendor_provision_t->base_data.location,
                     ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
@@ -867,12 +867,12 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_unprov_queue();
             vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", vendor_unprovision_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
                     JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no,
+                    NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
                     LOCATION_KEY, vendor_unprovision_t->base_data.location,
                     ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
@@ -881,11 +881,11 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_CONF_PACKET:
             vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d", vendor_node_config_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %s, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
                     JSON_ACK_NAME_KEY, NODE_CONF_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no,
+                    NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
                     ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
             break;
@@ -948,12 +948,12 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
 
         case NODE_HEARTBEAT_ACK:
             vendor_node_temperature_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE TEMPERATURE DATA ACK | FROM ELEMADDR : %d", vendor_node_temperature_data_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
+            ESP_LOGI(MESH_DEBUG_TAG, "Node Heartbeat Ack | FROM ELEMADDR : %d", vendor_node_temperature_data_t->base_data.elementAddr);
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %s, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK_NAME,
+                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no,
+                    NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
                     TEMPERATURE_DATA_KEY, vendor_node_temperature_data_t->measured_temperature);
             break;
@@ -962,12 +962,12 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_node_pub_conf_queue();
             vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK_NAME,
+                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no,
+                    NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
                     PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
                     ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);

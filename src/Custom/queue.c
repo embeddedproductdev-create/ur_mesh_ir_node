@@ -104,7 +104,7 @@ void maintain_node_pubconf_queue()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
-					JSON_ACK_NAME_KEY, NODE_PUB_CONF_ACK_NAME,
+					JSON_ACK_NAME_KEY, NODE_HEARTBEAT_PUB_CONF_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
@@ -530,7 +530,7 @@ void remove_from_node_teaching_mode_queue()
 	}
 	else
 	{
-		struct teaching_mode_t *temp = node_teaching_mode_queue_head;
+		teaching_mode_t *temp = node_teaching_mode_queue_head;
 		node_teaching_mode_queue_head = node_teaching_mode_queue_head->next;
 		free(temp);
 		if (node_teaching_mode_queue_head == NULL)
@@ -630,7 +630,7 @@ void remove_from_node_debug_info_queue()
 	}
 	else
 	{
-		struct debug_info_t *temp = node_debug_info_queue_head;
+		debug_info_t *temp = node_debug_info_queue_head;
 		node_debug_info_queue_head = node_debug_info_queue_head->next;
 		free(temp);
 		if (node_debug_info_queue_head == NULL)
@@ -687,7 +687,7 @@ void maintain_node_debug_info_queue_count()
 		{
 			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
+			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
 					JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,

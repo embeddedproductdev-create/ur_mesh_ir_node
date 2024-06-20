@@ -699,11 +699,10 @@ void IR_receiver_task(void *args)
                     char pubmessage[PUBMESG_LEN];
                     sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d}",
                             JSON_PACKET_ID_KEY, GWY_CONF_ACK,
-                            JSON_ACK_NAME_KEY, GWY_CONF_ACK,
+                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                             ERROR_CODE_KEY, json_ack_err_code);
-                    sprintf(ir_log_buffer, "Sending Gwy Configuration ack");
-                    white_printf(IR_DEBUG_TAG, ir_log_buffer);
+                    white_printf(IR_DEBUG_TAG, "Sending Gwy Configuration ack");
                     add_to_pubmesg_queue(pubmessage, publish_topic);
                 }
 #endif
