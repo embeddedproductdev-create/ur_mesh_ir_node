@@ -92,6 +92,8 @@ void LED_task(void *args)
             digitalWrite(GREEN_LED_PIN, HIGH);
             digitalWrite(BLUE_LED_PIN, LOW);
             sleep(1);
+            digitalWrite(GREEN_LED_PIN, LOW);
+            sleep(1);
             show_boot_indication = false;
             break;
 

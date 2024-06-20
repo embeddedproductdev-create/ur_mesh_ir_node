@@ -87,7 +87,7 @@ void init_structures()
     strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK_NAME);
     strcpy(gwy_locking_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
     strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK_NAME);
-    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK);
+    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_PUB_CONF_ACK_NAME);
     strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_TEMPERATURE_DATA_ACK_NAME);
 }
 
@@ -142,12 +142,29 @@ void isValidMacId(char *macid)
 void error_check_json(uint8_t json_packet_id)
 {
     /* Common in all Packets */
+    /*
+        Json packet id should be between (0 and 10) or (100 and 110) or be 99.
+    */
+    if((json_packet_id >= 0 && json_packet_id <= 10) || json_packet_id == 99 || (json_packet_id >= 100 && json_packet_id <= 110));
+    else {
+        json_ack_err_code = JSON_PACKET_ID_UNKNOWN;
+        return;
+    }
     if (cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY));
     else {
         json_ack_err_code = MSG_SEQ_NO_NOT_FOUND;
         return;
     }
-    if (cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY));
+    if (cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY))
+    {
+        char gwysernostr[15];
+        strcpy(gwysernostr, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
+        if(!strcmp(gwysernostr, GWY_SER_NO_IN_STRING));
+        else {
+            json_ack_err_code = GWY_SER_NO_NOT_MATCHING;
+            return;
+        }
+    }
     else {
         json_ack_err_code = GWY_SER_NO_NOT_FOUND;
         return;
@@ -250,7 +267,7 @@ void error_check_json(uint8_t json_packet_id)
         if (cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY))
         {
             uint8_t fanspeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-            if(fanspeed >= 1 && fanspeed <= 5);
+            if(fanspeed >= 0 && fanspeed <= 5);
             else {
                 json_ack_err_code = FANSPEED_EXCEEDING_RANGE;
                 return;
@@ -566,50 +583,76 @@ char *get_err_string(int16_t err_code)
         return "SUCCESS";
     case JSON_PACKET_ID_NOT_FOUND:
         return "JSON_PACKET_ID_NOT_FOUND";
+    case JSON_PACKET_ID_UNKNOWN:
+        return "JSON_PACKET_ID_UNKNOWN";
     case MSG_SEQ_NO_NOT_FOUND:
         return "MSG_SEQ_NO_NOT_FOUND";
     case GWY_SER_NO_NOT_FOUND:
         return "GWY_SER_NO_NOT_FOUND";
-    case NODE_SER_NO_NOT_FOUND:
-        return "NODE_SER_NO_NOT_FOUND";
+    case GWY_SER_NO_NOT_MATCHING:
+        return "GWY_SER_NO_NOT_MATCHING";
     case LOCATION_NOT_FOUND:
         return "LOCATION_NOT_FOUND";
-    case NODE_TIMEOUT:
-        return "NODE_TIMEOUT";
+    case LOCATION_EXCEEDING_RANGE:
+        return "LOCATION_EXCEEDING_RANGE";
+    case NODE_COMM_TIMEOUT:
+        return "NODE_COMM_TIMEOUT";
     case GWY_ALREADY_REG:
         return "GWY_ALREADY_REG";
-    case GWY_ALREADY_UNREG:
-        return "GWY_ALREADY_UNREG";
     case NODE_ALREADY_PROV:
         return "NODE_ALREADY_PROV";
-    case NODE_ALREADY_UNPROV:
-        return "NODE_ALREADY_UNPROV";
-    case GWY_ALREADY_UNCONF:
-        return "GWY_ALREADY_UNCONF";
-    case NODE_ALREADY_UNCONF:
-        return "NODE_ALREADY_UNCONF";
     case GWY_NOT_REG:
         return "GWY_NOT_REG";
     case GWY_NOT_CONFIGURED_WITH_AC_REMOTE:
         return "GWY_NOT_CONFIGURED_WITH_AC_REMOTE";
+    case NODE_SER_NO_NOT_FOUND:
+        return "NODE_SER_NO_NOT_FOUND";
+    case MAC_ID_NOT_FOUND:
+        return "MAC_ID_NOT_FOUND";
+    case ELEMENT_ADDR_NOT_FOUND:
+        return "ELEMENT_ADDR_NOT_FOUND";
+    case NODE_NOT_CONFIGURED_WITH_AC_REMOTE:
+        return "NODE_NOT_CONFIGURED_WITH_AC_REMOTE";
+    case MAC_ID_CONTAINS_INVALID_CHARS_OR_INVALID_FORMAT:
+        return "MAC_ID_CONTAINS_INVALID_CHARS_OR_INVALID_FORMAT";
+    case INVALID_MAC_ID_LENGTH:
+        return "INVALID_MAC_ID_LENGTH";
     case POWER_NOT_FOUND:
         return "POWER_NOT_FOUND";
+    case POWER_EXCEEDING_RANGE:
+        return "POWER_EXCEEDING_RANGE";
     case MODE_NOT_FOUND:
         return "MODE_NOT_FOUND";
+    case MODE_EXCEEDING_RANGE:
+        return "MODE_EXCEEDING_RANGE";
     case FAN_SPEED_NOT_FOUND:
         return "FAN_SPEED_NOT_FOUND";
+    case FANSPEED_EXCEEDING_RANGE:
+        return "FANSPEED_EXCEEDING_RANGE";
     case TEMPERATURE_NOT_FOUND:
         return "TEMPERATURE_NOT_FOUND";
+    case TEMPERATURE_EXCEEDING_RANGE:
+        return "TEMPERATURE_EXCEEDING_RANGE";
     case SWING_H_NOT_FOUND:
         return "SWING_H_NOT_FOUND";
+    case SWING_H_EXCEEDING_RANGE:
+        return "SWING_H_EXCEEDING_RANGE";
     case SWING_V_NOT_FOUND:
         return "SWING_V_NOT_FOUND";
+    case SWING_V_EXCEEDING_RANGE:
+        return "SWING_V_EXCEEDING_RANGE";
     case ONTIMER_NOT_FOUND:
         return "ONTIMER_NOT_FOUND";
+    case ONTIMER_EXCEEDING_RANGE:
+        return "ONTIMER_EXCEEDING_RANGE";
     case OFFTIMER_NOT_FOUND:
         return "OFFTIMER_NOT_FOUND";
+    case OFFTIMER_EXCEEDING_RANGE:
+        return "OFFTIMER_EXCEEDING_RANGE";
     case LOCKING_NOT_FOUND:
         return "LOCKING_NOT_FOUND";
+    case LOCKING_EXCEEDING_RANGE:
+        return "LOCKING_EXCEEDING_RANGE";
     case TEMP_LOCK_UP_LIMIT_NOT_FOUND:
         return "TEMP_LOCK_UP_LIMIT_NOT_FOUND";
     case TEMP_LOCK_LOW_LIMIT_NOT_FOUND:
@@ -620,14 +663,12 @@ char *get_err_string(int16_t err_code)
         return "TEMP_LOCK_LOW_LIMIT_EXCEEDS_ABS_TEMP_LOW_LIMIT";
     case ILLOGICAL_LOCKING_TEMP_LIMIT:
         return "ILLOGICAL_LOCKING_TEMP_LIMIT";
-    case INVALID_ELMNT_ADDR:
-        return "INVALID_ELMNT_ADDR";
-    case TEMP_EXCEEDING_ABS_TEMP_RANGE:
-        return "TEMP_EXCEEDING_ABS_TEMP_RANGE";
     case PUBLISH_PERIOD_NOT_FOUND:
         return "PUBLISH_PERIOD_NOT_FOUND";
     case PUBLISH_PERIOD_EXCEEDS_RANGE:
         return "PUBLISH_PERIOD_EXCEEDS_RANGE";
+    case FORBIDDEN_OPERATION:
+        return "FORBIDDEN_OPERATION";
     }
     return "UNKNOWN_ERROR_CODE";
 }
