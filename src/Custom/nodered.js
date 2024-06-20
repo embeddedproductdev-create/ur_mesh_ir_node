@@ -7,7 +7,7 @@ const json_packet_enum = Object.freeze({
     GWY_MANUAL_AC_CONTROL_ACK: 4,
     GWY_RECONF_PACKET: 5,
     GWY_HEARTBEAT_ACK: 6,
-    GWY_PUB_CONF_PACKET: 7,
+    GWY_HEARTBEAT_PUB_CONF_PACKET: 7,
     GWY_TEACHING_MODE_START_PACKET: 8,
     GWY_TEACHING_MODE_END_ACK: 9,
     GWY_DEBUG_INFO_PACKET: 10,
@@ -21,7 +21,7 @@ const json_packet_enum = Object.freeze({
     NODE_MANUAL_AC_CONTROL_ACK_PACKET: 104,
     NODE_RECONF_PACKET: 105,
     NODE_HEARTBEAT_ACK: 106,
-    NODE_PUB_CONF_PACKET: 107,
+    NODE_HEARTBEAT_PUB_CONF_PACKET: 107,
     NODE_TEACHING_MODE_START_PACKET: 108,
     NODE_TEACHING_MODE_END_ACK: 109,
     NODE_DEBUG_INFO_PACKET: 110,
@@ -84,14 +84,14 @@ switch (msg.payload) {
         msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
 
-    case json_packet_enum.NODE_PUB_CONF_PACKET:
+    case json_packet_enum.NODE_HEARTBEAT_PUB_CONF_PACKET:
         json = {
             "PublishPeriodSec": global.get("NodePublishPeriod")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
-    case json_packet_enum.GWY_PUB_CONF_PACKET:
+    case json_packet_enum.GWY_HEARTBEAT_PUB_CONF_PACKET:
         json = {
             "PublishPeriodSec": global.get("GwyPublishPeriod")
         };

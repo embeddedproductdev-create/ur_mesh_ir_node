@@ -858,7 +858,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no,
-                    ELMNT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
+                    ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
                     LOCATION_KEY, vendor_provision_t->base_data.location,
                     ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
             break;
@@ -873,7 +873,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no,
-                    ELMNT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
+                    ELEMENT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
                     LOCATION_KEY, vendor_unprovision_t->base_data.location,
                     ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
             break;
@@ -886,7 +886,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     JSON_ACK_NAME_KEY, NODE_CONF_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no,
-                    ELMNT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
+                    ELEMENT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
                     ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
             break;
 
@@ -954,11 +954,11 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no,
-                    ELMNT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
+                    ELEMENT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
                     TEMPERATURE_DATA_KEY, vendor_node_temperature_data_t->measured_temperature);
             break;
 
-        case NODE_PUB_CONF_PACKET:
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
             remove_from_node_pub_conf_queue();
             vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
@@ -968,7 +968,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no,
-                    ELMNT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
+                    ELEMENT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
                     PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
                     ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);
             break;

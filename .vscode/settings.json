@@ -52,7 +52,8 @@
     "uart.h": "c",
     "printf_custom.h": "c",
     "freertosconfig.h": "c",
-    "ets_sys.h": "c"
+    "ets_sys.h": "c",
+    "cctype": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",

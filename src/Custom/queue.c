@@ -103,12 +103,12 @@ void maintain_node_pubconf_queue()
 			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
-					JSON_PACKET_ID_KEY, NODE_PUB_CONF_PACKET,
+					JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_PUB_CONF_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					PUBLISH_PERIOD_KEY, temp->pub_conf_period_in_sec,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
@@ -205,7 +205,7 @@ void maintain_node_reconf_queue()
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_node_reconf_queue();
@@ -301,7 +301,7 @@ void maintain_node_ac_control_queue()
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					POWER_KEY, temp->power,
 					MODE_KEY, temp->mode_str,
 					FAN_SPEED_KEY, temp->fan,
@@ -408,7 +408,7 @@ void maintain_unprov_queue()
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_unprov_queue();
@@ -504,7 +504,7 @@ void maintain_prov_queue()
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
@@ -611,7 +611,7 @@ void maintain_node_teaching_mode_queue_head()
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELMNT_ADDR_KEY, temp->base_data.elementAddr,
+					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);

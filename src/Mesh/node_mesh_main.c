@@ -940,7 +940,7 @@ static void store_data_to_node_structures()
             example_ble_mesh_send_sensor_status();
             break;
 
-        case NODE_PUB_CONF_PACKET:
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET \r\n");
             vendor_node_pub_conf_t = BLE_recvd_data;
             node_pub_conf_t = *vendor_node_pub_conf_t;
