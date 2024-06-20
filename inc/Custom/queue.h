@@ -16,49 +16,43 @@
 extern "C"
 {
 #endif
-    //Pubmesh
+    //Pubmesg
     int8_t publish_to_mqtt();
     void remove_from_pubmesg_queue();   
 	void add_to_pubmesg_queue(char *msg, char *topic);
     uint8_t get_pubmesg_queue_count(pubmesg_t *);
     
     //Prov
-    void search_prov_queue(uint16_t messageNum);
     void remove_from_prov_queue();
     void add_to_prov_queue();
     uint8_t get_prov_queue_count(prov_t *);
     void maintain_prov_queue();
 
     //Unprov
-    void search_unprov_queue(uint16_t messageNum);
     void remove_from_unprov_queue();
     void add_to_unprov_queue();
     uint8_t get_unprov_queue_count(unprov_t *);
     void maintain_unprov_queue();
 
     //Node AC control
-    void search_node_control_queue(uint16_t messageNum);
     void remove_from_node_control_queue();
     void add_to_node_control_queue();
     uint8_t get_node_control_queue_count(control_t *);
     void maintain_node_ac_control_queue();
 
     //Node Reconf
-    void search_node_reconf_queue(uint16_t messageNum);
     void remove_from_node_reconf_queue();
     void add_to_node_reconf_queue();
     uint8_t get_node_reconf_queue_count(reconf_t *);
     void maintain_node_reconf_queue();
 
     //Node Pubconf
-    void search_node_pub_conf_queue(uint16_t messageNum);
     void remove_from_node_pub_conf_queue();
     void add_to_node_pub_conf_queue();
     uint8_t get_node_pub_conf_queue_count(pub_conf_t *);
     void maintain_node_pubconf_queue();
 
     //Node Teaching Mode
-    void search_node_teaching_mode_queue(uint16_t messageNum);
     void remove_from_node_teaching_mode_queue();
     void add_to_node_teaching_mode_queue();
     uint8_t get_node_teaching_mode_queue_count();

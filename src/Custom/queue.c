@@ -12,21 +12,12 @@
 // Initialization
 char pubmessage[PUBMESG_LEN];
 
-void search_node_pub_conf_queue(uint16_t messageNum)
-{
-	char pubmessage[PUBMESG_LEN];
-	pub_conf_t *traverser = node_pub_conf_queue_head;
-	while (traverser != NULL)
-	{
-		if (traverser->base_data.msg_seq_no == messageNum)
-		{
-			// write some logic here
-			;
-		}
-		traverser = traverser->next;
-	}
-}
-
+/*-----------------------------------------------------------------------------------------*/
+/**
+ * @brief Function that removes elements from Node Publish Configuration Queue
+ * @param none
+ * @retval none
+ */
 void remove_from_node_pub_conf_queue()
 {
 	if (node_pub_conf_queue_head == NULL)
@@ -47,6 +38,11 @@ void remove_from_node_pub_conf_queue()
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
+/**
+ * @brief Function that adds elements to Node Publish Configuration queue
+ * @param none
+ * @retval none
+ */
 void add_to_node_pub_conf_queue()
 {
 	pub_conf_t *pub_conf_node = (pub_conf_t *)malloc(sizeof(pub_conf_t));
@@ -122,23 +118,7 @@ void maintain_node_pubconf_queue()
 	}
 }
 
-void search_node_reconf_queue(uint16_t messageNum)
-{
-	char pubmessage[PUBMESG_LEN];
-	reconf_t *traverser = node_reconf_queue_head;
-	while (traverser != NULL)
-	{
-		if (traverser->base_data.msg_seq_no == messageNum)
-		{
-			if (esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) // 10s
-			{
-				// Write some logic here
-				;
-			}
-		}
-		traverser = traverser->next;
-	}
-}
+/*-----------------------------------------------------------------------------------------*/
 
 void remove_from_node_reconf_queue()
 {
@@ -234,20 +214,7 @@ void maintain_node_reconf_queue()
 	}
 }
 
-void search_node_control_queue(uint16_t messageNum)
-{
-	char pubmessage[PUBMESG_LEN];
-	control_t *traverser = node_ac_control_queue_head;
-	while (traverser != NULL)
-	{
-		if (traverser->base_data.msg_seq_no == messageNum)
-		{
-			// Write some logic here
-			;
-		}
-		traverser = traverser->next;
-	}
-}
+/*-----------------------------------------------------------------------------------------*/
 
 void remove_from_node_control_queue()
 {
@@ -354,23 +321,7 @@ void maintain_node_ac_control_queue()
 	}
 }
 
-void search_unprov_queue(uint16_t messageNum)
-{
-	char pubmessage[PUBMESG_LEN];
-	unprov_t *traverser = unprov_queue_head;
-	while (traverser != NULL)
-	{
-		if (traverser->base_data.msg_seq_no == messageNum)
-		{
-			if (esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) // 10s
-			{
-				// Write some logic here
-				;
-			}
-		}
-		traverser = traverser->next;
-	}
-}
+/*-----------------------------------------------------------------------------------------*/
 
 void remove_from_unprov_queue()
 {
@@ -466,23 +417,7 @@ void maintain_unprov_queue()
 	}
 }
 
-void search_prov_queue(uint16_t messageNum)
-{
-	char pubmessage[PUBMESG_LEN];
-	prov_t *traverser = prov_queue_head;
-	while (traverser != NULL)
-	{
-		if (traverser->base_data.msg_seq_no == messageNum)
-		{
-			if (esp_timer_get_time() - traverser->base_data.request_in_time_us > NODE_TIMEOUT_INTERVAL_US) // 10s
-			{
-				// Write some logic here
-				;
-			}
-		}
-		traverser = traverser->next;
-	}
-}
+/*-----------------------------------------------------------------------------------------*/
 
 void remove_from_prov_queue()
 {
@@ -578,6 +513,8 @@ void maintain_prov_queue()
 		temp = temp->next;
 	}
 }
+
+/*-----------------------------------------------------------------------------------------*/
 
 void remove_from_pubmesg_queue()
 {
@@ -684,6 +621,8 @@ void maintain_node_teaching_mode_queue_head()
 	}
 }
 
+/*-----------------------------------------------------------------------------------------*/
+
 /**
  * @brief Function that removes elements from node teaching mode queue
  * @param none
@@ -740,8 +679,6 @@ void add_to_node_teaching_mode_queue()
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
-
-
 /**
  * @brief Get the pubmesg queue count
  * @param none
@@ -757,6 +694,8 @@ uint8_t get_pubmesg_queue_count(pubmesg_t *head)
 	}
 	return count;
 }
+
+/*-----------------------------------------------------------------------------------------*/
 
 /**
  * @brief Thread that takes care of handling all queues throught out the code
