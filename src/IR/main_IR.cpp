@@ -585,7 +585,7 @@ void locking_feature(char *result_description_char_str)
 #if (!IS_GWY)
     send_locking_feature_ack_to_gwy(result_description_char_str);
 #endif
-    if (temperature != 0 && (temperature > gwy_ac_control_t.TempUpLimit || temperature < gwy_ac_control_t.TempLowLimit))
+    if (temperature != 0 && (temperature > gwy_ac_control_t.TempLockUpLimit || temperature < gwy_ac_control_t.TempLockLowLimit))
     {
         white_printf(IR_DEBUG_TAG, "Someone manually controlled the AC ... beyond limits ... reverting ");
         needToSendIRComamnd = true;
@@ -698,7 +698,7 @@ void IR_receiver_task(void *args)
                     vTaskDelay(pdMS_TO_TICKS(5));
                     char pubmessage[PUBMESG_LEN];
                     sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d}",
-                            JSON_PACKET_ID_KEY, GWY_CONF_PACKET,
+                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
                             JSON_ACK_NAME_KEY, GWY_CONF_ACK,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                             ERROR_CODE_KEY, json_ack_err_code);

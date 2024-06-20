@@ -30,8 +30,8 @@
 #define ONTIMER_KEY "OnTimer"
 #define OFFTIMER_KEY "OffTimer"
 #define AC_LOCKING_KEY "Locking"
-#define TEMP_LOW_LIMIT_KEY "TempLowLimit"
-#define TEMP_UP_LIMIT_KEY "TempUpLimit"
+#define TEMP_LOW_LIMIT_KEY "TempLockLowLimit"
+#define TEMP_UP_LIMIT_KEY "TempLockUpLimit"
 #define TEMP_LOCK_UP_LIMIT_KEY "TempLockUpLimit"
 #define TEMP_LOCK_LOW_LIMIT_KEY "TempLockLowLimit"
 #define ERROR_CODE_KEY "ErrorCode"
@@ -41,27 +41,27 @@
 #define ENDING_TEMPERATURE_KEY "EndingTemp"
 
 /* JSON ACK NAMES */
-#define GWY_REG_ACK "Gwy Registration Ack"
-#define GWY_UNREG_ACK "Gwy Unregistration Ack"
-#define GWY_CONF_ACK "Gwy Configuration Ack"
-#define GWY_RECONF_ACK "Gwy Reconfiguration Ack"
-#define GWY_AC_CONTROL_ACK "Gwy AC Control Ack"
-#define GWY_MANUAL_AC_CONTROL_ACK "Gwy Manual AC control Ack"
-#define GWY_TEMPERATURE_DATA_ACK "Gwy Temperature Data Ack"
-#define GWY_PUB_CONF_ACK "Gwy Publish Configuration Ack"
-#define GWY_RESET_MQTT_ACK "Gwy Reset MQTT Ack"
-#define GWY_TEACHING_MODE_START_ACK "Gwy Teaching Mode Start Ack"
-#define GWY_TEACHING_MODE_END_ACK "Gwy Teaching Mode End Ack"
-#define NODE_PROV_ACK "Node Provisioning Ack"
-#define NODE_UNPROV_ACK "Node Unprovisioing Ack"
-#define NODE_CONF_ACK "Node Configuration Ack"
-#define NODE_RECONF_ACK "Node Reconfiguration Ack"
-#define NODE_AC_CONTROL_ACK "Node AC Control Ack"
-#define NODE_MANUAL_AC_CONTROL_ACK "Node Manual AC Control Ack"
-#define NODE_TEMPERATURE_DATA_ACK "Node Temperature Data Ack"
-#define NODE_PUB_CONF_ACK "Node Publish Configuration Ack"
-#define NODE_TEACHING_MODE_START_ACK "Node Teaching Mode Start Ack"
-#define NODE_TEACHING_MODE_END_ACK "Node Teaching Mode End Ack"
+#define GWY_REG_ACK_NAME "Gwy Registration Ack"
+#define GWY_UNREG_ACK_NAME "Gwy Unregistration Ack"
+#define GWY_CONF_ACK_NAME "Gwy Configuration Ack"
+#define GWY_RECONF_ACK_NAME "Gwy Reconfiguration Ack"
+#define GWY_AC_CONTROL_ACK_NAME "Gwy AC Control Ack"
+#define GWY_MANUAL_AC_CONTROL_ACK_NAME "Gwy Manual AC control Ack"
+#define GWY_TEMPERATURE_DATA_ACK_NAME "Gwy Temperature Data Ack"
+#define GWY_PUB_CONF_ACK_NAME "Gwy Publish Configuration Ack"
+#define GWY_RESET_MQTT_ACK_NAME "Gwy Reset MQTT Ack"
+#define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start Ack"
+#define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End Ack"
+#define NODE_PROV_ACK_NAME "Node Provisioning Ack"
+#define NODE_UNPROV_ACK_NAME "Node Unprovisioing Ack"
+#define NODE_CONF_ACK_NAME "Node Configuration Ack"
+#define NODE_RECONF_ACK_NAME "Node Reconfiguration Ack"
+#define NODE_AC_CONTROL_ACK_NAME "Node AC Control Ack"
+#define NODE_MANUAL_AC_CONTROL_ACK_NAME "Node Manual AC Control Ack"
+#define NODE_TEMPERATURE_DATA_ACK_NAME "Node Temperature Data Ack"
+#define NODE_PUB_CONF_ACK_NAME "Node Publish Configuration Ack"
+#define NODE_TEACHING_MODE_START_ACK_NAME "Node Teaching Mode Start Ack"
+#define NODE_TEACHING_MODE_END_ACK_NAME "Node Teaching Mode End Ack"
 
 /*AT command related*/
 extern uint8_t MQTT_CLIENT_INDEX;
@@ -89,22 +89,21 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 1000
 #define MQTT_TOPIC_CHAR_LEN 40
-#define NODE_TIMEOUT_INTERVAL_US 10000000
+#define NODE_TIMEOUT_INTERVAL_US (10*1000000) //10seconds
 #define MIN_PUB_CONF_LIMIT 10
 
 
-#define TEMPERATURE_LOWER_LIMIT 18
-#define TEMPERATURE_UPPER_LIMIT 32
+#define TEMP_ABS_LOW_LIMIT 18
+#define TEMP_ABS_UP_LIMIT 32
 
 /* STRUCTURE DEFINITIONS */
 struct base_data_t
 {
 	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
-	uint16_t ack_seq_no;
-	uint16_t gwy_ser_no;
+	uint32_t gwy_ser_no;
 	char gwy_ser_no_str[9];
-	uint16_t node_ser_no;
+	uint32_t node_ser_no;
 	char node_ser_no_str[7];
 	uint16_t elementAddr;
 	uint16_t error_code;
@@ -149,8 +148,8 @@ typedef struct control_struct
 	uint16_t OnTimer;
 	uint16_t OffTimer;
 	bool Locking;
-	uint8_t TempUpLimit;
-	uint8_t TempLowLimit;
+	uint8_t TempLockUpLimit;
+	uint8_t TempLockLowLimit;
 	struct control_struct *next;
 	struct control_struct *prev;
 } control_t;
@@ -207,29 +206,33 @@ enum json_packet_enum
 {
 	/* GWY PACKETS */
 	GWY_REG_PACKET,
-	GWY_CONF_PACKET,
+	GWY_CONF_ACK,
 	GWY_UNREG_PACKET,
 	GWY_AC_CONTROL_PACKET,
-	GWY_MANUAL_AC_CONTROL_ACK_PACKET,
+	GWY_MANUAL_AC_CONTROL_ACK,
 	GWY_RECONF_PACKET,
-	GWY_TEMPERATURE_DATA_PACKET,
+	GWY_HEARTBEAT_ACK,
 	GWY_PUB_CONF_PACKET,
-	RESET_MQTT,
 	GWY_TEACHING_MODE_START_PACKET,
+	GWY_TEACHING_MODE_END_ACK,
+	GWY_DEBUG_INFO_PACKET,
+	RESET_MQTT=99,
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
 	NODE_CONF_PACKET,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
-	NODE_MANUAL_AC_CONTROL_ACK_PACKET,
+	NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET,
 	NODE_RECONF_PACKET,
-	NODE_TEMPERATURE_DATA_PACKET,
+	NODE_HEARTBEAT_ACK,
 	NODE_PUB_CONF_PACKET,
 	NODE_TEACHING_MODE_START_PACKET,
+	NODE_TEACHING_MODE_END_ACK,
+	NODE_DEBUG_INFO_PACKET,
 
 	/* MISC PACKETS */
-	UNKNOWN_PACKET = 99
+	UNKNOWN_PACKET = 9999
 };
 
 enum ERROR_CODES
@@ -237,11 +240,11 @@ enum ERROR_CODES
 	// Basic
 	FAILURE = -1,
 	SUCCESS,
-	INVALID_JSON_PACKET_ID,
-	INVALID_MSG_SEQ_NO,
-	INVALID_GWY_SER_NO,
-	INVALID_NODE_SER_NO,
-	INVALID_LOCATION_KEY,
+	JSON_PACKET_ID_NOT_FOUND,
+	MSG_SEQ_NO_NOT_FOUND,
+	GWY_SER_NO_NOT_FOUND,
+	NODE_SER_NO_NOT_FOUND,
+	LOCATION_NOT_FOUND,
 	NODE_TIMEOUT,
 
 	// Gwy Registration & Unregistration
@@ -250,6 +253,7 @@ enum ERROR_CODES
 
 	// Node Prov & Unprov
 	NODE_ALREADY_PROV = 200,
+	MAC_ID_NOT_FOUND,
 	NODE_ALREADY_UNPROV,
 
 	// Gwy AC config & Node AC config
@@ -260,31 +264,33 @@ enum ERROR_CODES
 	// Gwy AC control & Node AC control
 	GWY_NOT_REG = 400,
 	GWY_NOT_CONF,
-	INVALID_POWER,
-	INVALID_MODE,
-	INVALID_FAN_SPEED,
-	INVALID_TEMPERATURE,
-	INVALID_SWING_H,
-	INVALID_SWING_V,
-	INVALID_ONTIMER,
-	INVALID_OFFTIMER,
-	INVALID_LOCKING,
-	INVALID_TEMP_UPPER_LIMIT,
-	INVALID_TEMP_LOWER_LIMIT,
-	LOCKING_TEMP_UP_LIMIT_EXCEEDING_TEMP_UP_LIMIT,
-	LOCKING_TEMP_LOW_LIMIT_EXCEEDING_TEMP_LOW_LIMIT,
+	POWER_NOT_FOUND,
+	MODE_NOT_FOUND,
+	FAN_SPEED_NOT_FOUND,
+	TEMPERATURE_NOT_FOUND,
+	SWING_H_NOT_FOUND,
+	SWING_V_NOT_FOUND,
+	ONTIMER_NOT_FOUND,
+	OFFTIMER_NOT_FOUND,
+	LOCKING_NOT_FOUND,
+	TEMP_LOCK_UP_LIMIT_NOT_FOUND,
+	TEMP_LOCK_LOW_LIMIT_NOT_FOUND,
+	TEMP_LOCK_UP_LIMIT_EXCEEDS_ABS_TEMP_UP_LIMIT,
+	TEMP_LOCK_LOW_LIMIT_EXCEEDS_ABS_TEMP_LOW_LIMIT,
 	ILLOGICAL_LOCKING_TEMP_LIMIT,
 	INVALID_ELMNT_ADDR,
-	EXCEEDING_TEMP_LOWER_LIMIT,
-	EXCEEDING_TEMP_UPPER_LIMIT,
+	TEMP_EXCEEDING_ABS_TEMP_RANGE,
 
 	// Publish Configuration
-	INVALID_PUBLISH_PERIOD = 500,
+	PUBLISH_PERIOD_NOT_FOUND = 500,
+	PUBLISH_PERIOD_EXCEEDS_RANGE,
 
 	// Teaching Mode
 	INVALID_STARTING_TEMPERATURE = 600,
 	INVALID_ENDING_TEMPERATURE,
 
+	// Miscellaneous
+	FORBIDDEN = 998,
 	UNKNOWN_ERROR_CODE = 999
 };
 

@@ -147,8 +147,8 @@ static void publish_temperature_cb(void *arg)
             magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
         }
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d}",
-                JSON_PACKET_ID_KEY, GWY_TEMPERATURE_DATA_PACKET,
-                JSON_ACK_NAME_KEY, GWY_TEMPERATURE_DATA_ACK,
+                JSON_PACKET_ID_KEY, GWY_HB_ACK,
+                JSON_ACK_NAME_KEY, GWY_TEMPERATURE_DATA_ACK_NAME,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 TEMPERATURE_DATA_KEY, measured_temperature);
         add_to_pubmesg_queue(pubmessage, publish_topic);

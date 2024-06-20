@@ -854,7 +854,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             }
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_PROV_ACK,
+                    JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no,
@@ -869,7 +869,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", vendor_unprovision_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
+                    JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no,
@@ -883,7 +883,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             ESP_LOGI(MESH_DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d", vendor_node_config_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_CONF_ACK,
+                    JSON_ACK_NAME_KEY, NODE_CONF_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no,
                     ELMNT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
@@ -896,7 +896,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
+                    JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.elementAddr,
@@ -909,7 +909,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK,
+                    JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
@@ -922,17 +922,17 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
                     OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
                     AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
-                    TEMP_UP_LIMIT_KEY, vendor_node_ac_control_t->TempUpLimit,
-                    TEMP_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLowLimit,
+                    TEMP_UP_LIMIT_KEY, vendor_node_ac_control_t->TempLockUpLimit,
+                    TEMP_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLockLowLimit,
                     ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
             break;
 
-        case NODE_MANUAL_AC_CONTROL_ACK_PACKET:
+        case NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET:
             vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK,
+                    JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
@@ -946,12 +946,12 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     OFFTIMER_KEY, vendor_node_manual_ac_control_t->OffTimer);
             break;
 
-        case NODE_TEMPERATURE_DATA_PACKET:
+        case NODE_HEARTBEAT_ACK:
             vendor_node_temperature_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE TEMPERATURE DATA ACK | FROM ELEMADDR : %d", vendor_node_temperature_data_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
+                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
+                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no,
                     ELMNT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
@@ -963,8 +963,8 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_TEMPERATURE_DATA_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK,
+                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
+                    JSON_ACK_NAME_KEY, NODE_TEMPERATURE_DATA_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no,

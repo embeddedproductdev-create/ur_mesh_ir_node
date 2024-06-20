@@ -104,7 +104,7 @@ void maintain_node_pubconf_queue()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_PUB_CONF_PACKET,
-					JSON_ACK_NAME_KEY, NODE_PUB_CONF_ACK,
+					JSON_ACK_NAME_KEY, NODE_PUB_CONF_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
@@ -201,7 +201,7 @@ void maintain_node_reconf_queue()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-					JSON_ACK_NAME_KEY, NODE_RECONF_ACK,
+					JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
@@ -297,7 +297,7 @@ void maintain_node_ac_control_queue()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d,, %s : %s, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-					JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK,
+					JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
@@ -311,8 +311,8 @@ void maintain_node_ac_control_queue()
 					ONTIMER_KEY, temp->OnTimer,
 					OFFTIMER_KEY, temp->OffTimer,
 					AC_LOCKING_KEY, temp->Locking,
-					TEMP_LOCK_UP_LIMIT_KEY, temp->TempUpLimit,
-					TEMP_LOCK_LOW_LIMIT_KEY, temp->TempLowLimit,
+					TEMP_LOCK_UP_LIMIT_KEY, temp->TempLockUpLimit,
+					TEMP_LOCK_LOW_LIMIT_KEY, temp->TempLockLowLimit,
 					ERROR_CODE_KEY, NODE_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_node_control_queue();
@@ -404,7 +404,7 @@ void maintain_unprov_queue()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK,
+					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
@@ -500,7 +500,7 @@ void maintain_prov_queue()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-					JSON_ACK_NAME_KEY, NODE_PROV_ACK,
+					JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
@@ -607,7 +607,7 @@ void maintain_node_teaching_mode_queue_head()
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
 					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
-					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK,
+					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
