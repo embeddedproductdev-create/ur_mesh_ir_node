@@ -170,6 +170,10 @@ void app_main()
     initialize_i2c();
     fetch_from_flash();
 
+    //If the device is Not registered / Not provisioned, set default pub conf value to flash. This is req for factory new devices.
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
+    vTaskDelay(pdMS_TO_TICKS(5));
+
     //Needed by freeRTOS
     BaseType_t xReturned;
     

@@ -721,6 +721,7 @@ void parse_json_packet(char *json_packet)
             registered = true;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, false); // Logic is inverted in Flash. That's why we're writing false here
             vTaskDelay(pdMS_TO_TICKS(5));
+            break; 
 
         case GWY_AC_CONTROL_PACKET:
             gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -786,6 +787,8 @@ void parse_json_packet(char *json_packet)
             cyan_printf(LTE_DEBUG_TAG, "Gwy Publish configuration packet");
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
+            vTaskDelay(pdMS_TO_TICKS(5));
             delete_Temperature_data_publish_timer();
             create_Temperature_data_publish_timer();
             break;

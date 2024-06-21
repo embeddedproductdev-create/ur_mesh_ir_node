@@ -965,6 +965,10 @@ static void store_data_to_node_structures()
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET");
             vendor_node_pub_conf_t = BLE_recvd_data;
             node_pub_conf_t = *vendor_node_pub_conf_t;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            delete_Temperature_data_publish_timer();
+            create_Temperature_data_publish_timer();
             break;
 
         case NODE_TEACHING_MODE_START_PACKET:

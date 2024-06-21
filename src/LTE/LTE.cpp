@@ -443,7 +443,6 @@ void establishMQTTConnectionNew()
 				while(1)
 				{
 					vTaskDelay(pdMS_TO_TICKS(50));
-					// vTaskDelay(pdMS_TO_TICKS(1000)); //Adding a 1s delay to see if this improves the time after which the LTE long run issue occurs
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{
 						mqtt_connected = true;
@@ -455,8 +454,6 @@ void establishMQTTConnectionNew()
 						red_printf(LTE_ERROR_TAG, lte_log_buffer);
 						break;
 					}
-					// Don't try to publish in the middle of sending an IR command or while sending another AT command
-					// Some form of synchronization is required here.
 					if (pubmesg_queue_head != NULL && mqtt_connected)
 					{
 						if (publish_to_mqtt() == SUCCESS)
@@ -633,7 +630,7 @@ void LTE_task(void *args)
 	// send_cmd_and_check_response(LOG_DATA, "AT+CMEE=2\r\n", "TURN ON VERBOSE LOGGING", OK_RESPONSE, 100);
 	while(1)
 	{
-		vTaskDelay(pdMS_TO_TICKS(2000));
+		vTaskDelay(1);
 		establishMQTTConnectionNew();
 	}
 }

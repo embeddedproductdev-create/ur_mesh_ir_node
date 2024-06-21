@@ -146,11 +146,22 @@ static void publish_temperature_cb(void *arg)
             sprintf(temperature_log_buffer, "Sending Gwy Temperature Ack");
             magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
         }
-        sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d}",
+        sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d,  %s : %s, %s : %d,  %s : %d,  %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_HEARTBEAT_ACK,
                 JSON_ACK_NAME_KEY, GWY_HEARTBEAT_ACK_NAME,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                AMBIENT_TEMPERATURE_DATA_KEY, measured_temperature);
+                POWER_KEY, gwy_ac_control_t.control.power,
+                MODE_KEY, gwy_ac_control_t.control.mode_str,
+                FAN_SPEED_KEY, gwy_ac_control_t.control.fan,
+                TEMPERATURE_KEY, gwy_ac_control_t.control.temp,
+                AMBIENT_TEMPERATURE_DATA_KEY, measured_temperature,
+                SWING_H_KEY, gwy_ac_control_t.control.swingH,
+                SWING_V_KEY, gwy_ac_control_t.control.swingV,
+                ONTIMER_KEY, gwy_ac_control_t.control.OnTimer,
+                OFFTIMER_KEY, gwy_ac_control_t.control.OffTimer,
+                AC_LOCKING_KEY, gwy_ac_control_t.control.Locking,
+                TEMP_LOCK_UP_LIMIT_KEY, gwy_ac_control_t.control.TempLockUpLimit,
+                TEMP_LOCK_LOW_LIMIT_KEY, gwy_ac_control_t.control.TempLockUpLimit);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
 #endif
