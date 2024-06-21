@@ -702,7 +702,7 @@ void IR_receiver_task(void *args)
                             JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                             ERROR_CODE_KEY, json_ack_err_code);
-                    white_printf(IR_DEBUG_TAG, "Sending Gwy Configuration ack");
+                    white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
                     add_to_pubmesg_queue(pubmessage, publish_topic);
                 }
 #endif

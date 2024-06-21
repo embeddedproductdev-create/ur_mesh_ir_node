@@ -14,7 +14,7 @@
 
 /* JSON PACKET KEY STRINGS */
 #define JSON_PACKET_ID_KEY "JsonPacketID"
-#define JSON_ACK_NAME_KEY "JsonAckName"
+#define JSON_ACK_NAME_KEY "JsonACKName"
 #define MSG_SEQ_NO_KEY "MsgSeqNo"
 #define GWY_SER_NO_KEY "GwySerNo"
 #define NODE_SER_NO_KEY "NodeSerNo"
@@ -30,8 +30,8 @@
 #define ONTIMER_KEY "OnTimer"
 #define OFFTIMER_KEY "OffTimer"
 #define AC_LOCKING_KEY "Locking"
-#define TEMP_LOW_LIMIT_KEY "TempLockLowLimit"
-#define TEMP_UP_LIMIT_KEY "TempLockUpLimit"
+#define TEMP_LOCK_LOW_LIMIT_KEY "TempLockLowLimit"
+#define TEMP_LOCK_UP_LIMIT_KEY "TempLockUpLimit"
 #define TEMP_LOCK_UP_LIMIT_KEY "TempLockUpLimit"
 #define TEMP_LOCK_LOW_LIMIT_KEY "TempLockLowLimit"
 #define ERROR_CODE_KEY "ErrorCode"
@@ -41,29 +41,29 @@
 #define ENDING_TEMPERATURE_KEY "EndingTemp"
 
 /* JSON ACK NAMES */
-#define GWY_REG_ACK_NAME "Gwy Registration Ack"
-#define GWY_UNREG_ACK_NAME "Gwy Unregistration Ack"
-#define GWY_CONF_ACK_NAME "Gwy Configuration Ack"
-#define GWY_RECONF_ACK_NAME "Gwy Reconfiguration Ack"
-#define GWY_AC_CONTROL_ACK_NAME "Gwy AC Control Ack"
-#define GWY_MANUAL_AC_CONTROL_ACK_NAME "Gwy Manual AC control Ack"
-#define GWY_HEARTBEAT_ACK_NAME "Gwy Temperature Data Ack"
-#define GWY_HEARTBEAT_PUB_CONF_ACK_NAME "Gwy Heartbeat Publish Configuration Ack"
-#define GWY_RESET_MQTT_ACK_NAME "Gwy Reset MQTT Ack"
-#define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start Ack"
-#define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End Ack"
+#define GWY_REG_ACK_NAME "Gwy Registration ACK"
+#define GWY_UNREG_ACK_NAME "Gwy Unregistration ACK"
+#define GWY_CONF_ACK_NAME "Gwy AC Remote Configuration ACK"
+#define GWY_RECONF_ACK_NAME "Gwy AC Remote Reconfiguration ACK"
+#define GWY_AC_CONTROL_ACK_NAME "Gwy AC Control ACK"
+#define GWY_MANUAL_AC_CONTROL_ACK_NAME "Gwy Manual AC control ACK"
+#define GWY_HEARTBEAT_ACK_NAME "Gwy Heartbeat ACK"
+#define GWY_HEARTBEAT_PUB_CONF_ACK_NAME "Gwy Heartbeat Publish Configuration ACK"
+#define GWY_RESET_MQTT_ACK_NAME "Gwy Reset MQTT ACK"
+#define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start ACK"
+#define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End ACK"
 #define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug "
-#define NODE_PROV_ACK_NAME "Node Provisioning Ack"
-#define NODE_UNPROV_ACK_NAME "Node Unprovisioing Ack"
-#define NODE_CONF_ACK_NAME "Node Configuration Ack"
-#define NODE_RECONF_ACK_NAME "Node Reconfiguration Ack"
-#define NODE_AC_CONTROL_ACK_NAME "Node AC Control Ack"
-#define NODE_MANUAL_AC_CONTROL_ACK_NAME "Node Manual AC Control Ack"
-#define NODE_HEARTBEAT_ACK_NAME "Node Heartbeat Ack"
-#define NODE_HEARTBEAT_PUB_CONF_ACK_NAME "Node Heartbeat Publish Configuration Ack"
-#define NODE_TEACHING_MODE_START_ACK_NAME "Node Teaching Mode Start Ack"
-#define NODE_TEACHING_MODE_END_ACK_NAME "Node Teaching Mode End Ack"
-#define NODE_DEBUG_INFO_ACK_NAME "Node Debug Info Ack"
+#define NODE_PROV_ACK_NAME "Node Provisioning ACK"
+#define NODE_UNPROV_ACK_NAME "Node Unprovisioing ACK"
+#define NODE_CONF_ACK_NAME "Node Configuration ACK"
+#define NODE_RECONF_ACK_NAME "Node Reconfiguration ACK"
+#define NODE_AC_CONTROL_ACK_NAME "Node AC Control ACK"
+#define NODE_MANUAL_AC_CONTROL_ACK_NAME "Node Manual AC Control ACK"
+#define NODE_HEARTBEAT_ACK_NAME "Node Heartbeat ACK"
+#define NODE_HEARTBEAT_PUB_CONF_ACK_NAME "Node Heartbeat Publish Configuration ACK"
+#define NODE_TEACHING_MODE_START_ACK_NAME "Node Teaching Mode Start ACK"
+#define NODE_TEACHING_MODE_END_ACK_NAME "Node Teaching Mode End ACK"
+#define NODE_DEBUG_INFO_ACK_NAME "Node Debug Info ACK"
 
 /*AT command related*/
 extern uint8_t MQTT_CLIENT_INDEX;
@@ -93,7 +93,6 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define MQTT_TOPIC_CHAR_LEN 40
 #define NODE_COMM_TIMEOUT_INTERVAL_US (10*1000000) //10seconds
 #define MIN_PUB_CONF_LIMIT 10
-#define INVALID_MAC_ID_CHAR_SET ""
 
 
 #define TEMP_ABS_LOW_LIMIT 18

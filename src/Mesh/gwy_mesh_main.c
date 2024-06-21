@@ -922,8 +922,8 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
                     OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
                     AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
-                    TEMP_UP_LIMIT_KEY, vendor_node_ac_control_t->TempLockUpLimit,
-                    TEMP_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLockLowLimit,
+                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_ac_control_t->TempLockUpLimit,
+                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLockLowLimit,
                     ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
             break;
 

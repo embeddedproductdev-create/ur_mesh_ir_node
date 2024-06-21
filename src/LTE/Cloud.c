@@ -132,6 +132,7 @@ void isValidMacId(char *macid)
  */
 void error_check_json(uint8_t json_packet_id)
 {
+    ESP_LOGI(LTE_DEBUG_TAG, "Error checking received packet ... ");
     /* Common in all Packets */
     /*
         Json packet id should be between (0 and 10) or (100 and 110) or be 99.
@@ -220,7 +221,15 @@ void error_check_json(uint8_t json_packet_id)
             json_ack_err_code = GWY_ALREADY_REG;
             return;
         }
-        if (cJSON_GetObjectItem(json_packet_j, LOCATION_KEY));
+        if (cJSON_GetObjectItem(json_packet_j, LOCATION_KEY))
+        {
+            char location[LOCATION_STR_LEN];
+            strcpy(location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
+            if(strlen(location) > LOCATION_STR_LEN) {
+                json_ack_err_code = LOCATION_EXCEEDING_RANGE;
+                return;
+            }
+        }
         else {
             json_ack_err_code = LOCATION_NOT_FOUND;
             return;
@@ -375,7 +384,15 @@ void error_check_json(uint8_t json_packet_id)
         return;
 
     case NODE_PROV_PACKET:
-        if (cJSON_GetObjectItem(json_packet_j, LOCATION_KEY));
+        if (cJSON_GetObjectItem(json_packet_j, LOCATION_KEY))
+        {
+            char location[LOCATION_STR_LEN];
+            strcpy(location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
+            if(strlen(location) > LOCATION_STR_LEN) {
+                json_ack_err_code = LOCATION_EXCEEDING_RANGE;
+                return;
+            }
+        }
         else {
             json_ack_err_code = LOCATION_NOT_FOUND;
             return;
@@ -688,10 +705,9 @@ void parse_json_packet(char *json_packet)
     else
     {
         json_ack_err_code = JSON_PACKET_ID_NOT_FOUND;
-        return;
     }
 
-    error_check_json(json_packet_id);
+    if(json_ack_err_code == SUCCESS) error_check_json(json_packet_id);
 
     // Pass through only if the recvd packet contains no error
     if (json_ack_err_code == SUCCESS)
@@ -820,6 +836,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case GWY_UNREG_PACKET:
+        //We still need to take care of erasing data and resetting the device back to factory settings upon receving this packet.
             cyan_printf(LTE_DEBUG_TAG, "Gwy Unregistration packet");
             gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
@@ -838,8 +855,8 @@ void parse_json_packet(char *json_packet)
 
         sprintf(lte_log_buffer, "Error Code : %s", get_err_string(json_ack_err_code));
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-        handle_sending_ack_to_cloud(json_packet_id);
     }
+    handle_sending_ack_to_cloud(json_packet_id);
 }
 
 #endif

@@ -36,7 +36,6 @@ let Gwybasejson = {
     "JsonPacketID": msg.payload,
     "MsgSeqNo": randNum,
     "GwySerNo": global.get("GwySerNo"),
-    "Location": global.get("Location")
 };
 
 let Nodebasejson = {
@@ -45,7 +44,6 @@ let Nodebasejson = {
     "GwySerNo": global.get("GwySerNo"),
     "NodeSerNo": global.get("NodeSerNo"),
     "ElementAddr": global.get("ElementAddr"),
-    "Location": global.get("Location")
 }
 
 let json, mergedjson;
@@ -100,13 +98,26 @@ switch (msg.payload) {
 
     case json_packet_enum.NODE_PROV_PACKET:
         json = {
+            "Location": global.get("Location"),
             "MacId": global.get("MacId")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
     case json_packet_enum.GWY_REG_PACKET:
+        json = {
+            "Location": global.get("Location")
+        };
+        msg = { payload: Object.assign({}, Gwybasejson, json) };
+        break;
+
     case json_packet_enum.GWY_UNREG_PACKET:
+        json = {
+            "Location": global.get("Location")
+        };
+        msg = { payload: Object.assign({}, Gwybasejson, json) };
+        break;
+
     case json_packet_enum.GWY_RECONF_PACKET:
     case json_packet_enum.GWY_TEACHING_MODE_START_PACKET:
     case json_packet_enum.GWY_DEBUG_INFO_PACKET:
@@ -115,6 +126,12 @@ switch (msg.payload) {
 
     case json_packet_enum.NODE_RECONF_PACKET:
     case json_packet_enum.NODE_UNPROV_PACKET:
+        json = {
+            "Location": global.get("Location")
+        };
+        msg = { payload: Object.assign({}, Nodebasejson, json) };
+        break;
+
     case json_packet_enum.NODE_TEACHING_MODE_START_PACKET:
     case json_packet_enum.NODE_DEBUG_INFO_PACKET:
         msg = { payload: Nodebasejson };

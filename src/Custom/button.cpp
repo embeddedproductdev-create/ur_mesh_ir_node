@@ -58,7 +58,13 @@ void button_logic()
             {
                 teaching_mode = true;
                 teachMode_size_done = true;
-                green_printf(BUTTON_DEBUG_TAG, "Start of Teaching Mode ( Due to Button press )");
+                green_printf(BUTTON_DEBUG_TAG, "Start of Teaching Mode (Due to Button press)");
+            }
+            else
+            {
+                teaching_mode = false;
+                teachMode_size_done = false;
+                green_printf(BUTTON_DEBUG_TAG, "End of Teaching Mode (Due to Button Press)");
             }
         }
 
