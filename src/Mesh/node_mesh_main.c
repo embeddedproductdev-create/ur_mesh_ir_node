@@ -39,6 +39,7 @@
 
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
+teaching_mode_t *vendor_node_teaching_mode_t;
 pub_conf_t *vendor_node_pub_conf_t;
 uint8_t *BLE_recvd_data;
 
@@ -921,18 +922,38 @@ static void store_data_to_node_structures()
 {
     switch (BLE_recvd_data[0])
     {
-
         case NODE_AC_CONTROL_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL PACKET \r\n");
+            if(!configured)
+            {
+                node_ac_control_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
+                sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
+                example_ble_mesh_send_sensor_status();
+            }
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL PACKET");
             vendor_node_ac_control_t = BLE_recvd_data;
             node_ac_control_t = *vendor_node_ac_control_t;
             sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
             example_ble_mesh_send_sensor_status();
             needToSendIRComamnd = true;
             break;
+        
+        case NODE_DEBUG_INFO_PACKET:
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO PACKET");
+            vendor_node_debug_info_t = BLE_recvd_data;
+            node_debug_info_t = *vendor_node_debug_info_t;
+            fetch_debug_info();
+            sensor_states[0].sensor_data.raw_value->data = &node_debug_info_t;
+            example_ble_mesh_send_sensor_status();
+            break;
 
         case NODE_RECONF_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF PACKET \r\n");
+            if(!configured)
+            {
+                node_reconf_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
+                sensor_states[0].sensor_data.raw_value->data = &node_reconf_t;
+                example_ble_mesh_send_sensor_status();
+            }
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF PACKET");
             vendor_node_reconfigure_t = BLE_recvd_data;
             node_reconf_t = *vendor_node_reconfigure_t;
             configured = false;
@@ -941,18 +962,23 @@ static void store_data_to_node_structures()
             break;
 
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET \r\n");
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET");
             vendor_node_pub_conf_t = BLE_recvd_data;
             node_pub_conf_t = *vendor_node_pub_conf_t;
             break;
 
         case NODE_TEACHING_MODE_START_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START PACKET \r\n");
-            //Adhikesavan's development pending here
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START PACKET");
+            vendor_node_teaching_mode_t = BLE_recvd_data;
+            node_teaching_mode_t = *vendor_node_teaching_mode_t;
+            teaching_mode = true;
+            teachMode_size_done = true;
+            sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
+            example_ble_mesh_send_sensor_status();
             break;
 
         default:
-            ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Gwy\r\n");
+            ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Gwy");
             break;
     }
 }
@@ -990,7 +1016,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
      case ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT");
         ESP_LOGI(MESH_DEBUG_TAG, "TEMPERATURE PERIODIC PUBLISHING");
-        sensor_states[0].sensor_data.raw_value->data = &node_temperature_data_t;
+        sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
         example_ble_mesh_send_sensor_status();
         break;
     default:
@@ -1025,7 +1051,7 @@ static esp_err_t ble_mesh_init(void)
     }
     else
     {
-        provisioned = true;
+        provisioned = false;
     }
     if (err != ESP_OK)
     {
@@ -1094,7 +1120,7 @@ void node_mesh_main_init(void)
  */
 void send_AC_configuration_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Conf ack to Gwy\r\n");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Conf ack to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &node_conf_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1106,7 +1132,7 @@ void send_AC_configuration_ack_to_gwy()
  */
 void send_manual_ac_control_ack_to_gwy(char *description)
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ack to Gwy\r\n");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ack to Gwy");
     // example_ble_mesh_send_sensor_status();
 }
 
@@ -1117,7 +1143,7 @@ void send_manual_ac_control_ack_to_gwy(char *description)
  */
 void send_provisioned_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ack to Gwy\r\n");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ack to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &provision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1129,7 +1155,7 @@ void send_provisioned_ack_to_gwy()
  */
 void send_unprovisioned_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Unprovisioning ack to Gwy\r\n");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Unprovisioning ack to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &unprovision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1141,8 +1167,8 @@ void send_unprovisioned_ack_to_gwy()
  */
 void send_temperature_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Temperature data ack to Gwy\r\n");
-    sensor_states[0].sensor_data.raw_value->data = &node_temperature_data_t;
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Temperature data ack to Gwy");
+    sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
     example_ble_mesh_send_sensor_status();
 }
 

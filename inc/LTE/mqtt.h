@@ -19,6 +19,10 @@
 #define GWY_SER_NO_KEY "GwySerNo"
 #define NODE_SER_NO_KEY "NodeSerNo"
 #define LOCATION_KEY "Location"
+#define APP_KEY_INDEX "AppKeyIndex"
+#define APP_KEY "AppKey"
+#define NET_KEY_INDEX "NetKeyIndex"
+#define NET_KEY "NetKey"
 #define ELEMENT_ADDR_KEY "ElementAddr"
 #define MAC_ID_KEY "MacId"
 #define POWER_KEY "Power"
@@ -35,7 +39,7 @@
 #define TEMP_LOCK_UP_LIMIT_KEY "TempLockUpLimit"
 #define TEMP_LOCK_LOW_LIMIT_KEY "TempLockLowLimit"
 #define ERROR_CODE_KEY "ErrorCode"
-#define TEMPERATURE_DATA_KEY "Temperature"
+#define AMBIENT_TEMPERATURE_DATA_KEY "AmbientTemperature"
 #define PUBLISH_PERIOD_KEY "PublishPeriodSec"
 #define STARTING_TEMPERATURE_KEY "StartingTemp"
 #define ENDING_TEMPERATURE_KEY "EndingTemp"
@@ -94,7 +98,6 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define NODE_COMM_TIMEOUT_INTERVAL_US (10*1000000) //10seconds
 #define MIN_PUB_CONF_LIMIT 10
 
-
 #define TEMP_ABS_LOW_LIMIT 18
 #define TEMP_ABS_UP_LIMIT 32
 
@@ -113,6 +116,22 @@ struct base_data_t
 	bool request_sent_to_node_flag;
 	char ack_name[MQTT_PACKET_NAME_LEN];
 	char location[LOCATION_STR_LEN];
+};
+
+struct ac_control_params_t
+{
+	bool power;
+	char mode_str[15];
+	uint8_t mode_val;
+	uint8_t fan;
+	uint8_t temp;
+	bool swingH;
+	bool swingV;
+	uint16_t OnTimer;
+	uint16_t OffTimer;
+	bool Locking;
+	uint8_t TempLockUpLimit;
+	uint8_t TempLockLowLimit;
 };
 
 typedef struct mqtt_reset_struct
@@ -140,18 +159,7 @@ typedef struct reconf_struct
 typedef struct control_struct
 {
 	struct base_data_t base_data;
-	bool power;
-	char mode_str[15];
-	uint8_t mode_val;
-	uint8_t fan;
-	uint8_t temp;
-	bool swingH;
-	bool swingV;
-	uint16_t OnTimer;
-	uint16_t OffTimer;
-	bool Locking;
-	uint8_t TempLockUpLimit;
-	uint8_t TempLockLowLimit;
+	struct ac_control_params_t control;
 	struct control_struct *next;
 	struct control_struct *prev;
 } control_t;
@@ -190,11 +198,18 @@ typedef struct pub_conf_struct
 	struct pub_conf_struct *prev;
 } pub_conf_t;
 
-typedef struct TEMPERATURE_DATA_KEYuct
+typedef struct heartbeat_struct_t
 {
 	struct base_data_t base_data;
+	struct ac_control_params_t control;
 	uint8_t measured_temperature;
-} temperature_data_t;
+} heartbeat_t;
+
+typedef struct manual_ac_control_ack_t
+{
+	struct base_data_t base_data;
+	struct ac_control_params_t control;
+} manual_ac_control_t;
 
 typedef struct pub_mesg_struct
 {
@@ -233,7 +248,7 @@ enum json_packet_enum
 	NODE_CONF_PACKET,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
-	NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET,
+	NODE_MANUAL_AC_CONTROL_ACK,
 	NODE_RECONF_PACKET,
 	NODE_HEARTBEAT_ACK,
 	NODE_HEARTBEAT_PUB_CONF_PACKET,
@@ -337,7 +352,7 @@ extern control_t gwy_ac_control_t;
 extern control_t gwy_locking_t;
 
 /*gwy temperature data*/
-extern temperature_data_t gwy_temperature_data_t;
+extern heartbeat_t gwy_heartbeat_t;
 
 /*gwy publish configuration*/
 extern pub_conf_t gwy_pub_conf_t;
@@ -380,7 +395,7 @@ extern reconf_t *node_reconf_queue_head;
 extern reconf_t *node_reconf_queue_tail;
 
 /*node temperature data*/
-extern temperature_data_t node_temperature_data_t;
+extern heartbeat_t node_heartbeat_t;
 
 /*node publish configuration*/
 extern pub_conf_t node_pub_conf_t;

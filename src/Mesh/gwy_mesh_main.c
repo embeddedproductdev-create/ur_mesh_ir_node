@@ -73,7 +73,7 @@ prov_t *vendor_provision_t;
 unprov_t *vendor_unprovision_t;
 reconf_t *vendor_node_reconf_t;
 reconf_t *vendor_node_config_t;
-temperature_data_t *vendor_node_temperature_data_t;
+heartbeat_t *vendor_node_heartbeat_t;
 pub_conf_t *vendor_node_pub_conf_t;
 
 #define NVS_NAME "mesh_example"
@@ -826,6 +826,11 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
     }
 }
 
+/**
+ * @brief This function takes care of sending the Node acknowledgements back to cloud
+ * @param param 
+ * @retval none
+ */
 static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t *param)
 {
     char pubmessage[PUBMESG_LEN];
@@ -834,9 +839,92 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
     {
         switch (recvd_json_id)
         {
-        default:
-            ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Node\r\n");
-            return;
+        case NODE_HEARTBEAT_ACK:
+            vendor_node_heartbeat_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE HEARTBEAT ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_t->base_data.elementAddr);
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %s, %s : %d, %s : %d}",
+                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
+                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_heartbeat_t->base_data.node_ser_no_str,
+                    ELEMENT_ADDR_KEY, vendor_node_heartbeat_t->base_data.elementAddr,
+                    POWER_KEY, vendor_node_heartbeat_t->
+                    MODE_KEY,
+                    FAN_SPEED_KEY,
+                    TEMPERATURE_KEY,
+                    AMBIENT_TEMPERATURE_DATA_KEY, vendor_node_heartbeat_t->measured_temperature);
+            break;
+
+        case NODE_AC_CONTROL_PACKET:
+            remove_from_node_control_queue();
+            vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+                    JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
+                    MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
+                    POWER_KEY, vendor_node_ac_control_t->power,
+                    MODE_KEY, vendor_node_ac_control_t->mode_str,
+                    FAN_SPEED_KEY, vendor_node_ac_control_t->fan,
+                    TEMPERATURE_KEY, vendor_node_ac_control_t->temp,
+                    SWING_H_KEY, vendor_node_ac_control_t->swingH,
+                    SWING_V_KEY, vendor_node_ac_control_t->swingV,
+                    ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
+                    OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
+                    AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
+                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_ac_control_t->TempLockUpLimit,
+                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLockLowLimit,
+                    ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
+            break;
+        
+        case NODE_RECONF_PACKET:
+            remove_from_node_reconf_queue();
+            vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
+                    JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
+                    MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.elementAddr,
+                    ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
+            break;
+            
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            remove_from_node_pub_conf_queue();
+            vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
+                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
+                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
+                    MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no_str,
+                    ELEMENT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
+                    PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
+                    ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);
+            break;
+        
+        case NODE_MANUAL_AC_CONTROL_ACK:
+            vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+                    JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK,
+                    JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME,
+                    MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                    NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
+                    POWER_KEY, vendor_node_manual_ac_control_t->power,
+                    MODE_KEY, vendor_node_manual_ac_control_t->mode_str,
+                    FAN_SPEED_KEY, vendor_node_manual_ac_control_t->fan,
+                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->temp,
+                    SWING_H_KEY, vendor_node_manual_ac_control_t->swingH,
+                    SWING_V_KEY, vendor_node_manual_ac_control_t->swingV,
+                    ONTIMER_KEY, vendor_node_manual_ac_control_t->OnTimer,
+                    OFFTIMER_KEY, vendor_node_manual_ac_control_t->OffTimer);
+            break;
 
         case NODE_PROV_PACKET:
             remove_from_prov_queue();
@@ -860,6 +948,10 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
                     LOCATION_KEY, vendor_provision_t->base_data.location,
+                    APP_KEY_INDEX, vendor_provision_t->appindex,
+                    APP_KEY, vendor_provision_t->appkey,
+                    NET_KEY_INDEX, vendor_provision_t->netindex,
+                    NET_KEY, vendor_provision_t->netkey,
                     ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
             break;
 
@@ -890,88 +982,9 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
             break;
 
-        case NODE_RECONF_PACKET:
-            remove_from_node_reconf_queue();
-            vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.elementAddr,
-                    ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
-            break;
-
-        case NODE_AC_CONTROL_PACKET:
-            remove_from_node_control_queue();
-            vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
-                    POWER_KEY, vendor_node_ac_control_t->power,
-                    MODE_KEY, vendor_node_ac_control_t->mode_str,
-                    FAN_SPEED_KEY, vendor_node_ac_control_t->fan,
-                    TEMPERATURE_KEY, vendor_node_ac_control_t->temp,
-                    SWING_H_KEY, vendor_node_ac_control_t->swingH,
-                    SWING_V_KEY, vendor_node_ac_control_t->swingV,
-                    ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
-                    OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
-                    AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
-                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_ac_control_t->TempLockUpLimit,
-                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLockLowLimit,
-                    ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
-            break;
-
-        case NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET:
-            vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
-                    POWER_KEY, vendor_node_manual_ac_control_t->power,
-                    MODE_KEY, vendor_node_manual_ac_control_t->mode_str,
-                    FAN_SPEED_KEY, vendor_node_manual_ac_control_t->fan,
-                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->temp,
-                    SWING_H_KEY, vendor_node_manual_ac_control_t->swingH,
-                    SWING_V_KEY, vendor_node_manual_ac_control_t->swingV,
-                    ONTIMER_KEY, vendor_node_manual_ac_control_t->OnTimer,
-                    OFFTIMER_KEY, vendor_node_manual_ac_control_t->OffTimer);
-            break;
-
-        case NODE_HEARTBEAT_ACK:
-            vendor_node_temperature_data_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "Node Heartbeat Ack | FROM ELEMADDR : %d", vendor_node_temperature_data_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %s, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_temperature_data_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_node_temperature_data_t->base_data.elementAddr,
-                    TEMPERATURE_DATA_KEY, vendor_node_temperature_data_t->measured_temperature);
-            break;
-
-        case NODE_HEARTBEAT_PUB_CONF_PACKET:
-            remove_from_node_pub_conf_queue();
-            vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
-                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
-                    PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
-                    ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);
-            break;
+        default:
+            ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Node\r\n");
+            return;
         }
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }

@@ -117,16 +117,16 @@ void IR_transmit(uint16_t protocol)
         sprintf(ir_log_buffer, "Size of data : %d\t", convert_data);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
         eeprom_addr = TEACH_DATA_POFF;
-        if (gwy_ac_control_t.power)
+        if (gwy_ac_control_t.control.power)
         {
-            if (gwy_ac_control_t.temp > FETCH_ADDR_LOW)
-                eeprom_addr = (TEACH_DATA_POFF + (MAX_OFFSET * (gwy_ac_control_t.temp - FETCH_ADDR_LOW)));
+            if (gwy_ac_control_t.control.temp > FETCH_ADDR_LOW)
+                eeprom_addr = (TEACH_DATA_POFF + (MAX_OFFSET * (gwy_ac_control_t.control.temp - FETCH_ADDR_LOW)));
             else
                 ESP_LOGE(IR_ERROR_TAG, "Not an valid temperature\r\n");
         }
         sprintf(ir_log_buffer, "EEPROM ADDR : %d\n", eeprom_addr);
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        if ((convert_data <= MAX_OFFSET) && (eeprom_addr <= TEACH_DATA_PON_32C) && ((gwy_ac_control_t.temp >= TEACHING_MODE_STARTING_TEMPERATURE) && ((gwy_ac_control_t.temp <= TEACHING_MODE_ENDING_TEMPERATURE) || !gwy_ac_control_t.power)))
+        if ((convert_data <= MAX_OFFSET) && (eeprom_addr <= TEACH_DATA_PON_32C) && ((gwy_ac_control_t.control.temp >= TEACHING_MODE_STARTING_TEMPERATURE) && ((gwy_ac_control_t.control.temp <= TEACHING_MODE_ENDING_TEMPERATURE) || !gwy_ac_control_t.control.power)))
         {
             read_from_memory(custom_raw_buffer, convert_data, eeprom_addr);
             ac_custom.sendRaw(custom_raw_buffer, convert_data / 2, 41);
@@ -140,18 +140,18 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN:
         strcpy(protocol_chosen_str, "Daikin280");
-        ac_daikin280.setPower(gwy_ac_control_t.power);
-        ac_daikin280.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
-            gwy_ac_control_t.swingH = kDaikinSwingOn;
-        ac_daikin280.setSwingHorizontal(gwy_ac_control_t.swingH);
-        if (gwy_ac_control_t.swingV)
-            gwy_ac_control_t.swingV = kDaikinSwingOn;
-        ac_daikin280.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin280.setFan(gwy_ac_control_t.fan);
-        ac_daikin280.enableOffTimer(gwy_ac_control_t.OffTimer);
-        ac_daikin280.enableOnTimer(gwy_ac_control_t.OnTimer);
-        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin280.setPower(gwy_ac_control_t.control.power);
+        ac_daikin280.setTemp(gwy_ac_control_t.control.temp);
+        if (gwy_ac_control_t.control.swingH)
+            gwy_ac_control_t.control.swingH = kDaikinSwingOn;
+        ac_daikin280.setSwingHorizontal(gwy_ac_control_t.control.swingH);
+        if (gwy_ac_control_t.control.swingV)
+            gwy_ac_control_t.control.swingV = kDaikinSwingOn;
+        ac_daikin280.setSwingVertical(gwy_ac_control_t.control.swingV);
+        ac_daikin280.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin280.enableOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_daikin280.enableOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin280.send();
         sprintf(ir_log_buffer, "Sending Daikin280");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -159,27 +159,27 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN200:
         strcpy(protocol_chosen_str, "Daikin200");
-        ac_daikin200.setPower(gwy_ac_control_t.power);
-        ac_daikin200.setSwingHorizontal(gwy_ac_control_t.swingH);
-        ac_daikin200.setFan(gwy_ac_control_t.fan);
-        ac_daikin200.setTemp(gwy_ac_control_t.temp);
-        ac_daikin200.setMode(ac_daikin200.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin200.setPower(gwy_ac_control_t.control.power);
+        ac_daikin200.setSwingHorizontal(gwy_ac_control_t.control.swingH);
+        ac_daikin200.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin200.setTemp(gwy_ac_control_t.control.temp);
+        ac_daikin200.setMode(ac_daikin200.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin200.send();
         ESP_LOGI(IR_DEBUG_TAG, "Sending Daikin200\r\n");
         break;
 
     case DAIKIN216:
         strcpy(protocol_chosen_str, "Daikin216");
-        ac_daikin216.setPower(gwy_ac_control_t.power);
-        ac_daikin216.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
-            gwy_ac_control_t.swingH = kDaikinSwingOn;
-        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.swingH);
-        if (gwy_ac_control_t.swingV)
-            gwy_ac_control_t.swingV = kDaikinSwingOn;
-        ac_daikin216.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin216.setFan(gwy_ac_control_t.fan);
-        ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin216.setPower(gwy_ac_control_t.control.power);
+        ac_daikin216.setTemp(gwy_ac_control_t.control.temp);
+        if (gwy_ac_control_t.control.swingH)
+            gwy_ac_control_t.control.swingH = kDaikinSwingOn;
+        ac_daikin216.setSwingHorizontal(gwy_ac_control_t.control.swingH);
+        if (gwy_ac_control_t.control.swingV)
+            gwy_ac_control_t.control.swingV = kDaikinSwingOn;
+        ac_daikin216.setSwingVertical(gwy_ac_control_t.control.swingV);
+        ac_daikin216.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin216.send();
         sprintf(ir_log_buffer, "Sending Daikin216");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -187,20 +187,20 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN2:
         strcpy(protocol_chosen_str, "Daikin2");
-        ac_daikin2.setPower(gwy_ac_control_t.power);
-        ac_daikin2.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
+        ac_daikin2.setPower(gwy_ac_control_t.control.power);
+        ac_daikin2.setTemp(gwy_ac_control_t.control.temp);
+        if (gwy_ac_control_t.control.swingH)
             ac_daikin2.setSwingHorizontal(kDaikin2SwingHAuto);
         else
             ac_daikin2.setSwingHorizontal(kDaikin2SwingHOff);
-        if (gwy_ac_control_t.swingV)
+        if (gwy_ac_control_t.control.swingV)
             ac_daikin2.setSwingVertical(kDaikin2SwingVAuto);
         else
             ac_daikin2.setSwingVertical(kDaikin2SwingVOff);
-        ac_daikin2.setFan(gwy_ac_control_t.fan);
-        ac_daikin2.enableOffTimer(gwy_ac_control_t.OffTimer);
-        ac_daikin2.enableOnTimer(gwy_ac_control_t.OnTimer);
-        ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin2.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin2.enableOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_daikin2.enableOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin2.send();
         sprintf(ir_log_buffer, "Sending Daikin2");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -208,12 +208,12 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN160:
         strcpy(protocol_chosen_str, "Daikin160");
-        ac_daikin160.setPower(gwy_ac_control_t.power);
-        ac_daikin160.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingV)
+        ac_daikin160.setPower(gwy_ac_control_t.control.power);
+        ac_daikin160.setTemp(gwy_ac_control_t.control.temp);
+        if (gwy_ac_control_t.control.swingV)
             ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
-        ac_daikin160.setFan(gwy_ac_control_t.fan);
-        ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin160.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin160.send();
         sprintf(ir_log_buffer, "Sending Daikin160");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -221,14 +221,14 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN176:
         strcpy(protocol_chosen_str, "Daikin176");
-        ac_daikin176.setPower(gwy_ac_control_t.power);
-        ac_daikin176.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingH)
+        ac_daikin176.setPower(gwy_ac_control_t.control.power);
+        ac_daikin176.setTemp(gwy_ac_control_t.control.temp);
+        if (gwy_ac_control_t.control.swingH)
             ac_daikin176.setSwingHorizontal(kDaikin176SwingHAuto);
         else
             ac_daikin176.setSwingHorizontal(kDaikin176SwingHOff);
-        ac_daikin176.setFan(gwy_ac_control_t.fan);
-        ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin176.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin176.send();
         sprintf(ir_log_buffer, "Sending Daikin176");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -236,13 +236,13 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN64:
         strcpy(protocol_chosen_str, "Daikin64");
-        ac_daikinac64.setPowerToggle(gwy_ac_control_t.power);
-        ac_daikinac64.setTemp(gwy_ac_control_t.temp);
-        ac_daikinac64.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikinac64.setFan(gwy_ac_control_t.fan);
-        ac_daikinac64.setOnTime(gwy_ac_control_t.OffTimer);
-        ac_daikinac64.setOffTime(gwy_ac_control_t.OnTimer);
-        ac_daikinac64.setMode(ac_daikinac64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikinac64.setPowerToggle(gwy_ac_control_t.control.power);
+        ac_daikinac64.setTemp(gwy_ac_control_t.control.temp);
+        ac_daikinac64.setSwingVertical(gwy_ac_control_t.control.swingV);
+        ac_daikinac64.setFan(gwy_ac_control_t.control.fan);
+        ac_daikinac64.setOnTime(gwy_ac_control_t.control.OffTimer);
+        ac_daikinac64.setOffTime(gwy_ac_control_t.control.OnTimer);
+        ac_daikinac64.setMode(ac_daikinac64.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikinac64.send();
         sprintf(ir_log_buffer, "Sending Daikin64");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -250,11 +250,11 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN152:
         strcpy(protocol_chosen_str, "Daikin152");
-        ac_daikin152.setPower(gwy_ac_control_t.power);
-        ac_daikin152.setTemp(gwy_ac_control_t.temp);
-        ac_daikin152.setSwingV(gwy_ac_control_t.swingV);
-        ac_daikin152.setFan(gwy_ac_control_t.fan);
-        ac_daikin152.setMode(ac_daikin152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin152.setPower(gwy_ac_control_t.control.power);
+        ac_daikin152.setTemp(gwy_ac_control_t.control.temp);
+        ac_daikin152.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_daikin152.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin152.setMode(ac_daikin152.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin152.send();
         sprintf(ir_log_buffer, "Sending Daikin152");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -262,13 +262,13 @@ void IR_transmit(uint16_t protocol)
 
     case DAIKIN128:
         strcpy(protocol_chosen_str, "Daikin128");
-        ac_daikin128.setPowerToggle(gwy_ac_control_t.power);
-        ac_daikin128.setTemp(gwy_ac_control_t.temp);
-        ac_daikin128.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_daikin128.setFan(gwy_ac_control_t.fan);
-        ac_daikin128.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_daikin128.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_daikin128.setPowerToggle(gwy_ac_control_t.control.power);
+        ac_daikin128.setTemp(gwy_ac_control_t.control.temp);
+        ac_daikin128.setSwingVertical(gwy_ac_control_t.control.swingV);
+        ac_daikin128.setFan(gwy_ac_control_t.control.fan);
+        ac_daikin128.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_daikin128.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin128.send();
         sprintf(ir_log_buffer, "Sending Daikin128");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -276,10 +276,10 @@ void IR_transmit(uint16_t protocol)
 
     case HITACHI_AC296:
         strcpy(protocol_chosen_str, "Hitachi296");
-        ac_hitachi296.setPower(gwy_ac_control_t.power);
-        ac_hitachi296.setTemp(gwy_ac_control_t.temp);
-        ac_hitachi296.setFan(gwy_ac_control_t.fan);
-        ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_hitachi296.setPower(gwy_ac_control_t.control.power);
+        ac_hitachi296.setTemp(gwy_ac_control_t.control.temp);
+        ac_hitachi296.setFan(gwy_ac_control_t.control.fan);
+        ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_hitachi296.send();
         sprintf(ir_log_buffer, "Sending Hitachi296");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -287,12 +287,12 @@ void IR_transmit(uint16_t protocol)
 
     case HITACHI_AC:
         strcpy(protocol_chosen_str, "HitachiAc224");
-        ac_hitachi224.setPower(gwy_ac_control_t.power);
-        ac_hitachi224.setTemp(gwy_ac_control_t.temp);
-        ac_hitachi224.setFan(gwy_ac_control_t.fan);
-        ac_hitachi224.setSwingHorizontal(gwy_ac_control_t.swingH);
-        ac_hitachi224.setSwingVertical(gwy_ac_control_t.swingV);
-        ac_hitachi224.setMode(ac_hitachi224.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_hitachi224.setPower(gwy_ac_control_t.control.power);
+        ac_hitachi224.setTemp(gwy_ac_control_t.control.temp);
+        ac_hitachi224.setFan(gwy_ac_control_t.control.fan);
+        ac_hitachi224.setSwingHorizontal(gwy_ac_control_t.control.swingH);
+        ac_hitachi224.setSwingVertical(gwy_ac_control_t.control.swingV);
+        ac_hitachi224.setMode(ac_hitachi224.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_hitachi224.send();
         sprintf(ir_log_buffer, "Sending HitachiAc224");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -300,14 +300,14 @@ void IR_transmit(uint16_t protocol)
 
     case HITACHI_AC1:
         strcpy(protocol_chosen_str, "HitachiAc104");
-        ac_hitachi104.setPower(gwy_ac_control_t.power);
-        ac_hitachi104.setTemp(gwy_ac_control_t.temp);
-        ac_hitachi104.setFan(gwy_ac_control_t.fan);
-        ac_hitachi104.setSwingH(gwy_ac_control_t.swingH);
-        ac_hitachi104.setSwingV(gwy_ac_control_t.swingV);
-        ac_hitachi104.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_hitachi104.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_hitachi104.setMode(ac_hitachi104.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_hitachi104.setPower(gwy_ac_control_t.control.power);
+        ac_hitachi104.setTemp(gwy_ac_control_t.control.temp);
+        ac_hitachi104.setFan(gwy_ac_control_t.control.fan);
+        ac_hitachi104.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_hitachi104.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_hitachi104.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_hitachi104.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_hitachi104.setMode(ac_hitachi104.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_hitachi104.send();
         sprintf(ir_log_buffer, "Sending HitachiAc104");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -315,11 +315,11 @@ void IR_transmit(uint16_t protocol)
 
     case HITACHI_AC424:
         strcpy(protocol_chosen_str, "HitachiAc424");
-        ac_hitachi424.setPower(gwy_ac_control_t.power);
-        ac_hitachi424.setTemp(gwy_ac_control_t.temp);
-        ac_hitachi424.setFan(gwy_ac_control_t.fan);
-        ac_hitachi424.setSwingVToggle(gwy_ac_control_t.swingV);
-        ac_hitachi424.setMode(ac_hitachi424.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_hitachi424.setPower(gwy_ac_control_t.control.power);
+        ac_hitachi424.setTemp(gwy_ac_control_t.control.temp);
+        ac_hitachi424.setFan(gwy_ac_control_t.control.fan);
+        ac_hitachi424.setSwingVToggle(gwy_ac_control_t.control.swingV);
+        ac_hitachi424.setMode(ac_hitachi424.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_hitachi424.send();
         sprintf(ir_log_buffer, "Sending HitachiAc424");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -327,15 +327,15 @@ void IR_transmit(uint16_t protocol)
 
     case HITACHI_AC344:
         strcpy(protocol_chosen_str, "HitachiAc344");
-        ac_hitachi344.setSwingH(gwy_ac_control_t.swingH);
-        ac_hitachi344.setSwingV(gwy_ac_control_t.swingV);
+        ac_hitachi344.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_hitachi344.setSwingV(gwy_ac_control_t.control.swingV);
         ac_hitachi344.send();
         sprintf(ir_log_buffer, "Sending HitachiAc344");
         break;
 
     case HITACHI_AC264:
         strcpy(protocol_chosen_str, "HitachiAc264");
-        ac_hitachi264.setFan(gwy_ac_control_t.fan);
+        ac_hitachi264.setFan(gwy_ac_control_t.control.fan);
         ac_hitachi264.send();
         sprintf(ir_log_buffer, "Sending HitachiAc264");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -343,14 +343,14 @@ void IR_transmit(uint16_t protocol)
 
     case VOLTAS:
         strcpy(protocol_chosen_str, "Voltas");
-        ac_voltas.setPower(gwy_ac_control_t.power);
-        ac_voltas.setTemp(gwy_ac_control_t.temp);
-        ac_voltas.setSwingH(gwy_ac_control_t.swingH);
-        ac_voltas.setSwingV(gwy_ac_control_t.swingV);
-        ac_voltas.setFan(gwy_ac_control_t.fan);
-        ac_voltas.setOffTime(gwy_ac_control_t.OffTimer);
-        ac_voltas.setOnTime(gwy_ac_control_t.OnTimer);
-        ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_voltas.setPower(gwy_ac_control_t.control.power);
+        ac_voltas.setTemp(gwy_ac_control_t.control.temp);
+        ac_voltas.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_voltas.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_voltas.setFan(gwy_ac_control_t.control.fan);
+        ac_voltas.setOffTime(gwy_ac_control_t.control.OffTimer);
+        ac_voltas.setOnTime(gwy_ac_control_t.control.OnTimer);
+        ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_voltas.send();
         sprintf(ir_log_buffer, "Sending Voltas\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -358,14 +358,14 @@ void IR_transmit(uint16_t protocol)
 
     case SAMSUNG_AC:
         strcpy(protocol_chosen_str, "Samsung");
-        ac_samsung.setPower(gwy_ac_control_t.power);
-        ac_samsung.setTemp(gwy_ac_control_t.temp);
-        ac_samsung.setSwingH(gwy_ac_control_t.swingH);
-        ac_samsung.setSwing(gwy_ac_control_t.swingV);
-        ac_samsung.setFan(gwy_ac_control_t.fan);
-        ac_samsung.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_samsung.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_samsung.setMode(ac_samsung.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_samsung.setPower(gwy_ac_control_t.control.power);
+        ac_samsung.setTemp(gwy_ac_control_t.control.temp);
+        ac_samsung.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_samsung.setSwing(gwy_ac_control_t.control.swingV);
+        ac_samsung.setFan(gwy_ac_control_t.control.fan);
+        ac_samsung.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_samsung.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_samsung.setMode(ac_samsung.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_samsung.send();
         sprintf(ir_log_buffer, "Sending Samsung\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -374,12 +374,12 @@ void IR_transmit(uint16_t protocol)
     case HAIER_AC:
         strcpy(protocol_chosen_str, "Haier");
         // Regarding Power on/off and horizontal swing control we don't have library support
-        ac_haier.setTemp(gwy_ac_control_t.temp);
-        ac_haier.setSwingV(gwy_ac_control_t.swingV);
-        ac_haier.setFan(gwy_ac_control_t.fan);
-        ac_haier.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_haier.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_haier.setTemp(gwy_ac_control_t.control.temp);
+        ac_haier.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_haier.setFan(gwy_ac_control_t.control.fan);
+        ac_haier.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_haier.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_haier.send();
         sprintf(ir_log_buffer, "Sending Haier\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -387,14 +387,14 @@ void IR_transmit(uint16_t protocol)
 
     case HAIER_AC176:
         strcpy(protocol_chosen_str, "Haier176");
-        ac_haier176.setPower(gwy_ac_control_t.power);
-        ac_haier176.setTemp(gwy_ac_control_t.temp);
-        ac_haier176.setSwingH(gwy_ac_control_t.swingH);
-        ac_haier176.setSwingV(gwy_ac_control_t.swingV);
-        ac_haier176.setFan(gwy_ac_control_t.fan);
-        ac_haier176.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_haier176.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_haier176.setPower(gwy_ac_control_t.control.power);
+        ac_haier176.setTemp(gwy_ac_control_t.control.temp);
+        ac_haier176.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_haier176.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_haier176.setFan(gwy_ac_control_t.control.fan);
+        ac_haier176.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_haier176.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_haier176.send();
         sprintf(ir_log_buffer, "Sending Haier176\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -403,13 +403,13 @@ void IR_transmit(uint16_t protocol)
     case HAIER_AC160:
         // Regarding horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "Haier160");
-        ac_haier160.setPower(gwy_ac_control_t.power);
-        ac_haier160.setTemp(gwy_ac_control_t.temp);
-        ac_haier160.setSwingV(gwy_ac_control_t.swingV);
-        ac_haier160.setFan(gwy_ac_control_t.fan);
-        ac_haier160.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_haier160.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_haier160.setPower(gwy_ac_control_t.control.power);
+        ac_haier160.setTemp(gwy_ac_control_t.control.temp);
+        ac_haier160.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_haier160.setFan(gwy_ac_control_t.control.fan);
+        ac_haier160.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_haier160.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_haier160.send();
         sprintf(ir_log_buffer, "Sending Haier160\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -418,13 +418,13 @@ void IR_transmit(uint16_t protocol)
     case CARRIER_AC64:
         // Regarding horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "CarrierAC64");
-        ac_carrier64.setPower(gwy_ac_control_t.power);
-        ac_carrier64.setTemp(gwy_ac_control_t.temp);
-        ac_carrier64.setSwingV(gwy_ac_control_t.swingV);
-        ac_carrier64.setFan(gwy_ac_control_t.fan);
-        ac_carrier64.setOffTimer(gwy_ac_control_t.OffTimer);
-        ac_carrier64.setOnTimer(gwy_ac_control_t.OnTimer);
-        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_carrier64.setPower(gwy_ac_control_t.control.power);
+        ac_carrier64.setTemp(gwy_ac_control_t.control.temp);
+        ac_carrier64.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_carrier64.setFan(gwy_ac_control_t.control.fan);
+        ac_carrier64.setOffTimer(gwy_ac_control_t.control.OffTimer);
+        ac_carrier64.setOnTimer(gwy_ac_control_t.control.OnTimer);
+        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_carrier64.send();
         sprintf(ir_log_buffer, "Sending CarrierAC64\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -434,12 +434,12 @@ void IR_transmit(uint16_t protocol)
     case LG:
         // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "LG");
-        ac_lg.setPower(gwy_ac_control_t.power);
-        ac_lg.setTemp(gwy_ac_control_t.temp);
-        ac_lg.setSwingH(gwy_ac_control_t.swingH);
-        ac_lg.setSwingV(gwy_ac_control_t.swingV);
-        ac_lg.setFan(gwy_ac_control_t.fan);
-        ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_lg.setPower(gwy_ac_control_t.control.power);
+        ac_lg.setTemp(gwy_ac_control_t.control.temp);
+        ac_lg.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_lg.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_lg.setFan(gwy_ac_control_t.control.fan);
+        ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_lg.send();
         sprintf(ir_log_buffer, "Sending LG\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -448,10 +448,10 @@ void IR_transmit(uint16_t protocol)
     case TOSHIBA_AC:
         // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "Toshiba");
-        ac_toshiba.setPower(gwy_ac_control_t.power);
-        ac_toshiba.setTemp(gwy_ac_control_t.temp);
-        ac_toshiba.setFan(gwy_ac_control_t.fan);
-        if (gwy_ac_control_t.swingV || gwy_ac_control_t.swingH)
+        ac_toshiba.setPower(gwy_ac_control_t.control.power);
+        ac_toshiba.setTemp(gwy_ac_control_t.control.temp);
+        ac_toshiba.setFan(gwy_ac_control_t.control.fan);
+        if (gwy_ac_control_t.control.swingV || gwy_ac_control_t.control.swingH)
         {
             /*Library seems like they only do swing on/off so that only i am having an
             condition check for both horizontal and vertical*/
@@ -461,7 +461,7 @@ void IR_transmit(uint16_t protocol)
         {
             ac_toshiba.setSwing(kToshibaAcSwingOff);
         }
-        ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_toshiba.send();
         sprintf(ir_log_buffer, "Sending Toshiba\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -470,12 +470,12 @@ void IR_transmit(uint16_t protocol)
     case MITSUBISHI112:
         // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "Mitsubishi112");
-        ac_mitsubishi112.setPower(gwy_ac_control_t.power);
-        ac_mitsubishi112.setTemp(gwy_ac_control_t.temp);
-        ac_mitsubishi112.setSwingH(gwy_ac_control_t.swingH);
-        ac_mitsubishi112.setSwingV(gwy_ac_control_t.swingV);
-        ac_mitsubishi112.setFan(gwy_ac_control_t.fan);
-        ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_mitsubishi112.setPower(gwy_ac_control_t.control.power);
+        ac_mitsubishi112.setTemp(gwy_ac_control_t.control.temp);
+        ac_mitsubishi112.setSwingH(gwy_ac_control_t.control.swingH);
+        ac_mitsubishi112.setSwingV(gwy_ac_control_t.control.swingV);
+        ac_mitsubishi112.setFan(gwy_ac_control_t.control.fan);
+        ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_mitsubishi112.send();
         sprintf(ir_log_buffer, "Sending Mitsubishi112\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -484,14 +484,14 @@ void IR_transmit(uint16_t protocol)
     case MITSUBISHI136:
         // Regarding on/off timer and horizontal swing we don't have library support
         strcpy(protocol_chosen_str, "Mitsubishi136");
-        ac_mitsubishi136.setPower(gwy_ac_control_t.power);
-        ac_mitsubishi136.setTemp(gwy_ac_control_t.temp);
-        if (gwy_ac_control_t.swingV)
+        ac_mitsubishi136.setPower(gwy_ac_control_t.control.power);
+        ac_mitsubishi136.setTemp(gwy_ac_control_t.control.temp);
+        if (gwy_ac_control_t.control.swingV)
         {
             ac_mitsubishi136.setSwingV(kMitsubishi136SwingVAuto);
         }
-        ac_mitsubishi136.setFan(gwy_ac_control_t.fan);
-        ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_mitsubishi136.setFan(gwy_ac_control_t.control.fan);
+        ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_mitsubishi136.send();
         sprintf(ir_log_buffer, "Sending Mitsubishi136\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -500,10 +500,10 @@ void IR_transmit(uint16_t protocol)
     case MITSUBISHI_AC:
         // Regarding on/off timer and  swing we don't have library support
         strcpy(protocol_chosen_str, "MitsubishiAc");
-        ac_mitsubishi144.setPower(gwy_ac_control_t.power);
-        ac_mitsubishi144.setTemp(gwy_ac_control_t.temp);
-        ac_mitsubishi144.setFan(gwy_ac_control_t.fan);
-        ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_mitsubishi144.setPower(gwy_ac_control_t.control.power);
+        ac_mitsubishi144.setTemp(gwy_ac_control_t.control.temp);
+        ac_mitsubishi144.setFan(gwy_ac_control_t.control.fan);
+        ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_mitsubishi144.send();
         sprintf(ir_log_buffer, "Sending MitsubishiAc\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -512,18 +512,18 @@ void IR_transmit(uint16_t protocol)
     case MITSUBISHI_HEAVY_88:
         // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "MitsubisiHvy88");
-        ac_mitsubishi88.setPower(gwy_ac_control_t.power);
-        ac_mitsubishi88.setTemp(gwy_ac_control_t.temp);
-        ac_mitsubishi88.setFan(gwy_ac_control_t.fan);
-        if (gwy_ac_control_t.swingH)
+        ac_mitsubishi88.setPower(gwy_ac_control_t.control.power);
+        ac_mitsubishi88.setTemp(gwy_ac_control_t.control.temp);
+        ac_mitsubishi88.setFan(gwy_ac_control_t.control.fan);
+        if (gwy_ac_control_t.control.swingH)
             ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
         else
             ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
-        if (gwy_ac_control_t.swingV)
+        if (gwy_ac_control_t.control.swingV)
             ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
         else
             ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVOff);
-        ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_mitsubishi88.send();
         sprintf(ir_log_buffer, "Sending MitsubishiHeavy88\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -532,18 +532,18 @@ void IR_transmit(uint16_t protocol)
     case MITSUBISHI_HEAVY_152:
         // Regarding on/off timer we don't have library support
         strcpy(protocol_chosen_str, "MitsbisiHvy152");
-        ac_mitsubishi152.setPower(gwy_ac_control_t.power);
-        ac_mitsubishi152.setTemp(gwy_ac_control_t.temp);
-        ac_mitsubishi152.setFan(gwy_ac_control_t.fan);
-        if (gwy_ac_control_t.swingH)
+        ac_mitsubishi152.setPower(gwy_ac_control_t.control.power);
+        ac_mitsubishi152.setTemp(gwy_ac_control_t.control.temp);
+        ac_mitsubishi152.setFan(gwy_ac_control_t.control.fan);
+        if (gwy_ac_control_t.control.swingH)
             ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
         else
             ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
-        if (gwy_ac_control_t.swingV)
+        if (gwy_ac_control_t.control.swingV)
             ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
         else
             ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88SwingVOff);
-        ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)gwy_ac_control_t.mode_val));
+        ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_mitsubishi152.send();
         sprintf(ir_log_buffer, "Sending MitsubishiHeavy152\n");
         white_printf(IR_DEBUG_TAG, ir_log_buffer);
@@ -585,7 +585,7 @@ void locking_feature(char *result_description_char_str)
 #if (!IS_GWY)
     send_locking_feature_ack_to_gwy(result_description_char_str);
 #endif
-    if (temperature != 0 && (temperature > gwy_ac_control_t.TempLockUpLimit || temperature < gwy_ac_control_t.TempLockLowLimit))
+    if (temperature != 0 && (temperature > gwy_ac_control_t.control.TempLockUpLimit || temperature < gwy_ac_control_t.control.TempLockLowLimit))
     {
         white_printf(IR_DEBUG_TAG, "Someone manually controlled the AC ... beyond limits ... reverting ");
         needToSendIRComamnd = true;
@@ -724,7 +724,7 @@ void IR_receiver_task(void *args)
              * 3) Device must not be in teaching mode
              * 4) Locking feature must be enabled in Gwy AC Control Packet 
              */
-            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.Locking && !teaching_mode)
+            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode)
                 locking_feature(result_description_char_str);
         }
     }

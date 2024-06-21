@@ -35,7 +35,7 @@ control_t gwy_ac_control_t;
 control_t gwy_locking_t;
 mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
-temperature_data_t gwy_temperature_data_t;
+heartbeat_t gwy_heartbeat_t;
 teaching_mode_t gwy_teaching_mode_t;
 debug_info_t gwy_debug_info_t;
 
@@ -63,7 +63,7 @@ pub_conf_t node_pub_conf_t;
 pub_conf_t *node_pub_conf_queue_head;
 pub_conf_t *node_pub_conf_queue_tail;
 
-temperature_data_t node_temperature_data_t;
+heartbeat_t node_heartbeat_t;
 
 teaching_mode_t node_teaching_mode_t;
 teaching_mode_t *node_teaching_mode_queue_head;

@@ -40,7 +40,7 @@ void init_structures()
     strcpy(gwy_locking_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_reset_mqtt_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_temperature_data_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_heartbeat_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
@@ -54,7 +54,7 @@ void init_structures()
     gwy_locking_t.base_data.json_packet_id = GWY_MANUAL_AC_CONTROL_ACK;
     gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
     gwy_pub_conf_t.base_data.json_packet_id = GWY_HEARTBEAT_PUB_CONF_PACKET;
-    gwy_temperature_data_t.base_data.json_packet_id = GWY_HEARTBEAT_ACK;
+    gwy_heartbeat_t.base_data.json_packet_id = GWY_HEARTBEAT_ACK;
     gwy_teaching_mode_t.base_data.json_packet_id = GWY_TEACHING_MODE_START_PACKET;
     gwy_debug_info_t.base_data.json_packet_id = GWY_DEBUG_INFO_PACKET;
 
@@ -64,9 +64,9 @@ void init_structures()
     node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
     node_reconf_t.base_data.json_packet_id = NODE_RECONF_PACKET;
     node_ac_control_t.base_data.json_packet_id = NODE_AC_CONTROL_PACKET;
-    node_locking_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK_NAME_PACKET;
+    node_locking_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK;
     node_pub_conf_t.base_data.json_packet_id = NODE_HEARTBEAT_PUB_CONF_PACKET;
-    node_temperature_data_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
+    node_heartbeat_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
     node_debug_info_t.base_data.json_packet_id = NODE_DEBUG_INFO_PACKET;
 
     /* JSON ACK NAMES */
@@ -78,7 +78,7 @@ void init_structures()
     strcpy(gwy_locking_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
     strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK_NAME);
     strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
-    strcpy(gwy_temperature_data_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
+    strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
     strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
 }
 
@@ -478,15 +478,15 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK_NAME,
                 MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                POWER_KEY, gwy_ac_control_t.power,
-                MODE_KEY, gwy_ac_control_t.mode_str,
-                FAN_SPEED_KEY, gwy_ac_control_t.fan,
-                TEMPERATURE_KEY, gwy_ac_control_t.temp,
-                SWING_H_KEY, gwy_ac_control_t.swingH,
-                SWING_V_KEY, gwy_ac_control_t.swingV,
-                ONTIMER_KEY, gwy_ac_control_t.OnTimer,
-                OFFTIMER_KEY, gwy_ac_control_t.OffTimer,
-                AC_LOCKING_KEY, gwy_ac_control_t.Locking,
+                POWER_KEY, gwy_ac_control_t.control.power,
+                MODE_KEY, gwy_ac_control_t.control.mode_str,
+                FAN_SPEED_KEY, gwy_ac_control_t.control.fan,
+                TEMPERATURE_KEY, gwy_ac_control_t.control.temp,
+                SWING_H_KEY, gwy_ac_control_t.control.swingH,
+                SWING_V_KEY, gwy_ac_control_t.control.swingV,
+                ONTIMER_KEY, gwy_ac_control_t.control.OnTimer,
+                OFFTIMER_KEY, gwy_ac_control_t.control.OffTimer,
+                AC_LOCKING_KEY, gwy_ac_control_t.control.Locking,
                 ERROR_CODE_KEY, json_ack_err_code);
         add_to_pubmesg_queue(pubmessage, publish_topic);
         break;
@@ -555,29 +555,29 @@ void get_mode_value(char *device_type)
 {
     if (strcmp(device_type, "gwy") == 0)
     {
-        if (strcasecmp(gwy_ac_control_t.mode_str, "Auto") == 0)
-            gwy_ac_control_t.mode_val = AUTO;
-        else if (strcasecmp(gwy_ac_control_t.mode_str, "Cool") == 0)
-            gwy_ac_control_t.mode_val = COOL;
-        else if (strcasecmp(gwy_ac_control_t.mode_str, "Dry") == 0)
-            gwy_ac_control_t.mode_val = DRY;
-        else if (strcasecmp(gwy_ac_control_t.mode_str, "Heat") == 0)
-            gwy_ac_control_t.mode_val = HEAT;
-        else if (strcasecmp(gwy_ac_control_t.mode_str, "Fan") == 0)
-            gwy_ac_control_t.mode_val = FAN;
+        if (strcasecmp(gwy_ac_control_t.control.mode_str, "Auto") == 0)
+            gwy_ac_control_t.control.mode_val = AUTO;
+        else if (strcasecmp(gwy_ac_control_t.control.mode_str, "Cool") == 0)
+            gwy_ac_control_t.control.mode_val = COOL;
+        else if (strcasecmp(gwy_ac_control_t.control.mode_str, "Dry") == 0)
+            gwy_ac_control_t.control.mode_val = DRY;
+        else if (strcasecmp(gwy_ac_control_t.control.mode_str, "Heat") == 0)
+            gwy_ac_control_t.control.mode_val = HEAT;
+        else if (strcasecmp(gwy_ac_control_t.control.mode_str, "Fan") == 0)
+            gwy_ac_control_t.control.mode_val = FAN;
     }
     else
     {
         if (strcasecmp(node_ac_control_t.mode_str, "Auto") == 0)
-            gwy_ac_control_t.mode_val = AUTO;
+            gwy_ac_control_t.control.mode_val = AUTO;
         else if (strcasecmp(node_ac_control_t.mode_str, "Cool") == 0)
-            gwy_ac_control_t.mode_val = COOL;
+            gwy_ac_control_t.control.mode_val = COOL;
         else if (strcasecmp(node_ac_control_t.mode_str, "Dry") == 0)
-            gwy_ac_control_t.mode_val = DRY;
+            gwy_ac_control_t.control.mode_val = DRY;
         else if (strcasecmp(node_ac_control_t.mode_str, "Heat") == 0)
-            gwy_ac_control_t.mode_val = HEAT;
+            gwy_ac_control_t.control.mode_val = HEAT;
         else if (strcasecmp(node_ac_control_t.mode_str, "Fan") == 0)
-            gwy_ac_control_t.mode_val = FAN;
+            gwy_ac_control_t.control.mode_val = FAN;
     }
 }
 
@@ -723,19 +723,19 @@ void parse_json_packet(char *json_packet)
             vTaskDelay(pdMS_TO_TICKS(5));
 
         case GWY_AC_CONTROL_PACKET:
-            gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_ac_control_t.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
-            strcpy(gwy_ac_control_t.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
+            gwy_ac_control_t.control.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+            gwy_ac_control_t.control.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
+            strcpy(gwy_ac_control_t.control.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
             get_mode_value("gwy");
-            gwy_ac_control_t.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-            gwy_ac_control_t.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
-            gwy_ac_control_t.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_KEY)->valueint;
-            gwy_ac_control_t.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_KEY)->valueint;
-            gwy_ac_control_t.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
-            gwy_ac_control_t.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
-            gwy_ac_control_t.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-            gwy_ac_control_t.TempLockLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
-            gwy_ac_control_t.TempLockUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
+            gwy_ac_control_t.control.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
+            gwy_ac_control_t.control.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
+            gwy_ac_control_t.control.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_KEY)->valueint;
+            gwy_ac_control_t.control.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_KEY)->valueint;
+            gwy_ac_control_t.control.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
+            gwy_ac_control_t.control.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
+            gwy_ac_control_t.control.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
+            gwy_ac_control_t.control.TempLockLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
+            gwy_ac_control_t.control.TempLockUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
             needToSendIRComamnd = true;
             break;
 

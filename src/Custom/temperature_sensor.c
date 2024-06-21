@@ -17,7 +17,7 @@ uint32_t TempDataFreqSec = 10;
 
 const esp_timer_create_args_t periodic_timer_args = {
     .callback = &publish_temperature_cb,
-    .name = "Temperature_data_timer"};
+    .name = "heartbeat_timer"};
 esp_timer_handle_t temp_publish_timer;
 
 esp_err_t initialize_i2c(void)
@@ -150,7 +150,7 @@ static void publish_temperature_cb(void *arg)
                 JSON_PACKET_ID_KEY, GWY_HEARTBEAT_ACK,
                 JSON_ACK_NAME_KEY, GWY_HEARTBEAT_ACK_NAME,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                TEMPERATURE_DATA_KEY, measured_temperature);
+                AMBIENT_TEMPERATURE_DATA_KEY, measured_temperature);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
 #endif
