@@ -14,7 +14,7 @@
 
 /* JSON PACKET KEY STRINGS */
 #define JSON_PACKET_ID_KEY "JsonPacketID"
-#define JSON_ACK_NAME_KEY "JsonACKName"
+#define JSON_ACK_NAME_KEY "JsonAckName"
 #define MSG_SEQ_NO_KEY "MsgSeqNo"
 #define GWY_SER_NO_KEY "GwySerNo"
 #define NODE_SER_NO_KEY "NodeSerNo"
@@ -25,8 +25,8 @@
 #define NET_KEY "NetKey"
 #define ELEMENT_ADDR_KEY "ElementAddr"
 #define MAC_ID_KEY "MacId"
-#define POWER_KEY "Power"
 #define MODE_KEY "Mode"
+#define POWER_KEY "Power"
 #define FAN_SPEED_KEY "FanSpeed"
 #define TEMPERATURE_KEY "Temperature"
 #define SWING_H_KEY "SwingH"
@@ -89,12 +89,12 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define MQTT_RECV_ID 2
 
 /*JSON related*/
-#define MQTT_PACKET_BUFF_SIZE 500
+#define MQTT_PACKET_BUFF_SIZE 1024
 #define LOCATION_STR_LEN 30
-#define MQTT_PACKET_NAME_LEN 40
+#define MQTT_PACKET_NAME_LEN 100
 #define PUBMESG_QUEUE_LIMIT 20
-#define PUBMESG_LEN 1000
-#define MQTT_TOPIC_CHAR_LEN 40
+#define PUBMESG_LEN 1024
+#define MQTT_TOPIC_CHAR_LEN 100
 #define NODE_COMM_TIMEOUT_INTERVAL_US (10*1000000) //10seconds
 #define MIN_PUB_CONF_LIMIT 10
 
@@ -347,9 +347,9 @@ extern reconf_t gwy_conf_t;
 /*gwy ac remote reconfiguration*/
 extern reconf_t gwy_reconf_t;
 
-/*gwy ac control and ac locking*/
+/*gwy ac control and manual control*/
 extern control_t gwy_ac_control_t;
-extern control_t gwy_locking_t;
+extern manual_ac_control_t gwy_manual_ac_control_t;
 
 /*gwy temperature data*/
 extern heartbeat_t gwy_heartbeat_t;
@@ -386,8 +386,8 @@ extern control_t node_ac_control_t;
 extern control_t *node_ac_control_queue_head;
 extern control_t *node_ac_control_queue_tail;
 
-/*node ac locking*/
-extern control_t node_locking_t;
+/*node ac manual control*/
+extern manual_ac_control_t node_manual_ac_control_t;
 
 /*node ac remote reconfiguration*/
 extern reconf_t node_reconf_t;

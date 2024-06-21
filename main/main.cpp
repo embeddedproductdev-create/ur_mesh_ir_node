@@ -32,7 +32,7 @@ gwy_unreg_t gwy_unregistration_t;
 reconf_t gwy_conf_t;
 reconf_t gwy_reconf_t;
 control_t gwy_ac_control_t;
-control_t gwy_locking_t;
+manual_ac_control_t gwy_manual_ac_control_t;
 mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
 heartbeat_t gwy_heartbeat_t;
@@ -57,7 +57,7 @@ control_t node_ac_control_t;
 control_t *node_ac_control_queue_head;
 control_t *node_ac_control_queue_tail;
 
-control_t node_locking_t;
+manual_ac_control_t node_manual_ac_control_t;
 
 pub_conf_t node_pub_conf_t;
 pub_conf_t *node_pub_conf_queue_head;

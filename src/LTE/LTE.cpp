@@ -69,7 +69,7 @@ char MQTT_CLIENT_CONN_CMD[300];
 char MQTT_CLIENT_CONN_RESP[300];
 
 /*Subscription*/
-char MQTT_SUB_CMD[100];
+char MQTT_SUB_CMD[200];
 char MQTT_SUB_RESP[100];
 char MQTT_READ_MSG_CMD[30];
 

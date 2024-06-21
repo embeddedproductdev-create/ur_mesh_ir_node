@@ -566,6 +566,13 @@ void IR_transmit(uint16_t protocol)
  */
 void locking_feature(char *result_description_char_str)
 {
+    //First let's check if we're using teaching mode
+    if(protocol_selected_num == RAW)
+    {
+        
+    }
+
+    //If we're not using teaching mode
     uint8_t temperature = 0;
     char temperature_in_string[10] = "";
     if (strstr(result_description_char_str, "Temp: "))

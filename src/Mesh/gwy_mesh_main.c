@@ -842,17 +842,24 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_HEARTBEAT_ACK:
             vendor_node_heartbeat_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE HEARTBEAT ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_t->base_data.elementAddr);
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %s, %s : %d, %s : %d}",
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %s, %s : %d, %s : %d, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
                     JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_heartbeat_t->base_data.node_ser_no_str,
                     ELEMENT_ADDR_KEY, vendor_node_heartbeat_t->base_data.elementAddr,
-                    POWER_KEY, vendor_node_heartbeat_t->
-                    MODE_KEY,
-                    FAN_SPEED_KEY,
-                    TEMPERATURE_KEY,
-                    AMBIENT_TEMPERATURE_DATA_KEY, vendor_node_heartbeat_t->measured_temperature);
+                    POWER_KEY, vendor_node_heartbeat_t->control.power,
+                    MODE_KEY,vendor_node_heartbeat_t->control.mode_str,
+                    FAN_SPEED_KEY,vendor_node_heartbeat_t->control.fan,
+                    TEMPERATURE_KEY,vendor_node_heartbeat_t->control.temp,
+                    AMBIENT_TEMPERATURE_DATA_KEY, vendor_node_heartbeat_t->measured_temperature,
+                    SWING_H_KEY, vendor_node_heartbeat_t->control.swingH,
+                    SWING_V_KEY, vendor_node_heartbeat_t->control.swingV,
+                    ONTIMER_KEY, vendor_node_heartbeat_t->control.OnTimer,
+                    OFFTIMER_KEY, vendor_node_heartbeat_t->control.OffTimer,
+                    AC_LOCKING_KEY, vendor_node_heartbeat_t->control.Locking,
+                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockUpLimit,
+                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockLowLimit);
             break;
 
         case NODE_AC_CONTROL_PACKET:
@@ -865,17 +872,17 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
-                    POWER_KEY, vendor_node_ac_control_t->power,
-                    MODE_KEY, vendor_node_ac_control_t->mode_str,
-                    FAN_SPEED_KEY, vendor_node_ac_control_t->fan,
-                    TEMPERATURE_KEY, vendor_node_ac_control_t->temp,
-                    SWING_H_KEY, vendor_node_ac_control_t->swingH,
-                    SWING_V_KEY, vendor_node_ac_control_t->swingV,
-                    ONTIMER_KEY, vendor_node_ac_control_t->OnTimer,
-                    OFFTIMER_KEY, vendor_node_ac_control_t->OffTimer,
-                    AC_LOCKING_KEY, vendor_node_ac_control_t->Locking,
-                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_ac_control_t->TempLockUpLimit,
-                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_ac_control_t->TempLockLowLimit,
+                    POWER_KEY, vendor_node_ac_control_t->control.power,
+                    MODE_KEY, vendor_node_ac_control_t->control.mode_str,
+                    FAN_SPEED_KEY, vendor_node_ac_control_t->control.fan,
+                    TEMPERATURE_KEY, vendor_node_ac_control_t->control.temp,
+                    SWING_H_KEY, vendor_node_ac_control_t->control.swingH,
+                    SWING_V_KEY, vendor_node_ac_control_t->control.swingV,
+                    ONTIMER_KEY, vendor_node_ac_control_t->control.OnTimer,
+                    OFFTIMER_KEY, vendor_node_ac_control_t->control.OffTimer,
+                    AC_LOCKING_KEY, vendor_node_ac_control_t->control.Locking,
+                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_ac_control_t->control.TempLockUpLimit,
+                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_ac_control_t->control.TempLockLowLimit,
                     ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
             break;
         
@@ -916,14 +923,14 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
-                    POWER_KEY, vendor_node_manual_ac_control_t->power,
-                    MODE_KEY, vendor_node_manual_ac_control_t->mode_str,
-                    FAN_SPEED_KEY, vendor_node_manual_ac_control_t->fan,
-                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->temp,
-                    SWING_H_KEY, vendor_node_manual_ac_control_t->swingH,
-                    SWING_V_KEY, vendor_node_manual_ac_control_t->swingV,
-                    ONTIMER_KEY, vendor_node_manual_ac_control_t->OnTimer,
-                    OFFTIMER_KEY, vendor_node_manual_ac_control_t->OffTimer);
+                    POWER_KEY, vendor_node_manual_ac_control_t->control.power,
+                    MODE_KEY, vendor_node_manual_ac_control_t->control.mode_str,
+                    FAN_SPEED_KEY, vendor_node_manual_ac_control_t->control.fan,
+                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->control.temp,
+                    SWING_H_KEY, vendor_node_manual_ac_control_t->control.swingH,
+                    SWING_V_KEY, vendor_node_manual_ac_control_t->control.swingV,
+                    ONTIMER_KEY, vendor_node_manual_ac_control_t->control.OnTimer,
+                    OFFTIMER_KEY, vendor_node_manual_ac_control_t->control.OffTimer);
             break;
 
         case NODE_PROV_PACKET:
@@ -940,7 +947,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
                 Bind_fl = false;
             }
-            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d}",
+            sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %s, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
                     JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
