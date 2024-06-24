@@ -47,7 +47,7 @@ void add_to_node_pub_conf_queue()
 {
 	pub_conf_t *pub_conf_node = (pub_conf_t *)malloc(sizeof(pub_conf_t));
 	if (pub_conf_node != NULL)
-		*pub_conf_node = node_pub_conf_t;
+		*pub_conf_node = node_hearbeat_pub_conf_t;
 	else
 	{
 		sprintf(queue_log_buffer, "Memory allocation failed in add_to_node_pub_conf_queue\r\n");

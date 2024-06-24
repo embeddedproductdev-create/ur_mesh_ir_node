@@ -26,7 +26,7 @@ void node_mesh_main_init(void);
 void send_AC_configuration_ack_to_gwy();
 void send_provisioned_ack_to_gwy();
 void send_unprovisioned_ack_to_gwy();
-void send_manual_ac_control_ack_to_gwy(char *description);
+void send_manual_ac_control_ack_to_gwy();
 void send_temperature_ack_to_gwy();
 
 #ifdef __cplusplus

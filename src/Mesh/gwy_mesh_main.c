@@ -74,7 +74,7 @@ unprov_t *vendor_unprovision_t;
 reconf_t *vendor_node_reconf_t;
 reconf_t *vendor_node_config_t;
 heartbeat_t *vendor_node_heartbeat_t;
-pub_conf_t *vendor_node_pub_conf_t;
+pub_conf_t *vendor_node_hearbeat_pub_conf_t;
 
 #define NVS_NAME "mesh_example"
 
@@ -901,17 +901,17 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
             remove_from_node_pub_conf_queue();
-            vendor_node_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_pub_conf_t->base_data.elementAddr);
+            vendor_node_hearbeat_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_hearbeat_pub_conf_t->base_data.elementAddr);
             sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d}",
                     JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
                     JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_node_pub_conf_t->base_data.msg_seq_no,
+                    MSG_SEQ_NO_KEY, vendor_node_hearbeat_pub_conf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_pub_conf_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_node_pub_conf_t->base_data.elementAddr,
-                    PUBLISH_PERIOD_KEY, vendor_node_pub_conf_t->pub_conf_period_in_sec,
-                    ERROR_CODE_KEY, vendor_node_pub_conf_t->base_data.error_code);
+                    NODE_SER_NO_KEY, vendor_node_hearbeat_pub_conf_t->base_data.node_ser_no_str,
+                    ELEMENT_ADDR_KEY, vendor_node_hearbeat_pub_conf_t->base_data.elementAddr,
+                    PUBLISH_PERIOD_KEY, vendor_node_hearbeat_pub_conf_t->pub_conf_period_in_sec,
+                    ERROR_CODE_KEY, vendor_node_hearbeat_pub_conf_t->base_data.error_code);
             break;
         
         case NODE_MANUAL_AC_CONTROL_ACK:
@@ -1972,7 +1972,7 @@ void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
     esp_ble_mesh_cfg_client_set_state_t set_rst = {0}, set_hb = {0}, set_pub_conf = {0};
     esp_ble_mesh_client_common_param_t common = {0};
     ESP_LOGI(MESH_DEBUG_TAG, "Node pub configure packet send :");
-    node.unicast_addr = node_pub_conf_t.base_data.elementAddr;
+    node.unicast_addr = node_hearbeat_pub_conf_t.base_data.elementAddr;
     example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
     set_pub_conf.model_pub_set.element_addr = node.unicast_addr;
     set_pub_conf.model_pub_set.publish_addr = 1;

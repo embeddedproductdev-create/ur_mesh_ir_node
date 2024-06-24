@@ -9,8 +9,6 @@
 
 #include "../../inc/LTE/LTE.h"
 
-#if (IS_GWY)
-
 // Initialization
 int16_t json_ack_err_code = SUCCESS;
 uint8_t json_packet_id = UNKNOWN_PACKET;
@@ -65,7 +63,7 @@ void init_structures()
     node_reconf_t.base_data.json_packet_id = NODE_RECONF_PACKET;
     node_ac_control_t.base_data.json_packet_id = NODE_AC_CONTROL_PACKET;
     node_manual_ac_control_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK;
-    node_pub_conf_t.base_data.json_packet_id = NODE_HEARTBEAT_PUB_CONF_PACKET;
+    node_hearbeat_pub_conf_t.base_data.json_packet_id = NODE_HEARTBEAT_PUB_CONF_PACKET;
     node_heartbeat_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
     node_debug_info_t.base_data.json_packet_id = NODE_DEBUG_INFO_PACKET;
 
@@ -81,6 +79,8 @@ void init_structures()
     strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
     strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
 }
+
+#if (IS_GWY)
 
 void fill_macid()
 {
@@ -132,7 +132,7 @@ void isValidMacId(char *macid)
  */
 void error_check_json(uint8_t json_packet_id)
 {
-    ESP_LOGI(LTE_DEBUG_TAG, "Error checking received packet ... ");
+    cyan_printf(LTE_DEBUG_TAG, "Error checking received packet ... ");
     /* Common in all Packets */
     /*
         Json packet id should be between (0 and 10) or (100 and 110) or be 99.
@@ -142,7 +142,13 @@ void error_check_json(uint8_t json_packet_id)
         json_ack_err_code = JSON_PACKET_ID_UNKNOWN;
         return;
     }
-    if (cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY));
+    if (cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)) {
+        int32_t msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+        if(msg_seq_no>=0 && msg_seq_no<=65535);
+        else{
+            json_ack_err_code = MSG_SEQ_NO_EXCEEDING_RANGE;
+        }
+    }
     else {
         json_ack_err_code = MSG_SEQ_NO_NOT_FOUND;
         return;
@@ -153,7 +159,7 @@ void error_check_json(uint8_t json_packet_id)
         strcpy(gwysernostr, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
         if(!strcmp(gwysernostr, GWY_SER_NO_IN_STRING));
         else {
-            json_ack_err_code = GWY_SER_NO_NOT_MATCHING;
+            json_ack_err_code = GWY_SER_NO_INVALID;
             return;
         }
     }
@@ -494,7 +500,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     case GWY_RECONF_PACKET:
         sprintf(lte_log_buffer, "Sending Gwy Reconf Ack");
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-        sprintf(pubmessage, "{%s : %d, %s : %ss, %s : %d, %s : %s, %s : %d}",
+        sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
                 JSON_ACK_NAME_KEY, GWY_RECONF_ACK_NAME,
                 MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
@@ -597,8 +603,8 @@ char *get_err_string(int16_t err_code)
         return "MSG_SEQ_NO_NOT_FOUND";
     case GWY_SER_NO_NOT_FOUND:
         return "GWY_SER_NO_NOT_FOUND";
-    case GWY_SER_NO_NOT_MATCHING:
-        return "GWY_SER_NO_NOT_MATCHING";
+    case GWY_SER_NO_INVALID:
+        return "GWY_SER_NO_INVALID";
     case LOCATION_NOT_FOUND:
         return "LOCATION_NOT_FOUND";
     case LOCATION_EXCEEDING_RANGE:
@@ -821,11 +827,11 @@ void parse_json_packet(char *json_packet)
 
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
             cyan_printf(LTE_DEBUG_TAG, "Node Publish configuratoin packet received");
-            node_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
-            node_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            strcpy(node_pub_conf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-            node_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
-            node_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            node_hearbeat_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
+            node_hearbeat_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+            strcpy(node_hearbeat_pub_conf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
+            node_hearbeat_pub_conf_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
+            node_hearbeat_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
             add_to_node_pub_conf_queue();
             break;
 

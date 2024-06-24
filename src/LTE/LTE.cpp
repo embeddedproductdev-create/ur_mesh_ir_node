@@ -139,7 +139,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 				if (strstr(LTE_UART_data, "{"))
 				{
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
-					ESP_LOGI(LTE_DEBUG_TAG, "Packet received : %s",LTE_UART_data);
+					cyan_printf(LTE_DEBUG_TAG ,LTE_UART_data);
 					parse_json_packet(LTE_UART_data);
 				}
 				free(LTE_UART_data);

@@ -566,37 +566,52 @@ void IR_transmit(uint16_t protocol)
  */
 void locking_feature(char *result_description_char_str)
 {
-    //First let's check if we're using teaching mode
-    if(protocol_selected_num == RAW)
+    // First let's check if we're using teaching mode
+    if (protocol_selected_num == RAW)
     {
-        
+#if (IS_GWY)
+        gwy_manual_ac_control_t.control.power = 0;
+        gwy_manual_ac_control_t.control.temp = 0;
+        gwy_manual_ac_control_t.control.fan = 0;
+        strcpy(gwy_manual_ac_control_t.control.mode_str, "");
+#endif
+
+#if (!IS_GWY)
+        node_manual_ac_control_t.control.power = 0;
+        node_manual_ac_control_t.control.temp = 0;
+        node_manual_ac_control_t.control.fan = 0;
+        strcpy(node_manual_ac_control_t.control.mode_str, "");
+#endif
+    }
+    else
+    {
+        // If we're not using teaching mode
+        uint8_t temperature = 0;
+        char temperature_in_string[10] = "";
+        if (strstr(result_description_char_str, "Temp: "))
+        {
+            temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: ")) + 6);
+            temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: ")) + 7);
+            temperature = atoi(temperature_in_string);
+            sprintf(ir_log_buffer, "Manually set Temperature (in string) : %s", temperature_in_string);
+            white_printf(IR_DEBUG_TAG, ir_log_buffer);
+            sprintf(ir_log_buffer, "Manually set Temperature (in int) : %d", temperature);
+            white_printf(IR_DEBUG_TAG, ir_log_buffer);
+        }
+        if (temperature != 0 && (temperature > gwy_ac_control_t.control.TempLockUpLimit || temperature < gwy_ac_control_t.control.TempLockLowLimit))
+        {
+            white_printf(IR_DEBUG_TAG, "Someone manually controlled the AC ... beyond limits ... reverting ");
+            needToSendIRComamnd = true;
+        }
     }
 
-    //If we're not using teaching mode
-    uint8_t temperature = 0;
-    char temperature_in_string[10] = "";
-    if (strstr(result_description_char_str, "Temp: "))
-    {
-        temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: ")) + 6);
-        temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: ")) + 7);
-        temperature = atoi(temperature_in_string);
-        sprintf(ir_log_buffer, "Manually set Temperature (in string) : %s", temperature_in_string);
-        white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        sprintf(ir_log_buffer, "Manually set Temperature (in int) : %d", temperature);
-        white_printf(IR_DEBUG_TAG, ir_log_buffer);
-    }
 #if (IS_GWY)
     white_printf(IR_DEBUG_TAG, "Sending Gwy AC Manual control ack");
     add_to_pubmesg_queue(result_description_char_str, publish_topic);
 #endif
 #if (!IS_GWY)
-    send_locking_feature_ack_to_gwy(result_description_char_str);
+    send_manual_ac_control_ack_to_gwy();
 #endif
-    if (temperature != 0 && (temperature > gwy_ac_control_t.control.TempLockUpLimit || temperature < gwy_ac_control_t.control.TempLockLowLimit))
-    {
-        white_printf(IR_DEBUG_TAG, "Someone manually controlled the AC ... beyond limits ... reverting ");
-        needToSendIRComamnd = true;
-    }
 }
 
 /**
@@ -614,7 +629,8 @@ void IR_receiver_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-        if (needToSendIRComamnd) {
+        if (needToSendIRComamnd)
+        {
             IR_transmit(protocol_selected_num);
             sleep(1); // let's waste a second here and see if it avoid locking feature getting triggered
             continue;
@@ -628,74 +644,82 @@ void IR_receiver_task(void *args)
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
-            printf("IR RAW VALUES : { ");
-            for (uint16_t i = 0; i < results.rawlen; i++)
-            {
-                printf("%d, ", results.rawbuf[i]);
-            }
-            printf("}\n");
-            sprintf(ir_log_buffer, "%s", raw_buf_str);
-            white_printf(IR_DEBUG_TAG, ir_log_buffer);
+            // printf("IR RAW VALUES : { ");
+            // for (uint16_t i = 0; i < results.rawlen; i++)
+            // {
+            //     printf("%d, ", results.rawbuf[i]);
+            // }
+            // printf("}\n");
+            // sprintf(ir_log_buffer, "%s", raw_buf_str);
+            // white_printf(IR_DEBUG_TAG, ir_log_buffer);
             if (description.length())
             {
                 sprintf(ir_log_buffer, "%s", result_description_char_str);
-                white_printf(IR_DEBUG_TAG, ir_log_buffer);
+                printf("%s%s", IR_DEBUG_TAG, ir_log_buffer);
             }
 
-            if (teaching_mode){
+            if (teaching_mode)
+            {
                 protocol_selected_num = RAW;
-                if(teachMode_size_done){
-                    eeprom_addr_cal=0;
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR,EEPROM_CONF_FAC,TEACHING_FAC);
-                    vTaskDelay(20/portTICK_PERIOD_MS);
-                    if(results.rawlen>1)    convert_data=((results.rawlen)-1)*2;
-                    convert_16bit_to_8bit(convert_data,convert_buffer);
-                    eeprom_addr=TEACH_DATA_LEN;
-                    eeprom_write(EEPROM_SLAVE_ADDR,eeprom_addr,convert_buffer,2);
-                    vTaskDelay(20/portTICK_PERIOD_MS);
-                    teachMode_size_done=false;
+                if (teachMode_size_done)
+                {
+                    eeprom_addr_cal = 0;
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR, EEPROM_CONF_FAC, TEACHING_FAC);
+                    vTaskDelay(20 / portTICK_PERIOD_MS);
+                    if (results.rawlen > 1)
+                        convert_data = ((results.rawlen) - 1) * 2;
+                    convert_16bit_to_8bit(convert_data, convert_buffer);
+                    eeprom_addr = TEACH_DATA_LEN;
+                    eeprom_write(EEPROM_SLAVE_ADDR, eeprom_addr, convert_buffer, 2);
+                    vTaskDelay(20 / portTICK_PERIOD_MS);
+                    teachMode_size_done = false;
                 }
-                if(!eeprom_addr_cal) { 
-                    eeprom_addr=TEACH_DATA_POFF;
+                if (!eeprom_addr_cal)
+                {
+                    eeprom_addr = TEACH_DATA_POFF;
                 }
-                else {
-                    eeprom_addr=TEACH_DATA_POFF+((eeprom_addr_cal+(temp_min_val-16))*MAX_OFFSET);
+                else
+                {
+                    eeprom_addr = TEACH_DATA_POFF + ((eeprom_addr_cal + (temp_min_val - 16)) * MAX_OFFSET);
                 }
-                if(eeprom_addr_cal<=(temp_max_val-temp_min_val+1)){
-                    printf("EEPROM ADDR : %d",eeprom_addr);
-                    ESP_LOGI(IR_DEBUG_TAG,"Writing Data...");
-                    storing_IR_data_to_flash=true;
-                    write_to_memory(results.rawbuf,results.rawlen-1,eeprom_addr);
-                    if(eeprom_addr_cal==(temp_max_val-temp_min_val+1)){
+                if (eeprom_addr_cal <= (temp_max_val - temp_min_val + 1))
+                {
+                    printf("EEPROM ADDR : %d", eeprom_addr);
+                    ESP_LOGI(IR_DEBUG_TAG, "Writing Data...");
+                    storing_IR_data_to_flash = true;
+                    write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
+                    if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
+                    {
                         configured = true;
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
                         vTaskDelay(pdMS_TO_TICKS(5));
-                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR+1, protocol_selected_num);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR + 1, protocol_selected_num);
                         vTaskDelay(pdMS_TO_TICKS(5));
-                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, protocol_selected_num>>8);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, protocol_selected_num >> 8);
                         vTaskDelay(pdMS_TO_TICKS(5));
                         teaching_mode = false;
-                        teachMode_size_done=false;
-                        storing_IR_data_to_flash=false;
-                        ESP_LOGI(IR_DEBUG_TAG,"End of Teaching Mode");
+                        teachMode_size_done = false;
+                        storing_IR_data_to_flash = false;
+                        ESP_LOGI(IR_DEBUG_TAG, "End of Teaching Mode");
                     }
-                    else{
-                        storing_IR_data_to_flash=false;
-                        ESP_LOGI(IR_DEBUG_TAG,"Proceed for next");
+                    else
+                    {
+                        storing_IR_data_to_flash = false;
+                        ESP_LOGI(IR_DEBUG_TAG, "Proceed for next");
                     }
-                }  
+                }
                 eeprom_addr_cal++;
             }
 
             /* AC Remote configuration process */
-            //Here's where we need to add something like protocol_detected > something and < something
-            //After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
+            // Here's where we need to add something like protocol_detected > something and < something
+            // After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
                 protocol_selected_num = protocol_detected;
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR+1, protocol_selected_num);
+                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR + 1, protocol_selected_num);
                 vTaskDelay(pdMS_TO_TICKS(5));
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, protocol_selected_num>>8);
+                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR, protocol_selected_num >> 8);
                 vTaskDelay(pdMS_TO_TICKS(5));
 #if (IS_GWY)
                 if (registered)
@@ -708,7 +732,7 @@ void IR_receiver_task(void *args)
                             JSON_PACKET_ID_KEY, GWY_CONF_ACK,
                             JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                            ERROR_CODE_KEY, json_ack_err_code);
+                            ERROR_CODE_KEY, 0);
                     white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
                     add_to_pubmesg_queue(pubmessage, publish_topic);
                 }
@@ -729,7 +753,7 @@ void IR_receiver_task(void *args)
              * 1) Device must be registered / configured
              * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
              * 3) Device must not be in teaching mode
-             * 4) Locking feature must be enabled in Gwy AC Control Packet 
+             * 4) Locking feature must be enabled in Gwy AC Control Packet
              */
             if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode)
                 locking_feature(result_description_char_str);

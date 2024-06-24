@@ -20,8 +20,8 @@ uint32_t GWY_SER_NO = 100;
 uint32_t NODE_SER_NO = 100;
 #endif
 #if (!CLIENT_RELEASE)
-uint32_t GWY_SER_NO = 3;
-uint32_t NODE_SER_NO = 3;
+uint32_t GWY_SER_NO = 2;
+uint32_t NODE_SER_NO = 1;
 #endif
 char GWY_SER_NO_IN_STRING[15];
 char NODE_SER_NO_IN_STRING[15];
@@ -59,7 +59,7 @@ control_t *node_ac_control_queue_tail;
 
 manual_ac_control_t node_manual_ac_control_t;
 
-pub_conf_t node_pub_conf_t;
+pub_conf_t node_hearbeat_pub_conf_t;
 pub_conf_t *node_pub_conf_queue_head;
 pub_conf_t *node_pub_conf_queue_tail;
 

@@ -271,7 +271,7 @@ enum ERROR_CODES
 	JSON_PACKET_ID_UNKNOWN,
 	MSG_SEQ_NO_NOT_FOUND,
 	GWY_SER_NO_NOT_FOUND,
-	GWY_SER_NO_NOT_MATCHING,
+	GWY_SER_NO_INVALID,
 	LOCATION_NOT_FOUND,
 	LOCATION_EXCEEDING_RANGE,
 	NODE_COMM_TIMEOUT,
@@ -310,6 +310,8 @@ enum ERROR_CODES
 	ILLOGICAL_LOCKING_TEMP_LIMIT,
 	PUBLISH_PERIOD_NOT_FOUND,
 	PUBLISH_PERIOD_EXCEEDS_RANGE,
+	MSG_SEQ_NO_EXCEEDING_RANGE,
+	NODE_SER_NO_INVALID,
 	FORBIDDEN_OPERATION = 999,
 	UNKNOWN_ERROR_CODE = 9999
 };
@@ -400,7 +402,7 @@ extern reconf_t *node_reconf_queue_tail;
 extern heartbeat_t node_heartbeat_t;
 
 /*node publish configuration*/
-extern pub_conf_t node_pub_conf_t;
+extern pub_conf_t node_hearbeat_pub_conf_t;
 extern pub_conf_t *node_pub_conf_queue_head;
 extern pub_conf_t *node_pub_conf_queue_tail;
 

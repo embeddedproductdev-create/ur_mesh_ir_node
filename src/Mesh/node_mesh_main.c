@@ -7,8 +7,6 @@
  * @copyright Copyright (c) 2024
  */
 
-
-
 #include "../../inc/mesh/mesh_main.h"
 #include "../../inc/Mesh/ble_mesh_example_init.h"
 
@@ -40,7 +38,8 @@
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
 teaching_mode_t *vendor_node_teaching_mode_t;
-pub_conf_t *vendor_node_pub_conf_t;
+pub_conf_t *vendor_node_hearbeat_pub_conf_t;
+debug_info_t *vendor_node_debug_info_t;
 uint8_t *BLE_recvd_data;
 
 #include <stdio.h>
@@ -56,7 +55,7 @@ uint8_t *BLE_recvd_data;
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_sensor_model_api.h"
 
-//Initialization
+// Initialization
 uint16_t ELEMENT_ADDR = 0;
 bool provisioned = false;
 
@@ -510,7 +509,7 @@ static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_serve
 
 send:
     ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
-    sensor_server.model->pub->publish_addr=0x01;
+    sensor_server.model->pub->publish_addr = 0x01;
     ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
     /* esp_ble_mesh_msg_ctx_t cntx;
@@ -806,7 +805,6 @@ static esp_ble_mesh_comp_t composition = {
     .element_count = ARRAY_SIZE(elements),
 };
 
-
 static esp_ble_mesh_prov_t provision = {
     .uuid = dev_uuid,
     .output_size = 0,
@@ -868,52 +866,52 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
     {
         switch (param->ctx.recv_op)
         {
-            case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
-                ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD");
-                ESP_LOGI(MESH_DEBUG_TAG, "net_idx 0x%04x, app_idx 0x%04x",
-                        param->value.state_change.appkey_add.net_idx,
-                        param->value.state_change.appkey_add.app_idx);
-                ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
-                break;
+        case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
+            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD");
+            ESP_LOGI(MESH_DEBUG_TAG, "net_idx 0x%04x, app_idx 0x%04x",
+                     param->value.state_change.appkey_add.net_idx,
+                     param->value.state_change.appkey_add.app_idx);
+            ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
+            break;
 
-            case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
-                ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND");
-                ESP_LOGI(MESH_DEBUG_TAG, "elem_addr 0x%04x, app_idx 0x%04x, cid 0x%04x, mod_id 0x%04x",
-                        param->value.state_change.mod_app_bind.element_addr,
-                        param->value.state_change.mod_app_bind.app_idx,
-                        param->value.state_change.mod_app_bind.company_id,
-                        param->value.state_change.mod_app_bind.model_id);
-                provisioned = true;
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, false);
-                vTaskDelay(pdMS_TO_TICKS(5));
-                ELEMENT_ADDR = param->value.state_change.mod_app_bind.element_addr;
-                provision_t.base_data.json_packet_id =  NODE_PROV_PACKET;
-                provision_t.base_data.elementAddr = ELEMENT_ADDR;
-                send_provisioned_ack_to_gwy();
-                break;
+        case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
+            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND");
+            ESP_LOGI(MESH_DEBUG_TAG, "elem_addr 0x%04x, app_idx 0x%04x, cid 0x%04x, mod_id 0x%04x",
+                     param->value.state_change.mod_app_bind.element_addr,
+                     param->value.state_change.mod_app_bind.app_idx,
+                     param->value.state_change.mod_app_bind.company_id,
+                     param->value.state_change.mod_app_bind.model_id);
+            provisioned = true;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, false);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            ELEMENT_ADDR = param->value.state_change.mod_app_bind.element_addr;
+            provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
+            provision_t.base_data.elementAddr = ELEMENT_ADDR;
+            send_provisioned_ack_to_gwy();
+            break;
 
-            case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
-                ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
-                esp_ble_mesh_node_local_reset();
-                provisioned = false;
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, true);
-                vTaskDelay(pdMS_TO_TICKS(5));
-                ELEMENT_ADDR = 0;
-                send_unprovisioned_ack_to_gwy();
-                vTaskDelay(pdMS_TO_TICKS(100));
-                esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-                break;
+        case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
+            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
+            esp_ble_mesh_node_local_reset();
+            provisioned = false;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, true);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            ELEMENT_ADDR = 0;
+            send_unprovisioned_ack_to_gwy();
+            vTaskDelay(pdMS_TO_TICKS(100));
+            esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+            break;
 
-            case ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET:
-                ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
-                break;
+        case ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET:
+            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
+            break;
 
-            case ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET:
-                ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET");
-                break;
+        case ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET:
+            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET");
+            break;
 
-            default:
-                break;
+        default:
+            break;
         }
     }
 }
@@ -922,68 +920,93 @@ static void store_data_to_node_structures()
 {
     switch (BLE_recvd_data[0])
     {
-        case NODE_AC_CONTROL_PACKET:
-            if(!configured)
-            {
-                node_ac_control_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
-                sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
-                example_ble_mesh_send_sensor_status();
-            }
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL PACKET");
-            vendor_node_ac_control_t = BLE_recvd_data;
-            node_ac_control_t = *vendor_node_ac_control_t;
-            sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
-            example_ble_mesh_send_sensor_status();
-            needToSendIRComamnd = true;
-            break;
+    case NODE_AC_CONTROL_PACKET:
+        ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL PACKET");
+        vendor_node_ac_control_t = BLE_recvd_data;
+        node_ac_control_t = *vendor_node_ac_control_t;
+
+        //Error Checks
+        if(strcmp(node_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
+            node_ac_control_t.base_data.error_code = NODE_SER_NO_INVALID;
+        if (!configured) 
+            node_ac_control_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
         
-        case NODE_DEBUG_INFO_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO PACKET");
-            vendor_node_debug_info_t = BLE_recvd_data;
-            node_debug_info_t = *vendor_node_debug_info_t;
-            fetch_debug_info();
-            sensor_states[0].sensor_data.raw_value->data = &node_debug_info_t;
-            example_ble_mesh_send_sensor_status();
-            break;
+        sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
+        example_ble_mesh_send_sensor_status();
+        if(node_ac_control_t.base_data.error_code == 0) needToSendIRComamnd = true;
+        break;
 
-        case NODE_RECONF_PACKET:
-            if(!configured)
-            {
-                node_reconf_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
-                sensor_states[0].sensor_data.raw_value->data = &node_reconf_t;
-                example_ble_mesh_send_sensor_status();
-            }
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF PACKET");
-            vendor_node_reconfigure_t = BLE_recvd_data;
-            node_reconf_t = *vendor_node_reconfigure_t;
-            configured = false;
-            sensor_states[0].sensor_data.raw_value->data = &node_reconf_t;
-            example_ble_mesh_send_sensor_status();
-            break;
+    case NODE_DEBUG_INFO_PACKET:
+        ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO PACKET");
+        vendor_node_debug_info_t = BLE_recvd_data;
+        node_debug_info_t = *vendor_node_debug_info_t;
 
-        case NODE_HEARTBEAT_PUB_CONF_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET");
-            vendor_node_pub_conf_t = BLE_recvd_data;
-            node_pub_conf_t = *vendor_node_pub_conf_t;
+        //Error Checks
+        if(strcmp(node_debug_info_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
+            node_debug_info_t.base_data.error_code = NODE_SER_NO_INVALID;
+        // fetch_debug_info(); //This needs to be developed
+        sensor_states[0].sensor_data.raw_value->data = &node_debug_info_t;
+        example_ble_mesh_send_sensor_status();
+        break;
+
+    case NODE_RECONF_PACKET:
+        ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF PACKET");
+        vendor_node_reconfigure_t = BLE_recvd_data;
+        node_reconf_t = *vendor_node_reconfigure_t;
+
+        //Error Checks
+        if(strcmp(node_reconf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
+            node_reconf_t.base_data.error_code = NODE_SER_NO_INVALID;
+        if (!configured)
+            node_reconf_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
+        
+        if(node_reconf_t.base_data.error_code == 0) configured = false;
+
+        sensor_states[0].sensor_data.raw_value->data = &node_reconf_t;
+        example_ble_mesh_send_sensor_status();
+        break;
+
+    case NODE_HEARTBEAT_PUB_CONF_PACKET:
+        ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET");
+        vendor_node_hearbeat_pub_conf_t = BLE_recvd_data;
+        node_hearbeat_pub_conf_t = *vendor_node_hearbeat_pub_conf_t;
+
+        //Error Checks
+        if(strcmp(node_hearbeat_pub_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
+            node_hearbeat_pub_conf_t.base_data.error_code = NODE_SER_NO_INVALID;
+
+        if(node_hearbeat_pub_conf_t.base_data.error_code == 0) {
             eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
             vTaskDelay(pdMS_TO_TICKS(5));
-            delete_Temperature_data_publish_timer();
-            create_Temperature_data_publish_timer();
-            break;
+        delete_Temperature_data_publish_timer();
+        create_Temperature_data_publish_timer();
+        }
 
-        case NODE_TEACHING_MODE_START_PACKET:
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START PACKET");
-            vendor_node_teaching_mode_t = BLE_recvd_data;
-            node_teaching_mode_t = *vendor_node_teaching_mode_t;
+        sensor_states[0].sensor_data.raw_value->data = &node_hearbeat_pub_conf_t;
+        example_ble_mesh_send_sensor_status();
+        break;
+
+    case NODE_TEACHING_MODE_START_PACKET:
+        ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START PACKET");
+        vendor_node_teaching_mode_t = BLE_recvd_data;
+        node_teaching_mode_t = *vendor_node_teaching_mode_t;
+
+        //Error Checks
+        if(strcmp(node_teaching_mode_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
+            node_teaching_mode_t.base_data.error_code = NODE_SER_NO_INVALID;
+
+        if(node_teaching_mode_t.base_data.error_code == 0) {     
             teaching_mode = true;
             teachMode_size_done = true;
-            sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
-            example_ble_mesh_send_sensor_status();
-            break;
+        }
+        
+        sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
+        example_ble_mesh_send_sensor_status();
+        break;
 
-        default:
-            ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Gwy");
-            break;
+    default:
+        ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Gwy");
+        break;
     }
 }
 
@@ -1017,7 +1040,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         }
         ESP_LOGI(MESH_DEBUG_TAG, "Send 0x%06" PRIx32, param->model_send_comp.opcode);
         break;
-     case ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT:
+    case ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT");
         ESP_LOGI(MESH_DEBUG_TAG, "TEMPERATURE PERIODIC PUBLISHING");
         sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
@@ -1049,7 +1072,7 @@ static esp_err_t ble_mesh_init(void)
     }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if(esp_ble_mesh_node_is_provisioned())
+    if (esp_ble_mesh_node_is_provisioned())
     {
         provisioned = true;
     }
@@ -1134,10 +1157,11 @@ void send_AC_configuration_ack_to_gwy()
  * @param none
  * @retval none
  */
-void send_manual_ac_control_ack_to_gwy(char *description)
+void send_manual_ac_control_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ack to Gwy");
-    // example_ble_mesh_send_sensor_status();
+    sensor_states[0].sensor_data.raw_value->data = &node_manual_ac_control_t;
+    example_ble_mesh_send_sensor_status();
 }
 
 /**
