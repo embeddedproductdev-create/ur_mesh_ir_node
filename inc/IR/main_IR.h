@@ -42,6 +42,7 @@ extern uint8_t custom_raw_buffer_index;
 
 /* FUNCTION DECLARATIONS - RECEIVER */
 void IR_receiver_task(void *args);
+void fetch_data_from_manual_control(char *input_string);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
 void IR_transmit_setup();

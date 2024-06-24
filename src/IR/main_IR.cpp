@@ -557,6 +557,102 @@ void IR_transmit(uint16_t protocol)
 }
 
 /**
+ * @brief Function to decipher and fill the information about Manual AC control into manual_ac_control_t structures
+ * We're only going to decipher Power, Mode, Fan, Temperature. Swing and Timer data are not supported.
+ * @param result_description_char_str The string containing the manual containing information
+ * @retval none
+ */
+void fetch_data_from_manual_control(char *input_string)
+{
+    char temperature[2] = "";
+    char power[3] = "";
+    char fan[2] = "";
+    char mode[4] = "";
+
+#if (IS_GWY)
+    // Fetch Power
+    if (strstr(input_string, "Power"))
+    {
+        snprintf(power, sizeof(power), (strstr(input_string, "Power") + 7));
+        if (!strcmp(power, "On"))
+            gwy_manual_ac_control_t.control.power = 1;
+        else
+            gwy_manual_ac_control_t.control.power = 0;
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
+
+    // Fetch Mode
+    if (strstr(input_string, "Mode"))
+    {
+        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 6));
+        strcpy(gwy_manual_ac_control_t.control.mode_str, mode);
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
+
+    // Fetch Fan
+    if (strstr(input_string, "Fan"))
+    {
+        snprintf(fan, sizeof(fan), (strstr(input_string, "Fan") + 5));
+        gwy_manual_ac_control_t.control.fan = atoi(fan);
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
+
+    // Fetch Temperature
+    if (strstr(input_string, "Temp"))
+    {
+        snprintf(temperature, sizeof(temperature), (strstr(input_string, "Temp") + 6));
+        gwy_manual_ac_control_t.control.temp = atoi(temperature);
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
+#endif
+
+#if (!IS_GWY)
+    // Fetch Power
+    if (strstr(input_string, "Power"))
+    {
+        snprintf(power, sizeof(power), (strstr(input_string, "Power") + 7));
+        if (!strcmp(power, "On"))
+            gwy_manual_ac_control_t.control.power = 1;
+        else
+            node_manual_ac_control_t.control.power = 0;
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
+
+    // Fetch Mode
+    if (strstr(input_string, "Mode"))
+    {
+        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 6));
+        strcpy(node_manual_ac_control_t.control.mode_str, mode);
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
+
+    // Fetch Fan
+    if (strstr(input_string, "Fan"))
+    {
+        snprintf(fan, sizeof(fan), (strstr(input_string, "Fan") + 5));
+        node_manual_ac_control_t.control.fan = atoi(fan);
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
+
+    // Fetch Temperature
+    if (strstr(input_string, "Temp"))
+    {
+        snprintf(temperature, sizeof(temperature), (strstr(input_string, "Temp") + 6));
+        node_manual_ac_control_t.control.temp = atoi(temperature);
+    }
+    else
+        red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
+#endif
+}
+
+/**
  * @brief Function that deals with the locking feature
  * If locking is enabled, then it checks if the set temperature was within locking limits, if not it will
  * set the ac back to prev state.
@@ -585,29 +681,30 @@ void locking_feature(char *result_description_char_str)
     }
     else
     {
-        // If we're not using teaching mode
-        uint8_t temperature = 0;
-        char temperature_in_string[10] = "";
-        if (strstr(result_description_char_str, "Temp: "))
+        fetch_data_from_manual_control(result_description_char_str);
+#if (IS_GWY)
+        if (gwy_manual_ac_control_t.control.temp > gwy_ac_control_t.control.TempLockUpLimit || gwy_manual_ac_control_t.control.temp < gwy_ac_control_t.control.TempLockLowLimit)
+#endif
+#if (!IS_GWY)
+        if (node_manual_ac_control_t.control.temp > node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp < gwy_ac_control_t.control.TempLockLowLimit)
+#endif
         {
-            temperature_in_string[0] = *((strstr(result_description_char_str, "Temp: ")) + 6);
-            temperature_in_string[1] = *((strstr(result_description_char_str, "Temp: ")) + 7);
-            temperature = atoi(temperature_in_string);
-            sprintf(ir_log_buffer, "Manually set Temperature (in string) : %s", temperature_in_string);
-            white_printf(IR_DEBUG_TAG, ir_log_buffer);
-            sprintf(ir_log_buffer, "Manually set Temperature (in int) : %d", temperature);
-            white_printf(IR_DEBUG_TAG, ir_log_buffer);
-        }
-        if (temperature != 0 && (temperature > gwy_ac_control_t.control.TempLockUpLimit || temperature < gwy_ac_control_t.control.TempLockLowLimit))
-        {
-            white_printf(IR_DEBUG_TAG, "Someone manually controlled the AC ... beyond limits ... reverting ");
             needToSendIRComamnd = true;
         }
     }
 
 #if (IS_GWY)
-    white_printf(IR_DEBUG_TAG, "Sending Gwy AC Manual control ack");
-    add_to_pubmesg_queue(result_description_char_str, publish_topic);
+    white_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack");
+    char pubmessage[PUBMESG_LEN];
+    sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
+    JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK,
+    JSON_ACK_NAME_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
+    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+    POWER_KEY, gwy_manual_ac_control_t.control.power,
+    MODE_KEY, gwy_manual_ac_control_t.control.mode_str,
+    FAN_SPEED_KEY, gwy_manual_ac_control_t.control.fan,
+    TEMPERATURE_KEY, gwy_manual_ac_control_t.control.temp);
+    add_to_pubmesg_queue(pubmessage, publish_topic);
 #endif
 #if (!IS_GWY)
     send_manual_ac_control_ack_to_gwy();
@@ -653,10 +750,7 @@ void IR_receiver_task(void *args)
             // sprintf(ir_log_buffer, "%s", raw_buf_str);
             // white_printf(IR_DEBUG_TAG, ir_log_buffer);
             if (description.length())
-            {
-                sprintf(ir_log_buffer, "%s", result_description_char_str);
-                printf("%s%s", IR_DEBUG_TAG, ir_log_buffer);
-            }
+                ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
 
             if (teaching_mode)
             {
