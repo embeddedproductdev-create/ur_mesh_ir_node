@@ -20,7 +20,7 @@ uint8_t MQTT_CLIENT_INDEX = 5;
 
 char mqtt_client_id[100];
 
-bool LOG_DATA = true;
+bool LOG_DATA = false;
 
 bool network_flag = false;
 bool client_flag = false;
@@ -111,15 +111,10 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 		red_printf(LTE_ERROR_TAG, "Memory allocation failed for LTE_uart_data");
 		return FAILURE;
 	}
-
-	if(LOG_DATA) {
-		sprintf(lte_log_buffer, "HEAP FREE : %ld",ESP.getFreeHeap());
-	}
-	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
 	uint32_t in_time = esp_timer_get_time();
 	while ((esp_timer_get_time() - in_time) / 1000 < timeout_ms)
 	{
-		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, pdMS_TO_TICKS(100));
+		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
 		if (length > 0)
 		{
 			//reset the counters
@@ -133,13 +128,11 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			hold_adding_to_pubmesg = false;
 			if (check_response(LTE_UART_data, check_string) == SUCCESS)
 			{
-				sprintf(lte_log_buffer, "%d bytes Data Received : %s", length, LTE_UART_data);
-				cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+				ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
 				/*If its the case of READ MESG, then we need to parse JSON*/
 				if (strstr(LTE_UART_data, "{"))
 				{
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
-					cyan_printf(LTE_DEBUG_TAG ,LTE_UART_data);
 					parse_json_packet(LTE_UART_data);
 				}
 				free(LTE_UART_data);
@@ -216,8 +209,7 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 	}
 	else
 	{
-		sprintf(lte_log_buffer, "Error in sending AT command to the EC200!!!");
-		red_printf(LTE_ERROR_TAG, lte_log_buffer);
+		red_printf(LTE_ERROR_TAG, "Error in sending AT command to the EC200!!!");
 		return FAILURE;
 	}
 }
@@ -442,7 +434,7 @@ void establishMQTTConnectionNew()
 			{
 				while(1)
 				{
-					vTaskDelay(pdMS_TO_TICKS(50));
+					vTaskDelay(1);
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{
 						mqtt_connected = true;
@@ -450,8 +442,7 @@ void establishMQTTConnectionNew()
 					else
 					{
 						mqtt_connected=false;
-						sprintf(lte_log_buffer, "Unexpected MQTT disconnection");
-						red_printf(LTE_ERROR_TAG, lte_log_buffer);
+						red_printf(LTE_ERROR_TAG, "Unexpected MQTT disconnection");
 						break;
 					}
 					if (pubmesg_queue_head != NULL && mqtt_connected)
@@ -459,14 +450,12 @@ void establishMQTTConnectionNew()
 						if (publish_to_mqtt() == SUCCESS)
 						{
 							remove_from_pubmesg_queue();
-							snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
-							yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+							yellow_printf(QUEUE_DEBUG_TAG, "Successfully published and removed from Queue");
 						}
 						else
 						{
 							mqtt_connected=false;
-							snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
-							red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+							red_printf(QUEUE_ERROR_TAG, "Failed to publish to MQTT");
 							break;
 						}
 					}
