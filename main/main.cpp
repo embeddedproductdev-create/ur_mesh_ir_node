@@ -21,7 +21,7 @@ uint32_t NODE_SER_NO = 100;
 #endif
 #if (!CLIENT_RELEASE)
 uint32_t GWY_SER_NO = 2;
-uint32_t NODE_SER_NO = 1;
+uint32_t NODE_SER_NO = 2;
 #endif
 char GWY_SER_NO_IN_STRING[15];
 char NODE_SER_NO_IN_STRING[15];
@@ -58,7 +58,7 @@ control_t *node_ac_control_queue_tail;
 
 manual_ac_control_t node_manual_ac_control_t;
 
-pub_conf_t node_hearbeat_pub_conf_t;
+pub_conf_t node_heartbeat_pub_conf_t;
 pub_conf_t *node_pub_conf_queue_head;
 pub_conf_t *node_pub_conf_queue_tail;
 
@@ -148,7 +148,7 @@ void fetch_from_flash()
     #endif
 
     #if (!IS_GWY)
-    node_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
+    node_heartbeat_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
     #endif
     
     /*AC Settings*/
@@ -238,7 +238,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %d", protocol_selected_num);
-    ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", node_pub_conf_t.pub_conf_period_in_sec);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", node_ac_control_t.control.power);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tMode                : %s", node_ac_control_t.control.mode_str);

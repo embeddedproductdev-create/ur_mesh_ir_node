@@ -18,7 +18,7 @@ char pubmessage[PUBMESG_LEN];
  * @param none
  * @retval none
  */
-void remove_from_node_pub_conf_queue()
+void remove_from_heartbeat_pub_conf_queue()
 {
 	if (node_pub_conf_queue_head == NULL)
 	{
@@ -34,7 +34,7 @@ void remove_from_node_pub_conf_queue()
 		if (node_pub_conf_queue_head == NULL)
 			node_pub_conf_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node pubconf queue | Node Pubconf Queue Count(%d)", get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
@@ -43,14 +43,14 @@ void remove_from_node_pub_conf_queue()
  * @param none
  * @retval none
  */
-void add_to_node_pub_conf_queue()
+void add_to_heartbeat_pub_conf_queue()
 {
 	pub_conf_t *pub_conf_node = (pub_conf_t *)malloc(sizeof(pub_conf_t));
 	if (pub_conf_node != NULL)
-		*pub_conf_node = node_hearbeat_pub_conf_t;
+		*pub_conf_node = node_heartbeat_pub_conf_t;
 	else
 	{
-		sprintf(queue_log_buffer, "Memory allocation failed in add_to_node_pub_conf_queue\r\n");
+		sprintf(queue_log_buffer, "Memory allocation failed in add_to_heartbeat_pub_conf_queue\r\n");
 		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 		return;
 	}
@@ -67,7 +67,7 @@ void add_to_node_pub_conf_queue()
 		node_pub_conf_queue_tail->next->next = NULL;
 		node_pub_conf_queue_tail = pub_conf_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_node_pub_conf_queue_count(node_pub_conf_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
@@ -76,7 +76,7 @@ void add_to_node_pub_conf_queue()
  * @param none
  * @return Number of elements currently in node_pubconf queue
  */
-uint8_t get_node_pub_conf_queue_count(pub_conf_t *head)
+uint8_t get_heartbeat_pub_conf_queue_count(pub_conf_t *head)
 {
 	uint8_t count = 0;
 	while (head != NULL)
@@ -93,7 +93,7 @@ uint8_t get_node_pub_conf_queue_count(pub_conf_t *head)
  * @param none
  * @retval none
  */
-void maintain_node_pubconf_queue()
+void maintain_heartbeat_pubconf_queue()
 {
 	pub_conf_t *temp = node_pub_conf_queue_head;
 	while (temp != NULL)
@@ -112,7 +112,7 @@ void maintain_node_pubconf_queue()
 					PUBLISH_PERIOD_KEY, temp->pub_conf_period_in_sec,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			remove_from_node_pub_conf_queue();
+			remove_from_heartbeat_pub_conf_queue();
 		}
 		temp = temp->next;
 	}
@@ -120,7 +120,7 @@ void maintain_node_pubconf_queue()
 
 /*-----------------------------------------------------------------------------------------*/
 
-void remove_from_node_reconf_queue()
+void remove_from_reconf_queue()
 {
 	if (node_reconf_queue_head == NULL)
 	{
@@ -136,18 +136,18 @@ void remove_from_node_reconf_queue()
 		if (node_reconf_queue_head == NULL)
 			node_reconf_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node reconf Queue | Node Reconf Queue Count(%d)", get_reconf_queue_count(node_reconf_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
-void add_to_node_reconf_queue()
+void add_to_reconf_queue()
 {
 	reconf_t *reconf_node = (reconf_t *)malloc(sizeof(reconf_t));
 	if (reconf_node != NULL)
 		*reconf_node = node_reconf_t;
 	else
 	{
-		sprintf(queue_log_buffer, "Memory allocation failed in add_to_node_reconf_queue\r\n");
+		sprintf(queue_log_buffer, "Memory allocation failed in add_to_reconf_queue\r\n");
 		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 		return;
 	}
@@ -164,7 +164,7 @@ void add_to_node_reconf_queue()
 		node_reconf_queue_tail->next->next = NULL;
 		node_reconf_queue_tail = reconf_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_node_reconf_queue_count(node_reconf_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_reconf_queue_count(node_reconf_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
@@ -173,7 +173,7 @@ void add_to_node_reconf_queue()
  * @param none
  * @return Number of elements currently in node_reconf queue
  */
-uint8_t get_node_reconf_queue_count(reconf_t *head)
+uint8_t get_reconf_queue_count(reconf_t *head)
 {
 	uint8_t count = 0;
 	while (head != NULL)
@@ -190,7 +190,7 @@ uint8_t get_node_reconf_queue_count(reconf_t *head)
  * @param none
  * @retval none
  */
-void maintain_node_reconf_queue()
+void maintain_reconf_queue()
 {
 	reconf_t *temp = node_reconf_queue_head;
 	while (temp != NULL)
@@ -208,7 +208,7 @@ void maintain_node_reconf_queue()
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			remove_from_node_reconf_queue();
+			remove_from_reconf_queue();
 		}
 		temp = temp->next;
 	}
@@ -216,7 +216,7 @@ void maintain_node_reconf_queue()
 
 /*-----------------------------------------------------------------------------------------*/
 
-void remove_from_node_control_queue()
+void remove_from_ac_control_queue()
 {
 	if (node_ac_control_queue_head == NULL)
 	{
@@ -232,11 +232,11 @@ void remove_from_node_control_queue()
 		if (node_ac_control_queue_head == NULL)
 			node_ac_control_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node AC control Queue | Node AC control Queue Count(%d)", get_ac_control_queue_count(node_ac_control_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
-void add_to_node_control_queue()
+void add_to_ac_control_queue()
 {
 	control_t *control_node = (control_t *)malloc(sizeof(control_t));
 	if (control_node != NULL)
@@ -260,7 +260,7 @@ void add_to_node_control_queue()
 		node_ac_control_queue_tail->next->next = NULL;
 		node_ac_control_queue_tail = control_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_node_control_queue_count(node_ac_control_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_ac_control_queue_count(node_ac_control_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
@@ -269,7 +269,7 @@ void add_to_node_control_queue()
  * @param none
  * @return Number of elements currently in node_ac_control queue
  */
-uint8_t get_node_control_queue_count(control_t *head)
+uint8_t get_ac_control_queue_count(control_t *head)
 {
 	uint8_t count = 0;
 	while (head != NULL)
@@ -286,7 +286,7 @@ uint8_t get_node_control_queue_count(control_t *head)
  * @param none
  * @retval none
  */
-void maintain_node_ac_control_queue()
+void maintain_ac_control_queue()
 {
 	control_t *temp = node_ac_control_queue_head;
 	while (temp != NULL)
@@ -315,7 +315,7 @@ void maintain_node_ac_control_queue()
 					TEMP_LOCK_LOW_LIMIT_KEY, temp->control.TempLockLowLimit,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			remove_from_node_control_queue();
+			remove_from_ac_control_queue();
 		}
 		temp = temp->next;
 	}
@@ -521,7 +521,7 @@ void maintain_prov_queue()
  * @param none
  * @retval none
  */
-void remove_from_node_teaching_mode_queue()
+void remove_from_teaching_mode_queue()
 {
 	if (node_teaching_mode_queue_head == NULL)
 	{
@@ -536,7 +536,7 @@ void remove_from_node_teaching_mode_queue()
 		if (node_teaching_mode_queue_head == NULL)
 			node_teaching_mode_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_node_teaching_mode_queue_count(node_teaching_mode_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_teaching_mode_queue_count(node_teaching_mode_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
@@ -545,14 +545,14 @@ void remove_from_node_teaching_mode_queue()
  * @param none
  * @retval none
  */
-void add_to_node_teaching_mode_queue()
+void add_to_teaching_mode_queue()
 {
 	teaching_mode_t *teaching_mode_node = (teaching_mode_t *)malloc(sizeof(teaching_mode_t));
 	if (teaching_mode_node != NULL)
 		*teaching_mode_node = node_teaching_mode_t;
 	else
 	{
-		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_node_teaching_mode_queue");
+		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_teaching_mode_queue");
 		return;
 	}
 	if (node_teaching_mode_queue_head == NULL)
@@ -568,7 +568,7 @@ void add_to_node_teaching_mode_queue()
 		node_teaching_mode_queue_tail->next->next = NULL;
 		node_teaching_mode_queue_tail = teaching_mode_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_node_teaching_mode_queue_count(node_teaching_mode_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_teaching_mode_queue_count(node_teaching_mode_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
@@ -577,7 +577,7 @@ void add_to_node_teaching_mode_queue()
  * @param none
  * @return Number of elements currently in node teaching mode queue
  */
-uint8_t get_node_teaching_mode_queue_count(teaching_mode_t *head)
+uint8_t get_teaching_mode_queue_count(teaching_mode_t *head)
 {
 	uint8_t count = 0;
 	while (head != NULL)
@@ -594,7 +594,7 @@ uint8_t get_node_teaching_mode_queue_count(teaching_mode_t *head)
  * @param none
  * @retval none
  */
-void maintain_node_teaching_mode_queue_head()
+void maintain_teaching_mode_queue()
 {
 	teaching_mode_t *temp = node_teaching_mode_queue_head;
 	while (temp != NULL)
@@ -613,7 +613,7 @@ void maintain_node_teaching_mode_queue_head()
 					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
-			remove_from_node_teaching_mode_queue();
+			remove_from_teaching_mode_queue();
 		}
 		temp = temp->next;
 	}
@@ -621,7 +621,7 @@ void maintain_node_teaching_mode_queue_head()
 
 /*-----------------------------------------------------------------------------------------*/
 
-void remove_from_node_debug_info_queue()
+void remove_from_debug_info_queue()
 {
 	if (node_debug_info_queue_head == NULL)
 	{
@@ -636,18 +636,18 @@ void remove_from_node_debug_info_queue()
 		if (node_debug_info_queue_head == NULL)
 			node_debug_info_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_node_debug_info_queue_count(node_debug_info_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_debug_info_queue_count(node_debug_info_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
-void add_to_node_debug_info_queue()
+void add_to_debug_info_queue()
 {
 	debug_info_t *debuf_info_node = (debug_info_t *)malloc(sizeof(debug_info_t));
 	if (debuf_info_node != NULL)
 		*debuf_info_node = node_debug_info_t;
 	else
 	{
-		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_node_debug_info_queue");
+		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_debug_info_queue");
 		return;
 	}
 	if (node_debug_info_queue_head == NULL)
@@ -663,11 +663,11 @@ void add_to_node_debug_info_queue()
 		node_debug_info_queue_tail->next->next = NULL;
 		node_debug_info_queue_tail = debuf_info_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_node_debug_info_queue_count(node_debug_info_queue_head));
+	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_debug_info_queue_count(node_debug_info_queue_head));
 	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 }
 
-uint8_t get_node_debug_info_queue_count(debug_info_t *head)
+uint8_t get_debug_info_queue_count(debug_info_t *head)
 {
 	uint8_t count = 0;
 	while (head != NULL)
@@ -678,14 +678,14 @@ uint8_t get_node_debug_info_queue_count(debug_info_t *head)
 	return count;
 }
 
-void maintain_node_debug_info_queue_count()
+void maintain_debug_info_queue()
 {
 	debug_info_t *temp = node_debug_info_queue_head;
 	while (temp != NULL)
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing Node Debug Info request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
@@ -695,8 +695,8 @@ void maintain_node_debug_info_queue_count()
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
-			add_to_node_debug_info_queue(pubmessage, publish_topic);
-			remove_from_node_debug_info_queue();
+			add_to_debug_info_queue(pubmessage, publish_topic);
+			remove_from_debug_info_queue();
 		}
 		temp = temp->next;
 	}
@@ -799,7 +799,6 @@ void queue_handler(void *args)
 {
 	while (1)
 	{
-		//while(needToSendIRComamnd) vTaskDelay(1);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		if (prov_queue_head != NULL)
 		{
@@ -810,6 +809,7 @@ void queue_handler(void *args)
 				if (!prov_queue_head->base_data.request_sent_to_node_flag)
 				{
 					prov_queue_head->base_data.request_sent_to_node_flag = true;
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Prov Request to Node");
 					send_prov_packet_to_node(prov_queue_head);
 				}
 			}
@@ -823,59 +823,78 @@ void queue_handler(void *args)
 				if (!unprov_queue_head->base_data.request_sent_to_node_flag)
 				{
 					unprov_queue_head->base_data.request_sent_to_node_flag = true;
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending UnProv Request to Node");
 					send_unprov_packet_to_node(unprov_queue_head);
 				}
 			}
 		}
 		if (node_reconf_queue_head != NULL)
 		{
-			maintain_node_reconf_queue();
+			maintain_reconf_queue();
 			// Don't keep sending the requests again and again
 			if (node_reconf_queue_head != NULL)
 			{
 				if (!node_reconf_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_reconf_queue_head->base_data.request_sent_to_node_flag = true;
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Reconf Request to Node");
 					send_reconf_packet_to_node(node_reconf_queue_head);
 				}
 			}
 		}
 		if (node_ac_control_queue_head != NULL)
 		{
-			maintain_node_ac_control_queue();
+			maintain_ac_control_queue();
 			// Don't keep sending the requests again and again
 			if (node_ac_control_queue_head != NULL)
 			{
 				if (!node_ac_control_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_ac_control_queue_head->base_data.request_sent_to_node_flag = true;
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending AC Control Request to Node");
 					send_ac_control_packet_to_node(node_ac_control_queue_head);
 				}
 			}
 		}
 		if (node_pub_conf_queue_head != NULL)
 		{
-			maintain_node_pubconf_queue();
+			maintain_heartbeat_pubconf_queue();
 			// Don't keep sending the requests again and again
 			if (node_pub_conf_queue_head != NULL)
 			{
 				if (!node_pub_conf_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_pub_conf_queue_head->base_data.request_sent_to_node_flag = true;
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Pub Conf Request to Node");
 					send_pub_conf_packet_to_node(node_pub_conf_queue_head);
 				}
 			}
 		}
 		if (node_teaching_mode_queue_head != NULL)
 		{
-			maintain_node_teaching_mode_queue_head();
+			maintain_teaching_mode_queue();
 			// Don't keep sending the requests again and again
 			if (node_teaching_mode_queue_head != NULL)
 			{
 				if (!node_teaching_mode_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_teaching_mode_queue_head->base_data.request_sent_to_node_flag = true;
-					send_node_teaching_mode_packet_to_node(node_pub_conf_queue_head);
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Teaching Mode Request to Node");
+					send_teaching_mode_packet_to_node(node_pub_conf_queue_head);
+				}
+			}
+		}
+		if (node_debug_info_queue_head != NULL)
+		{
+			maintain_debug_info_queue();
+			// Don't keep sending the requests again and again
+			if (node_debug_info_queue_head != NULL)
+			{
+				if (!node_debug_info_queue_head->base_data.request_sent_to_node_flag)
+				{
+					node_debug_info_queue_head->base_data.request_sent_to_node_flag = true;
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Debug Info Request to Node");
+					send_debug_info_packet_to_node(node_debug_info_queue_head);
 				}
 			}
 		}

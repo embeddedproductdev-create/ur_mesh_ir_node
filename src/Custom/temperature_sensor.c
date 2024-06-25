@@ -137,11 +137,11 @@ void init_digital_temperature_sensor()
 static void publish_temperature_cb(void *arg)
 {
     char pubmessage[PUBMESG_LEN];
-    read_analog_temperature(&measured_temperature); 
+    read_analog_temperature(&measured_temperature);
 #if (IS_GWY)
     if (registered && mqtt_connected)
     {
-        if(LOG_DATA)
+        if (LOG_DATA)
         {
             sprintf(temperature_log_buffer, "Sending Gwy Temperature Ack");
             magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
@@ -167,7 +167,8 @@ static void publish_temperature_cb(void *arg)
 #endif
 
 #if (!IS_GWY)
-    if (provisioned && !sending) send_temperature_ack_to_gwy();
+    if (provisioned && !sending)
+        send_temperature_ack_to_gwy();
 #endif
 }
 
@@ -206,5 +207,10 @@ void delete_Temperature_data_publish_timer()
 void create_Temperature_data_publish_timer()
 {
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &temp_publish_timer));
+#if (IS_GWY)
     ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_pub_conf_t.pub_conf_period_in_sec * 1000000));
+#endif
+#if (!IS_GWY)
+    ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, node_heartbeat_pub_conf_t.pub_conf_period_in_sec * 1000000));
+#endif
 }

@@ -231,7 +231,6 @@ int8_t publish_to_mqtt()
 	{
 		if (uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message, strlen(pubmesg_queue_head->message)) != FAILURE)
 		{
-			sleep(1); // We'll waste a second here to see if it helps with QMTSTAT 1 error
 			publishing_flag = false;
 			sprintf(queue_log_buffer, "Published :");
 			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
@@ -436,7 +435,6 @@ void establishMQTTConnectionNew()
 			{
 				while(1)
 				{
-					//while(needToSendIRComamnd) vTaskDelay(1);
 					vTaskDelay(1);
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{

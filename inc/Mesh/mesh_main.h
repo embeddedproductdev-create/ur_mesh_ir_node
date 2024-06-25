@@ -19,7 +19,8 @@ void send_unprov_packet_to_node(unprov_t *unprov_packet);
 void send_reconf_packet_to_node(reconf_t *reconf_packet);
 void send_ac_control_packet_to_node(control_t *control_packet);
 void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet);
-void send_node_teaching_mode_packet_to_node(teaching_mode_t *node_teaching_mode_packet);
+void send_teaching_mode_packet_to_node(teaching_mode_t *node_teaching_mode_packet);
+void send_debug_info_packet_to_node(debug_info_t *debug_info_packet);
 
 /* NODE FUNCTION DECLARATIONS */
 void node_mesh_main_init(void);

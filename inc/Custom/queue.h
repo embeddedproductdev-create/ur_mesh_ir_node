@@ -35,34 +35,34 @@ extern "C"
     void maintain_unprov_queue();
 
     //Node AC control
-    void remove_from_node_control_queue();
-    void add_to_node_control_queue();
-    uint8_t get_node_control_queue_count(control_t *);
-    void maintain_node_ac_control_queue();
+    void remove_from_ac_control_queue();
+    void add_to_ac_control_queue();
+    uint8_t get_ac_control_queue_count(control_t *);
+    void maintain_ac_control_queue();
 
     //Node Reconf
-    void remove_from_node_reconf_queue();
-    void add_to_node_reconf_queue();
-    uint8_t get_node_reconf_queue_count(reconf_t *);
-    void maintain_node_reconf_queue();
+    void remove_from_reconf_queue();
+    void add_to_reconf_queue();
+    uint8_t get_reconf_queue_count(reconf_t *);
+    void maintain_reconf_queue();
 
     //Node Pubconf
-    void remove_from_node_pub_conf_queue();
-    void add_to_node_pub_conf_queue();
-    uint8_t get_node_pub_conf_queue_count(pub_conf_t *);
-    void maintain_node_pubconf_queue();
+    void remove_from_heartbeat_pub_conf_queue();
+    void add_to_heartbeat_pub_conf_queue();
+    uint8_t get_heartbeat_pub_conf_queue_count(pub_conf_t *);
+    void maintain_heartbeat_pubconf_queue();
 
     //Node Teaching Mode
-    void remove_from_node_teaching_mode_queue();
-    void add_to_node_teaching_mode_queue();
-    uint8_t get_node_teaching_mode_queue_count();
-    void maintain_node_teaching_mode_queue();
+    void remove_from_teaching_mode_queue();
+    void add_to_teaching_mode_queue();
+    uint8_t get_teaching_mode_queue_count();
+    void maintain_teaching_mode_queue();
 
     //Node Debug info
-    void remove_from_node_debug_info_queue();
-    void add_to_node_debug_info_queue();
-    uint8_t get_node_debug_info_queue_count();
-    void maintain_node_debug_info_queue();
+    void remove_from_debug_info_queue();
+    void add_to_debug_info_queue();
+    uint8_t get_debug_info_queue_count();
+    void maintain_debug_info_queue();
     
     void queue_handler(void *args);
 #ifdef __cplusplus

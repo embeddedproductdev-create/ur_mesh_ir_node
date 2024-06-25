@@ -38,9 +38,11 @@
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
 teaching_mode_t *vendor_node_teaching_mode_t;
-pub_conf_t *vendor_node_hearbeat_pub_conf_t;
+pub_conf_t *vendor_node_heartbeat_pub_conf_t;
 debug_info_t *vendor_node_debug_info_t;
 uint8_t *BLE_recvd_data;
+
+bool reset_node = false;
 
 #include <stdio.h>
 #include <string.h>
@@ -992,21 +994,21 @@ static void store_data_to_node_structures()
 
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
         ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET");
-        vendor_node_hearbeat_pub_conf_t = BLE_recvd_data;
-        node_hearbeat_pub_conf_t = *vendor_node_hearbeat_pub_conf_t;
+        vendor_node_heartbeat_pub_conf_t = BLE_recvd_data;
+        node_heartbeat_pub_conf_t = *vendor_node_heartbeat_pub_conf_t;
 
         //Error Checks
-        if(strcmp(node_hearbeat_pub_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
-            node_hearbeat_pub_conf_t.base_data.error_code = NODE_SER_NO_INVALID;
+        if(strcmp(node_heartbeat_pub_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
+            node_heartbeat_pub_conf_t.base_data.error_code = NODE_SER_NO_INVALID;
 
-        if(node_hearbeat_pub_conf_t.base_data.error_code == 0) {
+        if(node_heartbeat_pub_conf_t.base_data.error_code == 0) {
             eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
             vTaskDelay(pdMS_TO_TICKS(5));
         delete_Temperature_data_publish_timer();
         create_Temperature_data_publish_timer();
         }
 
-        sensor_states[0].sensor_data.raw_value->data = &node_hearbeat_pub_conf_t;
+        sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_pub_conf_t;
         example_ble_mesh_send_sensor_status();
         break;
 
@@ -1090,10 +1092,10 @@ static esp_err_t ble_mesh_init(void)
         ESP_LOGE(MESH_DEBUG_TAG, "Failed to initialize mesh stack");
         return err;
     }
-    for (int i = 0; i < 10; i++)
-    {
-        ESP_LOGI(MESH_DEBUG_TAG, "%0x :", dev_uuid[i]);
-    }
+    // for (int i = 0; i < 10; i++)
+    // {
+    //     ESP_LOGI(MESH_DEBUG_TAG, "%0x :", dev_uuid[i]);
+    // }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
     if (esp_ble_mesh_node_is_provisioned())
@@ -1109,11 +1111,6 @@ static esp_err_t ble_mesh_init(void)
         ESP_LOGE(MESH_DEBUG_TAG, "Failed to enable mesh node");
         return err;
     }
-
-    // board_led_operation(LED_G, LED_ON);
-
-    ESP_LOGI(MESH_DEBUG_TAG, "BLE Mesh Node initialized BY AK");
-
     return ESP_OK;
 }
 
@@ -1125,9 +1122,6 @@ static esp_err_t ble_mesh_init(void)
 void node_mesh_main_init(void)
 {
     esp_err_t err;
-
-    ESP_LOGI(MESH_DEBUG_TAG, "Initializing...");
-
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES)
     {
@@ -1135,8 +1129,6 @@ void node_mesh_main_init(void)
         err = nvs_flash_init();
     }
     ESP_ERROR_CHECK(err);
-
-    // board_init();
 
     err = bluetooth_init();
     if (err)
@@ -1146,18 +1138,13 @@ void node_mesh_main_init(void)
     }
 
     ble_mesh_get_dev_uuid(dev_uuid);
-    for (int i = 0; i < 10; i++)
-    {
 
-        ESP_LOGI(MESH_DEBUG_TAG, "%0x :", dev_uuid[i]);
-    }
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err)
     {
         ESP_LOGE(MESH_DEBUG_TAG, "Bluetooth mesh init failed (err %d)", err);
     }
-    ESP_LOGE(MESH_DEBUG_TAG, "Gpio detect");
     esp_ble_mesh_cfg_server_cb_param_t paramss;
 }
 

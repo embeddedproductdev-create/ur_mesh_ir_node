@@ -237,6 +237,9 @@ typedef struct debug_info_struct
 	struct base_data_t base_data;
 	bool logging;
 	bool resetDevice;
+	char firmware[10];
+	char uptimestr[10];
+	uint16_t protocol;
 	struct debug_info_struct *next;
 	struct debug_info_struct *prev;
 }debug_info_t;
@@ -412,7 +415,7 @@ extern reconf_t *node_reconf_queue_tail;
 extern heartbeat_t node_heartbeat_t;
 
 /*node publish configuration*/
-extern pub_conf_t node_hearbeat_pub_conf_t;
+extern pub_conf_t node_heartbeat_pub_conf_t;
 extern pub_conf_t *node_pub_conf_queue_head;
 extern pub_conf_t *node_pub_conf_queue_tail;
 

@@ -18,6 +18,11 @@
 #include "../../inc/Custom/button.h"
 #include "../../inc/IR/main_IR.h"
 
+//We're including the below just to call reset node function
+#include "../../inc/Mesh/ble_mesh_example_init.h"
+#include "esp_ble_mesh_networking_api.h"
+#include "esp_ble_mesh_defs.h"
+
 // Initialization - BUTTON
 uint32_t beginTime = 0;
 uint32_t pressedTime = 0;
@@ -33,22 +38,16 @@ void button_logic()
         /* Single Press */
         if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
-#if (IS_GWY)
             if (LOG_DATA)
                 LOG_DATA = false;
             else
                 LOG_DATA = true;
-#endif
-#if (!IS_GWY)
-            sprintf(button_log_buffer, "Currently not assigned to any operation");
-            green_printf(BUTTON_DEBUG_TAG, button_log_buffer);
-#endif
         }
 
         /* Double Press */
         else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] != 0 && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
-            ; //Not assigned yet
+            esp_ble_mesh_node_local_reset();
         }
 
         /* Button held for 3s - 8s */
@@ -100,7 +99,7 @@ void button_task(void *args)
     pinMode(USER_SWITCH, INPUT);
     while (1)
     {
-        //while(needToSendIRComamnd) vTaskDelay(1);
+        
         vTaskDelay(pdMS_TO_TICKS(100));
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {

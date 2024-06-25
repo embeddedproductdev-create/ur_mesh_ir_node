@@ -18,6 +18,7 @@
 #define HALF_SEC_IN_MS 500
 
 /* GLOBAL VARIABLES */
+extern bool reset_node;
 
 /* FUNCTION DECLARATIONS */
 void clear_mqtt_settings();

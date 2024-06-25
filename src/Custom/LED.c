@@ -32,7 +32,7 @@ void LED_task(void *args)
     LED_initial_setup();
     while (1)
     {
-        //while(needToSendIRComamnd) vTaskDelay(1);
+        
         vTaskDelay(1);
         if (show_boot_indication) 
             LED_state = LED_STATE_DEVICE_BOOT_SUCCESSFUL;
@@ -93,7 +93,7 @@ void LED_task(void *args)
             digitalWrite(GREEN_LED_PIN, HIGH);
             digitalWrite(BLUE_LED_PIN, LOW);
             sleep(1);
-            digitalWrite(GREEN_LED_PIN, LOW);
+            digitalWrite(BLUE_LED_PIN, HIGH);
             sleep(1);
             show_boot_indication = false;
             break;
