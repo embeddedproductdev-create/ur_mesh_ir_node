@@ -128,11 +128,13 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			hold_adding_to_pubmesg = false;
 			if (check_response(LTE_UART_data, check_string) == SUCCESS)
 			{
-				ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
+				if(LOG_DATA)
+					ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
 				/*If its the case of READ MESG, then we need to parse JSON*/
 				if (strstr(LTE_UART_data, "{"))
 				{
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
+					ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
 					parse_json_packet(LTE_UART_data);
 				}
 				free(LTE_UART_data);

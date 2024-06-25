@@ -146,7 +146,7 @@ static void publish_temperature_cb(void *arg)
             sprintf(temperature_log_buffer, "Sending Gwy Temperature Ack");
             magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
         }
-        sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d,  %s : %s, %s : %d,  %s : %d,  %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : %d,  \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, GWY_HEARTBEAT_ACK,
                 JSON_ACK_NAME_KEY, GWY_HEARTBEAT_ACK_NAME,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,

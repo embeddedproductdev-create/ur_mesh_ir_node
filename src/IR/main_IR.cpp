@@ -564,17 +564,17 @@ void IR_transmit(uint16_t protocol)
  */
 void fetch_data_from_manual_control(char *input_string)
 {
-    char temperature[2] = "";
-    char power[3] = "";
+    char temperature[3] = "";
+    char power[4] = "";
     char fan[2] = "";
-    char mode[4] = "";
+    char mode[5] = "";
 
 #if (IS_GWY)
     // Fetch Power
     if (strstr(input_string, "Power"))
     {
         snprintf(power, sizeof(power), (strstr(input_string, "Power") + 7));
-        if (!strcmp(power, "On"))
+        if (strstr(power, "On"))
             gwy_manual_ac_control_t.control.power = 1;
         else
             gwy_manual_ac_control_t.control.power = 0;
@@ -585,8 +585,12 @@ void fetch_data_from_manual_control(char *input_string)
     // Fetch Mode
     if (strstr(input_string, "Mode"))
     {
-        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 6));
-        strcpy(gwy_manual_ac_control_t.control.mode_str, mode);
+        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 9));
+        if(strstr(mode, "Cool")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Cool");
+        else if(strstr(mode, "Heat")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Hot");
+        else if(strstr(mode, "Dry")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Dry");
+        else if(strstr(mode, "Auto")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Auto");
+        else if(strstr(mode, "Fan")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Fan");
     }
     else
         red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
@@ -627,7 +631,11 @@ void fetch_data_from_manual_control(char *input_string)
     if (strstr(input_string, "Mode"))
     {
         snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 6));
-        strcpy(node_manual_ac_control_t.control.mode_str, mode);
+        if(strstr(mode, "Cool")) strcpy(node_manual_ac_control_t.control.mode_str, "Cool");
+        else if(strstr(mode, "Heat")) strcpy(node_manual_ac_control_t.control.mode_str, "Hot");
+        else if(strstr(mode, "Dry")) strcpy(node_manual_ac_control_t.control.mode_str, "Dry");
+        else if(strstr(mode, "Auto")) strcpy(node_manual_ac_control_t.control.mode_str, "Auto");
+        else if(strstr(mode, "Fan")) strcpy(node_manual_ac_control_t.control.mode_str, "Fan");
     }
     else
         red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
@@ -696,7 +704,7 @@ void locking_feature(char *result_description_char_str)
 #if (IS_GWY)
     white_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack");
     char pubmessage[PUBMESG_LEN];
-    sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
+    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
     JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK,
     JSON_ACK_NAME_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
@@ -805,6 +813,18 @@ void IR_receiver_task(void *args)
                 eeprom_addr_cal++;
             }
 
+            /**
+             * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
+             * occur only if the following conditions are met
+             * 1) Device must be registered / configured
+             * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
+             * 3) Device must not be in teaching mode
+             * 4) Locking feature must be enabled in Gwy AC Control Packet
+             */
+            // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
+            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode)
+                locking_feature(result_description_char_str);
+
             /* AC Remote configuration process */
             // Here's where we need to add something like protocol_detected > something and < something
             // After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
@@ -822,7 +842,7 @@ void IR_receiver_task(void *args)
                     eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
                     vTaskDelay(pdMS_TO_TICKS(5));
                     char pubmessage[PUBMESG_LEN];
-                    sprintf(pubmessage, "{%s : %d, %s : %s, %s : %s, %s : %d}",
+                    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
                             JSON_PACKET_ID_KEY, GWY_CONF_ACK,
                             JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
@@ -841,16 +861,6 @@ void IR_receiver_task(void *args)
                 }
 #endif
             }
-            /**
-             * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
-             * occur only if the following conditions are met
-             * 1) Device must be registered / configured
-             * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
-             * 3) Device must not be in teaching mode
-             * 4) Locking feature must be enabled in Gwy AC Control Packet
-             */
-            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode)
-                locking_feature(result_description_char_str);
         }
     }
     vTaskDelete(NULL);

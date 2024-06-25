@@ -67,7 +67,7 @@
 #define GWY_HEARTBEAT_PUB_CONF_ACK_NAME "Gwy Heartbeat Publish Configuration ACK"
 #define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start ACK"
 #define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End ACK"
-#define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug "
+#define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug Info ACK"
 #define NODE_PROV_ACK_NAME "Node Provisioning ACK"
 #define NODE_UNPROV_ACK_NAME "Node Unprovisioing ACK"
 #define NODE_CONF_ACK_NAME "Node Configuration ACK"
