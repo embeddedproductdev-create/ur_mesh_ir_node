@@ -11,7 +11,6 @@ const json_packet_enum = Object.freeze({
     GWY_TEACHING_MODE_START_PACKET: 8,
     GWY_TEACHING_MODE_END_ACK: 9,
     GWY_DEBUG_INFO_PACKET: 10,
-    GWY_RESET_MQTT_PACKET: 99,
 
     /* NODE PACKETS */
     NODE_PROV_PACKET: 100,

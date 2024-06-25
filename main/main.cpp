@@ -33,7 +33,6 @@ reconf_t gwy_conf_t;
 reconf_t gwy_reconf_t;
 control_t gwy_ac_control_t;
 manual_ac_control_t gwy_manual_ac_control_t;
-mqtt_reset_t gwy_reset_mqtt_t;
 pub_conf_t gwy_pub_conf_t;
 heartbeat_t gwy_heartbeat_t;
 teaching_mode_t gwy_teaching_mode_t;

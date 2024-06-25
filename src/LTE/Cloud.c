@@ -36,7 +36,6 @@ void init_structures()
     strcpy(gwy_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_manual_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_reset_mqtt_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_heartbeat_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
@@ -50,7 +49,6 @@ void init_structures()
     gwy_reconf_t.base_data.json_packet_id = GWY_RECONF_PACKET;
     gwy_ac_control_t.base_data.json_packet_id = GWY_AC_CONTROL_PACKET;
     gwy_manual_ac_control_t.base_data.json_packet_id = GWY_MANUAL_AC_CONTROL_ACK;
-    gwy_reset_mqtt_t.base_data.json_packet_id = RESET_MQTT;
     gwy_pub_conf_t.base_data.json_packet_id = GWY_HEARTBEAT_PUB_CONF_PACKET;
     gwy_heartbeat_t.base_data.json_packet_id = GWY_HEARTBEAT_ACK;
     gwy_teaching_mode_t.base_data.json_packet_id = GWY_TEACHING_MODE_START_PACKET;
@@ -74,7 +72,6 @@ void init_structures()
     strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK_NAME);
     strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK_NAME);
     strcpy(gwy_manual_ac_control_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
-    strcpy(gwy_reset_mqtt_t.base_data.ack_name, GWY_RESET_MQTT_ACK_NAME);
     strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
     strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
     strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
@@ -432,10 +429,6 @@ void error_check_json(uint8_t json_packet_id)
             return;
         }
         return;
-
-    case RESET_MQTT:
-        json_ack_err_code = FORBIDDEN_OPERATION;
-        return;
     }
 }
 
@@ -539,18 +532,6 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
                 MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
-                ERROR_CODE_KEY, json_ack_err_code);
-        add_to_pubmesg_queue(pubmessage, publish_topic);
-        break;
-
-    case RESET_MQTT:
-        sprintf(lte_log_buffer, "Sending Gwy Reset MQTT Ack");
-        cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-        sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d}",
-                JSON_PACKET_ID_KEY, RESET_MQTT,
-                JSON_ACK_NAME_KEY, GWY_RESET_MQTT_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_reset_mqtt_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 ERROR_CODE_KEY, json_ack_err_code);
         add_to_pubmesg_queue(pubmessage, publish_topic);
         break;

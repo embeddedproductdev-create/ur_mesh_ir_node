@@ -53,7 +53,6 @@
 #define GWY_MANUAL_AC_CONTROL_ACK_NAME "Gwy Manual AC control ACK"
 #define GWY_HEARTBEAT_ACK_NAME "Gwy Heartbeat ACK"
 #define GWY_HEARTBEAT_PUB_CONF_ACK_NAME "Gwy Heartbeat Publish Configuration ACK"
-#define GWY_RESET_MQTT_ACK_NAME "Gwy Reset MQTT ACK"
 #define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start ACK"
 #define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End ACK"
 #define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug "
@@ -243,7 +242,6 @@ enum json_packet_enum
 	GWY_TEACHING_MODE_START_PACKET,
 	GWY_TEACHING_MODE_END_ACK,
 	GWY_DEBUG_INFO_PACKET,
-	RESET_MQTT=99,
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
@@ -360,9 +358,6 @@ extern heartbeat_t gwy_heartbeat_t;
 
 /*gwy publish configuration*/
 extern pub_conf_t gwy_pub_conf_t;
-
-/*reset mqtt*/
-extern mqtt_reset_t gwy_reset_mqtt_t;
 
 /*teaching mode*/
 extern teaching_mode_t gwy_teaching_mode_t;
