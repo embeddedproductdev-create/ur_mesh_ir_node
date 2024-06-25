@@ -155,6 +155,7 @@ void fetch_from_flash()
 #if (IS_GWY)
     gwy_ac_control_t.control.power = eeprom_read_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR);
     gwy_ac_control_t.control.mode_val = eeprom_read_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR);
+    strcpy(gwy_ac_control_t.control.mode_str, get_mode_string(gwy_ac_control_t.control.mode_val));
     gwy_ac_control_t.control.fan = eeprom_read_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR);
     gwy_ac_control_t.control.temp = eeprom_read_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR);
     gwy_ac_control_t.control.swingH = eeprom_read_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR);
@@ -167,6 +168,7 @@ void fetch_from_flash()
 #if (!IS_GWY)
     node_ac_control_t.control.power = eeprom_read_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR);
     node_ac_control_t.control.mode_val = eeprom_read_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR);
+    strcpy(node_ac_control_t.control.mode_str, get_mode_string(node_ac_control_t.control.mode_val));
     node_ac_control_t.control.fan = eeprom_read_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR);
     node_ac_control_t.control.temp = eeprom_read_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR);
     node_ac_control_t.control.swingH = eeprom_read_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR);

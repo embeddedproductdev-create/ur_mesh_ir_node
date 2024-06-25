@@ -156,6 +156,7 @@ extern "C"
     int8_t check_response(char *data, char *response_check_string);
     void rotate_client_index();
     void factory_reset_device();
+    char* get_mode_string(uint8_t mode_value);
 #ifdef __cplusplus
 }
 #endif

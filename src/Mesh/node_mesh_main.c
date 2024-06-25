@@ -931,6 +931,30 @@ static void store_data_to_node_structures()
         if (!configured) 
             node_ac_control_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
         
+        //Store AC Settings to Flash
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, node_ac_control_t.control.mode_val);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, node_ac_control_t.control.fan);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, node_ac_control_t.control.temp);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR, node_ac_control_t.control.swingH);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR, node_ac_control_t.control.swingV);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR, node_ac_control_t.control.OnTimer);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR, node_ac_control_t.control.Locking);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockLowLimit);
+        vTaskDelay(pdMS_TO_TICKS(5));
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockUpLimit);
+        vTaskDelay(pdMS_TO_TICKS(5));
+    
         sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
         example_ble_mesh_send_sensor_status();
         if(node_ac_control_t.base_data.error_code == 0) needToSendIRComamnd = true;

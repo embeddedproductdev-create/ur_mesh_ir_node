@@ -566,6 +566,29 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     add_to_pubmesg_queue(pubmessage, publish_topic);
 }
 
+/**
+ * @brief Function that returns the Mode string based on Mode value
+ * @param mode_value 
+ * @return char* String that denotes what mode it is.
+ */
+char* get_mode_string(uint8_t mode_value)
+{
+    switch(mode_value)
+    {
+        case COOL:
+            return "Cool";
+        case DRY:
+            return "Dry";
+        case HEAT:
+            return "Hot";
+        case FAN:
+            return "Fan";
+        case AUTO:
+            return "Auto";
+    }
+    return "NULL";
+}
+
 void get_mode_value(char *device_type)
 {
     if (strcmp(device_type, "gwy") == 0)
@@ -760,37 +783,17 @@ void parse_json_packet(char *json_packet)
             node_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             node_ac_control_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
             node_ac_control_t.control.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
-            vTaskDelay(pdMS_TO_TICKS(5));
             strcpy(node_ac_control_t.control.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
             get_mode_value("node");
             node_ac_control_t.control.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, node_ac_control_t.control.fan);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, node_ac_control_t.control.temp);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR, node_ac_control_t.control.swingH);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR, node_ac_control_t.control.swingV);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.OnTimer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR, node_ac_control_t.control.OnTimer);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.OffTimer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.Locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR, node_ac_control_t.control.Locking);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.TempLockLowLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_LOW_LIMIT_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockLowLimit);
-            vTaskDelay(pdMS_TO_TICKS(5));
             node_ac_control_t.control.TempLockUpLimit = cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockUpLimit);
-            vTaskDelay(pdMS_TO_TICKS(5));
             add_to_node_control_queue();
             break;
 
@@ -801,6 +804,8 @@ void parse_json_packet(char *json_packet)
             vTaskDelay(pdMS_TO_TICKS(5));
             strcpy(gwy_ac_control_t.control.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
             get_mode_value("gwy");
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, gwy_ac_control_t.control.mode_val);
+            vTaskDelay(pdMS_TO_TICKS(5));
             gwy_ac_control_t.control.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, gwy_ac_control_t.control.fan);
             vTaskDelay(pdMS_TO_TICKS(5));

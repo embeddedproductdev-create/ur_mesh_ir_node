@@ -734,11 +734,8 @@ void IR_receiver_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-        if (needToSendIRComamnd)
-        {
-            IR_transmit(protocol_selected_num);
-            continue;
-        }
+        if (needToSendIRComamnd) IR_transmit(protocol_selected_num);
+
         if (esp_restart_flag)
             ESP.restart();
         if (irrecv.decode(&results))
