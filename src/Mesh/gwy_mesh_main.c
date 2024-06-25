@@ -190,8 +190,10 @@ esp_err_t ble_mesh_nvs_restore(nvs_handle_t handle, const char *key, void *data,
     }
     else
     {
-        ESP_LOGI(MESH_DEBUG_TAG, "Restore, key \"%s\", length %u", key, length);
-        ESP_LOG_BUFFER_HEX("EXAMPLE_NVS: Restore, data", data, length);
+        if(LOG_DATA) {
+            ESP_LOGI(MESH_DEBUG_TAG, "Restore, key \"%s\", length %u", key, length);
+            ESP_LOG_BUFFER_HEX("EXAMPLE_NVS: Restore, data", data, length);
+        }
     }
 
     return err;
@@ -1777,9 +1779,7 @@ static esp_err_t ble_mesh_init(void)
     esp_ble_mesh_register_config_client_callback(example_ble_mesh_config_client_cb);
     esp_ble_mesh_register_custom_model_callback(example_ble_mesh_custom_model_cb);
     esp_ble_mesh_register_sensor_client_callback(example_ble_mesh_sensor_client_cb);
-    ESP_LOGE(MESH_ERROR_TAG, "esp_ble_mesh_init");
     err = esp_ble_mesh_init(&provision, &composition);
-    ESP_LOGE(MESH_ERROR_TAG, "esp_ble_mesh_init");
     if (err != ESP_OK)
     {
         ESP_LOGE(MESH_ERROR_TAG, "Failed to initialize mesh stack");
@@ -1814,18 +1814,12 @@ static esp_err_t ble_mesh_init(void)
         ESP_LOGE(MESH_ERROR_TAG, "Failed to add local AppKey");
         return err;
     }
-
-    ESP_LOGI(MESH_DEBUG_TAG, "ESP BLE Mesh Provisioner initialized");
-
     return ESP_OK;
 }
 
 void gwy_mesh_main_init(void)
 {
     esp_err_t err;
-
-    ESP_LOGI(MESH_DEBUG_TAG, "Initializing...");
-
     err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES)
     {
@@ -1851,20 +1845,15 @@ void gwy_mesh_main_init(void)
     }
 
     ble_mesh_get_dev_uuid(dev_uuid);
-    ESP_LOGE(MESH_ERROR_TAG, "Gpio detect");
-
     net_keys_handler();
-    
-    //send this to cloud
 
-    ESP_LOGE(MESH_ERROR_TAG, "Gpio detect");
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
     if (err != ESP_OK)
     {
         ESP_LOGE(MESH_ERROR_TAG, "Bluetooth mesh init failed (err %d)", err);
     }
-    ESP_LOGE(MESH_ERROR_TAG, "Gpio detect");
+
 }
 
 esp_err_t err;
@@ -1872,16 +1861,12 @@ uint32_t opcode;
 
 void update_the_provisioner_net_key(uint8_t *netkey)
 {   
-
     esp_ble_mesh_provisioner_update_local_net_key(netkey,prov_key.net_idx);
-
 }
 
 void update_the_provisioner_app_key(uint8_t *appkey)
 {   
-
     esp_ble_mesh_provisioner_update_local_app_key(appkey,prov_key.net_idx,prov_key.app_idx);
-
 }
 void send_prov_packet_to_node(prov_t *prov_packet)
 {

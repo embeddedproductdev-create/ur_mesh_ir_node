@@ -72,7 +72,7 @@
 /*AT command related*/
 extern uint8_t MQTT_CLIENT_INDEX;
 #define MQTT_VERSION 3 // 3 = 3.1, 4 = 3.1.1
-#define MQTT_QOS 0 // 0 = atmost once | 1 = atleast once | 2 = exactly once
+#define MQTT_QOS 2 // 0 = atmost once | 1 = atleast once | 2 = exactly once
 #define MQTT_RETAIN 0
 #define MQTT_MSGID 2
 #define MQTT_ENABLE_SSL 0

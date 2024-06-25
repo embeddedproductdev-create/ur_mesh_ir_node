@@ -26,25 +26,25 @@ char mesh_log_buffer[2048];
 char temperature_log_buffer[2048];
 char button_log_buffer[2048];
 
-char MAIN_DEBUG_TAG[20] = "[MAIN_DEBUG]   : ";
-char MAIN_ERROR_TAG[20] = "[MAIN_ERROR]   : ";
-char LTE_DEBUG_TAG[20] = "[LTE_DEBUG]    : ";
-char LTE_ERROR_TAG[20] = "[LTE_ERROR]    : ";
-char LED_DEBUG_TAG[20] = "[LED_DEBUG]    : ";
-char LED_ERROR_TAG[20] = "[LED_ERROR]    : ";
-char QUEUE_DEBUG_TAG[20] = "[QUEUE_DEBUG]  : ";
-char QUEUE_ERROR_TAG[20] = "[QUEUE_ERROR]  : ";
-char AP_DEBUG_TAG[20] = "[AP_DEBUG]     : ";
-char AP_ERROR_TAG[20] = "[AP_ERROR]     : ";
-char BUTTON_DEBUG_TAG[20] = "[BUTTON_DEBUG] : ";
-char BUTTON_ERROR_TAG[20] = "[BUTTON_ERROR] : ";
-char IR_DEBUG_TAG[20] = "[IR_DEBUG]     : ";
-char IR_ERROR_TAG[20] = "[IR_ERROR]     : ";
-char MESH_DEBUG_TAG[20] = "[MESH_DEBUG]  ";
-char MESH_ERROR_TAG[20] = "[MESH_ERROR]  ";
-char TEMPERATURE_DEBUG_TAG[20] = "[TEMP_DEBUG]   : ";
-char TEMPERATURE_ERROR_TAG[20] = "[TEMP_ERROR]   : ";
-char SETUP_TAG[20] = "[SETUP_DEBUG]  : ";
+char MAIN_DEBUG_TAG[20] = "[MAIN_DEBUG] ";
+char MAIN_ERROR_TAG[20] = "[MAIN_ERROR] ";
+char LTE_DEBUG_TAG[20] = "[LTE_DEBUG] ";
+char LTE_ERROR_TAG[20] = "[LTE_ERROR] ";
+char LED_DEBUG_TAG[20] = "[LED_DEBUG] ";
+char LED_ERROR_TAG[20] = "[LED_ERROR] ";
+char QUEUE_DEBUG_TAG[20] = "[QUEUE_DEBUG] ";
+char QUEUE_ERROR_TAG[20] = "[QUEUE_ERROR] ";
+char AP_DEBUG_TAG[20] = "[AP_DEBUG] ";
+char AP_ERROR_TAG[20] = "[AP_ERROR] ";
+char BUTTON_DEBUG_TAG[20] = "[BUTTON_DEBUG] ";
+char BUTTON_ERROR_TAG[20] = "[BUTTON_ERROR] ";
+char IR_DEBUG_TAG[20] = "[IR_DEBUG] ";
+char IR_ERROR_TAG[20] = "[IR_ERROR] ";
+char MESH_DEBUG_TAG[20] = "[MESH_DEBUG] ";
+char MESH_ERROR_TAG[20] = "[MESH_ERROR] ";
+char TEMPERATURE_DEBUG_TAG[20] = "[TEMP_DEBUG] ";
+char TEMPERATURE_ERROR_TAG[20] = "[TEMP_ERROR] ";
+char SETUP_TAG[20] = "[SETUP_DEBUG] ";
 
 void white_printf(char *tag, char *msg)
 {
