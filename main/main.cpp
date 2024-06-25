@@ -110,24 +110,6 @@ void fill_node_ser_no_str()
 }
 #endif
 
-#if (IS_GWY)
-/**
- * @brief Function to create the AP task (Deprecated)
- * @param none
- * @retval none
- */
-void create_AP_task()
-{
-    ESP_LOGI(MAIN_DEBUG_TAG, "Creating AP task\n");
-    BaseType_t xReturned;
-    TaskHandle_t xHandle = NULL;
-    xReturned = xTaskCreatePinnedToCore(AP_task, "AccessPoint Task",
-                                        4096, (void *)1, tskIDLE_PRIORITY, &xHandle, CORE0);
-    if (xReturned != pdPASS)
-        perror("Error in taskCreate for AP mode : ");
-}
-#endif
-
 /**
  * @brief Function that takes care of fetching data from flash reg. registration and configuration status
  * Last AC control packet settings
@@ -203,6 +185,12 @@ void fetch_from_flash()
 void app_main()
 {
 
+    TaskHandle_t LED_task_handle;
+    TaskHandle_t IR_task_handle;
+    TaskHandle_t LTE_task_handle;
+    TaskHandle_t queue_task_handle;
+    TaskHandle_t button_task_handle;
+
     // First step we need to do is to fetch registered, configured, provisioned, protocol_Sel_num details from flash
     initialize_i2c();
     fetch_from_flash();
@@ -263,35 +251,6 @@ void app_main()
 
     init_structures();
 
-#if (LED_PART_ENABLED)
-    TaskHandle_t LED_task_handle = NULL;
-    xReturned = xTaskCreatePinnedToCore(LED_task, "LED task",
-                                        4096, (void *)1, tskIDLE_PRIORITY, &LED_task_handle, CORE0);
-    if (xReturned != pdPASS)
-    {
-        perror("Error in taskCreate for LED task : ");
-        exit(FAILURE);
-    }
-#endif
-
-#if (AP_PART_ENABLED)
-    create_AP_task();
-#endif
-
-    while (!mqtt_params_fetched_flag)
-    {
-        /**
-         * It's better if we don't enable other threads until
-         * we get the paramters for MQTT from AP mode. Cause,
-         * without it, it's meaningless to run other thread.
-         * NOTE: If AP mode disabled and MQTT params hardcoded,
-         * then the mqtt_params_fetch_flag is be default set to
-         * true.
-         */
-        ;
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-
 #if (MESH_PART_ENABLED)
 #if (IS_GWY)
     gwy_mesh_main_init();
@@ -305,10 +264,20 @@ void app_main()
     init_temperature_sensor();
 #endif
 
+#if (LED_PART_ENABLED)
+    xReturned = xTaskCreatePinnedToCore(LED_task, "LED task",
+                                        4096, (void *)1, tskIDLE_PRIORITY, &LED_task_handle, CORE0);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for LED task : ");
+        exit(FAILURE);
+    }
+#endif
+
 #if (IR_RECV_PART_ENABLED)
-    TaskHandle_t IR_task_handle;
+    
     xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task",
-                                        4096, (void *)1, tskIDLE_PRIORITY, &IR_task_handle, CORE1);
+                                        8192, (void *)1, 2, &IR_task_handle, CORE1);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for IR recv task : ");
@@ -317,9 +286,9 @@ void app_main()
 #endif
 
 #if (LTE_PART_ENABLED)
-    TaskHandle_t LTE_task_handle;
+    
     xReturned = xTaskCreatePinnedToCore(LTE_task, "LTE Task",
-                                        4096, (void *)1, 10, &LTE_task_handle, CORE0);
+                                        4096, (void *)1, 1, &LTE_task_handle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LTE task : ");
@@ -328,7 +297,6 @@ void app_main()
 #endif
 
 #if (QUEUE_PART_ENABLED)
-    TaskHandle_t queue_task_handle;
     xReturned = xTaskCreatePinnedToCore(queue_handler, "Queue Task",
                                         8192, (void *)1, tskIDLE_PRIORITY, &queue_task_handle, CORE0);
     if (xReturned != pdPASS)
@@ -339,7 +307,6 @@ void app_main()
 #endif
 
 #if (BUTTON_PART_ENABLED)
-    TaskHandle_t button_task_handle;
     xReturned = xTaskCreatePinnedToCore(button_task, "button task",
                                         4096, (void *)1, tskIDLE_PRIORITY, &button_task_handle, CORE0);
     if (xReturned != pdPASS)
@@ -348,9 +315,12 @@ void app_main()
         exit(FAILURE);
     }
 #endif
-    while(1)
-    {
-        vTaskDelay(pdMS_TO_TICKS(100));
-        ;
-    }
+    // /**
+    //  * @brief Create the threads and stay here until we have to control AC
+    //  * When we have to control AC, before controlling, all other threads will get deleted.
+    //  * AC control function works out and after that. Let's recreate the threads and wait here again.
+    //  * This plan is stupid what this is what we have now.
+    //  */
+    // while(!needToSendIRComamnd) vTaskDelay(1);
+    // }
 }

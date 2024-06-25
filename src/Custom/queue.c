@@ -799,6 +799,7 @@ void queue_handler(void *args)
 {
 	while (1)
 	{
+		//while(needToSendIRComamnd) vTaskDelay(1);
 		vTaskDelay(pdMS_TO_TICKS(100));
 		if (prov_queue_head != NULL)
 		{

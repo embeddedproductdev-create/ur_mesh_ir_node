@@ -553,7 +553,6 @@ void IR_transmit(uint16_t protocol)
         printf("Error in choosing the protocol for send");
         break;
     }
-    needToSendIRComamnd = false;
 }
 
 /**
@@ -697,6 +696,7 @@ void locking_feature(char *result_description_char_str)
         if (node_manual_ac_control_t.control.temp > node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp < gwy_ac_control_t.control.TempLockLowLimit)
 #endif
         {
+            sleep(2); //Good to waste atleast 2 seconds here in order for this feature to work. Think about it :)
             needToSendIRComamnd = true;
         }
     }
@@ -737,7 +737,6 @@ void IR_receiver_task(void *args)
         if (needToSendIRComamnd)
         {
             IR_transmit(protocol_selected_num);
-            sleep(1); // let's waste a second here and see if it avoid locking feature getting triggered
             continue;
         }
         if (esp_restart_flag)
@@ -822,7 +821,7 @@ void IR_receiver_task(void *args)
              * 4) Locking feature must be enabled in Gwy AC Control Packet
              */
             // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
-            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode)
+            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode && !needToSendIRComamnd)
                 locking_feature(result_description_char_str);
 
             /* AC Remote configuration process */
@@ -862,6 +861,7 @@ void IR_receiver_task(void *args)
 #endif
             }
         }
+        needToSendIRComamnd = false;
     }
     vTaskDelete(NULL);
 }
