@@ -218,6 +218,19 @@ void error_check_json(uint8_t json_packet_id)
 
     switch (json_packet_id)
     {
+    case GWY_DEBUG_INFO_PACKET:
+        if(cJSON_GetObjectItem(json_packet_j, RESET_DEVICE_KEY));
+        else {
+            json_ack_err_code = RESET_DEVICE_NOT_FOUND;
+            return;
+        }
+        if(cJSON_GetObjectItem(json_packet_j, LOGGING_KEY));
+        else {
+            json_ack_err_code = LOGGING_FLAG_NOT_FOUND;
+            return;
+        }
+        break;
+
     case GWY_REG_PACKET:
         if (registered)
         {
@@ -343,7 +356,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY))
         {
-            uint8_t locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
+            int16_t locking = cJSON_GetObjectItem(json_packet_j, AC_LOCKING_KEY)->valueint;
             if(locking != 0 && locking !=1) {
                 json_ack_err_code = LOCKING_EXCEEDING_RANGE;
             }
@@ -352,7 +365,7 @@ void error_check_json(uint8_t json_packet_id)
             json_ack_err_code = LOCKING_NOT_FOUND;
             return;
         }
-        uint8_t tempLockUpLimit, tempLockLowLimit;
+        int16_t tempLockUpLimit, tempLockLowLimit;
         if (cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY))
         {
             tempLockUpLimit = (cJSON_GetObjectItem(json_packet_j, TEMP_LOCK_UP_LIMIT_KEY))->valueint;
@@ -416,7 +429,7 @@ void error_check_json(uint8_t json_packet_id)
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
         if (cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY))
         {
-            uint8_t PublishPeriodSec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            int16_t PublishPeriodSec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
             if (PublishPeriodSec >= 10 && PublishPeriodSec <= 255);
             else
             {
@@ -443,6 +456,33 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     char pubmessage[PUBMESG_LEN];
     switch (json_id)
     {
+    case GWY_DEBUG_INFO_PACKET:
+        cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Debug Info ACK");
+        char firmwareVersion[10];
+        sprintf(firmwareVersion, "%d.%d",MAJ_VERSION,MIN_VERSION);
+        sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %s, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %d, %s : %0.2f, %s : %d, %s : %d, %s : %d}",
+        JSON_PACKET_ID_KEY, GWY_DEBUG_INFO_PACKET,
+        JSON_ACK_NAME_KEY, GWY_DEBUG_INFO_ACK_NAME,
+        MSG_SEQ_NO_KEY, gwy_debug_info_t.base_data.msg_seq_no,
+        GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+        FIRMWARE_VERSION_KEY, firmwareVersion,
+        REGISTERED_KEY, registered,
+        PROTOCOL_SEL_NUM_KEY, protocol_selected_num,
+        PUBLISH_MESG_QUEUE_COUNT_KEY, get_pubmesg_queue_count(pubmesg_queue_head),
+        PROV_QUEUE_COUNT_KEY, get_prov_queue_count(prov_queue_head),
+        UNPROV_QUEUE_COUNT_KEY, get_unprov_queue_count(unprov_queue_head),
+        AC_CONTROL_QUEUE_COUNT_KEY, get_node_control_queue_count(node_ac_control_queue_head),
+        RECONF_QUEUE_COUNT_KEY, get_node_reconf_queue_count(node_reconf_queue_head),
+        PUB_CONF_QUEUE_COUNT_KEY, get_node_pub_conf_queue_count(node_pub_conf_queue_head),
+        TEACHING_MODE_QUEUE_COUNT_KEY, get_node_teaching_mode_queue_count(node_teaching_mode_queue_head),
+        DEBUG_INFO_QUEUE_COUNT_KEY, get_node_debug_info_queue_count(node_debug_info_queue_head),
+        DEVICE_UPTIME_KEY, (double)(esp_timer_get_time()/(3600.00*1000000.00)),
+        LOGGING_KEY, LOG_DATA,
+        RESET_DEVICE_KEY, gwy_debug_info_t.resetDevice,
+        ERROR_CODE_KEY, gwy_debug_info_t.base_data.error_code);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
+        break;
+
     case GWY_REG_PACKET:
         sprintf(lte_log_buffer, "Sending Gwy Reg Ack");
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
@@ -524,7 +564,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         break;
 
     case GWY_HEARTBEAT_PUB_CONF_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Pub conf Ack");
+        sprintf(lte_log_buffer, "Sending Gwy Heartbeat Pub conf Ack");
         cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
         sprintf(pubmessage, "{%s : %d, %s : %s, %s : %d, %s : %s, %s : %d, %s : %d}",
                 JSON_PACKET_ID_KEY, GWY_HEARTBEAT_PUB_CONF_PACKET,
@@ -793,11 +833,12 @@ void parse_json_packet(char *json_packet)
         
         case NODE_DEBUG_INFO_PACKET:
             cyan_printf(LTE_DEBUG_TAG, "Node Debug Info Packet");
-
             break;
 
         case GWY_DEBUG_INFO_PACKET:
             cyan_printf(LTE_DEBUG_TAG, "Gwy Debug Info Packet");
+            gwy_debug_info_t.resetDevice = cJSON_GetObjectItem(json_packet_j, RESET_DEVICE_KEY)->valueint;
+            if(gwy_debug_info_t.resetDevice) cyan_printf(LTE_DEBUG_TAG, "Reset Device implementation not yet done");
             break;
 
         case GWY_TEACHING_MODE_START_PACKET:

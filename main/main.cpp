@@ -208,9 +208,12 @@ void app_main()
     fetch_from_flash();
 
     // If the device is Not registered / Not provisioned, set default pub conf value to flash. This is req for factory new devices.
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
-    vTaskDelay(pdMS_TO_TICKS(5));
-
+    if(!registered || !configured)
+    {
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+    
     // Needed by freeRTOS
     BaseType_t xReturned;
 
@@ -219,12 +222,12 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(MAIN_DEBUG_TAG, "GENERAL:");
+    ESP_LOGI(MAIN_DEBUG_TAG, "General:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %d", protocol_selected_num);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", gwy_pub_conf_t.pub_conf_period_in_sec);
-    ESP_LOGI(MAIN_DEBUG_TAG, "AC SETTINGS:");
+    ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", gwy_ac_control_t.control.power);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tMode                : %s", gwy_ac_control_t.control.mode_str);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tFanSpeed            : %d", gwy_ac_control_t.control.fan);
@@ -241,12 +244,12 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", NODE_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(MAIN_DEBUG_TAG, "GENERAL:");
+    ESP_LOGI(MAIN_DEBUG_TAG, "General:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %d", protocol_selected_num);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", node_pub_conf_t.pub_conf_period_in_sec);
-    ESP_LOGI(MAIN_DEBUG_TAG, "AC SETTINGS:");
+    ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", node_ac_control_t.control.power);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tMode                : %s", node_ac_control_t.control.mode_str);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tFanSpeed            : %d", node_ac_control_t.control.fan);
@@ -316,7 +319,7 @@ void app_main()
 #if (LTE_PART_ENABLED)
     TaskHandle_t LTE_task_handle;
     xReturned = xTaskCreatePinnedToCore(LTE_task, "LTE Task",
-                                        4096, (void *)1, 10, &LTE_task_handle, CORE1);
+                                        4096, (void *)1, 10, &LTE_task_handle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LTE task : ");

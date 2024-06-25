@@ -41,8 +41,20 @@
 #define ERROR_CODE_KEY "ErrorCode"
 #define AMBIENT_TEMPERATURE_DATA_KEY "AmbientTemperature"
 #define PUBLISH_PERIOD_KEY "PublishPeriodSec"
-#define STARTING_TEMPERATURE_KEY "StartingTemp"
-#define ENDING_TEMPERATURE_KEY "EndingTemp"
+#define FIRMWARE_VERSION_KEY "FirmwareVersion"
+#define REGISTERED_KEY "Registered"
+#define PROTOCOL_SEL_NUM_KEY "Protocol"
+#define PUBLISH_MESG_QUEUE_COUNT_KEY "PubMsgQueueCount"
+#define PROV_QUEUE_COUNT_KEY "ProvQueueCount"
+#define UNPROV_QUEUE_COUNT_KEY "UnProvQueueCount"
+#define AC_CONTROL_QUEUE_COUNT_KEY "ACControlQueueCount"
+#define RECONF_QUEUE_COUNT_KEY "ReconfQueueCount"
+#define PUB_CONF_QUEUE_COUNT_KEY "PubConfQueueCount"
+#define TEACHING_MODE_QUEUE_COUNT_KEY "TeachingModeQueueCount"
+#define DEBUG_INFO_QUEUE_COUNT_KEY "DebugInfoQueueCount"
+#define DEVICE_UPTIME_KEY "DeviceUpTimeHrs"
+#define LOGGING_KEY "Logging"
+#define RESET_DEVICE_KEY "ResetDevice"
 
 /* JSON ACK NAMES */
 #define GWY_REG_ACK_NAME "Gwy Registration ACK"
@@ -194,7 +206,7 @@ typedef struct unprov_struct
 typedef struct pub_conf_struct
 {
 	struct base_data_t base_data;
-	uint16_t pub_conf_period_in_sec;
+	uint8_t pub_conf_period_in_sec;
 	struct pub_conf_struct *next;
 	struct pub_conf_struct *prev;
 } pub_conf_t;
@@ -224,6 +236,7 @@ typedef struct debug_info_struct
 {
 	struct base_data_t base_data;
 	bool logging;
+	bool resetDevice;
 	struct debug_info_struct *next;
 	struct debug_info_struct *prev;
 }debug_info_t;
@@ -310,6 +323,8 @@ enum ERROR_CODES
 	PUBLISH_PERIOD_EXCEEDS_RANGE,
 	MSG_SEQ_NO_EXCEEDING_RANGE,
 	NODE_SER_NO_INVALID,
+	RESET_DEVICE_NOT_FOUND,
+	LOGGING_FLAG_NOT_FOUND,
 	FORBIDDEN_OPERATION = 999,
 	UNKNOWN_ERROR_CODE = 9999
 };
