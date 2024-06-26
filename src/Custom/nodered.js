@@ -105,6 +105,7 @@ switch (msg.payload) {
             "Location": global.get("Location"),
             "MacId": global.get("MacId")
         };
+        msg = {payload: json};
         break;
 
     case json_packet_enum.GWY_REG_PACKET:

@@ -108,6 +108,7 @@ void IR_transmit_setup()
 
 void IR_transmit(uint16_t protocol)
 {
+    needToSendIRComamnd = true; //Need to set this True here for the sake of locking feature. 
     switch (protocol)
     {
     case RAW:
@@ -153,8 +154,7 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.enableOnTimer(gwy_ac_control_t.control.OnTimer);
         ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
         ac_daikin280.send();
-        sprintf(ir_log_buffer, "Sending Daikin280");
-        white_printf(IR_DEBUG_TAG, ir_log_buffer);
+        white_printf(IR_DEBUG_TAG, "Sending Daikin280");
         break;
 
     case DAIKIN200:
@@ -169,6 +169,13 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case DAIKIN216:
+        //If the mode is not "Cool", then we must only set mode. We must not try to set any other thing.
+        if(gwy_ac_control_t.control.mode_val != COOL)
+        {
+            ac_daikin216.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
+            ac_daikin216.send();
+            return;
+        }
         strcpy(protocol_chosen_str, "Daikin216");
         ac_daikin216.setPower(gwy_ac_control_t.control.power);
         ac_daikin216.setTemp(gwy_ac_control_t.control.temp);
@@ -690,14 +697,15 @@ void locking_feature(char *result_description_char_str)
     {
         fetch_data_from_manual_control(result_description_char_str);
 #if (IS_GWY)
-        if (gwy_manual_ac_control_t.control.temp > gwy_ac_control_t.control.TempLockUpLimit || gwy_manual_ac_control_t.control.temp < gwy_ac_control_t.control.TempLockLowLimit)
+        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit || gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
+        else {
 #endif
 #if (!IS_GWY)
-        if (node_manual_ac_control_t.control.temp > node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp < gwy_ac_control_t.control.TempLockLowLimit)
+        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
+        else {
 #endif
-        {
-            sleep(2); //Good to waste atleast 2 seconds here in order for this feature to work. Think about it :)
-            needToSendIRComamnd = true;
+            sleep(1); //Good to waste atleast 2 seconds here in order for this feature to work. Think about it :)
+            IR_transmit(protocol_selected_num);
         }
     }
 

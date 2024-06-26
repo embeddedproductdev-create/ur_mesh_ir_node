@@ -913,12 +913,12 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
 
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
             ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
+            send_unprovisioned_ack_to_gwy();
             esp_ble_mesh_node_local_reset();
             provisioned = false;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, true);
             vTaskDelay(pdMS_TO_TICKS(5));
             ELEMENT_ADDR = 0;
-            send_unprovisioned_ack_to_gwy();
             vTaskDelay(pdMS_TO_TICKS(100));
             esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
             break;
@@ -1168,7 +1168,7 @@ void node_mesh_main_init(void)
 }
 
 /**
- * @brief Function to send AC remote configuration ack to gateway. When the device is
+ * @brief Function to send AC remote configuration ACK to gateway. When the device is
  * in configuration mode and Any currently supported AC remote button is pressed in-front
  * of the device's IR receiver, the device will configure itself to act as that AC remote
  * from then. This needs to be sent to Gwy and then to cloud for user to know.
@@ -1177,49 +1177,49 @@ void node_mesh_main_init(void)
  */
 void send_AC_configuration_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Conf ack to Gwy");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Conf ACK to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &node_conf_t;
     example_ble_mesh_send_sensor_status();
 }
 
 /**
- * @brief Function to send Manual AC control ack to Gwy
+ * @brief Function to send Manual AC control ACK to Gwy
  * @param none
  * @retval none
  */
 void send_manual_ac_control_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ack to Gwy");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ACK to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &node_manual_ac_control_t;
     example_ble_mesh_send_sensor_status();
 }
 
 /**
- * @brief Function to send provisioning ack to gwy
+ * @brief Function to send provisioning ACK to gwy
  * @param none
  * @retval none
  */
 void send_provisioned_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ack to Gwy");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ACK to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &provision_t;
     example_ble_mesh_send_sensor_status();
 }
 
 /**
- * @brief Function that sends Unprovisioning ack to Gwy
+ * @brief Function that sends Unprovisioning ACK to Gwy
  * @param none
  * @retval none
  */
 void send_unprovisioned_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Unprovisioning ack to Gwy");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Unprovisioning ACK to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &unprovision_t;
     example_ble_mesh_send_sensor_status();
 }
 
 /**
- * @brief Function that sends the Node Heartbeat publish configuration ack to Gwy
+ * @brief Function that sends the Node Heartbeat publish configuration ACK to Gwy
  * @param none
  * @retval none
  */
@@ -1230,13 +1230,13 @@ void send_heartbeat_publish_configuration_ack_to_gwy()
 }
 
 /**
- * @brief Function that periodically sends the measured temperature data ack to Gwy
+ * @brief Function that periodically sends the measured temperature data ACK to Gwy
  * @param none
  * @retval none
  */
 void send_heartbeat_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Heartbeat ack to Gwy");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Heartbeat ACK to Gwy");
     node_heartbeat_t.control.power = node_ac_control_t.control.power;
     node_heartbeat_t.control.temp = node_ac_control_t.control.temp;
     strcpy(node_heartbeat_t.control.mode_str, node_ac_control_t.control.mode_str);
