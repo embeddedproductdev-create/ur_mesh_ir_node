@@ -152,7 +152,7 @@ static void publish_temperature_cb(void *arg)
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 POWER_KEY, gwy_ac_control_t.control.power,
                 MODE_KEY, gwy_ac_control_t.control.mode_str,
-                FAN_SPEED_KEY, gwy_ac_control_t.control.fan,
+                FAN_SPEED_KEY, gwy_ac_control_t.control.fanSpeed,
                 TEMPERATURE_KEY, gwy_ac_control_t.control.temp,
                 AMBIENT_TEMPERATURE_DATA_KEY, measured_temperature,
                 SWING_H_KEY, gwy_ac_control_t.control.swingH,

@@ -304,7 +304,7 @@ void maintain_ac_control_queue()
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					POWER_KEY, temp->control.power,
 					MODE_KEY, temp->control.mode_str,
-					FAN_SPEED_KEY, temp->control.fan,
+					FAN_SPEED_KEY, temp->control.fanSpeed,
 					TEMPERATURE_KEY, temp->control.temp,
 					SWING_H_KEY, temp->control.swingH,
 					SWING_V_KEY, temp->control.swingV,

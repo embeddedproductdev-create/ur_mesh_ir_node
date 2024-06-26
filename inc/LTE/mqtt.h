@@ -136,7 +136,7 @@ struct ac_control_params_t
 	bool power;
 	char mode_str[15];
 	uint8_t mode_val;
-	uint8_t fan;
+	uint8_t fanSpeed;
 	uint8_t temp;
 	bool swingH;
 	bool swingV;

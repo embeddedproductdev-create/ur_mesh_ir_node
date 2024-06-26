@@ -958,7 +958,7 @@ static void store_data_to_node_structures()
         vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, node_ac_control_t.control.mode_val);
         vTaskDelay(pdMS_TO_TICKS(5));
-        eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, node_ac_control_t.control.fan);
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, node_ac_control_t.control.fanSpeed);
         vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, node_ac_control_t.control.temp);
         vTaskDelay(pdMS_TO_TICKS(5));
@@ -1240,7 +1240,7 @@ void send_heartbeat_ack_to_gwy()
     node_heartbeat_t.control.power = node_ac_control_t.control.power;
     node_heartbeat_t.control.temp = node_ac_control_t.control.temp;
     strcpy(node_heartbeat_t.control.mode_str, node_ac_control_t.control.mode_str);
-    node_heartbeat_t.control.fan = node_ac_control_t.control.fan;
+    node_heartbeat_t.control.fanSpeed = node_ac_control_t.control.fanSpeed;
     node_heartbeat_t.control.Locking = node_ac_control_t.control.Locking;
     node_heartbeat_t.control.OffTimer = node_ac_control_t.control.OffTimer;
     node_heartbeat_t.control.OnTimer = node_ac_control_t.control.OnTimer;

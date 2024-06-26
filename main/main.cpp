@@ -156,7 +156,7 @@ void fetch_from_flash()
     gwy_ac_control_t.control.power = eeprom_read_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR);
     gwy_ac_control_t.control.mode_val = eeprom_read_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR);
     strcpy(gwy_ac_control_t.control.mode_str, get_mode_string(gwy_ac_control_t.control.mode_val));
-    gwy_ac_control_t.control.fan = eeprom_read_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR);
+    gwy_ac_control_t.control.fanSpeed = eeprom_read_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR);
     gwy_ac_control_t.control.temp = eeprom_read_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR);
     gwy_ac_control_t.control.swingH = eeprom_read_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR);
     gwy_ac_control_t.control.swingV = eeprom_read_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR);
@@ -169,7 +169,7 @@ void fetch_from_flash()
     node_ac_control_t.control.power = eeprom_read_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR);
     node_ac_control_t.control.mode_val = eeprom_read_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR);
     strcpy(node_ac_control_t.control.mode_str, get_mode_string(node_ac_control_t.control.mode_val));
-    node_ac_control_t.control.fan = eeprom_read_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR);
+    node_ac_control_t.control.fanSpeed = eeprom_read_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR);
     node_ac_control_t.control.temp = eeprom_read_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR);
     node_ac_control_t.control.swingH = eeprom_read_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR);
     node_ac_control_t.control.swingV = eeprom_read_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR);
@@ -226,7 +226,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", gwy_ac_control_t.control.power);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tMode                : %s", gwy_ac_control_t.control.mode_str);
-    ESP_LOGI(MAIN_DEBUG_TAG, "\tFanSpeed            : %d", gwy_ac_control_t.control.fan);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tFanSpeed            : %d", gwy_ac_control_t.control.fanSpeed);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTemperature         : %d", gwy_ac_control_t.control.temp);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tSwingH              : %d", gwy_ac_control_t.control.swingH);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tSwingV              : %d", gwy_ac_control_t.control.swingV);
@@ -249,7 +249,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", node_ac_control_t.control.power);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tMode                : %s", node_ac_control_t.control.mode_str);
-    ESP_LOGI(MAIN_DEBUG_TAG, "\tFanSpeed            : %d", node_ac_control_t.control.fan);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tFanSpeed            : %d", node_ac_control_t.control.fanSpeed);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTemperature         : %d", node_ac_control_t.control.temp);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tSwingH              : %d", node_ac_control_t.control.swingH);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tSwingV              : %d", node_ac_control_t.control.swingV);

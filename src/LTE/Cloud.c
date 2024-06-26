@@ -528,7 +528,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             NODE_SER_NO_KEY, node_ac_control_t.base_data.elementAddr,
             POWER_KEY, node_ac_control_t.control.power,
             MODE_KEY, node_ac_control_t.control.mode_str,
-            FAN_SPEED_KEY, node_ac_control_t.control.fan,
+            FAN_SPEED_KEY, node_ac_control_t.control.fanSpeed,
             TEMPERATURE_KEY, node_ac_control_t.control.temp,
             SWING_H_KEY, node_ac_control_t.control.swingH,
             SWING_V_KEY, node_ac_control_t.control.swingV,
@@ -549,7 +549,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
             POWER_KEY, gwy_ac_control_t.control.power,
             MODE_KEY, gwy_ac_control_t.control.mode_str,
-            FAN_SPEED_KEY, gwy_ac_control_t.control.fan,
+            FAN_SPEED_KEY, gwy_ac_control_t.control.fanSpeed,
             TEMPERATURE_KEY, gwy_ac_control_t.control.temp,
             SWING_H_KEY, gwy_ac_control_t.control.swingH,
             SWING_V_KEY, gwy_ac_control_t.control.swingV,
@@ -924,7 +924,7 @@ void parse_json_packet(char *json_packet)
             node_ac_control_t.control.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
             strcpy(node_ac_control_t.control.mode_str, cJSON_GetObjectItem(json_packet_j, MODE_KEY)->valuestring);
             get_mode_value("node");
-            node_ac_control_t.control.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
+            node_ac_control_t.control.fanSpeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
             node_ac_control_t.control.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
             node_ac_control_t.control.swingH = cJSON_GetObjectItem(json_packet_j, SWING_H_KEY)->valueint;
             node_ac_control_t.control.swingV = cJSON_GetObjectItem(json_packet_j, SWING_V_KEY)->valueint;
@@ -945,8 +945,8 @@ void parse_json_packet(char *json_packet)
             get_mode_value("gwy");
             eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, gwy_ac_control_t.control.mode_val);
             vTaskDelay(pdMS_TO_TICKS(5));
-            gwy_ac_control_t.control.fan = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, gwy_ac_control_t.control.fan);
+            gwy_ac_control_t.control.fanSpeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, gwy_ac_control_t.control.fanSpeed);
             vTaskDelay(pdMS_TO_TICKS(5));
             gwy_ac_control_t.control.temp = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, gwy_ac_control_t.control.temp);
