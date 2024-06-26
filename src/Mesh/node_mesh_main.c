@@ -446,7 +446,6 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     // mpid=0xe00e;
 
     data_len = 29;
-    BT_ERR("data len %d", data_len);
     // memcpy(data, &mpid, mpid_len);
     memcpy(data, state->sensor_data.raw_value->data, data_len);
 
@@ -496,7 +495,6 @@ static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_serve
 
     // status = calloc(1, buf_size);
     status = calloc(1, 70);
-    BT_ERR("buff size %d", buf_size);
     if (!status)
     {
         ESP_LOGE(MESH_DEBUG_TAG, "No memory for sensor status!");
@@ -510,9 +508,9 @@ static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_serve
     goto send;
 
 send:
-    ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
+    if(LOG_DATA) ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
     sensor_server.model->pub->publish_addr = 0x01;
-    ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
+    if(LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
     /* esp_ble_mesh_msg_ctx_t cntx;
      cntx.net_idx=0;
@@ -855,10 +853,25 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     case ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT, err_code %d", param->node_set_unprov_dev_name_comp.err_code);
         break;
-    default:
-        ESP_LOGE(MESH_DEBUG_TAG, "Unknown prov cb event");
-        break;
     }
+}
+
+/**
+ * @brief Function that assigns the element addr to basedata.elementaddr of all strctures
+ * @param none
+ * @retval none
+ */
+void fill_element_addr_to_all_structures()
+{
+    ELEMENT_ADDR = esp_ble_mesh_get_primary_element_address(void);
+    unprovision_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_ac_control_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_conf_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_teaching_mode_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_debug_info_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_reconf_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_heartbeat_pub_conf_t.base_data.elementAddr = ELEMENT_ADDR;
+    node_heartbeat_t.base_data.elementAddr = ELEMENT_ADDR;
 }
 
 static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t event,
@@ -889,6 +902,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
             ELEMENT_ADDR = param->value.state_change.mod_app_bind.element_addr;
             provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
             provision_t.base_data.elementAddr = ELEMENT_ADDR;
+            fill_element_addr_to_all_structures();
             send_provisioned_ack_to_gwy();
             break;
 
@@ -1067,10 +1081,9 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         ESP_LOGI(MESH_DEBUG_TAG, "Send 0x%06" PRIx32, param->model_send_comp.opcode);
         break;
     case ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT:
-        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT");
-        ESP_LOGI(MESH_DEBUG_TAG, "TEMPERATURE PERIODIC PUBLISHING");
-        sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
-        example_ble_mesh_send_sensor_status();
+        // ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT");
+        // ESP_LOGI(MESH_DEBUG_TAG, "TEMPERATURE PERIODIC PUBLISHING");
+        send_heartbeat_publish_configuration_ack_to_gwy();
         break;
     default:
         break;
@@ -1200,13 +1213,35 @@ void send_unprovisioned_ack_to_gwy()
 }
 
 /**
+ * @brief Function that sends the Node Heartbeat publish configuration ack to Gwy
+ * @param none
+ * @retval none
+ */
+void send_heartbeat_publish_configuration_ack_to_gwy()
+{
+    sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_pub_conf_t;
+    example_ble_mesh_send_sensor_status();
+}
+
+/**
  * @brief Function that periodically sends the measured temperature data ack to Gwy
  * @param none
  * @retval none
  */
-void send_temperature_ack_to_gwy()
+void send_heartbeat_ack_to_gwy()
 {
-    ESP_LOGI(MESH_DEBUG_TAG, "Sending Temperature data ack to Gwy");
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Heartbeat ack to Gwy");
+    node_heartbeat_t.control.power = node_ac_control_t.control.power;
+    node_heartbeat_t.control.temp = node_ac_control_t.control.temp;
+    strcpy(node_heartbeat_t.control.mode_str, node_ac_control_t.control.mode_str);
+    node_heartbeat_t.control.fan = node_ac_control_t.control.fan;
+    node_heartbeat_t.control.Locking = node_ac_control_t.control.Locking;
+    node_heartbeat_t.control.OffTimer = node_ac_control_t.control.OffTimer;
+    node_heartbeat_t.control.OnTimer = node_ac_control_t.control.OnTimer;
+    node_heartbeat_t.control.swingH = node_ac_control_t.control.swingH;
+    node_heartbeat_t.control.swingV = node_ac_control_t.control.swingV;
+    node_heartbeat_t.control.TempLockLowLimit = node_ac_control_t.control.TempLockLowLimit;
+    node_heartbeat_t.control.TempLockUpLimit = node_ac_control_t.control.TempLockUpLimit;
     sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
     example_ble_mesh_send_sensor_status();
 }

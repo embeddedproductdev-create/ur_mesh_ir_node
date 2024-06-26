@@ -29,18 +29,6 @@ struct pub_mesg_struct *pubmesg_queue_tail = NULL;
  */
 void init_structures()
 {
-    /* GWY SER NO STRING */
-    strcpy(gwy_registration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_manual_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_heartbeat_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
 
     /* GWY - JSON PACKET IDs */
     gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
@@ -75,6 +63,56 @@ void init_structures()
     strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
     strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
     strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
+
+    /* NODE - JSON ACK NAMES */
+    strcpy(provision_t.base_data.ack_name, NODE_PROV_ACK_NAME);
+    strcpy(unprovision_t.base_data.ack_name, NODE_UNPROV_ACK_NAME);
+    strcpy(node_conf_t.base_data.ack_name, NODE_CONF_ACK_NAME);
+    strcpy(node_reconf_t.base_data.ack_name, NODE_RECONF_ACK_NAME);
+    strcpy(node_teaching_mode_t.base_data.ack_name, NODE_TEACHING_MODE_START_ACK_NAME);
+    strcpy(node_debug_info_t.base_data.ack_name, NODE_DEBUG_INFO_ACK_NAME);
+    strcpy(node_ac_control_t.base_data.ack_name, NODE_AC_CONTROL_ACK_NAME);
+    strcpy(node_heartbeat_t.base_data.ack_name, NODE_HEARTBEAT_ACK_NAME);
+    strcpy(node_heartbeat_pub_conf_t.base_data.ack_name, NODE_HEARTBEAT_PUB_CONF_ACK_NAME);
+    strcpy(node_manual_ac_control_t.base_data.ack_name, NODE_MANUAL_AC_CONTROL_ACK_NAME);
+
+#if (IS_GWY)
+    /* GWY SER NO STRING */
+    strcpy(gwy_registration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_manual_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_heartbeat_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+
+    strcpy(provision_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(unprov_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(node_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(node_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(node_teaching_mode_t.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(node_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(node_heartbeat_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    
+#endif 
+
+#if (!IS_GWY)
+    /* NODE SER NO STRINGS */
+    strcpy(provision_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(unprovision_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_reconf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_teaching_mode_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_debug_info_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_heartbeat_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_heartbeat_pub_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    strcpy(node_manual_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+#endif
 }
 
 /**

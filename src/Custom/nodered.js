@@ -11,6 +11,7 @@ const json_packet_enum = Object.freeze({
     GWY_TEACHING_MODE_START_PACKET: 8,
     GWY_TEACHING_MODE_END_ACK: 9,
     GWY_DEBUG_INFO_PACKET: 10,
+    GWY_RESET_MQTT_PACKET: 99,
 
     /* NODE PACKETS */
     NODE_PROV_PACKET: 100,
@@ -29,15 +30,17 @@ const json_packet_enum = Object.freeze({
     UNKNOWN_PACKET: 9999
 });
 
+let randNum = Math.floor((Math.random() * 65535) + 1);
+
 let Gwybasejson = {
     "JsonPacketID": msg.payload,
-    "MsgSeqNo": global.get("MsgSeqNo"),
+    "MsgSeqNo": randNum,
     "GwySerNo": global.get("GwySerNo"),
 };
 
 let Nodebasejson = {
     "JsonPacketID": msg.payload,
-    "MsgSeqNo": global.get("MsgSeqNo"),
+    "MsgSeqNo": randNum,
     "GwySerNo": global.get("GwySerNo"),
     "NodeSerNo": global.get("NodeSerNo"),
     "ElementAddr": global.get("ElementAddr"),
@@ -66,7 +69,7 @@ switch (msg.payload) {
         json = {
             "Power": global.get("Power"),
             "Temperature": global.get("Temperature"),
-            "Fan": global.get("FanSpeed"),
+            "FanSpeed": global.get("FanSpeed"),
             "Mode": global.get("Mode"),
             "SwingH": global.get("SwingH"),
             "SwingV": global.get("SwingV"),
@@ -95,10 +98,13 @@ switch (msg.payload) {
 
     case json_packet_enum.NODE_PROV_PACKET:
         json = {
+            "JsonPacketID": msg.payload,
+            "MsgSeqNo": randNum,
+            "GwySerNo": global.get("GwySerNo"),
+            "NodeSerNo": global.get("NodeSerNo"),
             "Location": global.get("Location"),
             "MacId": global.get("MacId")
         };
-        msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
     case json_packet_enum.GWY_REG_PACKET:
@@ -116,11 +122,7 @@ switch (msg.payload) {
         break;
 
     case json_packet_enum.GWY_RECONF_PACKET:
-        msg = { payload: Gwybasejson };
-        break;
     case json_packet_enum.GWY_TEACHING_MODE_START_PACKET:
-        msg = { payload: Gwybasejson };
-        break;
     case json_packet_enum.GWY_DEBUG_INFO_PACKET:
         msg = { payload: Gwybasejson };
         break;
@@ -128,6 +130,7 @@ switch (msg.payload) {
     case json_packet_enum.NODE_RECONF_PACKET:
     case json_packet_enum.NODE_UNPROV_PACKET:
         json = {
+            "ElementAddr":global.get("ElementAddr"),
             "Location": global.get("Location")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
@@ -140,6 +143,5 @@ switch (msg.payload) {
     
     default:
         node.warn("Unknown JSON Packet ID");
-        msg = { payload: Gwybasejson };
 }
 return msg;

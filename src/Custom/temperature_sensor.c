@@ -167,8 +167,8 @@ static void publish_temperature_cb(void *arg)
 #endif
 
 #if (!IS_GWY)
-    if (provisioned && !sending)
-        send_temperature_ack_to_gwy();
+    if (provisioned)
+        send_heartbeat_ack_to_gwy();
 #endif
 }
 

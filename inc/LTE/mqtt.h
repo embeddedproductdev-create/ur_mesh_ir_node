@@ -120,9 +120,9 @@ struct base_data_t
 	uint8_t json_packet_id;
 	uint16_t msg_seq_no;
 	uint32_t gwy_ser_no;
-	char gwy_ser_no_str[9];
+	char gwy_ser_no_str[10];
 	uint32_t node_ser_no;
-	char node_ser_no_str[7];
+	char node_ser_no_str[10];
 	uint16_t elementAddr;
 	uint16_t error_code;
 	uint32_t request_in_time_us;

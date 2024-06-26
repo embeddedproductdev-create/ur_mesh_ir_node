@@ -28,7 +28,9 @@ void send_AC_configuration_ack_to_gwy();
 void send_provisioned_ack_to_gwy();
 void send_unprovisioned_ack_to_gwy();
 void send_manual_ac_control_ack_to_gwy();
-void send_temperature_ack_to_gwy();
+void send_heartbeat_ack_to_gwy();
+void send_heartbeat_publish_configuration_ack_to_gwy();
+void fill_element_addr_to_all_structures();
 
 #ifdef __cplusplus
 }

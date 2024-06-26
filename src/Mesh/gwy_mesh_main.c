@@ -985,18 +985,18 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 Bind_fl = false;
             }
             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
-                    LOCATION_KEY, vendor_provision_t->base_data.location,
-                    APP_KEY_INDEX, vendor_provision_t->appindex,
-                    APP_KEY, vendor_provision_t->appkey,
-                    NET_KEY_INDEX, vendor_provision_t->netindex,
-                    NET_KEY, vendor_provision_t->netkey,
-                    ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
+                JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
+                JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
+                MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
+                ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
+                LOCATION_KEY, vendor_provision_t->base_data.location,
+                APP_KEY_INDEX, vendor_provision_t->appindex,
+                APP_KEY, vendor_provision_t->appkey,
+                NET_KEY_INDEX, vendor_provision_t->netindex,
+                NET_KEY, vendor_provision_t->netkey,
+                ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
             break;
 
         case NODE_UNPROV_PACKET:
@@ -1004,26 +1004,26 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", vendor_unprovision_t->base_data.elementAddr);
             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
-                    LOCATION_KEY, vendor_unprovision_t->base_data.location,
-                    ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
+                JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
+                JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
+                MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no_str,
+                ELEMENT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
+                LOCATION_KEY, vendor_unprovision_t->base_data.location,
+                ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
             break;
 
         case NODE_CONF_PACKET:
             vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d", vendor_node_config_t->base_data.elementAddr);
             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_CONF_ACK_NAME,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
-                    ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
+                JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
+                JSON_ACK_NAME_KEY, NODE_CONF_ACK_NAME,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no_str,
+                ELEMENT_ADDR_KEY, vendor_node_config_t->base_data.elementAddr,
+                ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
             break;
 
         default:

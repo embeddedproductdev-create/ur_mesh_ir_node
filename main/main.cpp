@@ -142,15 +142,15 @@ void fetch_from_flash()
     protocol_selected_num <<= 8;
     protocol_selected_num |= eeprom_read_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO);
 
-    /*Heartbeat Publish Period*/
-    #if (IS_GWY)
+/*Heartbeat Publish Period*/
+#if (IS_GWY)
     gwy_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
-    #endif
+#endif
 
-    #if (!IS_GWY)
+#if (!IS_GWY)
     node_heartbeat_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
-    #endif
-    
+#endif
+
     /*AC Settings*/
 #if (IS_GWY)
     gwy_ac_control_t.control.power = eeprom_read_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR);
@@ -197,13 +197,19 @@ void app_main()
     initialize_i2c();
     fetch_from_flash();
 
+#if (!IS_GWY)
+    // fill element address into structures
+    if (provisioned)
+        fill_element_addr_to_all_structures();
+#endif
+
     // If the device is Not registered / Not provisioned, set default pub conf value to flash. This is req for factory new devices.
-    if(!registered || !configured)
+    if (!registered || !configured)
     {
         eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
         vTaskDelay(pdMS_TO_TICKS(5));
     }
-    
+
     // Needed by freeRTOS
     BaseType_t xReturned;
 
@@ -238,6 +244,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %d", protocol_selected_num);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tElementAddr         : %d", node_ac_control_t.base_data.elementAddr);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", node_ac_control_t.control.power);
@@ -277,7 +284,7 @@ void app_main()
 #endif
 
 #if (IR_RECV_PART_ENABLED)
-    
+
     xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task",
                                         8192, (void *)1, 2, &IR_task_handle, CORE1);
     if (xReturned != pdPASS)
@@ -288,7 +295,7 @@ void app_main()
 #endif
 
 #if (LTE_PART_ENABLED)
-    
+
     xReturned = xTaskCreatePinnedToCore(LTE_task, "LTE Task",
                                         4096, (void *)1, 1, &LTE_task_handle, CORE0);
     if (xReturned != pdPASS)
