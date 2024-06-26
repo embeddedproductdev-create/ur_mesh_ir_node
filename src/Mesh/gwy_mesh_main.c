@@ -1042,7 +1042,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
 {
     esp_ble_mesh_node_t *node = NULL;
 
-    ESP_LOGI(MESH_DEBUG_TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
+    if (LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
     // printf("json id,%d",param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
     // if( param->status_cb.sensor_status.marshalled_sensor_data->data[0]!=64 || first != true){
     store_data_to_node_structures(param);
@@ -1057,7 +1057,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
     // }
     if (param->error_code)
     {
-        ESP_LOGE(MESH_ERROR_TAG, "Send sensor client message failed (err %d)", param->error_code);
+        if(LOG_DATA) ESP_LOGE(MESH_ERROR_TAG, "Send sensor client message failed (err %d)", param->error_code);
         return;
     }
 
@@ -1068,7 +1068,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
      }*/
     // if(ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS==param->params->opcode)
     {
-        ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
+        if(LOG_DATA) ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
                            param->status_cb.sensor_status.marshalled_sensor_data->len);
     }
 

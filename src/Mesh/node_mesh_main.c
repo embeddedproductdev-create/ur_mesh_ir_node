@@ -13,6 +13,7 @@
 #include "esp_err.h"
 // #include "btc_ble_mesh_prov.h"
 #include "esp_ble_mesh_networking_api.h"
+#include "esp_ble_mesh_local_data_operation_api.h"
 #include "esp_ble_mesh_defs.h"
 
 #include <stdio.h>
@@ -34,6 +35,8 @@
 #endif
 
 #if (!IS_GWY)
+
+#define BLE_BUF_SIZE 40
 
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
@@ -155,8 +158,8 @@ static esp_ble_mesh_cfg_srv_t config_server = {
 static esp_ble_mesh_client_t config_client;
 static esp_ble_mesh_client_t sensor_client;
 
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, 40);
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, 40);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, BUF_SIZE);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, BUF_SIZE);
 
 /*NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_2, 30);
 NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_3, 30);*/
@@ -204,7 +207,7 @@ static esp_ble_mesh_sensor_state_t sensor_states[2] = {
 };
 
 /* 20 octets is large enough to hold two Sensor Descriptor state values. */
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, 90, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, BLE_BUF_SIZE*2, ROLE_NODE);
 static esp_ble_mesh_sensor_srv_t sensor_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -212,7 +215,7 @@ static esp_ble_mesh_sensor_srv_t sensor_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, 90, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, BLE_BUF_SIZE*2, ROLE_NODE);
 static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -220,7 +223,7 @@ static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(client_pub, 90, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(client_pub, BLE_BUF_SIZE*2, ROLE_NODE);
 
 static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t length)
 {
@@ -441,7 +444,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
         data_len = state->sensor_data.length + 1;
     }
     // mpid=0xe00e;
-    mpid_len = 2;
+    mpid_len = 29;
     // net_buf_simple_add_u8(&sensor_data_0, 11);
     // mpid=0xe00e;
 
@@ -853,6 +856,8 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     case ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT, err_code %d", param->node_set_unprov_dev_name_comp.err_code);
         break;
+    default:
+        break;
     }
 }
 
@@ -863,7 +868,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
  */
 void fill_element_addr_to_all_structures()
 {
-    ELEMENT_ADDR = esp_ble_mesh_get_primary_element_address(void);
+    ELEMENT_ADDR = esp_ble_mesh_get_primary_element_address();
     unprovision_t.base_data.elementAddr = ELEMENT_ADDR;
     node_ac_control_t.base_data.elementAddr = ELEMENT_ADDR;
     node_conf_t.base_data.elementAddr = ELEMENT_ADDR;
@@ -924,6 +929,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
 
         case ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET:
             ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET");
+            send_heartbeat_publish_configuration_ack_to_gwy();
             break;
 
         default:
@@ -1083,8 +1089,8 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
     case ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT:
         // ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_PUBLISH_UPDATE_EVT");
         // ESP_LOGI(MESH_DEBUG_TAG, "TEMPERATURE PERIODIC PUBLISHING");
-        send_heartbeat_publish_configuration_ack_to_gwy();
         break;
+
     default:
         break;
     }

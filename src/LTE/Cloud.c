@@ -91,10 +91,10 @@ void init_structures()
     strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
 
     strcpy(provision_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(unprov_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(unprovision_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(node_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(node_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(node_teaching_mode_t.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
+    strcpy(node_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(node_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     strcpy(node_heartbeat_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
     
@@ -199,6 +199,7 @@ void error_check_json(uint8_t json_packet_id)
     if((json_packet_id >= 0 && json_packet_id <= 10) || json_packet_id == 99 || (json_packet_id >= 100 && json_packet_id <= 110));
     else {
         json_ack_err_code = JSON_PACKET_ID_UNKNOWN;
+        add_to_pubmesg_queue("JSON_PACKET_ID_UNKNOWN", publish_topic);
         return;
     }
     if (cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)) {
@@ -1073,6 +1074,7 @@ void parse_json_packet(char *json_packet)
             break; 
         }
     }
+    if(json_ack_err_code == JSON_PACKET_ID_UNKNOWN) return;
     sprintf(lte_log_buffer, "Error Code : %s", get_err_string(json_ack_err_code));
     red_printf(LTE_DEBUG_TAG, lte_log_buffer);
     if((json_packet_id>=100 && json_ack_err_code != SUCCESS) || json_packet_id <= 10)
