@@ -542,7 +542,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case GWY_AC_CONTROL_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy AC Control ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
             JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
             JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
@@ -556,6 +556,8 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             ONTIMER_KEY, gwy_ac_control_t.control.OnTimer,
             OFFTIMER_KEY, gwy_ac_control_t.control.OffTimer,
             AC_LOCKING_KEY, gwy_ac_control_t.control.Locking,
+            TEMP_LOCK_UP_LIMIT_KEY, gwy_ac_control_t.control.TempLockUpLimit,
+            TEMP_LOCK_LOW_LIMIT_KEY, gwy_ac_control_t.control.TempLockLowLimit,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
     

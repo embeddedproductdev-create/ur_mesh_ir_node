@@ -172,6 +172,7 @@ void IR_transmit(uint16_t protocol)
         //If the mode is not "Cool", then we must only set mode. We must not try to set any other thing.
         if(gwy_ac_control_t.control.mode_val != COOL)
         {
+            
             ac_daikin216.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
             ac_daikin216.send();
             return;
@@ -697,13 +698,14 @@ void locking_feature(char *result_description_char_str)
     {
         fetch_data_from_manual_control(result_description_char_str);
 #if (IS_GWY)
-        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit || gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
+        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
         else {
 #endif
 #if (!IS_GWY)
         if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
         else {
 #endif
+            ESP_LOGI(IR_DEBUG_TAG, "Reverting AC back to permissible limits ... ");
             sleep(1); //Good to waste atleast 2 seconds here in order for this feature to work. Think about it :)
             IR_transmit(protocol_selected_num);
         }
@@ -742,7 +744,10 @@ void IR_receiver_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-        if (needToSendIRComamnd) IR_transmit(protocol_selected_num);
+        if (needToSendIRComamnd) {
+            IR_transmit(protocol_selected_num);
+            needToSendIRComamnd = false;
+        }
 
         if (esp_restart_flag)
             ESP.restart();
@@ -866,7 +871,6 @@ void IR_receiver_task(void *args)
 #endif
             }
         }
-        needToSendIRComamnd = false;
     }
     vTaskDelete(NULL);
 }

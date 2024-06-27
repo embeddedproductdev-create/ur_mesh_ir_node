@@ -273,6 +273,7 @@ enum json_packet_enum
 	NODE_DEBUG_INFO_PACKET,
 
 	/* MISC PACKETS */
+	
 	UNKNOWN_PACKET = 9999
 };
 

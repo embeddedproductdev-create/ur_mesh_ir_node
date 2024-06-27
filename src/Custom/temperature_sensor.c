@@ -161,7 +161,7 @@ static void publish_temperature_cb(void *arg)
                 OFFTIMER_KEY, gwy_ac_control_t.control.OffTimer,
                 AC_LOCKING_KEY, gwy_ac_control_t.control.Locking,
                 TEMP_LOCK_UP_LIMIT_KEY, gwy_ac_control_t.control.TempLockUpLimit,
-                TEMP_LOCK_LOW_LIMIT_KEY, gwy_ac_control_t.control.TempLockUpLimit);
+                TEMP_LOCK_LOW_LIMIT_KEY, gwy_ac_control_t.control.TempLockLowLimit);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
 #endif

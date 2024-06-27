@@ -850,6 +850,8 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         esp_ble_mesh_node_local_reset();
         provisioned = false;
         ELEMENT_ADDR = 0;
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true); //Since logic is inverted.
+        vTaskDelay(pdMS_TO_TICKS(5));
         vTaskDelay(pdMS_TO_TICKS(100));
         esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
         break;
@@ -916,7 +918,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
             send_unprovisioned_ack_to_gwy();
             esp_ble_mesh_node_local_reset();
             provisioned = false;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, true);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true); //Since logic is inverted.
             vTaskDelay(pdMS_TO_TICKS(5));
             ELEMENT_ADDR = 0;
             vTaskDelay(pdMS_TO_TICKS(100));
