@@ -70,8 +70,8 @@
 #define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug Info ACK"
 #define NODE_PROV_ACK_NAME "Node Provisioning ACK"
 #define NODE_UNPROV_ACK_NAME "Node Unprovisioing ACK"
-#define NODE_CONF_ACK_NAME "Node Configuration ACK"
-#define NODE_RECONF_ACK_NAME "Node Reconfiguration ACK"
+#define NODE_CONF_ACK_NAME "Node AC Remote Configuration ACK"
+#define NODE_RECONF_ACK_NAME "Node AC Remote Reconfiguration ACK"
 #define NODE_AC_CONTROL_ACK_NAME "Node AC Control ACK"
 #define NODE_MANUAL_AC_CONTROL_ACK_NAME "Node Manual AC Control ACK"
 #define NODE_HEARTBEAT_ACK_NAME "Node Heartbeat ACK"
@@ -101,8 +101,8 @@ extern uint8_t MQTT_CLIENT_INDEX;
 
 /*JSON related*/
 #define MQTT_PACKET_BUFF_SIZE 1024
-#define LOCATION_STR_LEN 30
-#define MQTT_PACKET_NAME_LEN 100
+#define LOCATION_STR_LEN 3
+#define MQTT_PACKET_NAME_LEN 45
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 1024
 #define MQTT_TOPIC_CHAR_LEN 100
@@ -127,7 +127,7 @@ struct base_data_t
 	uint16_t error_code;
 	uint32_t request_in_time_us;
 	bool request_sent_to_node_flag;
-	char ack_name[MQTT_PACKET_NAME_LEN];
+	// char ack_name[MQTT_PACKET_NAME_LEN];
 	char location[LOCATION_STR_LEN];
 };
 

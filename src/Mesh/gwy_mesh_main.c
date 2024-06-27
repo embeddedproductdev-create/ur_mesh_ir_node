@@ -67,6 +67,8 @@
 
 #if (IS_GWY)
 
+#define BLE_BUF_SIZE 1024
+
 control_t *vendor_node_ac_control_t;
 control_t *vendor_node_manual_ac_control_t;
 prov_t *vendor_provision_t;
@@ -308,8 +310,8 @@ static void example_ble_mesh_set_msg_common(esp_ble_mesh_client_common_param_t *
 static esp_ble_mesh_client_t config_client;
 static esp_ble_mesh_client_t sensor_client;
 
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, 40);
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, 40);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, BLE_BUF_SIZE);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, BLE_BUF_SIZE);
 
 static esp_ble_mesh_sensor_state_t sensor_states[2] = {
     /* Mesh Model Spec:
@@ -354,7 +356,7 @@ static esp_ble_mesh_sensor_state_t sensor_states[2] = {
 };
 
 /* 20 octets is large enough to hold two Sensor Descriptor state values. */
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, 90, ROLE_PROVISIONER);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, BLE_BUF_SIZE*2, ROLE_PROVISIONER);
 static esp_ble_mesh_sensor_srv_t sensor_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -362,7 +364,7 @@ static esp_ble_mesh_sensor_srv_t sensor_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, 90, ROLE_PROVISIONER);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, BLE_BUF_SIZE*2, ROLE_PROVISIONER);
 static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -370,7 +372,7 @@ static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(client_pub, 90, ROLE_PROVISIONER);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(client_pub, BLE_BUF_SIZE*2, ROLE_PROVISIONER);
 
 struct example_sensor_descriptor
 {
@@ -555,7 +557,6 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     mpid = 0xe00e;
 
     data_len = 29;
-    BT_ERR("data len %d", data_len);
     memcpy(data, &mpid, mpid_len);
     memcpy(data + mpid_len, state->sensor_data.raw_value->data, data_len);
 
@@ -604,7 +605,6 @@ static void example_ble_mesh_send_sensor_status(/*int a*/ esp_ble_mesh_sensor_se
     }
 
     status = calloc(1, 70);
-    BT_ERR("buff size %d", buf_size);
     if (!status)
     {
         ESP_LOGE(MESH_ERROR_TAG, "No memory for sensor status!");
@@ -618,7 +618,7 @@ static void example_ble_mesh_send_sensor_status(/*int a*/ esp_ble_mesh_sensor_se
     goto send;
 
 send:
-    ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
+    if(LOG_DATA) ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
 
     ESP_LOGE(MESH_ERROR_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
     ESP_LOGE(MESH_ERROR_TAG, "Node ap idx addr 0x%04x ", sensor_server.model->pub->app_idx);
@@ -864,6 +864,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     AC_LOCKING_KEY, vendor_node_heartbeat_t->control.Locking,
                     TEMP_LOCK_UP_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockUpLimit,
                     TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockLowLimit);
+            ESP_LOGI(MESH_DEBUG_TAG, "%s", pubmessage);
             break;
 
         case NODE_AC_CONTROL_PACKET:

@@ -54,27 +54,27 @@ void init_structures()
     node_debug_info_t.base_data.json_packet_id = NODE_DEBUG_INFO_PACKET;
 
     /* JSON ACK NAMES */
-    strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK_NAME);
-    strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK_NAME);
-    strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK_NAME);
-    strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK_NAME);
-    strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK_NAME);
-    strcpy(gwy_manual_ac_control_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
-    strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
-    strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
-    strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
+    // strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK_NAME);
+    // strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK_NAME);
+    // strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK_NAME);
+    // strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK_NAME);
+    // strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK_NAME);
+    // strcpy(gwy_manual_ac_control_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
+    // strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
+    // strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
+    // strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
 
-    /* NODE - JSON ACK NAMES */
-    strcpy(provision_t.base_data.ack_name, NODE_PROV_ACK_NAME);
-    strcpy(unprovision_t.base_data.ack_name, NODE_UNPROV_ACK_NAME);
-    strcpy(node_conf_t.base_data.ack_name, NODE_CONF_ACK_NAME);
-    strcpy(node_reconf_t.base_data.ack_name, NODE_RECONF_ACK_NAME);
-    strcpy(node_teaching_mode_t.base_data.ack_name, NODE_TEACHING_MODE_START_ACK_NAME);
-    strcpy(node_debug_info_t.base_data.ack_name, NODE_DEBUG_INFO_ACK_NAME);
-    strcpy(node_ac_control_t.base_data.ack_name, NODE_AC_CONTROL_ACK_NAME);
-    strcpy(node_heartbeat_t.base_data.ack_name, NODE_HEARTBEAT_ACK_NAME);
-    strcpy(node_heartbeat_pub_conf_t.base_data.ack_name, NODE_HEARTBEAT_PUB_CONF_ACK_NAME);
-    strcpy(node_manual_ac_control_t.base_data.ack_name, NODE_MANUAL_AC_CONTROL_ACK_NAME);
+    // /* NODE - JSON ACK NAMES */
+    // strcpy(provision_t.base_data.ack_name, NODE_PROV_ACK_NAME);
+    // strcpy(unprovision_t.base_data.ack_name, NODE_UNPROV_ACK_NAME);
+    // strcpy(node_conf_t.base_data.ack_name, NODE_CONF_ACK_NAME);
+    // strcpy(node_reconf_t.base_data.ack_name, NODE_RECONF_ACK_NAME);
+    // strcpy(node_teaching_mode_t.base_data.ack_name, NODE_TEACHING_MODE_START_ACK_NAME);
+    // strcpy(node_debug_info_t.base_data.ack_name, NODE_DEBUG_INFO_ACK_NAME);
+    // strcpy(node_ac_control_t.base_data.ack_name, NODE_AC_CONTROL_ACK_NAME);
+    // strcpy(node_heartbeat_t.base_data.ack_name, NODE_HEARTBEAT_ACK_NAME);
+    // strcpy(node_heartbeat_pub_conf_t.base_data.ack_name, NODE_HEARTBEAT_PUB_CONF_ACK_NAME);
+    // strcpy(node_manual_ac_control_t.base_data.ack_name, NODE_MANUAL_AC_CONTROL_ACK_NAME);
 
 #if (IS_GWY)
     /* GWY SER NO STRING */
@@ -909,6 +909,7 @@ void parse_json_packet(char *json_packet)
     else
     {
         json_ack_err_code = JSON_PACKET_ID_NOT_FOUND;
+        add_to_pubmesg_queue("JSON_PACKET_ID_NOT_FOUND", publish_topic);
     }
 
     if(json_ack_err_code == SUCCESS) error_check_json(json_packet_id);

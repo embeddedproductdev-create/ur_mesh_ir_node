@@ -36,7 +36,7 @@
 
 #if (!IS_GWY)
 
-#define BLE_BUF_SIZE 40
+#define BLE_BUF_SIZE 1024
 
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
@@ -158,8 +158,8 @@ static esp_ble_mesh_cfg_srv_t config_server = {
 static esp_ble_mesh_client_t config_client;
 static esp_ble_mesh_client_t sensor_client;
 
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, BUF_SIZE);
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, BUF_SIZE);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, BLE_BUF_SIZE);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, BLE_BUF_SIZE);
 
 /*NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_2, 30);
 NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_3, 30);*/
@@ -448,7 +448,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     // net_buf_simple_add_u8(&sensor_data_0, 11);
     // mpid=0xe00e;
 
-    data_len = 29;
+    data_len = 300;
     // memcpy(data, &mpid, mpid_len);
     memcpy(data, state->sensor_data.raw_value->data, data_len);
 
@@ -496,22 +496,30 @@ static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_serve
         }
     }
 
-    // status = calloc(1, buf_size);
-    status = calloc(1, 70);
+    // status = calloc(1, BLE_BUF_SIZE);
+    status = calloc(1, 500);
     if (!status)
     {
         ESP_LOGE(MESH_DEBUG_TAG, "No memory for sensor status!");
         return;
     }
 
-    for (i = 0; i < ARRAY_SIZE(sensor_states); i++)
+    for (i = 0; i < 1; i++)
+    // for (i = 0; i < 1 ARRAY_SIZE(sensor_states); i++)
     {
         length += example_ble_mesh_get_sensor_data(&sensor_states[i], status + length);
     }
     goto send;
 
 send:
-    if(LOG_DATA) ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
+    if(LOG_DATA) {
+        ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
+        for(uint16_t z=0;z<300;z++)
+        {
+            printf("%x ",status[z]);
+        }
+        printf("\n");
+    }
     sensor_server.model->pub->publish_addr = 0x01;
     if(LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
@@ -1251,6 +1259,16 @@ void send_heartbeat_ack_to_gwy()
     node_heartbeat_t.control.TempLockLowLimit = node_ac_control_t.control.TempLockLowLimit;
     node_heartbeat_t.control.TempLockUpLimit = node_ac_control_t.control.TempLockUpLimit;
     sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.power : %d", node_heartbeat_t.control.power);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.temp : %d", node_heartbeat_t.control.temp);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.mode_str : %s", node_heartbeat_t.control.mode_str);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.swingH : %d", node_heartbeat_t.control.swingH);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.swingV : %d", node_heartbeat_t.control.swingV);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.OnTimer : %d", node_heartbeat_t.control.OnTimer);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.OffTimer : %d", node_heartbeat_t.control.OffTimer);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.base_data.json_packet_id : %d", node_heartbeat_t.base_data.json_packet_id);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.base_data.gwy_ser_no_str : %s", node_heartbeat_t.base_data.gwy_ser_no_str);
+    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.base_data.node_ser_no_str : %s", node_heartbeat_t.base_data.node_ser_no_str);
     example_ble_mesh_send_sensor_status();
 }
 

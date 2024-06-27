@@ -16,6 +16,7 @@
 IRrecv irrecv(IR_RECEIVER_PIN, RECV_BUFFER_SIZE, kTimeout, true);
 decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
+bool no_recv_function_flag = false;
 bool configured = false;
 bool teaching_mode = false;
 bool teaching_mode_done = false;
@@ -586,8 +587,11 @@ void fetch_data_from_manual_control(char *input_string)
         else
             gwy_manual_ac_control_t.control.power = 0;
     }
-    else
+    else {
         red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 
     // Fetch Mode
     if (strstr(input_string, "Mode"))
@@ -599,8 +603,11 @@ void fetch_data_from_manual_control(char *input_string)
         else if(strstr(mode, "Auto")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Auto");
         else if(strstr(mode, "Fan")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Fan");
     }
-    else
+    else {
         red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 
     // Fetch Fan
     if (strstr(input_string, "Fan"))
@@ -608,8 +615,11 @@ void fetch_data_from_manual_control(char *input_string)
         snprintf(fan, sizeof(fan), (strstr(input_string, "Fan") + 5));
         gwy_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
-    else
+    else {
         red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 
     // Fetch Temperature
     if (strstr(input_string, "Temp"))
@@ -617,8 +627,11 @@ void fetch_data_from_manual_control(char *input_string)
         snprintf(temperature, sizeof(temperature), (strstr(input_string, "Temp") + 6));
         gwy_manual_ac_control_t.control.temp = atoi(temperature);
     }
-    else
+    else {
         red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 #endif
 
 #if (!IS_GWY)
@@ -677,8 +690,8 @@ void fetch_data_from_manual_control(char *input_string)
  */
 void locking_feature(char *result_description_char_str)
 {
-    // First let's check if we're using teaching mode
-    if (protocol_selected_num == RAW)
+    fetch_data_from_manual_control(result_description_char_str);
+    if (no_recv_function_flag || protocol_selected_num == RAW)
     {
 #if (IS_GWY)
         gwy_manual_ac_control_t.control.power = 0;
@@ -696,7 +709,6 @@ void locking_feature(char *result_description_char_str)
     }
     else
     {
-        fetch_data_from_manual_control(result_description_char_str);
 #if (IS_GWY)
         if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
         else {

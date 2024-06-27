@@ -62,7 +62,7 @@ switch (msg.payload) {
             "TempLockUpLimit": global.get("TempLockUpLimit"),
             "TempLockLowLimit": global.get("TempLockLowLimit")
         };
-        msg = { payload: Object.assign({}, Gwybasejson, json) };
+        msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
     case json_packet_enum.GWY_AC_CONTROL_PACKET:
