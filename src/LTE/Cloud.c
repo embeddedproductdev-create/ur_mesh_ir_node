@@ -19,103 +19,6 @@ struct pub_mesg_struct *pubmesg_queue_head = NULL;
 struct pub_mesg_struct *pubmesg_queue_tail = NULL;
 
 /**
- * @brief Function that initializes the members of global strucutres with
- * values that will never changes
- * For examples, GWY SER NO is never going to change
- * For example, the JSON PACKET ID is never going to change
- * So it's better to initialize them with values at the start of application
- * @param none
- * @retval none
- */
-void init_structures()
-{
-
-    /* GWY - JSON PACKET IDs */
-    gwy_registration_t.base_data.json_packet_id = GWY_REG_PACKET;
-    gwy_unregistration_t.base_data.json_packet_id = GWY_UNREG_PACKET;
-    gwy_conf_t.base_data.json_packet_id = GWY_CONF_ACK;
-    gwy_reconf_t.base_data.json_packet_id = GWY_RECONF_PACKET;
-    gwy_ac_control_t.base_data.json_packet_id = GWY_AC_CONTROL_PACKET;
-    gwy_manual_ac_control_t.base_data.json_packet_id = GWY_MANUAL_AC_CONTROL_ACK;
-    gwy_pub_conf_t.base_data.json_packet_id = GWY_HEARTBEAT_PUB_CONF_PACKET;
-    gwy_heartbeat_t.base_data.json_packet_id = GWY_HEARTBEAT_ACK;
-    gwy_teaching_mode_t.base_data.json_packet_id = GWY_TEACHING_MODE_START_PACKET;
-    gwy_debug_info_t.base_data.json_packet_id = GWY_DEBUG_INFO_PACKET;
-
-    /* NODE - JSON PACKET IDs */
-    provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
-    unprovision_t.base_data.json_packet_id = NODE_UNPROV_PACKET;
-    node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
-    node_reconf_t.base_data.json_packet_id = NODE_RECONF_PACKET;
-    node_ac_control_t.base_data.json_packet_id = NODE_AC_CONTROL_PACKET;
-    node_manual_ac_control_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK;
-    node_heartbeat_pub_conf_t.base_data.json_packet_id = NODE_HEARTBEAT_PUB_CONF_PACKET;
-    node_heartbeat_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
-    node_debug_info_t.base_data.json_packet_id = NODE_DEBUG_INFO_PACKET;
-
-    /* JSON ACK NAMES */
-    // strcpy(gwy_registration_t.base_data.ack_name, GWY_REG_ACK_NAME);
-    // strcpy(gwy_unregistration_t.base_data.ack_name, GWY_UNREG_ACK_NAME);
-    // strcpy(gwy_conf_t.base_data.ack_name, GWY_CONF_ACK_NAME);
-    // strcpy(gwy_reconf_t.base_data.ack_name, GWY_RECONF_ACK_NAME);
-    // strcpy(gwy_ac_control_t.base_data.ack_name, GWY_AC_CONTROL_ACK_NAME);
-    // strcpy(gwy_manual_ac_control_t.base_data.ack_name, GWY_MANUAL_AC_CONTROL_ACK_NAME);
-    // strcpy(gwy_pub_conf_t.base_data.ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
-    // strcpy(gwy_heartbeat_t.base_data.ack_name, GWY_HEARTBEAT_ACK_NAME);
-    // strcpy(gwy_debug_info_t.base_data.ack_name, GWY_DEBUG_INFO_ACK_NAME);
-
-    // /* NODE - JSON ACK NAMES */
-    // strcpy(provision_t.base_data.ack_name, NODE_PROV_ACK_NAME);
-    // strcpy(unprovision_t.base_data.ack_name, NODE_UNPROV_ACK_NAME);
-    // strcpy(node_conf_t.base_data.ack_name, NODE_CONF_ACK_NAME);
-    // strcpy(node_reconf_t.base_data.ack_name, NODE_RECONF_ACK_NAME);
-    // strcpy(node_teaching_mode_t.base_data.ack_name, NODE_TEACHING_MODE_START_ACK_NAME);
-    // strcpy(node_debug_info_t.base_data.ack_name, NODE_DEBUG_INFO_ACK_NAME);
-    // strcpy(node_ac_control_t.base_data.ack_name, NODE_AC_CONTROL_ACK_NAME);
-    // strcpy(node_heartbeat_t.base_data.ack_name, NODE_HEARTBEAT_ACK_NAME);
-    // strcpy(node_heartbeat_pub_conf_t.base_data.ack_name, NODE_HEARTBEAT_PUB_CONF_ACK_NAME);
-    // strcpy(node_manual_ac_control_t.base_data.ack_name, NODE_MANUAL_AC_CONTROL_ACK_NAME);
-
-#if (IS_GWY)
-    /* GWY SER NO STRING */
-    strcpy(gwy_registration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_manual_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_heartbeat_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-
-    strcpy(provision_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(unprovision_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(node_ac_control_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(node_reconf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(node_teaching_mode_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(node_debug_info_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    strcpy(node_heartbeat_pub_conf_t.base_data.gwy_ser_no_str, GWY_SER_NO_IN_STRING);
-    
-#endif 
-
-#if (!IS_GWY)
-    /* NODE SER NO STRINGS */
-    strcpy(provision_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(unprovision_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_reconf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_teaching_mode_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_debug_info_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_heartbeat_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_heartbeat_pub_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-    strcpy(node_manual_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
-#endif
-}
-
-/**
  * @brief Function that returns the Mode string based on Mode value
  * @param mode_value 
  * @return char* String that denotes what mode it is.
@@ -524,7 +427,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
             JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
             MSG_SEQ_NO_KEY, node_ac_control_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, node_ac_control_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, node_ac_control_t.base_data.elementAddr,
             POWER_KEY, node_ac_control_t.control.power,
             MODE_KEY, node_ac_control_t.control.mode_str,
@@ -546,7 +449,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
             JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_ac_control_t.base_data.gwy_ser_no_str,
             POWER_KEY, gwy_ac_control_t.control.power,
             MODE_KEY, gwy_ac_control_t.control.mode_str,
             FAN_SPEED_KEY, gwy_ac_control_t.control.fanSpeed,
@@ -571,7 +474,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_DEBUG_INFO_PACKET,
             JSON_ACK_NAME_KEY, GWY_DEBUG_INFO_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_debug_info_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_debug_info_t.base_data.gwy_ser_no_str,
             FIRMWARE_VERSION_KEY, gwy_debug_info_t.firmware,
             REGISTERED_KEY, registered,
             PROTOCOL_SEL_NUM_KEY, protocol_selected_num,
@@ -626,7 +529,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_START_PACKET,
             JSON_ACK_NAME_KEY, GWY_TEACHING_MODE_START_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_teaching_mode_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_teaching_mode_t.base_data.gwy_ser_no_str,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
     
@@ -636,7 +539,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
             JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
             MSG_SEQ_NO_KEY, node_reconf_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, node_reconf_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, node_reconf_t.base_data.elementAddr,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
@@ -647,7 +550,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
             JSON_ACK_NAME_KEY, GWY_RECONF_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_reconf_t.base_data.gwy_ser_no_str,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
     
@@ -657,7 +560,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
             JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
             MSG_SEQ_NO_KEY, node_heartbeat_pub_conf_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, node_heartbeat_pub_conf_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, node_heartbeat_pub_conf_t.base_data.node_ser_no_str,
             ELEMENT_ADDR_KEY, node_heartbeat_pub_conf_t.base_data.elementAddr,
             PUBLISH_PERIOD_KEY, node_heartbeat_pub_conf_t.pub_conf_period_in_sec,
@@ -670,7 +573,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_HEARTBEAT_PUB_CONF_PACKET,
             JSON_ACK_NAME_KEY, GWY_HEARTBEAT_PUB_CONF_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_pub_conf_t.base_data.gwy_ser_no_str,
             PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
@@ -681,7 +584,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
             JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
             MSG_SEQ_NO_KEY, provision_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, provision_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, provision_t.base_data.node_ser_no_str,
             ELEMENT_ADDR_KEY, provision_t.base_data.elementAddr,
             LOCATION_KEY, provision_t.base_data.location,
@@ -698,7 +601,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_REG_PACKET,
             JSON_ACK_NAME_KEY, GWY_REG_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_registration_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_registration_t.base_data.gwy_ser_no_str,
             LOCATION_KEY, gwy_registration_t.base_data.location,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
@@ -709,7 +612,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
             JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
             MSG_SEQ_NO_KEY, unprovision_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, unprovision_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, unprovision_t.base_data.node_ser_no_str,
             ELEMENT_ADDR_KEY, unprovision_t.base_data.elementAddr,
             LOCATION_KEY, unprovision_t.base_data.location,
@@ -722,7 +625,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_PACKET_ID_KEY, GWY_UNREG_PACKET,
             JSON_ACK_NAME_KEY, GWY_UNREG_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_unregistration_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+            GWY_SER_NO_KEY, gwy_unregistration_t.base_data.gwy_ser_no,
             LOCATION_KEY, gwy_unregistration_t.base_data.location,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
@@ -921,6 +824,7 @@ void parse_json_packet(char *json_packet)
         {
         case NODE_AC_CONTROL_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node AC Control packet");
+            node_ac_control_t.base_data.json_packet_id = json_packet_id;
             node_ac_control_t.base_data.request_in_time_us = esp_timer_get_time();
             node_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             node_ac_control_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
@@ -940,6 +844,7 @@ void parse_json_packet(char *json_packet)
             break;
 
         case GWY_AC_CONTROL_PACKET:
+            gwy_ac_control_t.base_data.json_packet_id = json_packet_id;
             gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_ac_control_t.control.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, gwy_ac_control_t.control.power);
@@ -980,14 +885,16 @@ void parse_json_packet(char *json_packet)
         
         case NODE_DEBUG_INFO_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node Debug Info Packet");
-            node_teaching_mode_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            strcpy(node_teaching_mode_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-            node_teaching_mode_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
+            node_debug_info_t.base_data.json_packet_id = json_packet_id;
+            node_debug_info_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+            strcpy(node_debug_info_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
+            node_debug_info_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
             add_to_debug_info_queue();
             break;
 
         case GWY_DEBUG_INFO_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Debug Info Packet");
+            gwy_debug_info_t.base_data.json_packet_id = json_packet_id;
             gwy_debug_info_t.resetDevice = cJSON_GetObjectItem(json_packet_j, RESET_DEVICE_KEY)->valueint;
             gwy_debug_info_t.logging = cJSON_GetObjectItem(json_packet_j, LOGGING_KEY)->valueint;
             if(gwy_debug_info_t.logging) LOG_DATA = true;
@@ -995,6 +902,7 @@ void parse_json_packet(char *json_packet)
 
         case NODE_RECONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node Reconfiguration packet");
+            node_reconf_t.base_data.json_packet_id = json_packet_id;
             node_reconf_t.base_data.request_in_time_us = esp_timer_get_time();
             node_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(node_reconf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
@@ -1004,6 +912,7 @@ void parse_json_packet(char *json_packet)
 
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node Publish configuratoin packet received");
+            node_heartbeat_pub_conf_t.base_data.json_packet_id = json_packet_id;
             node_heartbeat_pub_conf_t.base_data.request_in_time_us = esp_timer_get_time();
             node_heartbeat_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(node_heartbeat_pub_conf_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
@@ -1014,24 +923,28 @@ void parse_json_packet(char *json_packet)
 
         case NODE_TEACHING_MODE_START_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node Teaching Mode Start Packet");
+            node_teaching_mode_t.base_data.json_packet_id = json_packet_id;
             strcpy(node_teaching_mode_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
             add_to_teaching_mode_queue();
             break;
 
         case GWY_TEACHING_MODE_START_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Teaching Mode Start Packet");
+            gwy_teaching_mode_t.base_data.json_packet_id = json_packet_id;
             teaching_mode = true;
             teachMode_size_done = true;
             break;
 
         case GWY_RECONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Reconfiguration packet");
+            gwy_reconf_t.base_data.json_packet_id = json_packet_id;
             gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             configured = false;
             break;
 
         case GWY_HEARTBEAT_PUB_CONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Publish configuration packet");
+            gwy_pub_conf_t.base_data.json_packet_id = json_packet_id;
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
@@ -1042,6 +955,7 @@ void parse_json_packet(char *json_packet)
 
         case NODE_PROV_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node Provisioning packet");
+            provision_t.base_data.json_packet_id = json_packet_id;
             provision_t.base_data.request_in_time_us = esp_timer_get_time();
             provision_t.base_data.json_packet_id = json_packet_id;
             provision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
@@ -1053,6 +967,7 @@ void parse_json_packet(char *json_packet)
 
         case NODE_UNPROV_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Node Unprovisioning packet");
+            unprovision_t.base_data.json_packet_id = json_packet_id;
             unprovision_t.base_data.request_in_time_us = esp_timer_get_time();
             unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(unprovision_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
@@ -1062,6 +977,7 @@ void parse_json_packet(char *json_packet)
 
         case GWY_UNREG_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Unregistration packet");
+            gwy_unregistration_t.base_data.json_packet_id = json_packet_id;
             gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             factory_reset_device();
@@ -1069,6 +985,7 @@ void parse_json_packet(char *json_packet)
 
         case GWY_REG_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Registration packet");
+            gwy_registration_t.base_data.json_packet_id = json_packet_id;
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             registered = true;

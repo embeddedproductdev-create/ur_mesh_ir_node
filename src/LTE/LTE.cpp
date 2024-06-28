@@ -236,6 +236,7 @@ int8_t publish_to_mqtt()
 			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 			sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
 			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+			sleep(1);
 			return SUCCESS;
 		}
 		else

@@ -216,7 +216,7 @@ void app_main()
 #if (IS_GWY)
     fill_gwy_ser_no_str();
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d.%d", GWY_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "General:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
@@ -238,7 +238,7 @@ void app_main()
 #if (!IS_GWY)
     fill_node_ser_no_str();
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d", NODE_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION);
+    ESP_LOGI(MAIN_DEBUG_TAG, "%s APPLICATION STARTED : %d.%d.%d", NODE_SER_NO_IN_STRING, MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(MAIN_DEBUG_TAG, "General:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
@@ -257,8 +257,6 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockUpLimit     : %d", node_ac_control_t.control.TempLockUpLimit);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockLowLimit    : %d", node_ac_control_t.control.TempLockLowLimit);
 #endif
-
-    init_structures();
 
 #if (MESH_PART_ENABLED)
 #if (IS_GWY)

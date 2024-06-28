@@ -109,7 +109,6 @@ void IR_transmit_setup()
 
 void IR_transmit(uint16_t protocol)
 {
-    needToSendIRComamnd = true; //Need to set this True here for the sake of locking feature. 
     switch (protocol)
     {
     case RAW:
@@ -157,7 +156,7 @@ void IR_transmit(uint16_t protocol)
         ac_daikin280.send();
         white_printf(IR_DEBUG_TAG, "Sending Daikin280");
         break;
-    
+
     case DAIKIN200:
         strcpy(protocol_chosen_str, "Daikin200");
         ac_daikin200.setPower(gwy_ac_control_t.control.power);
@@ -170,10 +169,10 @@ void IR_transmit(uint16_t protocol)
         break;
 
     case DAIKIN216:
-        //If the mode is not "Cool", then we must only set mode. We must not try to set any other thing.
-        if(gwy_ac_control_t.control.mode_val != COOL)
+        // If the mode is not "Cool", then we must only set mode. We must not try to set any other thing.
+        if (gwy_ac_control_t.control.mode_val != COOL)
         {
-            
+
             ac_daikin216.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
             ac_daikin216.send();
             return;
@@ -587,7 +586,8 @@ void fetch_data_from_manual_control(char *input_string)
         else
             gwy_manual_ac_control_t.control.power = 0;
     }
-    else {
+    else
+    {
         red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
         no_recv_function_flag = true;
         return;
@@ -597,13 +597,19 @@ void fetch_data_from_manual_control(char *input_string)
     if (strstr(input_string, "Mode"))
     {
         snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 9));
-        if(strstr(mode, "Cool")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Cool");
-        else if(strstr(mode, "Heat")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Hot");
-        else if(strstr(mode, "Dry")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Dry");
-        else if(strstr(mode, "Auto")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Auto");
-        else if(strstr(mode, "Fan")) strcpy(gwy_manual_ac_control_t.control.mode_str, "Fan");
+        if (strstr(mode, "Cool"))
+            strcpy(gwy_manual_ac_control_t.control.mode_str, "Cool");
+        else if (strstr(mode, "Heat"))
+            strcpy(gwy_manual_ac_control_t.control.mode_str, "Hot");
+        else if (strstr(mode, "Dry"))
+            strcpy(gwy_manual_ac_control_t.control.mode_str, "Dry");
+        else if (strstr(mode, "Auto"))
+            strcpy(gwy_manual_ac_control_t.control.mode_str, "Auto");
+        else if (strstr(mode, "Fan"))
+            strcpy(gwy_manual_ac_control_t.control.mode_str, "Fan");
     }
-    else {
+    else
+    {
         red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
         no_recv_function_flag = true;
         return;
@@ -615,7 +621,8 @@ void fetch_data_from_manual_control(char *input_string)
         snprintf(fan, sizeof(fan), (strstr(input_string, "Fan") + 5));
         gwy_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
-    else {
+    else
+    {
         red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
         no_recv_function_flag = true;
         return;
@@ -627,7 +634,8 @@ void fetch_data_from_manual_control(char *input_string)
         snprintf(temperature, sizeof(temperature), (strstr(input_string, "Temp") + 6));
         gwy_manual_ac_control_t.control.temp = atoi(temperature);
     }
-    else {
+    else
+    {
         red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
         no_recv_function_flag = true;
         return;
@@ -651,11 +659,16 @@ void fetch_data_from_manual_control(char *input_string)
     if (strstr(input_string, "Mode"))
     {
         snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 6));
-        if(strstr(mode, "Cool")) strcpy(node_manual_ac_control_t.control.mode_str, "Cool");
-        else if(strstr(mode, "Heat")) strcpy(node_manual_ac_control_t.control.mode_str, "Hot");
-        else if(strstr(mode, "Dry")) strcpy(node_manual_ac_control_t.control.mode_str, "Dry");
-        else if(strstr(mode, "Auto")) strcpy(node_manual_ac_control_t.control.mode_str, "Auto");
-        else if(strstr(mode, "Fan")) strcpy(node_manual_ac_control_t.control.mode_str, "Fan");
+        if (strstr(mode, "Cool"))
+            strcpy(node_manual_ac_control_t.control.mode_str, "Cool");
+        else if (strstr(mode, "Heat"))
+            strcpy(node_manual_ac_control_t.control.mode_str, "Hot");
+        else if (strstr(mode, "Dry"))
+            strcpy(node_manual_ac_control_t.control.mode_str, "Dry");
+        else if (strstr(mode, "Auto"))
+            strcpy(node_manual_ac_control_t.control.mode_str, "Auto");
+        else if (strstr(mode, "Fan"))
+            strcpy(node_manual_ac_control_t.control.mode_str, "Fan");
     }
     else
         red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
@@ -710,179 +723,202 @@ void locking_feature(char *result_description_char_str)
     else
     {
 #if (IS_GWY)
-        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
-        else {
+        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit)
+            ;
+        else
+        {
 #endif
 #if (!IS_GWY)
-        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
-        else {
+            if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit)
+                ;
+            else
+            {
 #endif
-            ESP_LOGI(IR_DEBUG_TAG, "Reverting AC back to permissible limits ... ");
-            sleep(1); //Good to waste atleast 2 seconds here in order for this feature to work. Think about it :)
-            IR_transmit(protocol_selected_num);
+                ESP_LOGI(IR_DEBUG_TAG, "Reverting AC back to permissible limits ... ");
+                sleep(1); // Good to waste atleast 1 seconds here in order for this feature to work. Think about it :)
+                needToSendIRComamnd = true;
+                sleep(1); // Good to waste atleast 1 seconds here in order for this feature to work. Think about it :)
+            }
         }
-    }
 
 #if (IS_GWY)
-    white_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack");
-    char pubmessage[PUBMESG_LEN];
-    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
-    JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK,
-    JSON_ACK_NAME_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
-    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-    POWER_KEY, gwy_manual_ac_control_t.control.power,
-    MODE_KEY, gwy_manual_ac_control_t.control.mode_str,
-    FAN_SPEED_KEY, gwy_manual_ac_control_t.control.fanSpeed,
-    TEMPERATURE_KEY, gwy_manual_ac_control_t.control.temp);
-    add_to_pubmesg_queue(pubmessage, publish_topic);
+        white_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack");
+        char pubmessage[PUBMESG_LEN];
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+                JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK,
+                JSON_ACK_NAME_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                POWER_KEY, gwy_manual_ac_control_t.control.power,
+                MODE_KEY, gwy_manual_ac_control_t.control.mode_str,
+                FAN_SPEED_KEY, gwy_manual_ac_control_t.control.fanSpeed,
+                TEMPERATURE_KEY, gwy_manual_ac_control_t.control.temp);
+        add_to_pubmesg_queue(pubmessage, publish_topic);
 #endif
 #if (!IS_GWY)
-    send_manual_ac_control_ack_to_gwy();
+        send_manual_ac_control_ack_to_gwy();
 #endif
-}
+    }
 
-/**
- * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
- * also takes care of the IR transmission part.
- * @param args
- * @return void*
- */
-void IR_receiver_task(void *args)
-{
-    IR_transmit_setup();
-    irrecv.setUnknownThreshold(kMinUnknownSize);
-    irrecv.setTolerance(kTolerancePercentage);
-    irrecv.enableIRIn();
-    while (1)
+    /**
+     * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
+     * also takes care of the IR transmission part.
+     * @param args
+     * @return void*
+     */
+    void IR_receiver_task(void *args)
     {
-        vTaskDelay(1);
-        if (needToSendIRComamnd) {
-            IR_transmit(protocol_selected_num);
-            needToSendIRComamnd = false;
-        }
-
-        if (esp_restart_flag)
-            ESP.restart();
-        if (irrecv.decode(&results))
+        IR_transmit_setup();
+        irrecv.setUnknownThreshold(kMinUnknownSize);
+        irrecv.setTolerance(kTolerancePercentage);
+        irrecv.enableIRIn();
+        while (1)
         {
-            char raw_buf_str[200];
-            strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
-            String description = IRAcUtils::resultAcToString(&results);
-            char result_description_char_str[200];
-            strcpy(result_description_char_str, (char *)description.c_str());
-            // printf("IR RAW VALUES : { ");
-            // for (uint16_t i = 0; i < results.rawlen; i++)
-            // {
-            //     printf("%d, ", results.rawbuf[i]);
-            // }
-            // printf("}\n");
-            // sprintf(ir_log_buffer, "%s", raw_buf_str);
-            // white_printf(IR_DEBUG_TAG, ir_log_buffer);
-            if (description.length())
-                ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
-
-            if (teaching_mode)
+            vTaskDelay(1);
+            if (esp_restart_flag)
+                ESP.restart();
+            if (needToSendIRComamnd)
             {
-                protocol_selected_num = RAW;
-                if (teachMode_size_done)
+                irrecv.pause();
+                IR_transmit(protocol_selected_num);
+                sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
+                irrecv.resume();
+                needToSendIRComamnd = false;
+            }
+            if (irrecv.decode(&results))
+            {
+                char raw_buf_str[200];
+                strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
+                String description = IRAcUtils::resultAcToString(&results);
+                char result_description_char_str[200];
+                strcpy(result_description_char_str, (char *)description.c_str());
+                // printf("IR RAW VALUES : { ");
+                // for (uint16_t i = 0; i < results.rawlen; i++)
+                // {
+                //     printf("%d, ", results.rawbuf[i]);
+                // }
+                // printf("}\n");
+                // sprintf(ir_log_buffer, "%s", raw_buf_str);
+                // white_printf(IR_DEBUG_TAG, ir_log_buffer);
+                if (description.length())
+                    ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
+
+                if (teaching_mode)
                 {
-                    eeprom_addr_cal = 0;
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR, EEPROM_CONF_FAC, TEACHING_FAC);
-                    vTaskDelay(20 / portTICK_PERIOD_MS);
-                    if (results.rawlen > 1)
-                        convert_data = ((results.rawlen) - 1) * 2;
-                    convert_16bit_to_8bit(convert_data, convert_buffer);
-                    eeprom_addr = TEACH_DATA_LEN;
-                    eeprom_write(EEPROM_SLAVE_ADDR, eeprom_addr, convert_buffer, 2);
-                    vTaskDelay(20 / portTICK_PERIOD_MS);
-                    teachMode_size_done = false;
+                    if (teachMode_size_done)
+                    {
+                        eeprom_addr_cal = 0;
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, EEPROM_CONF_FAC, TEACHING_FAC);
+                        vTaskDelay(20 / portTICK_PERIOD_MS);
+                        if (results.rawlen > 1)
+                            convert_data = ((results.rawlen) - 1) * 2;
+                        convert_16bit_to_8bit(convert_data, convert_buffer);
+                        eeprom_addr = TEACH_DATA_LEN;
+                        eeprom_write(EEPROM_SLAVE_ADDR, eeprom_addr, convert_buffer, 2);
+                        vTaskDelay(20 / portTICK_PERIOD_MS);
+                        teachMode_size_done = false;
+                    }
+                    if (!eeprom_addr_cal)
+                    {
+                        eeprom_addr = TEACH_DATA_POFF;
+                    }
+                    else
+                    {
+                        eeprom_addr = TEACH_DATA_POFF + ((eeprom_addr_cal + (temp_min_val - 16)) * MAX_OFFSET);
+                    }
+                    if (eeprom_addr_cal <= (temp_max_val - temp_min_val + 1))
+                    {
+                        printf("EEPROM ADDR : %d", eeprom_addr);
+                        ESP_LOGI(IR_DEBUG_TAG, "Writing Data...");
+                        storing_IR_data_to_flash = true;
+                        write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
+                        if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
+                        {
+                            configured = true;
+                            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                            vTaskDelay(pdMS_TO_TICKS(5));
+                            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
+                            vTaskDelay(pdMS_TO_TICKS(5));
+                            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
+                            vTaskDelay(pdMS_TO_TICKS(5));
+                            teaching_mode = false;
+                            teachMode_size_done = false;
+                            storing_IR_data_to_flash = false;
+                            protocol_selected_num = RAW;
+                            ESP_LOGI(IR_DEBUG_TAG, "End of Teaching Mode");
+#if (IS_GWY)
+                            char pubmessage[PUBMESG_LEN];
+                            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\"}",
+                                    JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_END_ACK,
+                                    JSON_ACK_NAME_KEY, GWY_TEACHING_MODE_END_ACK_NAME,
+                                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+                            add_to_pubmesg_queue(pubmessage, publish_topic);
+#endif
+#if(!IS_GWY)
+                            send_teaching_mode_end_ack_to_gwy();
+#endif
+                        }
+                        else
+                        {
+                            storing_IR_data_to_flash = false;
+                            ESP_LOGI(IR_DEBUG_TAG, "Proceed for next");
+                        }
+                    }
+                    eeprom_addr_cal++;
                 }
-                if (!eeprom_addr_cal)
+
+                /* AC Remote configuration process */
+                // Here's where we need to add something like protocol_detected > something and < something
+                // After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
+                if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
                 {
-                    eeprom_addr = TEACH_DATA_POFF;
-                }
-                else
-                {
-                    eeprom_addr = TEACH_DATA_POFF + ((eeprom_addr_cal + (temp_min_val - 16)) * MAX_OFFSET);
-                }
-                if (eeprom_addr_cal <= (temp_max_val - temp_min_val + 1))
-                {
-                    printf("EEPROM ADDR : %d", eeprom_addr);
-                    ESP_LOGI(IR_DEBUG_TAG, "Writing Data...");
-                    storing_IR_data_to_flash = true;
-                    write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
-                    if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
+                    protocol_selected_num = protocol_detected;
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
+                    vTaskDelay(pdMS_TO_TICKS(5));
+                    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
+                    vTaskDelay(pdMS_TO_TICKS(5));
+#if (IS_GWY)
+                    if (registered)
                     {
                         configured = true;
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
                         vTaskDelay(pdMS_TO_TICKS(5));
-                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
-                        vTaskDelay(pdMS_TO_TICKS(5));
-                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
-                        vTaskDelay(pdMS_TO_TICKS(5));
-                        teaching_mode = false;
-                        teachMode_size_done = false;
-                        storing_IR_data_to_flash = false;
-                        ESP_LOGI(IR_DEBUG_TAG, "End of Teaching Mode");
+                        char pubmessage[PUBMESG_LEN];
+                        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
+                                JSON_PACKET_ID_KEY, GWY_CONF_ACK,
+                                JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
+                                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                                ERROR_CODE_KEY, 0);
+                        white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
+                        add_to_pubmesg_queue(pubmessage, publish_topic);
                     }
-                    else
-                    {
-                        storing_IR_data_to_flash = false;
-                        ESP_LOGI(IR_DEBUG_TAG, "Proceed for next");
-                    }
-                }
-                eeprom_addr_cal++;
-            }
-
-            /**
-             * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
-             * occur only if the following conditions are met
-             * 1) Device must be registered / configured
-             * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
-             * 3) Device must not be in teaching mode
-             * 4) Locking feature must be enabled in Gwy AC Control Packet
-             */
-            // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
-            if ((registered || configured) && (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) && gwy_ac_control_t.control.Locking && !teaching_mode && !needToSendIRComamnd)
-                locking_feature(result_description_char_str);
-
-            /* AC Remote configuration process */
-            // Here's where we need to add something like protocol_detected > something and < something
-            // After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
-            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
-            {
-                protocol_selected_num = protocol_detected;
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
-                vTaskDelay(pdMS_TO_TICKS(5));
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
-                vTaskDelay(pdMS_TO_TICKS(5));
-#if (IS_GWY)
-                if (registered)
-                {
-                    configured = true;
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
-                    vTaskDelay(pdMS_TO_TICKS(5));
-                    char pubmessage[PUBMESG_LEN];
-                    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
-                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
-                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                            ERROR_CODE_KEY, 0);
-                    white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
-                    add_to_pubmesg_queue(pubmessage, publish_topic);
-                }
 #endif
 #if (!IS_GWY)
-                if (provisioned)
-                {
-                    configured = true;
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
-                    vTaskDelay(pdMS_TO_TICKS(5));
-                    send_AC_configuration_ack_to_gwy();
-                }
+                    if (provisioned)
+                    {
+                        configured = true;
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                        vTaskDelay(pdMS_TO_TICKS(5));
+                        send_AC_configuration_ack_to_gwy();
+                    }
 #endif
+                    continue;
+                }
+
+                /**
+                 * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
+                 * occur only if the following conditions are met
+                 * 1) Device must be registered / configured
+                 * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
+                 * 3) Device must not be in teaching mode
+                 * 4) Locking feature must be enabled in Gwy AC Control Packet
+                 */
+                // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
+                if ((registered || configured) &&
+                    (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) &&
+                    (gwy_ac_control_t.control.Locking || node_ac_control_t.control.Locking) &&
+                    !teaching_mode)
+                    locking_feature(result_description_char_str);
             }
         }
+        vTaskDelete(NULL);
     }
-    vTaskDelete(NULL);
-}

@@ -101,7 +101,7 @@ extern uint8_t MQTT_CLIENT_INDEX;
 
 /*JSON related*/
 #define MQTT_PACKET_BUFF_SIZE 1024
-#define LOCATION_STR_LEN 3
+#define LOCATION_STR_LEN 30
 #define MQTT_PACKET_NAME_LEN 45
 #define PUBMESG_QUEUE_LIMIT 20
 #define PUBMESG_LEN 1024
@@ -118,8 +118,8 @@ extern uint8_t MQTT_CLIENT_INDEX;
 struct base_data_t
 {
 	uint8_t json_packet_id;
-	uint16_t msg_seq_no;
-	uint32_t gwy_ser_no;
+	int32_t msg_seq_no;
+	int32_t gwy_ser_no;
 	char gwy_ser_no_str[10];
 	uint32_t node_ser_no;
 	char node_ser_no_str[10];

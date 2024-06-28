@@ -1272,4 +1272,17 @@ void send_heartbeat_ack_to_gwy()
     example_ble_mesh_send_sensor_status();
 }
 
+/**
+ * @brief Function that sends Teaching Mode End ACK to gwy
+ * @param none
+ * @retval none
+ */
+void send_teaching_mode_end_ack_to_gwy()
+{
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Teaching Mode End ACK to Gwy");
+    node_teaching_mode_t.base_data.json_packet_id = NODE_TEACHING_MODE_END_ACK;
+    sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
+    example_ble_mesh_send_sensor_status();
+}
+
 #endif

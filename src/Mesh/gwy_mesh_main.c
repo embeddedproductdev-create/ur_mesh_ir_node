@@ -905,6 +905,17 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 ERROR_CODE_KEY, vendor_node_teaching_mode_t->base_data.error_code);
             break;
         
+        case NODE_TEACHING_MODE_END_ACK:
+            vendor_node_teaching_mode_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE END ACK | FROM ELEMADDR : %d", vendor_node_teaching_mode_t->base_data.elementAddr);
+            sprintf(pubmessage, "\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %s, \"%s\" : \"%s\", \"%s\" : %d", 
+                JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_END_ACK,
+                JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_END_ACK_NAME,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                NODE_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.node_ser_no_str,
+                ELEMENT_ADDR_KEY, vendor_node_teaching_mode_t->base_data.elementAddr);
+            break;
+
         case NODE_DEBUG_INFO_PACKET:
             remove_from_debug_info_queue();
             vendor_node_debug_info_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
