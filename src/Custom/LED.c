@@ -72,6 +72,7 @@ void LED_task(void *args)
         case LED_STATE_OFF:
             //Since by default we're turing off all LEDs for every cycle
             //we don't need to add any statements to this case.
+            sleep(1);
             break;
         
         case LED_STATE_SENDING_IR_COMMAND: // Solid Purple
@@ -118,10 +119,8 @@ void LED_task(void *args)
             vTaskDelay(pdMS_TO_TICKS(SLOW_BLINK_MS));
             break;
 
-        case LED_STATE_UNCONFIGURED: // Blinking BLUE
+        case LED_STATE_UNCONFIGURED: // Solid BLUE
             digitalWrite(BLUE_LED_PIN, LOW);
-            vTaskDelay(pdMS_TO_TICKS(SLOW_BLINK_MS));
-            digitalWrite(BLUE_LED_PIN, HIGH);
             vTaskDelay(pdMS_TO_TICKS(SLOW_BLINK_MS));
             break;
 

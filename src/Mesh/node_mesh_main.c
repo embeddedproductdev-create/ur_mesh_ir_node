@@ -514,11 +514,6 @@ static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_serve
 send:
     if(LOG_DATA) {
         ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
-        for(uint16_t z=0;z<300;z++)
-        {
-            printf("%x ",status[z]);
-        }
-        printf("\n");
     }
     sensor_server.model->pub->publish_addr = 0x01;
     if(LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
@@ -1193,6 +1188,7 @@ void node_mesh_main_init(void)
 void send_AC_configuration_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Conf ACK to Gwy");
+    node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
     sensor_states[0].sensor_data.raw_value->data = &node_conf_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1205,6 +1201,7 @@ void send_AC_configuration_ack_to_gwy()
 void send_manual_ac_control_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ACK to Gwy");
+    node_manual_ac_control_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK;
     sensor_states[0].sensor_data.raw_value->data = &node_manual_ac_control_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1217,6 +1214,7 @@ void send_manual_ac_control_ack_to_gwy()
 void send_provisioned_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ACK to Gwy");
+    provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
     sensor_states[0].sensor_data.raw_value->data = &provision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1229,6 +1227,7 @@ void send_provisioned_ack_to_gwy()
 void send_unprovisioned_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Unprovisioning ACK to Gwy");
+    unprovision_t.base_data.json_packet_id = NODE_UNPROV_PACKET;
     sensor_states[0].sensor_data.raw_value->data = &unprovision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1240,6 +1239,7 @@ void send_unprovisioned_ack_to_gwy()
  */
 void send_heartbeat_publish_configuration_ack_to_gwy()
 {
+    node_heartbeat_pub_conf_t.base_data.json_packet_id = NODE_HEARTBEAT_PUB_CONF_PACKET;
     sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_pub_conf_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1252,6 +1252,7 @@ void send_heartbeat_publish_configuration_ack_to_gwy()
 void send_heartbeat_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Heartbeat ACK to Gwy");
+    node_heartbeat_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
     node_heartbeat_t.control.power = node_ac_control_t.control.power;
     node_heartbeat_t.control.temp = node_ac_control_t.control.temp;
     strcpy(node_heartbeat_t.control.mode_str, node_ac_control_t.control.mode_str);

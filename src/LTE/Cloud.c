@@ -52,6 +52,11 @@ char* get_mode_string(uint8_t mode_value)
 void factory_reset_device()
 {
     ESP_LOGI(MAIN_DEBUG_TAG, "Factory resetting device !!!!!!!!!!!!!!!!!!!!!!");
+
+    registered = false;
+    protocol_selected_num = -1;
+    configured = false;
+
     //Factory Device 
     eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0xFF);
     vTaskDelay(pdMS_TO_TICKS(5));
