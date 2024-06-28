@@ -791,14 +791,18 @@ void locking_feature(char *result_description_char_str)
                 String description = IRAcUtils::resultAcToString(&results);
                 char result_description_char_str[200];
                 strcpy(result_description_char_str, (char *)description.c_str());
-                // printf("IR RAW VALUES : { ");
-                // for (uint16_t i = 0; i < results.rawlen; i++)
-                // {
-                //     printf("%d, ", results.rawbuf[i]);
-                // }
-                // printf("}\n");
-                // sprintf(ir_log_buffer, "%s", raw_buf_str);
-                // white_printf(IR_DEBUG_TAG, ir_log_buffer);
+
+                if(LOG_DATA) {
+                    printf("IR RAW VALUES : { ");
+                    for (uint16_t i = 0; i < results.rawlen; i++)
+                    {
+                        printf("%d, ", results.rawbuf[i]);
+                    }
+                    printf("}\n");
+                    sprintf(ir_log_buffer, "%s", raw_buf_str);
+                    white_printf(IR_DEBUG_TAG, ir_log_buffer);
+                }
+
                 if (description.length())
                     ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
 
@@ -834,7 +838,7 @@ void locking_feature(char *result_description_char_str)
                         if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
                         {
                             configured = true;
-                            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                             vTaskDelay(pdMS_TO_TICKS(5));
                             eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                             vTaskDelay(pdMS_TO_TICKS(5));
@@ -880,7 +884,7 @@ void locking_feature(char *result_description_char_str)
                     if (registered)
                     {
                         configured = true;
-                        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                         vTaskDelay(pdMS_TO_TICKS(5));
                         char pubmessage[PUBMESG_LEN];
                         sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",

@@ -871,7 +871,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_ac_control_queue();
             vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
                     JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
@@ -895,7 +895,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_teaching_mode_queue();
             vendor_node_teaching_mode_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START ACK | FROM ELEMADDR : %d", vendor_node_teaching_mode_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
                 JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
                 MSG_SEQ_NO_KEY, vendor_node_teaching_mode_t->base_data.msg_seq_no,
@@ -920,7 +920,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_debug_info_queue();
             vendor_node_debug_info_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO ACK | FROM ELEMADDR : %d", vendor_node_debug_info_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
                 JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
                 MSG_SEQ_NO_KEY, vendor_node_debug_info_t->base_data.msg_seq_no,
@@ -939,7 +939,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_reconf_queue();
             vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
                     JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
@@ -952,7 +952,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_heartbeat_pub_conf_queue();
             vendor_node_heartbeat_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_pub_conf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
                     JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.msg_seq_no,
@@ -966,7 +966,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_MANUAL_AC_CONTROL_ACK:
             vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK,
                     JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
@@ -996,7 +996,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 err = esp_ble_mesh_config_client_set_state(&common, &set);
                 Bind_fl = false;
             }
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
                 JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
                 MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
@@ -1015,7 +1015,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_unprov_queue();
             vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", vendor_unprovision_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
                 JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
                 MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
@@ -1878,7 +1878,6 @@ void gwy_mesh_main_init(void)
     ESP_ERROR_CHECK(err);
 
     // board_init();
-
     err = bluetooth_init();
     if (err != ESP_OK)
     {

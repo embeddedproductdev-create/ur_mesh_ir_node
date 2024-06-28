@@ -273,7 +273,9 @@ enum json_packet_enum
 	NODE_DEBUG_INFO_PACKET,
 
 	/* MISC PACKETS */
-	
+	SET_GWY_SER_NO = 800,
+	SET_NODE_SER_NO, 
+
 	UNKNOWN_PACKET = 9999
 };
 
@@ -346,8 +348,8 @@ enum Modes
 
 /*json*/
 extern cJSON *json_packet_j;
-extern uint8_t json_packet_id;
-extern int16_t json_ack_err_code;
+extern int32_t json_packet_id;
+extern int32_t json_ack_err_code;
 
 /*flags*/
 extern bool send_control_packet;

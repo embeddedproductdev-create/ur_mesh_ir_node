@@ -858,7 +858,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         esp_ble_mesh_node_local_reset();
         provisioned = false;
         ELEMENT_ADDR = 0;
-        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true); //Since logic is inverted.
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
         vTaskDelay(pdMS_TO_TICKS(5));
         vTaskDelay(pdMS_TO_TICKS(100));
         esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
@@ -912,8 +912,6 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                      param->value.state_change.mod_app_bind.company_id,
                      param->value.state_change.mod_app_bind.model_id);
             provisioned = true;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR, false);
-            vTaskDelay(pdMS_TO_TICKS(5));
             ELEMENT_ADDR = param->value.state_change.mod_app_bind.element_addr;
             provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
             provision_t.base_data.elementAddr = ELEMENT_ADDR;
@@ -926,7 +924,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
             send_unprovisioned_ack_to_gwy();
             esp_ble_mesh_node_local_reset();
             provisioned = false;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true); //Since logic is inverted.
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
             vTaskDelay(pdMS_TO_TICKS(5));
             ELEMENT_ADDR = 0;
             vTaskDelay(pdMS_TO_TICKS(100));
@@ -1127,14 +1125,21 @@ static esp_err_t ble_mesh_init(void)
     // }
 
     err = esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    if (esp_ble_mesh_node_is_provisioned())
-    {
-        provisioned = true;
-    }
-    else
+
+    //If factory new device, let's reset the node as a starting process.
+    if(eeprom_read_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR))
     {
         provisioned = false;
+        esp_ble_mesh_node_local_reset();
     }
+    if (esp_ble_mesh_node_is_provisioned())
+    {
+        ESP_LOGI(MESH_DEBUG_TAG, "Node is provisioned");
+        provisioned = true;
+        fill_element_addr_to_all_structures();
+    }
+    else provisioned = false;
+
     if (err != ESP_OK)
     {
         ESP_LOGE(MESH_DEBUG_TAG, "Failed to enable mesh node");
@@ -1259,16 +1264,6 @@ void send_heartbeat_ack_to_gwy()
     node_heartbeat_t.control.TempLockLowLimit = node_ac_control_t.control.TempLockLowLimit;
     node_heartbeat_t.control.TempLockUpLimit = node_ac_control_t.control.TempLockUpLimit;
     sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_t;
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.power : %d", node_heartbeat_t.control.power);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.temp : %d", node_heartbeat_t.control.temp);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.mode_str : %s", node_heartbeat_t.control.mode_str);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.swingH : %d", node_heartbeat_t.control.swingH);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.swingV : %d", node_heartbeat_t.control.swingV);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.OnTimer : %d", node_heartbeat_t.control.OnTimer);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.control.OffTimer : %d", node_heartbeat_t.control.OffTimer);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.base_data.json_packet_id : %d", node_heartbeat_t.base_data.json_packet_id);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.base_data.gwy_ser_no_str : %s", node_heartbeat_t.base_data.gwy_ser_no_str);
-    ESP_LOGI(MESH_DEBUG_TAG, "node_heartbeat.base_data.node_ser_no_str : %s", node_heartbeat_t.base_data.node_ser_no_str);
     example_ble_mesh_send_sensor_status();
 }
 

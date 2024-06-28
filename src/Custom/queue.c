@@ -100,9 +100,9 @@ void maintain_heartbeat_pubconf_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_HEARTBEAT_PUB_CONF_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -197,9 +197,9 @@ void maintain_reconf_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -293,9 +293,9 @@ void maintain_ac_control_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d,, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld,, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
 					JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -400,9 +400,9 @@ void maintain_unprov_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -497,9 +497,9 @@ void maintain_prov_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -602,9 +602,9 @@ void maintain_teaching_mode_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
 					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
@@ -686,9 +686,9 @@ void maintain_debug_info_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
-			sprintf(queue_log_buffer, "Removing Node Debug Info request(msgseqno : %d) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
+			sprintf(queue_log_buffer, "Removing Node Debug Info request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
 					JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,

@@ -16,13 +16,14 @@
 bool show_boot_indication = true;
 bool esp_restart_flag = false;
 #if (CLIENT_RELEASE)
-uint32_t GWY_SER_NO = 100;
-uint32_t NODE_SER_NO = 100;
+uint32_t GWY_SER_NO=100;
+uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
-uint32_t GWY_SER_NO = 2;
-uint32_t NODE_SER_NO = 1;
+uint32_t GWY_SER_NO=2;
+uint32_t NODE_SER_NO=1;
 #endif
+
 char GWY_SER_NO_IN_STRING[15];
 char NODE_SER_NO_IN_STRING[15];
 
@@ -118,26 +119,31 @@ void fill_node_ser_no_str()
  */
 void fetch_from_flash()
 {
+/*Serial No*/
+#if (IS_GWY)
+    GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
+    GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
+    GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
+#endif
+
+#if (!IS_GWY)
+    NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
+    NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
+    NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
+#endif
+
 /*Registered/Provisioned*/
 #if (IS_GWY)
     registered = eeprom_read_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR);
-    if (registered)
-        registered = false;
-    else
-        registered = true;
 #endif
 #if (!IS_GWY)
-    provisioned = eeprom_read_byte(EEPROM_SLAVE_ADDR, PROVISIONED_FLAG_FLASH_ADDR);
+    //Check for provisioned is being taken care on the Node mesh side.
 #endif
 
-    /*Configured*/
+/*Configured*/
     configured = eeprom_read_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR);
-    if (configured)
-        configured = false;
-    else
-        configured = true;
 
-    /*ProtocolSelectedNum*/
+/*ProtocolSelectedNum*/
     protocol_selected_num = eeprom_read_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI);
     protocol_selected_num <<= 8;
     protocol_selected_num |= eeprom_read_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO);
@@ -151,7 +157,7 @@ void fetch_from_flash()
     node_heartbeat_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
 #endif
 
-    /*AC Settings*/
+/*AC Settings*/
 #if (IS_GWY)
     gwy_ac_control_t.control.power = eeprom_read_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR);
     gwy_ac_control_t.control.mode_val = eeprom_read_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR);
@@ -187,28 +193,34 @@ void fetch_from_flash()
 void app_main()
 {
 
+    // First step we need to do is to fetch registered, configured, provisioned, protocol_Sel_num details from flash
+    initialize_i2c();
+  
+    /**
+     * @brief Very first step for us to check if the device is a factory new deviec, meaning, 
+     * if the value at FACTORY_DEVICE_CHECK_FLASH_ADDR is 0xff or 0
+     * - 0xff = Factory new device
+     * - 0x00 = Already used device
+     * if Factory new device, let's factory reset the device again to erase all data present on device.
+     * if not, let pull out data from flash and feed to RAM
+     */
+    if(eeprom_read_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR))
+    {
+        factory_reset_device();
+    }
+    else fetch_from_flash();
+
     TaskHandle_t LED_task_handle;
     TaskHandle_t IR_task_handle;
     TaskHandle_t LTE_task_handle;
     TaskHandle_t queue_task_handle;
     TaskHandle_t button_task_handle;
 
-    // First step we need to do is to fetch registered, configured, provisioned, protocol_Sel_num details from flash
-    initialize_i2c();
-    fetch_from_flash();
-
 #if (!IS_GWY)
     // fill element address into structures
     if (provisioned)
         fill_element_addr_to_all_structures();
 #endif
-
-    // If the device is Not registered / Not provisioned, set default pub conf value to flash. This is req for factory new devices.
-    if (!registered || !configured)
-    {
-        eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
-        vTaskDelay(pdMS_TO_TICKS(5));
-    }
 
     // Needed by freeRTOS
     BaseType_t xReturned;
@@ -233,6 +245,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tLocking             : %d", gwy_ac_control_t.control.Locking);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockUpLimit     : %d", gwy_ac_control_t.control.TempLockUpLimit);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockLowLimit    : %d", gwy_ac_control_t.control.TempLockLowLimit);
+
 #endif
 
 #if (!IS_GWY)
@@ -261,6 +274,7 @@ void app_main()
 #if (MESH_PART_ENABLED)
 #if (IS_GWY)
     gwy_mesh_main_init();
+
 #endif
 #if (!IS_GWY)
     node_mesh_main_init();
@@ -269,6 +283,7 @@ void app_main()
 
 #if (TEMPERATURE_SENSOR_PART_ENABLED)
     init_temperature_sensor();
+
 #endif
 
 #if (LED_PART_ENABLED)
@@ -279,6 +294,7 @@ void app_main()
         perror("Error in taskCreate for LED task : ");
         exit(FAILURE);
     }
+    else ESP_LOGI(MAIN_DEBUG_TAG, "LED task creation successful");
 #endif
 
 #if (IR_RECV_PART_ENABLED)
@@ -290,6 +306,7 @@ void app_main()
         perror("Error in taskCreate for IR recv task : ");
         exit(FAILURE);
     }
+    else ESP_LOGI(MAIN_DEBUG_TAG, "IR task creation successful");
 #endif
 
 #if (LTE_PART_ENABLED)
@@ -301,6 +318,7 @@ void app_main()
         perror("Error in taskCreate for LTE task : ");
         exit(FAILURE);
     }
+    else ESP_LOGI(MAIN_DEBUG_TAG, "LTE task creation successful");
 #endif
 
 #if (QUEUE_PART_ENABLED)
@@ -311,6 +329,7 @@ void app_main()
         perror("Error in taskCreate for Queue task : ");
         exit(FAILURE);
     }
+    else ESP_LOGI(MAIN_DEBUG_TAG, "Queue task creation successful");
 #endif
 
 #if (BUTTON_PART_ENABLED)
@@ -321,13 +340,8 @@ void app_main()
         perror("Error in taskCreate for button task : ");
         exit(FAILURE);
     }
+    else ESP_LOGI(MAIN_DEBUG_TAG, "Button task creation successful");
 #endif
-    // /**
-    //  * @brief Create the threads and stay here until we have to control AC
-    //  * When we have to control AC, before controlling, all other threads will get deleted.
-    //  * AC control function works out and after that. Let's recreate the threads and wait here again.
-    //  * This plan is stupid what this is what we have now.
-    //  */
-    // while(!needToSendIRComamnd) vTaskDelay(1);
-    // }
+
+ESP_LOGI(MAIN_DEBUG_TAG, "Successfully Created all tasks");
 }

@@ -99,7 +99,6 @@ void button_task(void *args)
     pinMode(USER_SWITCH, INPUT);
     while (1)
     {
-        
         vTaskDelay(pdMS_TO_TICKS(100));
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {

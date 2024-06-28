@@ -10,8 +10,8 @@
 #include "../../inc/LTE/LTE.h"
 
 // Initialization
-int16_t json_ack_err_code = SUCCESS;
-uint8_t json_packet_id = UNKNOWN_PACKET;
+int32_t json_ack_err_code = SUCCESS;
+int32_t json_packet_id = UNKNOWN_PACKET;
 char json_packet[MQTT_PACKET_BUFF_SIZE];
 cJSON *json_packet_j;
 
@@ -39,6 +39,76 @@ char* get_mode_string(uint8_t mode_value)
             return "Auto";
     }
     return "NULL";
+}
+
+
+/**
+ * @brief Function that takes care of erasing the data in device and set it up as factory device
+ * Maybe we can implement some security check before going on to clear data. Also, resetting Device
+ * for now doesn't erase the MQTT settings. Need to discuss on this later.
+ * @param none
+ * @retval none
+ */
+void factory_reset_device()
+{
+    ESP_LOGI(MAIN_DEBUG_TAG, "Factory resetting device !!!!!!!!!!!!!!!!!!!!!!");
+    //Factory Device 
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0xFF);
+    vTaskDelay(pdMS_TO_TICKS(5));
+
+    //Serial Number
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+
+#if (IS_GWY)
+    //Registered
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+#endif
+
+    //Configured
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    
+    //Protocol Selected Number
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+
+    //Publish Period
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    gwy_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
+    node_heartbeat_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
+
+    //AC Control Settings
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR, 0);
+    vTaskDelay(pdMS_TO_TICKS(5));
 }
 
 
@@ -99,7 +169,7 @@ void error_check_json(uint8_t json_packet_id)
     /*
         Json packet id should be between (0 and 10) or (100 and 110) or be 99.
     */
-    if((json_packet_id >= 0 && json_packet_id <= 10) || json_packet_id == 99 || (json_packet_id >= 100 && json_packet_id <= 110));
+    if((json_packet_id >= 0 && json_packet_id <= 10) || json_packet_id == 99 || (json_packet_id >= 100 && json_packet_id <= 110) || json_packet_id == 800);
     else {
         json_ack_err_code = JSON_PACKET_ID_UNKNOWN;
         add_to_pubmesg_queue("JSON_PACKET_ID_UNKNOWN", publish_topic);
@@ -246,7 +316,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY))
         {
-            uint8_t fanspeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
+            int8_t fanspeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
             if(fanspeed >= 0 && fanspeed <= 5);
             else {
                 json_ack_err_code = FANSPEED_EXCEEDING_RANGE;
@@ -259,7 +329,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY))
         {
-            uint8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
+            int8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
             if (temperature >= TEMP_ABS_LOW_LIMIT && temperature <= TEMP_ABS_UP_LIMIT);
             else {
                 json_ack_err_code = TEMPERATURE_EXCEEDING_RANGE;
@@ -296,7 +366,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY))
         {
-            uint8_t timer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
+            int8_t timer = cJSON_GetObjectItem(json_packet_j, ONTIMER_KEY)->valueint;
             if(timer >= 0 && timer <= 12);
             else {
                 json_ack_err_code = ONTIMER_EXCEEDING_RANGE;
@@ -308,7 +378,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY))
         {
-            uint8_t timer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
+            int8_t timer = cJSON_GetObjectItem(json_packet_j, OFFTIMER_KEY)->valueint;
             if(timer >= 0 && timer <= 12);
             else {
                 json_ack_err_code = OFFTIMER_EXCEEDING_RANGE;
@@ -423,7 +493,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     {
     case NODE_AC_CONTROL_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node AC Control ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
             JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
             MSG_SEQ_NO_KEY, node_ac_control_t.base_data.msg_seq_no,
@@ -445,7 +515,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case GWY_AC_CONTROL_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy AC Control ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
             JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
@@ -467,10 +537,10 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     case GWY_DEBUG_INFO_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Debug Info ACK");
     
-        sprintf(gwy_debug_info_t.firmware, "%d.%d",MAJ_VERSION,MIN_VERSION);
+        sprintf(gwy_debug_info_t.firmware, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
         sprintf(gwy_debug_info_t.uptimestr, "%0.2f", (esp_timer_get_time()/(3600.00*1000000.00)));
         
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_DEBUG_INFO_PACKET,
             JSON_ACK_NAME_KEY, GWY_DEBUG_INFO_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_debug_info_t.base_data.msg_seq_no,
@@ -489,14 +559,14 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             DEVICE_UPTIME_KEY, gwy_debug_info_t.uptimestr,
             LOGGING_KEY, LOG_DATA,
             RESET_DEVICE_KEY, gwy_debug_info_t.resetDevice,
-            ERROR_CODE_KEY, gwy_debug_info_t.base_data.error_code);
+            ERROR_CODE_KEY, json_ack_err_code);
         //Only after filling up the ACK message, we must reset the device.
         if(gwy_debug_info_t.resetDevice) factory_reset_device();
         break;
     
     case NODE_DEBUG_INFO_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node Debug Info ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
             JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
             MSG_SEQ_NO_KEY, node_debug_info_t.base_data.msg_seq_no,
@@ -513,7 +583,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     
     case NODE_TEACHING_MODE_START_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node Teaching Mode Start ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
             JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
             MSG_SEQ_NO_KEY, node_teaching_mode_t.base_data.msg_seq_no,
@@ -525,7 +595,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     
     case GWY_TEACHING_MODE_START_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Teaching Mode Start ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_START_PACKET,
             JSON_ACK_NAME_KEY, GWY_TEACHING_MODE_START_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_teaching_mode_t.base_data.msg_seq_no,
@@ -535,7 +605,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     
     case NODE_RECONF_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node Reconfiguration ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
             JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
             MSG_SEQ_NO_KEY, node_reconf_t.base_data.msg_seq_no,
@@ -546,7 +616,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case GWY_RECONF_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Reconfiguration ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
             JSON_ACK_NAME_KEY, GWY_RECONF_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
@@ -556,7 +626,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node Heartbeat Publish Configuration ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
             JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
             MSG_SEQ_NO_KEY, node_heartbeat_pub_conf_t.base_data.msg_seq_no,
@@ -569,7 +639,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case GWY_HEARTBEAT_PUB_CONF_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Heartbeat Publish Confiugration ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_HEARTBEAT_PUB_CONF_PACKET,
             JSON_ACK_NAME_KEY, GWY_HEARTBEAT_PUB_CONF_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
@@ -580,7 +650,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case NODE_PROV_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node Provision ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
             JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
             MSG_SEQ_NO_KEY, provision_t.base_data.msg_seq_no,
@@ -597,7 +667,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case GWY_REG_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Registration ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_REG_PACKET,
             JSON_ACK_NAME_KEY, GWY_REG_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_registration_t.base_data.msg_seq_no,
@@ -608,7 +678,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
     
     case NODE_UNPROV_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Node Unprovision ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
             JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
             MSG_SEQ_NO_KEY, unprovision_t.base_data.msg_seq_no,
@@ -621,11 +691,11 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
 
     case GWY_UNREG_PACKET:
         cyan_printf(LTE_DEBUG_TAG, "Sending Gwy Unregistration ACK");
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %ld}",
             JSON_PACKET_ID_KEY, GWY_UNREG_PACKET,
             JSON_ACK_NAME_KEY, GWY_UNREG_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_unregistration_t.base_data.msg_seq_no,
-            GWY_SER_NO_KEY, gwy_unregistration_t.base_data.gwy_ser_no,
+            GWY_SER_NO_KEY, gwy_unregistration_t.base_data.gwy_ser_no_str,
             LOCATION_KEY, gwy_unregistration_t.base_data.location,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
@@ -768,27 +838,6 @@ char *get_err_string(int16_t err_code)
 }
 
 /**
- * @brief Function that takes care of erasing the data in device and set it up as factory device
- * Maybe we can implement some security check before going on to clear data. Also, resetting Device
- * for now doesn't erase the MQTT settings. Need to discuss on this later.
- * @param none
- * @retval none
- */
-void factory_reset_device()
-{
-    registered = false;
-    configured = false;
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, true); // Logic is inverted in Flash.
-    vTaskDelay(pdMS_TO_TICKS(5));
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true); // Logic is inverted in Flash.
-    vTaskDelay(pdMS_TO_TICKS(5));
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, 0);
-    vTaskDelay(pdMS_TO_TICKS(5));
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, 0);
-    vTaskDelay(pdMS_TO_TICKS(5));
-}
-
-/**
  * @brief parses the control packet recvd from MQTT and stores it in the control strucutre
  * @param None
  * @retval Error code
@@ -846,6 +895,7 @@ void parse_json_packet(char *json_packet)
         case GWY_AC_CONTROL_PACKET:
             gwy_ac_control_t.base_data.json_packet_id = json_packet_id;
             gwy_ac_control_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+            strcpy(gwy_ac_control_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_ac_control_t.control.power = cJSON_GetObjectItem(json_packet_j, POWER_KEY)->valueint;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, gwy_ac_control_t.control.power);
             vTaskDelay(pdMS_TO_TICKS(5));
@@ -895,6 +945,7 @@ void parse_json_packet(char *json_packet)
         case GWY_DEBUG_INFO_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Debug Info Packet");
             gwy_debug_info_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_debug_info_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_debug_info_t.resetDevice = cJSON_GetObjectItem(json_packet_j, RESET_DEVICE_KEY)->valueint;
             gwy_debug_info_t.logging = cJSON_GetObjectItem(json_packet_j, LOGGING_KEY)->valueint;
             if(gwy_debug_info_t.logging) LOG_DATA = true;
@@ -931,6 +982,7 @@ void parse_json_packet(char *json_packet)
         case GWY_TEACHING_MODE_START_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Teaching Mode Start Packet");
             gwy_teaching_mode_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_teaching_mode_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             teaching_mode = true;
             teachMode_size_done = true;
             break;
@@ -938,6 +990,7 @@ void parse_json_packet(char *json_packet)
         case GWY_RECONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Reconfiguration packet");
             gwy_reconf_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_reconf_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_reconf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             configured = false;
             break;
@@ -945,6 +998,7 @@ void parse_json_packet(char *json_packet)
         case GWY_HEARTBEAT_PUB_CONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Publish configuration packet");
             gwy_pub_conf_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
@@ -978,6 +1032,7 @@ void parse_json_packet(char *json_packet)
         case GWY_UNREG_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Unregistration packet");
             gwy_unregistration_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             factory_reset_device();
@@ -986,12 +1041,25 @@ void parse_json_packet(char *json_packet)
         case GWY_REG_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Registration packet");
             gwy_registration_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_registration_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             registered = true;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, false); // Logic is inverted in Flash. That's why we're writing false here
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, true);
             vTaskDelay(pdMS_TO_TICKS(5));
             break; 
+
+        case SET_GWY_SER_NO:
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy Set Ser No packet");
+            GWY_SER_NO = cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valueint;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, GWY_SER_NO);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, GWY_SER_NO>>8);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, GWY_SER_NO>>16);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            esp_restart_flag = true;
+            break;
         }
     }
     if(json_ack_err_code == JSON_PACKET_ID_UNKNOWN) return;

@@ -21,6 +21,7 @@ void send_ac_control_packet_to_node(control_t *control_packet);
 void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet);
 void send_teaching_mode_packet_to_node(teaching_mode_t *node_teaching_mode_packet);
 void send_debug_info_packet_to_node(debug_info_t *debug_info_packet);
+void send_teaching_mode_end_ack_to_gwy();
 
 /* NODE FUNCTION DECLARATIONS */
 void node_mesh_main_init(void);

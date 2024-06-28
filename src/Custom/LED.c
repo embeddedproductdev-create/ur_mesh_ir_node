@@ -32,7 +32,6 @@ void LED_task(void *args)
     LED_initial_setup();
     while (1)
     {
-        
         vTaskDelay(1);
         if (show_boot_indication) 
             LED_state = LED_STATE_DEVICE_BOOT_SUCCESSFUL;

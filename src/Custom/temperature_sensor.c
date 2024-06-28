@@ -143,7 +143,7 @@ static void publish_temperature_cb(void *arg)
     {
         if (LOG_DATA)
         {
-            sprintf(temperature_log_buffer, "Sending Gwy Temperature Ack");
+            sprintf(temperature_log_buffer, "Sending Gwy Heartbeat ACK");
             magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
         }
         sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : %d,  \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
