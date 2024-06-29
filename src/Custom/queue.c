@@ -23,7 +23,7 @@ void remove_from_heartbeat_pub_conf_queue()
 	if (node_pub_conf_queue_head == NULL)
 	{
 		sprintf(queue_log_buffer, "node_pub_conf_queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -34,8 +34,8 @@ void remove_from_heartbeat_pub_conf_queue()
 		if (node_pub_conf_queue_head == NULL)
 			node_pub_conf_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node pubconf queue | Node Pubconf Queue Count(%d)", get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Node pubconf queue | Node Pubconf Queue Count(%d)", get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -51,7 +51,7 @@ void add_to_heartbeat_pub_conf_queue()
 	else
 	{
 		sprintf(queue_log_buffer, "Memory allocation failed in add_to_heartbeat_pub_conf_queue\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (node_pub_conf_queue_head == NULL)
@@ -67,8 +67,8 @@ void add_to_heartbeat_pub_conf_queue()
 		node_pub_conf_queue_tail->next->next = NULL;
 		node_pub_conf_queue_tail = pub_conf_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node added to Node pubconf queue | Node Pubconf Queue Count(%d)", get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -101,7 +101,7 @@ void maintain_heartbeat_pubconf_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_HEARTBEAT_PUB_CONF_ACK_NAME,
@@ -125,7 +125,7 @@ void remove_from_reconf_queue()
 	if (node_reconf_queue_head == NULL)
 	{
 		sprintf(queue_log_buffer, "node_reconf_queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -136,8 +136,8 @@ void remove_from_reconf_queue()
 		if (node_reconf_queue_head == NULL)
 			node_reconf_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node reconf Queue | Node Reconf Queue Count(%d)", get_reconf_queue_count(node_reconf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Node reconf Queue | Node Reconf Queue Count(%d)", get_reconf_queue_count(node_reconf_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 void add_to_reconf_queue()
@@ -148,7 +148,7 @@ void add_to_reconf_queue()
 	else
 	{
 		sprintf(queue_log_buffer, "Memory allocation failed in add_to_reconf_queue\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (node_reconf_queue_head == NULL)
@@ -164,8 +164,8 @@ void add_to_reconf_queue()
 		node_reconf_queue_tail->next->next = NULL;
 		node_reconf_queue_tail = reconf_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_reconf_queue_count(node_reconf_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node added to Node reconf Queue | Node Reconf Queue Count(%d)", get_reconf_queue_count(node_reconf_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -198,7 +198,7 @@ void maintain_reconf_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
 					JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
@@ -221,7 +221,7 @@ void remove_from_ac_control_queue()
 	if (node_ac_control_queue_head == NULL)
 	{
 		sprintf(queue_log_buffer, "node_ac_control_queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -232,8 +232,8 @@ void remove_from_ac_control_queue()
 		if (node_ac_control_queue_head == NULL)
 			node_ac_control_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node AC control Queue | Node AC control Queue Count(%d)", get_ac_control_queue_count(node_ac_control_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Node AC control Queue | Node AC control Queue Count(%d)", get_ac_control_queue_count(node_ac_control_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 void add_to_ac_control_queue()
@@ -244,7 +244,7 @@ void add_to_ac_control_queue()
 	else
 	{
 		sprintf(queue_log_buffer, "Memory allocation failed in add_to_unprov_queue\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (node_ac_control_queue_head == NULL)
@@ -260,8 +260,8 @@ void add_to_ac_control_queue()
 		node_ac_control_queue_tail->next->next = NULL;
 		node_ac_control_queue_tail = control_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_ac_control_queue_count(node_ac_control_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node added to Node AC control Queue | Node AC control Queue Count(%d)", get_ac_control_queue_count(node_ac_control_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -294,7 +294,7 @@ void maintain_ac_control_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld,, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
 					JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
@@ -328,7 +328,7 @@ void remove_from_unprov_queue()
 	if (unprov_queue_head == NULL)
 	{
 		sprintf(queue_log_buffer, "unprov_queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -339,8 +339,8 @@ void remove_from_unprov_queue()
 		if (unprov_queue_head == NULL)
 			unprov_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 void add_to_unprov_queue()
@@ -351,7 +351,7 @@ void add_to_unprov_queue()
 	else
 	{
 		sprintf(queue_log_buffer, "Memory allocation failed in add_to_unprov_queue\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (unprov_queue_head == NULL)
@@ -367,8 +367,8 @@ void add_to_unprov_queue()
 		unprov_queue_tail->next->next = NULL;
 		unprov_queue_tail = unprov_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node added to Unprov Queue | Unprov Queue count(%d)", get_unprov_queue_count(unprov_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -401,7 +401,7 @@ void maintain_unprov_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
@@ -425,7 +425,7 @@ void remove_from_prov_queue()
 	if (prov_queue_head == NULL)
 	{
 		sprintf(queue_log_buffer, "prov_queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -436,8 +436,8 @@ void remove_from_prov_queue()
 		if (prov_queue_head == NULL)
 			prov_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 void add_to_prov_queue()
@@ -448,7 +448,7 @@ void add_to_prov_queue()
 	else
 	{
 		sprintf(queue_log_buffer, "Memory allocation failed in add_to_prov_queue\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (prov_queue_head == NULL)
@@ -464,8 +464,8 @@ void add_to_prov_queue()
 		prov_queue_tail->next->next = NULL;
 		prov_queue_tail = prov_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node added to Prov Queue | Prov Queue Count(%d)", get_prov_queue_count(prov_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -498,7 +498,7 @@ void maintain_prov_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
 					JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
@@ -526,7 +526,8 @@ void remove_from_teaching_mode_queue()
 {
 	if (node_teaching_mode_queue_head == NULL)
 	{
-		red_printf(QUEUE_ERROR_TAG, "node teaching mode queue is empty");
+		sprintf(QUEUE_ERROR_TAG, "node teaching mode queue is empty");
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -537,8 +538,8 @@ void remove_from_teaching_mode_queue()
 		if (node_teaching_mode_queue_head == NULL)
 			node_teaching_mode_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_teaching_mode_queue_count(node_teaching_mode_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_teaching_mode_queue_count(node_teaching_mode_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -553,7 +554,8 @@ void add_to_teaching_mode_queue()
 		*teaching_mode_node = node_teaching_mode_t;
 	else
 	{
-		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_teaching_mode_queue");
+		sprintf(queue_log_buffer, "Memory allocation failed in add_to_teaching_mode_queue");
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (node_teaching_mode_queue_head == NULL)
@@ -569,8 +571,8 @@ void add_to_teaching_mode_queue()
 		node_teaching_mode_queue_tail->next->next = NULL;
 		node_teaching_mode_queue_tail = teaching_mode_node;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_teaching_mode_queue_count(node_teaching_mode_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node added to Node Teaching Mode Queue | Node Teaching Mode Queue Count(%d)", get_teaching_mode_queue_count(node_teaching_mode_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -603,7 +605,7 @@ void maintain_teaching_mode_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
 					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
@@ -626,7 +628,8 @@ void remove_from_debug_info_queue()
 {
 	if (node_debug_info_queue_head == NULL)
 	{
-		red_printf(QUEUE_ERROR_TAG, "node teaching mode queue is empty");
+		sprintf(queue_log_buffer, "node teaching mode queue is empty");
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -637,8 +640,8 @@ void remove_from_debug_info_queue()
 		if (node_debug_info_queue_head == NULL)
 			node_debug_info_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_debug_info_queue_count(node_debug_info_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_debug_info_queue_count(node_debug_info_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 void add_to_debug_info_queue()
@@ -648,7 +651,8 @@ void add_to_debug_info_queue()
 		*debuf_info_node = node_debug_info_t;
 	else
 	{
-		red_printf(QUEUE_ERROR_TAG, "Memory allocation failed in add_to_debug_info_queue");
+		sprintf(queue_log_buffer, "Memory allocation failed in add_to_debug_info_queue");
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	if (node_debug_info_queue_head == NULL)
@@ -665,7 +669,7 @@ void add_to_debug_info_queue()
 		node_debug_info_queue_tail = debuf_info_node;
 	}
 	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Node Debug Info Queue | Node Debug Info Queue Count(%d)", get_debug_info_queue_count(node_debug_info_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 uint8_t get_debug_info_queue_count(debug_info_t *head)
@@ -687,7 +691,7 @@ void maintain_debug_info_queue()
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
 			sprintf(queue_log_buffer, "Removing Node Debug Info request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
 					JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
@@ -726,7 +730,7 @@ void remove_from_pubmesg_queue()
 	if (pubmesg_queue_head == NULL)
 	{
 		sprintf(queue_log_buffer, "pubmesg queue is empty\r\n");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}
 	else
@@ -737,8 +741,8 @@ void remove_from_pubmesg_queue()
 		if (pubmesg_queue_head == NULL)
 			pubmesg_queue_tail = NULL;
 	}
-	snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node removed from Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-	yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+	sprintf(queue_log_buffer, "Node removed from Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
+	custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 }
 
 /**
@@ -757,7 +761,7 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 		if (pubmesg_node == NULL)
 		{
 			sprintf(queue_log_buffer, "Memory allocation failed in add_to_pubmesg_queue\r\n");
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			return;
 		}
 		strcpy(pubmesg_node->message, msg);
@@ -774,8 +778,8 @@ void add_to_pubmesg_queue(char *msg, char *topic)
 			pubmesg_queue_tail->next->next = NULL;
 			pubmesg_queue_tail = pubmesg_node;
 		}
-		snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
-		yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
+		sprintf(queue_log_buffer, "Node added to Pubmesg Queue | Pubmesg Queue Count(%d)", get_pubmesg_queue_count(pubmesg_queue_head));
+		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, YELLOW);
 	}
 }
 
@@ -810,7 +814,7 @@ void queue_handler(void *args)
 				if (!prov_queue_head->base_data.request_sent_to_node_flag)
 				{
 					prov_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Prov Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Prov Request to Node(%d)",prov_queue_head->base_data.elementAddr);
 					send_prov_packet_to_node(prov_queue_head);
 				}
 			}
@@ -824,7 +828,7 @@ void queue_handler(void *args)
 				if (!unprov_queue_head->base_data.request_sent_to_node_flag)
 				{
 					unprov_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending UnProv Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending UnProv Request to Node(%d)",unprov_queue_head->base_data.elementAddr);
 					send_unprov_packet_to_node(unprov_queue_head);
 				}
 			}
@@ -838,7 +842,7 @@ void queue_handler(void *args)
 				if (!node_reconf_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_reconf_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Reconf Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Reconf Request to Node(%d)",node_reconf_queue_head->base_data.elementAddr);
 					send_reconf_packet_to_node(node_reconf_queue_head);
 				}
 			}
@@ -852,7 +856,7 @@ void queue_handler(void *args)
 				if (!node_ac_control_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_ac_control_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending AC Control Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending AC Control Request to Node(%d)",node_ac_control_queue_head->base_data.elementAddr);
 					send_ac_control_packet_to_node(node_ac_control_queue_head);
 				}
 			}
@@ -866,7 +870,7 @@ void queue_handler(void *args)
 				if (!node_pub_conf_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_pub_conf_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Pub Conf Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Pub Conf Request to Node(%d)",node_pub_conf_queue_head->base_data.elementAddr);
 					send_pub_conf_packet_to_node(node_pub_conf_queue_head);
 				}
 			}
@@ -880,7 +884,7 @@ void queue_handler(void *args)
 				if (!node_teaching_mode_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_teaching_mode_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Teaching Mode Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Teaching Mode Request to Node(%d)",node_teaching_mode_queue_head->base_data.elementAddr);
 					send_teaching_mode_packet_to_node(node_pub_conf_queue_head);
 				}
 			}
@@ -894,7 +898,7 @@ void queue_handler(void *args)
 				if (!node_debug_info_queue_head->base_data.request_sent_to_node_flag)
 				{
 					node_debug_info_queue_head->base_data.request_sent_to_node_flag = true;
-					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Debug Info Request to Node");
+					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Debug Info Request to Node(%d)", node_debug_info_queue_head->base_data.elementAddr);
 					send_debug_info_packet_to_node(node_debug_info_queue_head);
 				}
 			}

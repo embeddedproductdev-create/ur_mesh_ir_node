@@ -1,7 +1,7 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
   "idf.adapterTargetName": "esp32s3",
-  "idf.portWin": "COM6",
+  "idf.portWin": "COM23",
   "idf.flashType": "UART",
   "files.associations": {
     "mqtt.h": "c",
@@ -53,7 +53,8 @@
     "printf_custom.h": "c",
     "freertosconfig.h": "c",
     "ets_sys.h": "c",
-    "cctype": "c"
+    "cctype": "c",
+    "*.tcc": "c"
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
