@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains function definitions for custom printing logs
  * @version 0.8
- * @date 2024-04-20
+ * @date 2024-06-29
  * @copyright Copyright (c) 2024
  */
 

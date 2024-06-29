@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file is the starting point for the whole program
  * @version 0.8
- * @date 2024-06-19
+ * @date 2024-06-29
  * @copyright Copyright (c) 2024
  */
 
@@ -201,6 +201,8 @@ void app_main()
      * if the value at FACTORY_DEVICE_CHECK_FLASH_ADDR is 0xff or 0
      * - 0xff = Factory new device
      * - 0x00 = Already used device
+     * - When a device is registered/provisioned, at FACTORY_DEVICE_CHECK_FLASH_ADDR 0 is written.
+     * - When a device is unregistered/unprovisioned, at FACTORY_DEVICE_CHECK_FLASH_ADDR 0xff is written.
      * if Factory new device, let's factory reset the device again to erase all data present on device.
      * if not, let pull out data from flash and feed to RAM
      */
@@ -312,7 +314,7 @@ void app_main()
 #if (LTE_PART_ENABLED)
 
     xReturned = xTaskCreatePinnedToCore(LTE_task, "LTE Task",
-                                        4096, (void *)1, 1, &LTE_task_handle, CORE0);
+                                        8192, (void *)1, 1, &LTE_task_handle, CORE0);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for LTE task : ");
