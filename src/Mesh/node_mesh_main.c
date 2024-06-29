@@ -847,10 +847,6 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT");
         prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
                       param->node_prov_complete.flags, param->node_prov_complete.iv_index);
-        provisioned = true;
-        provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
-        fill_element_addr_to_all_structures();
-        send_provisioned_ack_to_gwy();
         break;
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
@@ -911,7 +907,11 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                      param->value.state_change.mod_app_bind.app_idx,
                      param->value.state_change.mod_app_bind.company_id,
                      param->value.state_change.mod_app_bind.model_id);
-            op_bind_counter++;
+            provisioned=true;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0X00);
+            vTaskDelay(pdMS_TO_TICKS(5));
+            fill_element_addr_to_all_structures();
+            send_provisioned_ack_to_gwy();
             break;
 
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
@@ -920,9 +920,9 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
             send_unprovisioned_ack_to_gwy();
             esp_ble_mesh_node_local_reset();
             provisioned = false;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0XFF);
             vTaskDelay(pdMS_TO_TICKS(5));
-            ELEMENT_ADDR = 0;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
             vTaskDelay(pdMS_TO_TICKS(100));
             esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
             break;
@@ -1190,6 +1190,7 @@ void send_AC_configuration_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Conf ACK to Gwy");
     node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
+    strcpy(node_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &node_conf_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1203,6 +1204,7 @@ void send_manual_ac_control_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending manual AC control ACK to Gwy");
     node_manual_ac_control_t.base_data.json_packet_id = NODE_MANUAL_AC_CONTROL_ACK;
+    strcpy(node_manual_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &node_manual_ac_control_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1216,6 +1218,7 @@ void send_provisioned_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ACK to Gwy");
     provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
+    provision_t.base_data.elementAddr = ELEMENT_ADDR;
     sensor_states[0].sensor_data.raw_value->data = &provision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1254,6 +1257,7 @@ void send_heartbeat_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Heartbeat ACK to Gwy");
     node_heartbeat_t.base_data.json_packet_id = NODE_HEARTBEAT_ACK;
+    strcpy(node_heartbeat_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     node_heartbeat_t.control.power = node_ac_control_t.control.power;
     node_heartbeat_t.control.temp = node_ac_control_t.control.temp;
     strcpy(node_heartbeat_t.control.mode_str, node_ac_control_t.control.mode_str);
@@ -1278,6 +1282,7 @@ void send_teaching_mode_end_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Teaching Mode End ACK to Gwy");
     node_teaching_mode_t.base_data.json_packet_id = NODE_TEACHING_MODE_END_ACK;
+    strcpy(node_teaching_mode_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
     example_ble_mesh_send_sensor_status();
 }

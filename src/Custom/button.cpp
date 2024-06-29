@@ -99,11 +99,6 @@ void button_task(void *args)
     pinMode(USER_SWITCH, INPUT);
     while (1)
     {
-// A necessary Mesh part check has to be kept here
-#if (!IS_GWY)
-        if (op_bind_counter != 2)
-            provisioned = false;
-#endif
         vTaskDelay(pdMS_TO_TICKS(100));
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {

@@ -67,7 +67,7 @@
 
 #if (IS_GWY)
 
-#define BLE_BUF_SIZE 1024
+#define BLE_BUF_SIZE 150
 
 control_t *vendor_node_ac_control_t;
 control_t *vendor_node_manual_ac_control_t;
@@ -556,7 +556,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     // net_buf_simple_add_u8(&sensor_data_0, 11);
     mpid = 0xe00e;
 
-    data_len = 29;
+    data_len = 150;
     memcpy(data, &mpid, mpid_len);
     memcpy(data + mpid_len, state->sensor_data.raw_value->data, data_len);
 

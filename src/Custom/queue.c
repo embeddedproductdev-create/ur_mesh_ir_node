@@ -606,14 +606,13 @@ void maintain_teaching_mode_queue()
 		{
 			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
 					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					LOCATION_KEY, temp->base_data.location,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_teaching_mode_queue();
