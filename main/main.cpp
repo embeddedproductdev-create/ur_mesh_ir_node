@@ -121,15 +121,15 @@ void fetch_from_flash()
 {
 /*Serial No*/
 #if (IS_GWY)
-    GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
-    GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
-    GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
+    // GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
+    // GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
+    // GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
 #endif
 
 #if (!IS_GWY)
-    NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
-    NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
-    NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
+    // NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
+    // NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
+    // NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
 #endif
 
 /*Registered/Provisioned*/

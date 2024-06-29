@@ -526,7 +526,7 @@ void remove_from_teaching_mode_queue()
 {
 	if (node_teaching_mode_queue_head == NULL)
 	{
-		sprintf(QUEUE_ERROR_TAG, "node teaching mode queue is empty");
+		sprintf(queue_log_buffer, "node teaching mode queue is empty");
 		custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 		return;
 	}

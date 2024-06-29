@@ -108,7 +108,8 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
 	if (LTE_UART_data == NULL)
 	{
-		red_printf(LTE_ERROR_TAG, "Memory allocation failed for LTE_uart_data");
+		sprintf(lte_log_buffer, "Memory allocation failed for LTE_uart_data");
+		custom_printf(LTE_DEBUG_TAG, lte_log_buffer, RED);
 		return FAILURE;
 	}
 	uint32_t in_time = esp_timer_get_time();
@@ -122,19 +123,17 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			long_run_issue_counter = 0;
 			if(LOG_DATA) {
 				sprintf(lte_log_buffer, "AT_CMD sent : %s | BUF_LEN : %d", cmd_name, strlen(LTE_UART_data));
-				cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
+				custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
 			}
 			// It's safe to add to pubmesg now that we've received some data over UART from LTE
 			hold_adding_to_pubmesg = false;
 			if (check_response(LTE_UART_data, check_string) == SUCCESS)
 			{
-				if(LOG_DATA)
-					ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
 				/*If its the case of READ MESG, then we need to parse JSON*/
 				if (strstr(LTE_UART_data, "{"))
 				{
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
-					ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
+					custom_printf(LTE_DEBUG_TAG, LTE_UART_data, CYAN);
 					parse_json_packet(LTE_UART_data);
 				}
 				free(LTE_UART_data);
@@ -143,7 +142,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 			else
 			{
 				sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
-				red_printf(LTE_ERROR_TAG, lte_log_buffer);
+				custom_printf(LTE_ERROR_TAG, lte_log_buffer, RED);
 				rotate_client_index_counter++;
 				if(rotate_client_index_counter > RETRY_COUNT)
 				{
@@ -156,7 +155,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 	}
 	free(LTE_UART_data);
 	sprintf(lte_log_buffer, "No Data | data_len : %d", strlen(LTE_UART_data));
-	red_printf(LTE_ERROR_TAG, lte_log_buffer);
+	custom_printf(LTE_ERROR_TAG, lte_log_buffer, RED);
 
 	// To avoid mem leak due to LTE no reponse issue, we're using this flag to hold publishing more to the pubmesg queue,
 	// cuz it's of no use, when LTE is not responding. This leads to loss of data. We need to fix this later
@@ -232,24 +231,20 @@ int8_t publish_to_mqtt()
 		if (uart_write_bytes(UART_NUM_1, pubmesg_queue_head->message, strlen(pubmesg_queue_head->message)) != FAILURE)
 		{
 			publishing_flag = false;
-			sprintf(queue_log_buffer, "Published :");
-			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-			sprintf(queue_log_buffer, "%s", pubmesg_queue_head->message);
-			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
 			sleep(1);
 			return SUCCESS;
 		}
 		else
 		{
-			sprintf(queue_log_buffer, "Publishing to MQTT Failed");
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+			sprintf(lte_log_buffer, "Publishing to MQTT Failed");
+			custom_printf(LTE_ERROR_TAG, lte_log_buffer, RED);
 			return FAILURE;
 		}
 	}
 	else
 	{
-		sprintf(queue_log_buffer, "PUBLISH_PROMPT not received");
-		red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
+		sprintf(lte_log_buffer, "PUBLISH_PROMPT not received");
+		custom_printf(LTE_ERROR_TAG, lte_log_buffer, RED);
 		return FAILURE;
 	}
 	return FAILURE;

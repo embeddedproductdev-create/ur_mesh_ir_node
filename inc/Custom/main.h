@@ -64,7 +64,7 @@
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY true
+#define IS_GWY false
 #define CLIENT_RELEASE false
 /*====================================================================*/
 
@@ -138,7 +138,7 @@ extern bool mqtt_connected;
 
 extern bool registered;
 extern bool provisioned;
-
+extern uint8_t op_bind_counter;
 extern bool configured;
 
 extern bool needToSendIRComamnd;

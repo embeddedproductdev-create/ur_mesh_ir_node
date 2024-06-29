@@ -36,7 +36,7 @@
 
 #if (!IS_GWY)
 
-#define BLE_BUF_SIZE 1024
+#define BLE_BUF_SIZE 150
 
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
@@ -46,6 +46,7 @@ debug_info_t *vendor_node_debug_info_t;
 uint8_t *BLE_recvd_data;
 
 bool reset_node = false;
+uint8_t op_bind_counter = 0;
 
 #include <stdio.h>
 #include <string.h>
@@ -448,7 +449,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     // net_buf_simple_add_u8(&sensor_data_0, 11);
     // mpid=0xe00e;
 
-    data_len = 300;
+    data_len = 150;
     // memcpy(data, &mpid, mpid_len);
     memcpy(data, state->sensor_data.raw_value->data, data_len);
 
@@ -846,6 +847,10 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT");
         prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
                       param->node_prov_complete.flags, param->node_prov_complete.iv_index);
+        provisioned = true;
+        provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
+        fill_element_addr_to_all_structures();
+        send_provisioned_ack_to_gwy();
         break;
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
@@ -906,16 +911,12 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                      param->value.state_change.mod_app_bind.app_idx,
                      param->value.state_change.mod_app_bind.company_id,
                      param->value.state_change.mod_app_bind.model_id);
-            provisioned = true;
-            ELEMENT_ADDR = param->value.state_change.mod_app_bind.element_addr;
-            provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
-            provision_t.base_data.elementAddr = ELEMENT_ADDR;
-            fill_element_addr_to_all_structures();
-            send_provisioned_ack_to_gwy();
+            op_bind_counter++;
             break;
 
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
             ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
+            op_bind_counter = 0;
             send_unprovisioned_ack_to_gwy();
             esp_ble_mesh_node_local_reset();
             provisioned = false;

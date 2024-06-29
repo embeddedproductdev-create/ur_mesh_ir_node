@@ -18,7 +18,7 @@
 #include "../../inc/Custom/button.h"
 #include "../../inc/IR/main_IR.h"
 
-//We're including the below just to call reset node function
+// We're including the below just to call reset node function
 #include "../../inc/Mesh/ble_mesh_example_init.h"
 #include "esp_ble_mesh_networking_api.h"
 #include "esp_ble_mesh_defs.h"
@@ -51,7 +51,7 @@ void button_logic()
         }
 
         /* Button held for 3s - 8s */
-        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3) 
+        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3)
         {
             if (!teaching_mode && registered)
             {
@@ -99,6 +99,11 @@ void button_task(void *args)
     pinMode(USER_SWITCH, INPUT);
     while (1)
     {
+// A necessary Mesh part check has to be kept here
+#if (!IS_GWY)
+        if (op_bind_counter != 2)
+            provisioned = false;
+#endif
         vTaskDelay(pdMS_TO_TICKS(100));
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {
