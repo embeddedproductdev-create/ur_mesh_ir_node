@@ -6,7 +6,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - Project End Data     : 
 
 ## Project Members
-- **Project Manager** : K.N.Singh
+- **Project Manager** : Saravana Perumal, Narendhra Singh
 - **Project Lead**    : Kulasekaran
 - **Project Members** : Umamaheswari, Adhikesavan
 
@@ -17,7 +17,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 |----|-----------------|--------------|--------|---------|------------------|
 |1|0.6|24.04.2024)|Kulasekaran|1) Fixed Teaching mode bug - Umamaheswari|[Ver 0.6](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/EsAfWCuAF5pDgIHuPiZqN0sB0QvNj8S_XqIxa7qbzuJ3xw?e=lQr8X0)|
 |2|0.7|15.06.2024|Kulasekaran|1) Long run LTE issue workaround with Rebooting|[Ver 0.7](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/ElOpzTQT0UdEvAXS_M6xHUoBCObxUryYEZ7gFOrPOhTN-Q?e=Iybtim)|
-|3|0.8|19.06.2024|Kulasekaran|1) Location string length increased from 20 to 30 <br> 2) Corrected out Gwy Temperature Data Ack format <br> 3) Minimum value for Temperature Data Ack publish configuration increased from 5 to 10|[Ver 0.8](   )|
+|3|0.8|19.06.2024|Kulasekaran|1) Location string length increased from 20 to 30<br>2) Temperature Data ACK converted into Heartbeat ACK <br> 3) Minimum value for Heartbeat publish configuration increased from 5 to 10<br>3) Added Purple LED indication when sending out and IR signal<br>4) Added Teaching mode start Packets for both Gwy/Node<br>5) Added Teaching Mode End ACK for both Gwy and Node<br>6) Added Debug Info packets for both Gwy and Node<br>7) Error code values changed<br>8) LED indication change for Teaching mode and AC Remote configuration mode<br>9) Added BootUp LED indication<br>10) Modified Button Press Logics|[Ver 0.8.1](   )|
 
 </center>
 
@@ -55,7 +55,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - [Schematics](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EcAzDj2xZpRPheBzz8MhQ4MBeOw5IVayl4XTD_MZNdEs2Q?e=pJdu1H)
 
 ## Software Documentation and other Helper documents
-- Software Documentation : [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EQggUzaKN6BKpGuAlJVJPAcBsA2TF-sA6TgrwF00lDKbVw?e=lfapWI)
+- Software Documentation : [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EVaEBQlBNA1DoCinDPwBE_IBt691awvTQk0ohQl9dxLVjQ?e=Tk5M30)
 - MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
 - LTE : [Quectel's EC200U Hardware design document](https://forums.quectel.com/uploads/short-url/j0qEXlvPl25PfUDBf4QEkc9AQyx.pdf)
 - [AT commands manual](https://forums.quectel.com/uploads/short-url/dV5cK9eteeQmwyGPgfWB351oZde.pdf)
@@ -67,9 +67,9 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - VS Code ESP-IDF Extension
 - ESP-IDF v5.0 or above
 - Arduino as ESP component. Check this tutorial : [Adding Arduino as ESP IDF component](https://www.youtube.com/watch?v=hHzGX-K6lmo&pp=ygUfQWRkaW5nIGFyZHVpbm8gYXMgZXNwIGNvbXBvbmVudA%3D%3D)
-- IRremoteESP8266 Library
-- FreeRTOS
-- BLE Mesh
+- IRremoteESP8266 Library [Github Link](https://github.com/crankyoldgit/IRremoteESP8266)
+- FreeRTOS [Documentation] (https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/freertos.html)
+- BLE Mesh [Documentation] (https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html)
 - MQTT
 
 ## Instructions to Build and compile the project
@@ -115,8 +115,8 @@ These steps will guide you in including a custom library and using it in this pr
    9. POWER ON  | TEMP 26
    10. POWER ON | TEMP 27
    11. POWER ON | TEMP 28
-3. Double press the side-button on the device. The LED will start blinking BLUE (once every 200ms) to indicate it has entered teaching mode.
+3. Double press the side-button on the device. The LED will start blinking BLUE (once every 50ms) to indicate it has entered teaching mode.
 4. Press the POWER ON button on the AC remote with remote pointing towards to IR receiver on-board for successful reception and prevent false recording.
-5. The device will read the IR signal from the remote and store it in flash. While this process is happening, the light will turn off momentarily to indicate that no other buttons must be pressed to let the process go on without disturbance. Also, make sure you are doing this process in a IR disturbance free environment. Most smartphones these days use IR emitters, so it's one thing that I experience during my development. 
+5. The device will read the IR signal from the remote and store it in flash. While this process is happening, the light will turn off momentarily to indicate that no other AC remote button must be pressed to let the process go on without disturbance. Also, make sure you are doing this process in a IR disturbance free environment. Most smartphones these days use IR emitters, so it's one thing that I experienced during my development. 
 6. Once the LED starts blinking BLUE again, it's time to record the next IR signal. The next signal is `POWER ON | TEMP 19`. 
 7. Similarly, go one-by-one all the way up to `POWER ON | TEMP 28`. If everything was done right, then, when the last IR signal was sent, the LED will change to SOLID GREEN to indicate successful completion of the process.
