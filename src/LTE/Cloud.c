@@ -1037,7 +1037,7 @@ void parse_json_packet(char *json_packet)
             node_teaching_mode_t.base_data.json_packet_id = json_packet_id;
             strcpy(node_teaching_mode_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             strcpy(node_teaching_mode_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-            node_teaching_mode_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint);
+            node_teaching_mode_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
             add_to_teaching_mode_queue();
             break;
 
@@ -1081,7 +1081,7 @@ void parse_json_packet(char *json_packet)
             unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(unprovision_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             strcpy(unprovision_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-            strcpy(unprovision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring)
+            strcpy(unprovision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             unprovision_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
             add_to_unprov_queue();
             break;

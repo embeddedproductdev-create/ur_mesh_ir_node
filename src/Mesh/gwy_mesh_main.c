@@ -871,12 +871,13 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_ac_control_queue();
             vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
                     JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.elementAddr,
+                    NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.node_ser_no_str,
+                    ELEMENT_ADDR_KEY, vendor_node_ac_control_t->base_data.elementAddr,
                     POWER_KEY, vendor_node_ac_control_t->control.power,
                     MODE_KEY, vendor_node_ac_control_t->control.mode_str,
                     FAN_SPEED_KEY, vendor_node_ac_control_t->control.fanSpeed,
@@ -1288,6 +1289,7 @@ static struct example_info_store
     reconf_t vendor_node_reconf_t;
     teaching_mode_t vendor_node_teaching_mode_t;
     debug_info_t vendor_node_debug_info_t;
+    pub_conf_t vendor_node_heartbeat_pub_conf_t;
 } store = {
     .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
     .vnd_tid = 0,
@@ -1981,30 +1983,18 @@ void send_ac_control_packet_to_node(control_t *control_packet)
 
 void send_pub_conf_packet_to_node(pub_conf_t *pub_conf_packet)
 {
-    // uint16_t element_addr;          /*!< The element address */
-    // uint16_t publish_addr;          /*!< Value of the publish address */
-    // uint16_t publish_app_idx;       /*!< Index of the application key */
-    // bool     cred_flag;             /*!< Value of the Friendship Credential Flag */
-    // uint8_t  publish_ttl;           /*!< Default TTL value for the publishing messages */
-    // uint8_t  publish_period;        /*!< Period for periodic status publishing */
-    // uint8_t  publish_retransmit;    /*!< Number of retransmissions and number of 50-millisecond steps between retransmissions */
-    // uint16_t model_id;              /*!< The model id */
-    // uint16_t company_id;            /*!< The company id, if not a vendor model, shall set to 0xFFFF */
-    esp_ble_mesh_node_t node;
-    esp_ble_mesh_cfg_client_set_state_t set_rst = {0}, set_hb = {0}, set_pub_conf = {0};
-    esp_ble_mesh_client_common_param_t common = {0};
-    node.unicast_addr = node_heartbeat_pub_conf_t.base_data.elementAddr;
-    example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_PUB_SET);
-    set_pub_conf.model_pub_set.element_addr = node.unicast_addr;
-    set_pub_conf.model_pub_set.publish_addr = 1;
-    set_pub_conf.model_pub_set.publish_app_idx = 0;
-    set_pub_conf.model_pub_set.cred_flag = false;
-    set_pub_conf.model_pub_set.publish_ttl = 10;
-    set_pub_conf.model_pub_set.publish_period = 70;
-    set_pub_conf.model_pub_set.publish_retransmit = 0;
-    set_pub_conf.model_pub_set.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
-    set_pub_conf.model_pub_set.company_id = 0xffff;
-    err = esp_ble_mesh_config_client_set_state(&common, &set_pub_conf);
+    opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
+    esp_ble_mesh_msg_ctx_t ctx = {0};
+    ctx.net_idx = prov_key.net_idx;
+    ctx.app_idx = prov_key.app_idx;
+    ctx.send_ttl = MSG_SEND_TTL;
+    ctx.send_rel = MSG_SEND_REL;
+    store.vendor_node_heartbeat_pub_conf_t = node_heartbeat_pub_conf_t;
+    store.server_addr = node_heartbeat_pub_conf_t.base_data.elementAddr;
+    ctx.addr = store.server_addr;
+    err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                                             sizeof(store.vendor_node_heartbeat_pub_conf_t), (uint8_t *)&store.vendor_node_heartbeat_pub_conf_t, MSG_TIMEOUT, true, MSG_ROLE);
+    mesh_example_info_store();
 }
 
 /**

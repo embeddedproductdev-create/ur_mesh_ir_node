@@ -67,8 +67,6 @@ bool provisioned = false;
 
 #define CID_ESP 0x02E5
 
-#define PROV_OWN_ADDR 0x0001
-
 #define MSG_SEND_TTL 3
 #define MSG_SEND_REL false
 #define MSG_TIMEOUT 0
@@ -942,12 +940,28 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
     }
 }
 
+
+/**
+ * @brief Function which fills up the Node debug info packet with necessary information
+ * @param none
+ * @retval none
+ */
+void fetch_debug_info()
+{
+    strcpy(node_debug_info_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    node_debug_info_t.base_data.elementAddr = ELEMENT_ADDR;
+    sprintf(node_debug_info_t.firmware, "%d.%d.%d", MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
+    node_debug_info_t.protocol = protocol_selected_num;
+    sprintf(node_debug_info_t.uptimestr, "%0.2f", (esp_timer_get_time()/(3600*1000000.00)));
+}
+
+
 static void store_data_to_node_structures()
 {
     switch (BLE_recvd_data[0])
     {
     case NODE_AC_CONTROL_PACKET:
-        ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL PACKET");
+        ESP_LOGI(MESH_DEBUG_TAG, "Node AC Control Packet");
         vendor_node_ac_control_t = BLE_recvd_data;
         node_ac_control_t = *vendor_node_ac_control_t;
 
@@ -987,20 +1001,21 @@ static void store_data_to_node_structures()
         break;
 
     case NODE_DEBUG_INFO_PACKET:
-        ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO PACKET");
+        ESP_LOGI(MESH_DEBUG_TAG, "Node Debug Info Packet");
         vendor_node_debug_info_t = BLE_recvd_data;
         node_debug_info_t = *vendor_node_debug_info_t;
 
-        //Error Checks
-        if(strcmp(node_debug_info_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
-            node_debug_info_t.base_data.error_code = NODE_SER_NO_INVALID;
-        // fetch_debug_info(); //This needs to be developed
+        if(node_debug_info_t.logging) LOG_DATA = true;
+        else LOG_DATA = false;
+
+        fetch_debug_info();
         sensor_states[0].sensor_data.raw_value->data = &node_debug_info_t;
         example_ble_mesh_send_sensor_status();
+        if(node_debug_info_t.resetDevice) factory_reset_device();
         break;
 
     case NODE_RECONF_PACKET:
-        ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF PACKET");
+        ESP_LOGI(MESH_DEBUG_TAG, "Node AC Remote Reconfiguration Packet");
         vendor_node_reconfigure_t = BLE_recvd_data;
         node_reconf_t = *vendor_node_reconfigure_t;
 
@@ -1017,7 +1032,7 @@ static void store_data_to_node_structures()
         break;
 
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
-        ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF PACKET");
+        ESP_LOGI(MESH_DEBUG_TAG, "Node Heartbeat Publish Configuration Packet");
         vendor_node_heartbeat_pub_conf_t = BLE_recvd_data;
         node_heartbeat_pub_conf_t = *vendor_node_heartbeat_pub_conf_t;
 
@@ -1026,18 +1041,17 @@ static void store_data_to_node_structures()
             node_heartbeat_pub_conf_t.base_data.error_code = NODE_SER_NO_INVALID;
 
         if(node_heartbeat_pub_conf_t.base_data.error_code == 0) {
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
             vTaskDelay(pdMS_TO_TICKS(5));
         delete_Temperature_data_publish_timer();
         create_Temperature_data_publish_timer();
         }
-
         sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_pub_conf_t;
         example_ble_mesh_send_sensor_status();
         break;
 
     case NODE_TEACHING_MODE_START_PACKET:
-        ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START PACKET");
+        ESP_LOGI(MESH_DEBUG_TAG, "Node Teaching Mode Start Packet");
         vendor_node_teaching_mode_t = BLE_recvd_data;
         node_teaching_mode_t = *vendor_node_teaching_mode_t;
 

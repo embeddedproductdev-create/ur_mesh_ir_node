@@ -32,6 +32,7 @@ void send_manual_ac_control_ack_to_gwy();
 void send_heartbeat_ack_to_gwy();
 void send_heartbeat_publish_configuration_ack_to_gwy();
 void fill_element_addr_to_all_structures();
+void fetch_debug_info();
 
 #ifdef __cplusplus
 }

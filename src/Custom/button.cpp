@@ -24,9 +24,9 @@
 #include "esp_ble_mesh_defs.h"
 
 // Initialization - BUTTON
-uint32_t beginTime = 0;
-uint32_t pressedTime = 0;
-uint32_t releasedTime = 0;
+uint64_t beginTime = 0;
+uint64_t pressedTime = 0;
+uint64_t releasedTime = 0;
 uint32_t pressedduration_ms = 0;
 uint32_t pressed_duration_array[3] = {0, 0, 0};
 uint8_t pressed_duration_array_index = 0;
