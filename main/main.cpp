@@ -186,6 +186,51 @@ void fetch_from_flash()
 }
 
 /**
+ * @brief Function that printsout the size of currently used MQTT structures
+ * @param none
+ * @retval none
+ */
+void printout_struct_sizes()
+{
+    sprintf(log_buffer, "Size of base_data_t : %d", sizeof(base_data_t));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(50));
+    sprintf(log_buffer, "Size of ac_control_params_t : %d", sizeof(ac_control_params_t));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of gwy_reg_struct : %d", sizeof(gwy_reg_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of reconf_struct : %d", sizeof(reconf_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of control_struct : %d", sizeof(control_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of teaching_mode_struct : %d", sizeof(teaching_mode_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of prov_struct : %d", sizeof(prov_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of unprov_struct : %d", sizeof(unprov_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of pub_conf_struct : %d", sizeof(pub_conf_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of heartbeat_struct_t : %d", sizeof(heartbeat_struct_t));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of manual_ac_control_ack_t : %d", sizeof(manual_ac_control_ack_t));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+    sprintf(log_buffer, "Size of debug_info_struct : %d", sizeof(debug_info_struct));
+    custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
+    vTaskDelay(pdMS_TO_TICKS(5));
+} 
+
+/**
  * @brief Starting point for the whole program
  * @param none
  * @retval none
@@ -223,6 +268,9 @@ void app_main()
     if (provisioned)
         fill_element_addr_to_all_structures();
 #endif
+
+    //Let's printout the size of structures that we're using, as we need to know this for BLE MESH's sake
+    printout_struct_sizes();
 
     // Needed by freeRTOS
     BaseType_t xReturned;

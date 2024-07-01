@@ -33,6 +33,7 @@ uint8_t temp_min_val = 19;
 uint8_t temp_max_val = 28;
 bool storing_IR_data_to_flash = 0;
 bool teachMode_size_done = 0;
+uint16_t teaching_mode_rawlen=0;
 
 // Initialization - Transmitter
 bool needToSendIRComamnd = false;
@@ -808,6 +809,7 @@ void locking_feature(char *result_description_char_str)
 
                 if (teaching_mode)
                 {
+                    if(teaching_mode_rawlen==0) teaching_mode_rawlen = results.rawlen; //Let's save the number of bytes received during teaching mode command, this will help us at manual controla ack
                     if (teachMode_size_done)
                     {
                         eeprom_addr_cal = 0;
@@ -844,11 +846,9 @@ void locking_feature(char *result_description_char_str)
                             vTaskDelay(pdMS_TO_TICKS(5));
                             eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                             vTaskDelay(pdMS_TO_TICKS(5));
-                            teaching_mode = false;
                             teachMode_size_done = false;
                             storing_IR_data_to_flash = false;
                             protocol_selected_num = RAW;
-                            ESP_LOGI(IR_DEBUG_TAG, "End of Teaching Mode");
 #if (IS_GWY)
                             char pubmessage[PUBMESG_LEN];
                             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\"}",
@@ -918,10 +918,21 @@ void locking_feature(char *result_description_char_str)
                  */
                 // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
                 if ((registered || configured) &&
-                    (protocol_detected == protocol_selected_num || protocol_selected_num == RAW) &&
+                    (protocol_detected == protocol_selected_num || (protocol_selected_num == RAW && results.rawlen == teaching_mode_rawlen)) &&
                     (gwy_ac_control_t.control.Locking || node_ac_control_t.control.Locking) &&
                     !teaching_mode)
                     locking_feature(result_description_char_str);
+
+                /**
+                 * @brief Placing this end of teaching mode check here, because, after the last IR command gets received in teaching mode,
+                 * If we set teaching_mode=false,  before this section, then it unnecessarily triggers the manual control ack. So, let's end
+                 * teaching mode here instead.
+                 */
+                if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
+                {
+                    teaching_mode = false;
+                    ESP_LOGI(IR_DEBUG_TAG, "End of Teaching Mode");
+                }
             }
         }
         vTaskDelete(NULL);

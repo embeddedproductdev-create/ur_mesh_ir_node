@@ -409,7 +409,7 @@ void maintain_unprov_queue()
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					LOCATION_KEY, temp->base_data.location,
+					LOCATION_KEY, temp->location,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_unprov_queue();
@@ -506,7 +506,7 @@ void maintain_prov_queue()
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					LOCATION_KEY, temp->base_data.location,
+					LOCATION_KEY, temp->location,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_prov_queue();

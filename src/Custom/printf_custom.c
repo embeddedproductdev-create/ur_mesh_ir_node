@@ -9,6 +9,8 @@
 
 #include <../../inc/Custom/printf_custom.h>
 
+#define EMPTY_TAG ""
+
 /*Initialization*/
 char temp1[10];
 char temp2[10];
@@ -49,8 +51,8 @@ char SETUP_TAG[20] = "[SETUP_DEBUG]";
 void custom_printf(char *tag, char *msg, char *color)
 {
     sprintf(temp1, "%lld", esp_timer_get_time());
-    sprintf(log_buffer, "%s%s%s%s%s\n", color, temp1, tag, msg, RESET);
-    printf("%s", log_buffer);
+    sprintf(ir_log_buffer, "%s%s%s%s%s\n", color, temp1, tag, msg, RESET);
+    printf("%s", ir_log_buffer);
     memset(log_buffer, 0, sizeof(log_buffer));
 }
 

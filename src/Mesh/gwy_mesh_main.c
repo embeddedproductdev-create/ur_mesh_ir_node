@@ -1003,7 +1003,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
                 ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
-                LOCATION_KEY, vendor_provision_t->base_data.location,
+                LOCATION_KEY, vendor_provision_t->location,
                 APP_KEY_INDEX, vendor_provision_t->appindex,
                 APP_KEY, vendor_provision_t->appkey,
                 NET_KEY_INDEX, vendor_provision_t->netindex,
@@ -1022,7 +1022,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no_str,
                 ELEMENT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
-                LOCATION_KEY, vendor_unprovision_t->base_data.location,
+                LOCATION_KEY, vendor_unprovision_t->location,
                 ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
             break;
 

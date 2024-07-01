@@ -119,22 +119,18 @@ struct base_data_t
 {
 	uint8_t json_packet_id;
 	int32_t msg_seq_no;
-	int32_t gwy_ser_no;
 	char gwy_ser_no_str[10];
-	uint32_t node_ser_no;
 	char node_ser_no_str[10];
 	uint16_t elementAddr;
 	uint16_t error_code;
 	uint32_t request_in_time_us;
 	bool request_sent_to_node_flag;
-	// char ack_name[MQTT_PACKET_NAME_LEN];
-	char location[LOCATION_STR_LEN];
 };
 
 struct ac_control_params_t
 {
 	bool power;
-	char mode_str[15];
+	char mode_str[6];
 	uint8_t mode_val;
 	uint8_t fanSpeed;
 	uint8_t temp;
@@ -147,19 +143,16 @@ struct ac_control_params_t
 	uint8_t TempLockLowLimit;
 };
 
-typedef struct mqtt_reset_struct
-{
-	struct base_data_t base_data;
-} mqtt_reset_t;
-
 typedef struct gwy_reg_struct
 {
 	struct base_data_t base_data;
+	char location[LOCATION_STR_LEN];
 } gwy_reg_t;
 
 typedef struct gwy_unreg_struct
 {
 	struct base_data_t base_data;
+	char location[LOCATION_STR_LEN];
 } gwy_unreg_t;
 
 typedef struct reconf_struct
@@ -187,6 +180,7 @@ typedef struct teaching_mode_struct
 typedef struct prov_struct
 {
 	struct base_data_t base_data;
+	char location[LOCATION_STR_LEN];
 	uint8_t macid[6];
 	struct prov_struct *next;
 	struct prov_struct *prev;
@@ -199,6 +193,7 @@ typedef struct prov_struct
 typedef struct unprov_struct
 {
 	struct base_data_t base_data;
+	char location[LOCATION_STR_LEN];
 	struct unprov_struct *next;
 	struct unprov_struct *prev;
 } unprov_t;

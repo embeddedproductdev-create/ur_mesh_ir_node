@@ -671,7 +671,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             GWY_SER_NO_KEY, provision_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, provision_t.base_data.node_ser_no_str,
             ELEMENT_ADDR_KEY, provision_t.base_data.elementAddr,
-            LOCATION_KEY, provision_t.base_data.location,
+            LOCATION_KEY, provision_t.location,
             APP_KEY_INDEX, provision_t.appindex,
             APP_KEY, provision_t.appkey,
             NET_KEY_INDEX, provision_t.netindex,
@@ -687,7 +687,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_ACK_NAME_KEY, GWY_REG_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_registration_t.base_data.msg_seq_no,
             GWY_SER_NO_KEY, gwy_registration_t.base_data.gwy_ser_no_str,
-            LOCATION_KEY, gwy_registration_t.base_data.location,
+            LOCATION_KEY, gwy_registration_t.location,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
     
@@ -701,7 +701,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             GWY_SER_NO_KEY, unprovision_t.base_data.gwy_ser_no_str,
             NODE_SER_NO_KEY, unprovision_t.base_data.node_ser_no_str,
             ELEMENT_ADDR_KEY, unprovision_t.base_data.elementAddr,
-            LOCATION_KEY, unprovision_t.base_data.location,
+            LOCATION_KEY, unprovision_t.location,
             ERROR_CODE_KEY, json_ack_err_code);
         break;
 
@@ -713,7 +713,7 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
             JSON_ACK_NAME_KEY, GWY_UNREG_ACK_NAME,
             MSG_SEQ_NO_KEY, gwy_unregistration_t.base_data.msg_seq_no,
             GWY_SER_NO_KEY, gwy_unregistration_t.base_data.gwy_ser_no_str,
-            LOCATION_KEY, gwy_unregistration_t.base_data.location,
+            LOCATION_KEY, gwy_unregistration_t.location,
             ERROR_CODE_KEY, json_ack_err_code);
         if(json_ack_err_code == SUCCESS) factory_reset_device();
         break;
@@ -1056,7 +1056,7 @@ void parse_json_packet(char *json_packet)
             provision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(provision_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             strcpy(provision_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-            strcpy(provision_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
+            strcpy(provision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             fill_macid();
             add_to_prov_queue();
             break;
@@ -1066,7 +1066,7 @@ void parse_json_packet(char *json_packet)
             gwy_registration_t.base_data.json_packet_id = json_packet_id;
             strcpy(gwy_registration_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            strcpy(gwy_registration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
+            strcpy(gwy_registration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             registered = true;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, true);
             vTaskDelay(pdMS_TO_TICKS(5));
@@ -1081,7 +1081,7 @@ void parse_json_packet(char *json_packet)
             unprovision_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(unprovision_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             strcpy(unprovision_t.base_data.node_ser_no_str, cJSON_GetObjectItem(json_packet_j, NODE_SER_NO_KEY)->valuestring);
-            strcpy(unprovision_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring)
+            strcpy(unprovision_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring)
             unprovision_t.base_data.elementAddr = cJSON_GetObjectItem(json_packet_j, ELEMENT_ADDR_KEY)->valueint;
             add_to_unprov_queue();
             break;
@@ -1091,7 +1091,7 @@ void parse_json_packet(char *json_packet)
             gwy_unregistration_t.base_data.json_packet_id = json_packet_id;
             strcpy(gwy_unregistration_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_unregistration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            strcpy(gwy_unregistration_t.base_data.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
+            strcpy(gwy_unregistration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             //factory resetting after receiving this packet is taken care at the place of sending ack
             break;
 
