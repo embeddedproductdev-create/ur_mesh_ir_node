@@ -9,7 +9,7 @@ set(srcs "main.cpp"
 "../src/IR/main_IR.cpp"
 "../src/Mesh/gwy_mesh_main.c"
 "../src/Mesh/node_mesh_main.c"
-"../src/Custom/queue.c"
+"../src/Custom/queue.cpp"
 "../src/Custom/accesspoint.cpp"
 )
 

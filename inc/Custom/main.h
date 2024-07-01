@@ -71,13 +71,13 @@
 #if(IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 2
+#define INTERNAL_MIN_VERSION 3
 #endif
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 2
+#define INTERNAL_MIN_VERSION 3
 #endif
 
 #define TAG "UART"

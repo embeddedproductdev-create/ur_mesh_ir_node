@@ -8,6 +8,7 @@
  */
 
 #include "../../inc/Custom/queue.h"
+#include "../../inc/Mesh/mesh_main.h"
 
 // Initialization
 char pubmessage[PUBMESG_LEN];
@@ -497,6 +498,7 @@ void maintain_prov_queue()
 	{
 		if (esp_timer_get_time() - temp->base_data.request_in_time_us > NODE_COMM_TIMEOUT_INTERVAL_US)
 		{
+			zero_out_match_arr_in_mesh();
 			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
 			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
@@ -699,7 +701,7 @@ void maintain_debug_info_queue()
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
 					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
-			add_to_debug_info_queue(pubmessage, publish_topic);
+			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_debug_info_queue();
 		}
 		temp = temp->next;
@@ -884,7 +886,7 @@ void queue_handler(void *args)
 				{
 					node_teaching_mode_queue_head->base_data.request_sent_to_node_flag = true;
 					ESP_LOGI(QUEUE_DEBUG_TAG, "Sending Teaching Mode Request to Node(%d)",node_teaching_mode_queue_head->base_data.elementAddr);
-					send_teaching_mode_packet_to_node(node_pub_conf_queue_head);
+					send_teaching_mode_packet_to_node(node_teaching_mode_queue_head);
 				}
 			}
 		}

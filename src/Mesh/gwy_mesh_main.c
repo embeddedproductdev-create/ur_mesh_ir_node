@@ -954,8 +954,8 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             vendor_node_heartbeat_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_pub_conf_t->base_data.elementAddr);
             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
+                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
+                    JSON_ACK_NAME_KEY, NODE_HEARTBEAT_PUB_CONF_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                     NODE_SER_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.node_ser_no_str,
@@ -1918,6 +1918,26 @@ void update_the_provisioner_app_key(uint8_t *appkey)
 {   
     esp_ble_mesh_provisioner_update_local_app_key(appkey,prov_key.net_idx,prov_key.app_idx);
 }
+
+/**
+ * @brief Function that takes care resetting the match array that is used for provisioning 
+ * a node using its mac id. This array gets set with a mac id when we recv a prov request and stays
+ * set even after that. Sometimes, this causes autonomous provisioning of the node when it is brough up
+ * To prevent that, after a NODE COMM TIMEOUT occurs, we better clear off this match array
+ * @param none
+ * @retval
+ * 
+ */
+void zero_out_match_arr_in_mesh()
+{
+    uint8_t match[8] = {0xcd, 0xdc};
+    for (uint8_t i = 2; i < 8; i++)
+    {
+        match[i] = 0xff;
+    }
+    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
+}
+
 void send_prov_packet_to_node(prov_t *prov_packet)
 {
     uint8_t match[8] = {0xcd, 0xdc};

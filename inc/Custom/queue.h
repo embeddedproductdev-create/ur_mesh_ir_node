@@ -55,13 +55,13 @@ extern "C"
     //Node Teaching Mode
     void remove_from_teaching_mode_queue();
     void add_to_teaching_mode_queue();
-    uint8_t get_teaching_mode_queue_count();
+    uint8_t get_teaching_mode_queue_count(teaching_mode_t *);
     void maintain_teaching_mode_queue();
 
     //Node Debug info
     void remove_from_debug_info_queue();
     void add_to_debug_info_queue();
-    uint8_t get_debug_info_queue_count();
+    uint8_t get_debug_info_queue_count(debug_info_t *);
     void maintain_debug_info_queue();
     
     void queue_handler(void *args);

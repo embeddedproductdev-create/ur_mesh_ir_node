@@ -51,7 +51,7 @@ void button_logic()
         }
 
         /* Button held for 3s - 8s */
-        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3)
+        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3 && pressed_duration_array[0] < ONE_SEC_IN_MS *8)
         {
             if (!teaching_mode && registered)
             {
@@ -82,11 +82,12 @@ void calculate_button_press_time()
     while (!digitalRead(USER_SWITCH)) // Do nothing until button is released
     {
         vTaskDelay(pdMS_TO_TICKS(1));
-        ;
     }
     releasedTime = esp_timer_get_time();
     pressedduration_ms = (releasedTime - pressedTime) / 1000;
     pressed_duration_array[pressed_duration_array_index++] = pressedduration_ms;
+    sprintf(button_log_buffer, "=-=-=-=-=-=-=- Button held time in seconds : %ld =-=-=-=-=-=-=", pressed_duration_array[0]);
+    custom_printf(BUTTON_DEBUG_TAG, button_log_buffer, BLUE);
 }
 
 /**
