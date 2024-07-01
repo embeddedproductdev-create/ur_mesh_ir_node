@@ -33,7 +33,7 @@ uint8_t temp_min_val = 19;
 uint8_t temp_max_val = 28;
 bool storing_IR_data_to_flash = 0;
 bool teachMode_size_done = 0;
-uint16_t teaching_mode_rawlen=0;
+uint16_t teaching_mode_rawlen = 0;
 
 // Initialization - Transmitter
 bool needToSendIRComamnd = false;
@@ -793,7 +793,8 @@ void locking_feature(char *result_description_char_str)
                 char result_description_char_str[200];
                 strcpy(result_description_char_str, (char *)description.c_str());
 
-                if(LOG_DATA) {
+                if (LOG_DATA)
+                {
                     printf("IR RAW VALUES : { ");
                     for (uint16_t i = 0; i < results.rawlen; i++)
                     {
@@ -807,9 +808,10 @@ void locking_feature(char *result_description_char_str)
                 if (description.length())
                     ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
 
-                if (teaching_mode)
+                if (teaching_mode && registered)
                 {
-                    if(teaching_mode_rawlen==0) teaching_mode_rawlen = results.rawlen; //Let's save the number of bytes received during teaching mode command, this will help us at manual controla ack
+                    if (teaching_mode_rawlen == 0)
+                        teaching_mode_rawlen = results.rawlen; // Let's save the number of bytes received during teaching mode command, this will help us at manual controla ack
                     if (teachMode_size_done)
                     {
                         eeprom_addr_cal = 0;
@@ -837,7 +839,7 @@ void locking_feature(char *result_description_char_str)
                         ESP_LOGI(IR_DEBUG_TAG, "Writing Data...");
                         storing_IR_data_to_flash = true;
                         write_to_memory(results.rawbuf, results.rawlen - 1, eeprom_addr);
-                        if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
+                        if (eeprom_addr_cal > (temp_max_val - temp_min_val + 1))
                         {
                             configured = true;
                             eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
@@ -849,17 +851,6 @@ void locking_feature(char *result_description_char_str)
                             teachMode_size_done = false;
                             storing_IR_data_to_flash = false;
                             protocol_selected_num = RAW;
-#if (IS_GWY)
-                            char pubmessage[PUBMESG_LEN];
-                            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\"}",
-                                    JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_END_ACK,
-                                    JSON_ACK_NAME_KEY, GWY_TEACHING_MODE_END_ACK_NAME,
-                                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
-                            add_to_pubmesg_queue(pubmessage, publish_topic);
-#endif
-#if(!IS_GWY)
-                            send_teaching_mode_end_ack_to_gwy();
-#endif
                         }
                         else
                         {
@@ -928,10 +919,21 @@ void locking_feature(char *result_description_char_str)
                  * If we set teaching_mode=false,  before this section, then it unnecessarily triggers the manual control ack. So, let's end
                  * teaching mode here instead.
                  */
-                if (eeprom_addr_cal == (temp_max_val - temp_min_val + 1))
+                if (teaching_mode && (eeprom_addr_cal > (temp_max_val - temp_min_val + 1)))
                 {
                     teaching_mode = false;
                     ESP_LOGI(IR_DEBUG_TAG, "End of Teaching Mode");
+#if (IS_GWY)
+                    char pubmessage[PUBMESG_LEN];
+                    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\"}",
+                            JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_END_ACK,
+                            JSON_ACK_NAME_KEY, GWY_TEACHING_MODE_END_ACK_NAME,
+                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+                    add_to_pubmesg_queue(pubmessage, publish_topic);
+#endif
+#if (!IS_GWY)
+                    send_teaching_mode_end_ack_to_gwy();
+#endif
                 }
             }
         }
