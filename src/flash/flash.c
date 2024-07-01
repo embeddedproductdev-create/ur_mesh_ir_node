@@ -28,6 +28,7 @@ esp_err_t eeprom_write_byte(uint8_t deviceaddress, uint16_t eeaddress, uint8_t b
     i2c_master_stop(cmd);
     ret = i2c_master_cmd_begin(I2C_NUM_1, cmd, 1000/portTICK_PERIOD_MS);
     i2c_cmd_link_delete(cmd);
+    vTaskDelay(pdMS_TO_TICKS(5));
     return ret;
 }
 /**

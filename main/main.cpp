@@ -20,7 +20,7 @@ uint32_t GWY_SER_NO=100;
 uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
-uint32_t GWY_SER_NO=2;
+uint32_t GWY_SER_NO=1;
 uint32_t NODE_SER_NO=1;
 #endif
 
@@ -148,6 +148,10 @@ void fetch_from_flash()
     protocol_selected_num <<= 8;
     protocol_selected_num |= eeprom_read_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO);
 
+    if(protocol_selected_num==RAW) {
+        teaching_mode_rawlen = ((teaching_mode_rawlen | eeprom_read_byte(EEPROM_SLAVE_ADDR, RAWLEN_ADDR_HI)) << 8) | eeprom_read_byte(EEPROM_SLAVE_ADDR, RAWLEN_ADDR_LO);
+    }
+
 /*Heartbeat Publish Period*/
 #if (IS_GWY)
     gwy_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
@@ -194,40 +198,28 @@ void printout_struct_sizes()
 {
     sprintf(log_buffer, "Size of base_data_t : %d", sizeof(base_data_t));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(50));
     sprintf(log_buffer, "Size of ac_control_params_t : %d", sizeof(ac_control_params_t));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of gwy_reg_struct : %d", sizeof(gwy_reg_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of reconf_struct : %d", sizeof(reconf_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of control_struct : %d", sizeof(control_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of teaching_mode_struct : %d", sizeof(teaching_mode_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of prov_struct : %d", sizeof(prov_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of unprov_struct : %d", sizeof(unprov_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of pub_conf_struct : %d", sizeof(pub_conf_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of heartbeat_struct_t : %d", sizeof(heartbeat_struct_t));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of manual_ac_control_ack_t : %d", sizeof(manual_ac_control_ack_t));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
     sprintf(log_buffer, "Size of debug_info_struct : %d", sizeof(debug_info_struct));
     custom_printf(MAIN_DEBUG_TAG, log_buffer, WHITE);
-    vTaskDelay(pdMS_TO_TICKS(5));
 } 
 
 /**
@@ -295,6 +287,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tLocking             : %d", gwy_ac_control_t.control.Locking);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockUpLimit     : %d", gwy_ac_control_t.control.TempLockUpLimit);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockLowLimit    : %d", gwy_ac_control_t.control.TempLockLowLimit);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tRawLen              : %d", teaching_mode_rawlen);
 
 #endif
 
@@ -329,6 +322,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tLocking             : %d", node_ac_control_t.control.Locking);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockUpLimit     : %d", node_ac_control_t.control.TempLockUpLimit);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tTempLockLowLimit    : %d", node_ac_control_t.control.TempLockLowLimit);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tRawLen              : %d", teaching_mode_rawlen);
 #endif
 
 #if (TEMPERATURE_SENSOR_PART_ENABLED)

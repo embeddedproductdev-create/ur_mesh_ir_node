@@ -37,6 +37,7 @@
 extern char protocol_chosen_str[15];
 extern uint16_t custom_raw_buffer[NUM_OF_VALUES_PER_COMMAND];
 extern uint8_t custom_raw_buffer_index;
+extern uint16_t teaching_mode_rawlen;
 
 /* GLOBAL VARIABLES - TRANSMITTER */
 
