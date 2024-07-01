@@ -32,11 +32,11 @@
 #include "host/ble_hs.h"
 #include "host/util/util.h"
 #include "console/console.h"
-#endif
+ #endif
 
 #if (!IS_GWY)
 
-#define BLE_BUF_SIZE 150
+#define BLE_BUF_SIZE 125
 
 control_t *vendor_node_ac_control_t; /* TID contained in the vendor message */
 reconf_t *vendor_node_reconfigure_t;
@@ -163,7 +163,7 @@ NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, BLE_BUF_SIZE);
 /*NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_2, 30);
 NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_3, 30);*/
 
-static esp_ble_mesh_sensor_state_t sensor_states[2] = {
+static esp_ble_mesh_sensor_state_t sensor_states[1] = {
     /* Mesh Model Spec:
      * Multiple instances of the Sensor states may be present within the same model,
      * provided that each instance has a unique value of the Sensor Property ID to
@@ -191,22 +191,22 @@ static esp_ble_mesh_sensor_state_t sensor_states[2] = {
         .sensor_data.length = 0, /* 0 represents the length is 1 */
         .sensor_data.raw_value = &sensor_data_0,
     },
-    [1] = {
-        .sensor_property_id = SENSOR_PROPERTY_ID_1,
-        .descriptor.positive_tolerance = SENSOR_POSITIVE_TOLERANCE,
-        .descriptor.negative_tolerance = SENSOR_NEGATIVE_TOLERANCE,
-        .descriptor.sampling_function = SENSOR_SAMPLE_FUNCTION,
-        .descriptor.measure_period = SENSOR_MEASURE_PERIOD,
-        .descriptor.update_interval = SENSOR_UPDATE_INTERVAL,
-        .sensor_data.format = ESP_BLE_MESH_SENSOR_DATA_FORMAT_A,
-        .sensor_data.length = 0, /* 0 represents the length is 1 */
-        .sensor_data.raw_value = &sensor_data_1,
-    },
+    // [1] = {
+    //     .sensor_property_id = SENSOR_PROPERTY_ID_1,
+    //     .descriptor.positive_tolerance = SENSOR_POSITIVE_TOLERANCE,
+    //     .descriptor.negative_tolerance = SENSOR_NEGATIVE_TOLERANCE,
+    //     .descriptor.sampling_function = SENSOR_SAMPLE_FUNCTION,
+    //     .descriptor.measure_period = SENSOR_MEASURE_PERIOD,
+    //     .descriptor.update_interval = SENSOR_UPDATE_INTERVAL,
+    //     .sensor_data.format = ESP_BLE_MESH_SENSOR_DATA_FORMAT_A,
+    //     .sensor_data.length = 0, /* 0 represents the length is 1 */
+    //     .sensor_data.raw_value = &sensor_data_1,
+    // },
 
 };
 
 /* 20 octets is large enough to hold two Sensor Descriptor state values. */
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, BLE_BUF_SIZE*2, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, (BLE_BUF_SIZE*2)-50, ROLE_NODE);
 static esp_ble_mesh_sensor_srv_t sensor_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -214,7 +214,7 @@ static esp_ble_mesh_sensor_srv_t sensor_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, BLE_BUF_SIZE*2, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, (BLE_BUF_SIZE*2)-50, ROLE_NODE);
 static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -447,7 +447,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     // net_buf_simple_add_u8(&sensor_data_0, 11);
     // mpid=0xe00e;
 
-    data_len = 150;
+    data_len = 125;
     // memcpy(data, &mpid, mpid_len);
     memcpy(data, state->sensor_data.raw_value->data, data_len);
 
