@@ -515,6 +515,7 @@ send:
         ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
     }
     sensor_server.model->pub->publish_addr = 0x01;
+    sensor_server.model->pub->retransmit=ESP_BLE_MESH_PUBLISH_TRANSMIT(1, 50);
     if(LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
     /* esp_ble_mesh_msg_ctx_t cntx;
@@ -853,6 +854,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         provisioned = false;
         ELEMENT_ADDR = 0;
         eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
+        vTaskDelay(pdMS_TO_TICKS(5));
         vTaskDelay(pdMS_TO_TICKS(100));
         esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
         break;
@@ -906,6 +908,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                      param->value.state_change.mod_app_bind.model_id);
             provisioned=true;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0X00);
+            vTaskDelay(pdMS_TO_TICKS(5));
             fill_element_addr_to_all_structures();
             send_provisioned_ack_to_gwy();
             break;
@@ -917,6 +920,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
             esp_ble_mesh_node_local_reset();
             provisioned = false;
             eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0XFF);
+            vTaskDelay(pdMS_TO_TICKS(5));
             eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
             vTaskDelay(pdMS_TO_TICKS(100));
             esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
@@ -970,16 +974,27 @@ static void store_data_to_node_structures()
         
         //Store AC Settings to Flash
         eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, node_ac_control_t.control.mode_val);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, node_ac_control_t.control.fanSpeed);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, node_ac_control_t.control.temp);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR, node_ac_control_t.control.swingH);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR, node_ac_control_t.control.swingV);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR, node_ac_control_t.control.OnTimer);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR, node_ac_control_t.control.Locking);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockLowLimit);
+        vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockUpLimit);
+        vTaskDelay(pdMS_TO_TICKS(5));
     
         sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
         example_ble_mesh_send_sensor_status();
@@ -1028,6 +1043,7 @@ static void store_data_to_node_structures()
 
         if(node_heartbeat_pub_conf_t.base_data.error_code == 0) {
             eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
+            vTaskDelay(pdMS_TO_TICKS(5));
         delete_Temperature_data_publish_timer();
         create_Temperature_data_publish_timer();
         }
