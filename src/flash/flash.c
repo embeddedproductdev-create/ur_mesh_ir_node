@@ -1,14 +1,92 @@
 /**
  * @file flash.c
  * @author Umamaheswari (uma@qmaxsys.com)
- * @brief This file contains all functions related to Storing/Retrieving contents from 
+ * @author Kulasekaran (kulasekaran@qmaxsys.com)
+ * @brief This file contains all functions related to Storing/Retrieving contents to/from 
  * EEPROM flash on-board.
- * @version 0.3
- * @date 2024-04-10
+ * @version 0.8
+ * @date 2024-07-02
  * @copyright Copyright (c) 2024
  * 
  */
 #include "../../inc/flash/flash.h"
+
+void get_new_serial_no()
+{
+    uint32_t serial_no = 0;
+    char input[10];
+    while(serial_no == 0)
+    {
+        vTaskDelay(pdMS_TO_TICKS(5));
+        ESP_LOGI(MAIN_DEBUG_TAG, "Enter the Serial Number : ");
+        if (fgets(input, sizeof(input), stdin) != NULL)
+        {
+            serial_no = atoi(input);
+            ESP_LOGI(MAIN_DEBUG_TAG, "input : %s | serial_no : %ld",input,serial_no);
+            if(serial_no == 0) ESP_LOGE(MAIN_ERROR_TAG, "Invalid Serial Number value entered");
+        }
+    }
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, serial_no>>16);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, serial_no>>8);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, serial_no);
+}
+
+/**
+ * @brief Function that takes care of erasing the data in device and set it up as factory device
+ * Maybe we can implement some security check before going on to clear data. Also, resetting Device
+ * for now doesn't erase the MQTT settings. Need to discuss on this later.
+ * @param none
+ * @retval none
+ */
+void factory_reset_device()
+{
+    ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= FACTORY RESETTING DEVICE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+
+    registered = false;
+    protocol_selected_num = -1;
+    configured = false;
+
+    // Serial Number
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, 0);
+
+#if (IS_GWY)
+    // Registered
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, 0);
+#endif
+
+    // Configured
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, 0);
+
+    // Protocol Selected Number
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, 0);
+
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, RAWLEN_ADDR_HI, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, RAWLEN_ADDR_LO, 0);
+
+    // Publish Period
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
+    gwy_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
+    node_heartbeat_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
+
+    // AC Control Settings
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPERATURE_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR, 0);
+
+    // Let's get serial number from flash
+    // get_new_serial_no();
+}
 
 /**
  * @brief Writes a single byte to the EEPROM.

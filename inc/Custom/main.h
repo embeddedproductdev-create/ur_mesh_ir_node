@@ -71,13 +71,13 @@
 #if(IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 3
+#define INTERNAL_MIN_VERSION 4
 #endif
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 3
+#define INTERNAL_MIN_VERSION 4
 #endif
 
 #define TAG "UART"
@@ -172,6 +172,7 @@ extern "C" {
 void app_main();
 void create_AP_task();
 void fetch_from_flash();
+void get_new_serial_no();
 
 #ifdef __cplusplus
 }

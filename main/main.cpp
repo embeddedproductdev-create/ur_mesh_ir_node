@@ -234,14 +234,10 @@ void app_main()
     initialize_i2c();
   
     /**
-     * @brief Very first step for us to check if the device is a factory new deviec, meaning, 
-     * if the value at FACTORY_DEVICE_CHECK_FLASH_ADDR is 0xff or 0
-     * - 0xff = Factory new device
-     * - 0x00 = Already used device
-     * - When a device is registered/provisioned, at FACTORY_DEVICE_CHECK_FLASH_ADDR 0 is written.
-     * - When a device is unregistered/unprovisioned, at FACTORY_DEVICE_CHECK_FLASH_ADDR 0xff is written.
-     * if Factory new device, let's factory reset the device again to erase all data present on device.
-     * if not, let pull out data from flash and feed to RAM
+     * @brief Very first step for us to check if the device is a factory new device.
+     * Factory new devices will have their serial number as zero. If that's the case, then we
+     * need to get input from user for serial number through UART and store it to EEPROM flash.
+     * Upon the next reboot, we can fetch it from flash and fill it in RAM.
      */
     if(eeprom_read_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR))
     {
