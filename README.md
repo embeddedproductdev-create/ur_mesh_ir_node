@@ -3,7 +3,7 @@
 The scope of the project is to develop a BLE Mesh based Universal AC controller which can be used to control Air Conditioners remotely.
 
 - Project Start Date   : 14th December, 2023
-- Project End Data     : 
+- Project End Date     : 
 
 ## Project Members
 - **Project Manager** : Saravana Perumal, Narendhra Singh
@@ -20,14 +20,6 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 |3|0.8.1|28.06.2024|Kulasekaran|1) Location string length increased from 20 to 30<br>2) Temperature Data ACK converted into Heartbeat ACK <br> 3) Minimum value for Heartbeat publish configuration increased from 5 to 10<br>3) Added Purple LED indication when sending out and IR signal<br>4) Added Teaching mode start Packets for both Gwy/Node<br>5) Added Teaching Mode End ACK for both Gwy and Node<br>6) Added Debug Info packets for both Gwy and Node<br>7) Error code values changed<br>8) LED indication change for Teaching mode and AC Remote configuration mode<br>9) Added BootUp LED indication<br>10) Modified Button Press Logics|[Ver 0.8.1](https://qmaxltd-my.sharepoint.com/:f:/g/personal/embedded_qmaxsys_com/EmEgsRgmN0pBqarVdK6FILoBhknFlkaPrFwbDWWqYjniaw?e=blzBsU)|
 
 </center>
-
-# High level overview
-- An open source IR Library for Transmission and reception of IR Signals.
-- Uses LTE for MQTT communication
-- Uses BLE Mesh network
-- Custom MQTT packets designed according to Project requirements. More details about this in Software documentation. (link provided below)
-- Uses IDF-FreeRTOS for implementing Multi-processing application.
-- Uses on-board EEPROM for flash storage
 
 # High level overview
 - Uses BLE Mesh network. So, we have two kinds of devices:
@@ -68,8 +60,8 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - ESP-IDF v5.0 or above
 - Arduino as ESP component. Check this tutorial : [Adding Arduino as ESP IDF component](https://www.youtube.com/watch?v=hHzGX-K6lmo&pp=ygUfQWRkaW5nIGFyZHVpbm8gYXMgZXNwIGNvbXBvbmVudA%3D%3D)
 - IRremoteESP8266 Library [Github Link](https://github.com/crankyoldgit/IRremoteESP8266)
-- FreeRTOS [Documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/freertos.html)
-- BLE Mesh [Documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html)
+- FreeRTOS --> [Documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/freertos.html)
+- BLE Mesh --> [Documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html)
 - MQTT
 
 ## Instructions to Build and compile the project

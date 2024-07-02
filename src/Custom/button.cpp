@@ -35,6 +35,8 @@ void button_logic()
 {
     if (pressed_duration_array[0] != 0)
     {
+        ESP_LOGI(BUTTON_DEBUG_TAG, "pressed_duration_array[0] : %ld",pressed_duration_array[0]);
+        ESP_LOGI(BUTTON_DEBUG_TAG, "pressed_duration_array[1] : %ld",pressed_duration_array[1]);
         /* Single Press */
         if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
@@ -45,7 +47,7 @@ void button_logic()
         }
 
         /* Double Press */
-        else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] != 0 && pressed_duration_array[1] < ONE_SEC_IN_MS)
+        else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
             esp_ble_mesh_node_local_reset();
         }
@@ -86,8 +88,8 @@ void calculate_button_press_time()
     releasedTime = esp_timer_get_time();
     pressedduration_ms = (releasedTime - pressedTime) / 1000;
     pressed_duration_array[pressed_duration_array_index++] = pressedduration_ms;
-    sprintf(button_log_buffer, "=-=-=-=-=-=-=- Button held time in seconds : %ld =-=-=-=-=-=-=", pressed_duration_array[0]);
-    custom_printf(BUTTON_DEBUG_TAG, button_log_buffer, BLUE);
+    // sprintf(button_log_buffer, "=-=-=-=-=-=-=- Button held time in seconds : %ld =-=-=-=-=-=-=", pressed_duration_array[0]);
+    // custom_printf(BUTTON_DEBUG_TAG, button_log_buffer, BLUE);
 }
 
 /**
