@@ -80,7 +80,7 @@ pub_conf_t *vendor_node_heartbeat_pub_conf_t;
 teaching_mode_t *vendor_node_teaching_mode_t;
 debug_info_t *vendor_node_debug_info_t;
 
-#define NVS_NAME "mesh_example"
+#define NVS_NAME "mesh_nvs"
 
 esp_err_t ble_mesh_nvs_open(nvs_handle_t *handle)
 {
@@ -258,7 +258,7 @@ esp_err_t ble_mesh_nvs_erase(nvs_handle_t handle, const char *key)
 #define COMP_DATA_PAGE_0 0x00
 
 #define APP_KEY_IDX 0x0000
-#define APP_KEY_OCTET 0x12
+#define APP_KEY_OCTET GWY_SER_NO
 
 #define COMP_DATA_1_OCTET(msg, offset) (msg[offset])
 #define COMP_DATA_2_OCTET(msg, offset) (msg[offset + 1] << 8 | msg[offset])
@@ -1573,6 +1573,7 @@ static void example_ble_mesh_parse_node_comp_data(const uint8_t *data, uint16_t 
     }
     ESP_LOGI(MESH_DEBUG_TAG, "*********************** Composition Data End ***********************");
 }
+uint8_t set_conf = 0;
 
 static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t event,
                                               esp_ble_mesh_cfg_client_cb_param_t *param)
@@ -1635,6 +1636,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set.model_app_bind.model_app_idx = prov_key.app_idx;
             set.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
             set.model_app_bind.company_id = CID_ESP;
+            set_conf = 1;
             err = esp_ble_mesh_config_client_set_state(&common, &set);
 
             if (err != ESP_OK)
@@ -1650,6 +1652,18 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             {
                 match[i] = 0xff;
             }
+             if(set_conf)
+            {
+                printf("bind sensor model");
+                example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+                set.model_app_bind.element_addr = node->unicast_addr;
+                set.model_app_bind.model_app_idx = prov_key.app_idx;
+                set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+                set.model_app_bind.company_id = 0xffff;
+                err = esp_ble_mesh_config_client_set_state(&common, &set);
+            }
+            set_conf = 0;
+
             err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(provision_t.macid), 0x0, true);
             vTaskDelay(20);
         }
@@ -1808,13 +1822,15 @@ void net_keys_handler()
 void app_keys_handler()
 {
     uint8_t *app_key_local;
-    err = esp_ble_mesh_provisioner_add_local_app_key(NULL, prov_key.net_idx, 0xFFFF);
-    app_key_local = esp_ble_mesh_provisioner_get_local_app_key(prov_key.net_idx,prov_key.app_idx);
-    for(uint8_t i=0; i<16 ; i++)
-    {
-        prov_key.app_key[i] = app_key_local[i];
+    // err = esp_ble_mesh_provisioner_add_local_app_key(NULL, prov_key.net_idx, 0xFFFF);
+    // app_key_local = esp_ble_mesh_provisioner_get_local_app_key(prov_key.net_idx,prov_key.app_idx);
+    // for(uint8_t i=0; i<16 ; i++)
+    // {
+    //     prov_key.app_key[i] = app_key_local[i];
 
-    }
+    // }
+    err = esp_ble_mesh_provisioner_add_local_app_key( prov_key.app_key, prov_key.net_idx,prov_key.app_idx);
+
 }
 static esp_err_t ble_mesh_init(void)
 {
@@ -1895,7 +1911,7 @@ void gwy_mesh_main_init(void)
     }
 
     ble_mesh_get_dev_uuid(dev_uuid);
-    net_keys_handler();
+   // net_keys_handler();
 
     /* Initialize the Bluetooth Mesh Subsystem */
     err = ble_mesh_init();
