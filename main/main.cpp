@@ -20,8 +20,8 @@ uint32_t GWY_SER_NO=100;
 uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
-uint32_t GWY_SER_NO=3;
-uint32_t NODE_SER_NO=1;
+uint32_t GWY_SER_NO=1;
+uint32_t NODE_SER_NO=3;
 #endif
 
 char GWY_SER_NO_IN_STRING[15];

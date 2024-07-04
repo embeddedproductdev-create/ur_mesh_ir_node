@@ -206,7 +206,7 @@ static esp_ble_mesh_sensor_state_t sensor_states[1] = {
 };
 
 /* 20 octets is large enough to hold two Sensor Descriptor state values. */
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, (BLE_BUF_SIZE*2)-50, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, (BLE_BUF_SIZE+25), ROLE_NODE);
 static esp_ble_mesh_sensor_srv_t sensor_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -214,7 +214,7 @@ static esp_ble_mesh_sensor_srv_t sensor_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, (BLE_BUF_SIZE*2)-50, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, (BLE_BUF_SIZE+25), ROLE_NODE);
 static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -515,7 +515,9 @@ send:
         ESP_LOG_BUFFER_HEX("Sensor Data", status, length);
     }
     sensor_server.model->pub->publish_addr = 0x01;
-    sensor_server.model->pub->retransmit=ESP_BLE_MESH_PUBLISH_TRANSMIT(1, 50);
+    //sensor_server.model->pub->retransmit = ESP_BLE_MESH_PUBLISH_TRANSMIT(1, 50);
+    sensor_server.model->pub->app_idx = prov_key.app_idx;
+    sensor_server.model->pub->ttl = 2;
     if(LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Node pub addr 0x%04x ", sensor_server.model->pub->publish_addr);
     err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
     /* esp_ble_mesh_msg_ctx_t cntx;
@@ -907,6 +909,8 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                      param->value.state_change.mod_app_bind.company_id,
                      param->value.state_change.mod_app_bind.model_id);
             provisioned=true;
+            prov_key.app_idx=param->value.state_change.mod_app_bind.app_idx;
+
             eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0X00);
             vTaskDelay(pdMS_TO_TICKS(5));
             fill_element_addr_to_all_structures();
@@ -996,8 +1000,7 @@ static void store_data_to_node_structures()
         eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR, node_ac_control_t.control.TempLockUpLimit);
         vTaskDelay(pdMS_TO_TICKS(5));
     
-        sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
-        example_ble_mesh_send_sensor_status();
+        send_node_ac_control_ack_to_gwy();
         if(node_ac_control_t.base_data.error_code == 0) needToSendIRComamnd = true;
         break;
 
@@ -1234,6 +1237,7 @@ void send_provisioned_ack_to_gwy()
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ACK to Gwy");
     provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
     provision_t.base_data.elementAddr = ELEMENT_ADDR;
+    strcpy(provision_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &provision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1299,6 +1303,18 @@ void send_teaching_mode_end_ack_to_gwy()
     node_teaching_mode_t.base_data.json_packet_id = NODE_TEACHING_MODE_END_ACK;
     strcpy(node_teaching_mode_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
+    example_ble_mesh_send_sensor_status();
+}
+
+/**
+ * @brief Function that sends Node AC Control ACK to gwy
+ * @param none
+ * @retval none
+ */
+void send_node_ac_control_ack_to_gwy()
+{
+    ESP_LOGI(MESH_DEBUG_TAG, "Sending Node AC Control ACK to Gwy");
+    sensor_states[0].sensor_data.raw_value->data = &node_ac_control_t;
     example_ble_mesh_send_sensor_status();
 }
 

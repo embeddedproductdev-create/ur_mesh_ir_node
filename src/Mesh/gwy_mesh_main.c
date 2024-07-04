@@ -940,12 +940,13 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_reconf_queue();
             vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
                     JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.elementAddr,
+                    NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.node_ser_no_str,
+                    ELEMENT_ADDR_KEY, vendor_node_reconf_t->base_data.elementAddr,                   
                     ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
             break;
             
@@ -967,12 +968,13 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_MANUAL_AC_CONTROL_ACK:
             vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK,
                     JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
+                    NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.node_ser_no_str,
+                    ELEMENT_ADDR_KEY, vendor_node_manual_ac_control_t->base_data.elementAddr,
                     POWER_KEY, vendor_node_manual_ac_control_t->control.power,
                     MODE_KEY, vendor_node_manual_ac_control_t->control.mode_str,
                     FAN_SPEED_KEY, vendor_node_manual_ac_control_t->control.fanSpeed,
