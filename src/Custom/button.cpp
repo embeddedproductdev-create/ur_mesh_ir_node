@@ -35,8 +35,8 @@ void button_logic()
 {
     if (pressed_duration_array[0] != 0)
     {
-        ESP_LOGI(BUTTON_DEBUG_TAG, "pressed_duration_array[0] : %ld",pressed_duration_array[0]);
-        ESP_LOGI(BUTTON_DEBUG_TAG, "pressed_duration_array[1] : %ld",pressed_duration_array[1]);
+        ESP_LOGI(BUTTON_DEBUG_TAG, "pressed_duration_array[0] : %ld", pressed_duration_array[0]);
+        ESP_LOGI(BUTTON_DEBUG_TAG, "pressed_duration_array[1] : %ld", pressed_duration_array[1]);
         /* Single Press */
         if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
@@ -49,11 +49,14 @@ void button_logic()
         /* Double Press */
         else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
+#if (!IS_GWY)
             esp_ble_mesh_node_local_reset();
+#endif
+            factory_reset_device();
         }
 
         /* Button held for 3s - 8s */
-        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3 && pressed_duration_array[0] < ONE_SEC_IN_MS *8)
+        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3 && pressed_duration_array[0] < ONE_SEC_IN_MS * 8)
         {
             if (!teaching_mode && registered)
             {

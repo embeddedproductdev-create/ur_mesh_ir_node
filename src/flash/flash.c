@@ -43,6 +43,7 @@ void factory_reset_device()
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= FACTORY RESETTING DEVICE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
 
     registered = false;
+    provisioned = false;
     protocol_selected_num = -1;
     configured = false;
 
