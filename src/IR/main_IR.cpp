@@ -6,6 +6,7 @@
  * @date 2024-06-19
  * @copyright Copyright (c) 2024
  */
+#include "../../inc/Custom/main.h"
 #include "../../inc/IR/main_IR.h"
 #include "../../inc/LTE/LTE.h"
 #include "../../inc/LTE/mqtt.h"
@@ -785,23 +786,18 @@ void IR_receiver_task(void *args)
         }
         if (irrecv.decode(&results))
         {
-            char raw_buf_str[200];
-            strcpy(raw_buf_str, (char *)resultToHumanReadableBasic(&results, &protocol_detected).c_str());
+            resultToHumanReadableBasic(&results, &protocol_detected).c_str();
             String description = IRAcUtils::resultAcToString(&results);
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
 
-            if (LOG_DATA)
+            //Print out received IR signal
+            ESP_LOGI(IR_DEBUG_TAG, "IR RAW VALUES : { ");
+            for (uint16_t i = 0; i < results.rawlen; i++)
             {
-                printf("IR RAW VALUES : { ");
-                for (uint16_t i = 0; i < results.rawlen; i++)
-                {
-                    printf("%d, ", results.rawbuf[i]);
-                }
-                printf("}\n");
-                sprintf(ir_log_buffer, "%s", raw_buf_str);
-                white_printf(IR_DEBUG_TAG, ir_log_buffer);
+                printf("%d", results.rawbuf[i]);
             }
+            ESP_LOGI(IR_DEBUG_TAG, "}\n");
 
             if (description.length())
                 ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
@@ -809,20 +805,20 @@ void IR_receiver_task(void *args)
             /**
              * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
              * occur only if the following conditions are met
-             * 1) Device must be registered / configured
+             * 1) Device must be registered / provisioned
              * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
              * 3) Device must not be in teaching mode
              * 4) Locking feature must be enabled in Gwy AC Control Packet
              */
             // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
-            if ((registered || configured) &&
+            if ((registered || provisioned) &&
                 (protocol_detected == protocol_selected_num || (protocol_selected_num == RAW && teaching_mode_rawlen == results.rawlen)) &&
                 (gwy_ac_control_t.control.Locking || node_ac_control_t.control.Locking) &&
                 !teaching_mode)
                 locking_feature(result_description_char_str);
             else
             {
-                ESP_LOGI(IR_DEBUG_TAG, "registered | configured : %d", registered);
+                ESP_LOGI(IR_DEBUG_TAG, "registered | provisioned : %d | %d", registered, provisioned);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode_rawlen : %d | results.rawlen : %d", teaching_mode_rawlen, results.rawlen);
                 ESP_LOGI(IR_DEBUG_TAG, "gwy_ac_control_t.Locking : %d", gwy_ac_control_t.control.Locking);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode : %d", teaching_mode);

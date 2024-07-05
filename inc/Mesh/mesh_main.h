@@ -28,11 +28,12 @@ void node_mesh_main_init(void);
 void send_AC_configuration_ack_to_gwy();
 void send_provisioned_ack_to_gwy();
 void send_unprovisioned_ack_to_gwy();
+void send_node_ac_control_ack_to_gwy();
 void send_manual_ac_control_ack_to_gwy();
 void send_heartbeat_ack_to_gwy();
 void send_heartbeat_publish_configuration_ack_to_gwy();
+void send_teaching_mode_start_ack_to_gwy();
 void send_teaching_mode_end_ack_to_gwy();
-void send_node_ac_control_ack_to_gwy();
 void fill_element_addr_to_all_structures();
 void fetch_debug_info();
 

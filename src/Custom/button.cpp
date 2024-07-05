@@ -58,17 +58,22 @@ void button_logic()
         /* Button held for 3s - 8s */
         else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3 && pressed_duration_array[0] < ONE_SEC_IN_MS * 8)
         {
+#if (IS_GWY)
             if (!teaching_mode && registered)
+#endif
+#if(!IS_GWY)
+            if (!teaching_mode && provisioned)
+#endif
             {
                 teaching_mode = true;
                 teachMode_size_done = true;
-                green_printf(BUTTON_DEBUG_TAG, "Start of Teaching Mode (Due to Button press)");
+                ESP_LOGI(BUTTON_DEBUG_TAG, "Start of Teaching Mode (Due to Button press)");
             }
             else
             {
                 teaching_mode = false;
                 teachMode_size_done = false;
-                green_printf(BUTTON_DEBUG_TAG, "End of Teaching Mode (Due to Button Press)");
+                ESP_LOGI(BUTTON_DEBUG_TAG, "End of Teaching Mode (Due to Button Press)");
             }
         }
 
@@ -91,8 +96,8 @@ void calculate_button_press_time()
     releasedTime = esp_timer_get_time();
     pressedduration_ms = (releasedTime - pressedTime) / 1000;
     pressed_duration_array[pressed_duration_array_index++] = pressedduration_ms;
-    // sprintf(button_log_buffer, "=-=-=-=-=-=-=- Button held time in seconds : %ld =-=-=-=-=-=-=", pressed_duration_array[0]);
-    // custom_printf(BUTTON_DEBUG_TAG, button_log_buffer, BLUE);
+    sprintf(button_log_buffer, "=-=-=-=-=-=-=- Button held time in milliseconds : %ld =-=-=-=-=-=-=", pressed_duration_array[0]);
+    custom_printf(BUTTON_DEBUG_TAG, button_log_buffer, BLUE);
 }
 
 /**
@@ -105,14 +110,14 @@ void button_task(void *args)
     pinMode(USER_SWITCH, INPUT);
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(1);
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {
             calculate_button_press_time();
             // wait for a second button press within 500ms of first button press
             while (((esp_timer_get_time() - beginTime) / 1000) < HALF_SEC_IN_MS)
             {
-                vTaskDelay(pdMS_TO_TICKS(100));
+                vTaskDelay(1);
                 if (!digitalRead(USER_SWITCH))
                     calculate_button_press_time();
             }

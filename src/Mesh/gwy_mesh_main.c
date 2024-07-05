@@ -283,7 +283,6 @@ esp_ble_mesh_node_t *node = NULL;
 esp_err_t err;
 
 uint8_t binded = 0, prov = 0;
-bool Bind_fl = false;
 static struct esp_ble_mesh_key
 {
     uint16_t net_idx;
@@ -989,16 +988,6 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_prov_queue();
             vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PROV ACK | FROM ELEMADDR : %d", vendor_provision_t->base_data.elementAddr);
-            if (Bind_fl == true)
-            {
-                example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-                set.model_app_bind.element_addr = node->unicast_addr;
-                set.model_app_bind.model_app_idx = prov_key.app_idx;
-                set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
-                set.model_app_bind.company_id = 0xffff;
-                err = esp_ble_mesh_config_client_set_state(&common, &set);
-                Bind_fl = false;
-            }
             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
                 JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
@@ -1656,7 +1645,6 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             }
              if(set_conf)
             {
-                printf("bind sensor model");
                 example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
                 set.model_app_bind.element_addr = node->unicast_addr;
                 set.model_app_bind.model_app_idx = prov_key.app_idx;
@@ -1672,17 +1660,6 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
         {   
             esp_ble_mesh_sensor_client_cb_param_t params;
-
-            struct net_buf_simple temp_struct;
-
-            uint8_t temp_data[30]={0};
-
-            params.status_cb.sensor_status.marshalled_sensor_data=&temp_struct;
-
-            params.status_cb.sensor_status.marshalled_sensor_data->data=temp_data;
-
-            params.status_cb.sensor_status.marshalled_sensor_data->data[0]=103;
-
             store_data_to_node_structures(&params);
             ESP_LOGI(MESH_DEBUG_TAG, " Node reset successfull ");
             vTaskDelay(20);
@@ -1959,18 +1936,11 @@ void zero_out_match_arr_in_mesh()
 void send_prov_packet_to_node(prov_t *prov_packet)
 {
     uint8_t match[8] = {0xcd, 0xdc};
-    // ESP_LOGI(MESH_DEBUG_TAG, "Node provision packet send :");
     for (uint8_t i = 2; i < 8; i++)
     {
         match[i] = provision_t.macid[i - 2];
-        // ESP_LOGI(MESH_DEBUG_TAG, "Node provision mac id  : %0x", match[i]);
     }
     err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
-    // if (err != ESP_OK)
-    // {
-    //     ESP_LOGE(MESH_ERROR_TAG, "Failed to set matching device uuid");
-    // }
-    Bind_fl = true;
 }
 
 void send_unprov_packet_to_node(unprov_t *unprov_packet)
