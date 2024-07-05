@@ -111,6 +111,7 @@ void IR_transmit_setup()
 
 void IR_transmit(uint16_t protocol)
 {
+    ESP_LOGI(IR_DEBUG_TAG, "%d", xTaskGetSchedulerState());
     switch (protocol)
     {
     case RAW:
@@ -760,6 +761,42 @@ void locking_feature(char *result_description_char_str)
 }
 
 /**
+ * @brief Thread to call the IR_transmit function
+ * @param none
+ * @retval none
+ */
+void send_IR(void *args)
+{
+    irrecv.pause();
+    IR_transmit(protocol_selected_num);
+    sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
+    irrecv.resume();
+    needToSendIRComamnd = false;
+
+    //Must not let freeRTOS tasks to end. So, deleting before it could end.
+    vTaskDelete(NULL);
+}
+
+/**
+ * @brief Function that takes care of creating a High priority task for sending out IR
+ * @param none
+ * @retval none
+ */
+void create_IR_sending_task()
+{
+    TaskHandle_t IR_sending_task_handle;
+    BaseType_t xReturned;
+    xReturned = xTaskCreatePinnedToCore(send_IR, "send_IR_task", 2048, (void *)1, 10, &IR_sending_task_handle, CORE1);
+    if (xReturned != pdPASS)
+    {
+        perror("Error in taskCreate for IR Send task : ");
+        exit(FAILURE);
+    }
+    else ESP_LOGI(MAIN_DEBUG_TAG, "IR send task creation successful");
+    vTaskDelay(pdMS_TO_TICKS(1000));
+}
+
+/**
  * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
  * also takes care of the IR transmission part.
  * @param args
@@ -774,16 +811,8 @@ void IR_receiver_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-        if (esp_restart_flag)
-            ESP.restart();
-        if (needToSendIRComamnd)
-        {
-            irrecv.pause();
-            IR_transmit(protocol_selected_num);
-            sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
-            irrecv.resume();
-            needToSendIRComamnd = false;
-        }
+        if (esp_restart_flag) ESP.restart();
+        if (needToSendIRComamnd) create_IR_sending_task();
         if (irrecv.decode(&results))
         {
             resultToHumanReadableBasic(&results, &protocol_detected).c_str();
@@ -792,15 +821,14 @@ void IR_receiver_task(void *args)
             strcpy(result_description_char_str, (char *)description.c_str());
 
             //Print out received IR signal
-            ESP_LOGI(IR_DEBUG_TAG, "IR RAW VALUES : { ");
-            for (uint16_t i = 0; i < results.rawlen; i++)
-            {
-                printf("%d", results.rawbuf[i]);
-            }
-            ESP_LOGI(IR_DEBUG_TAG, "}\n");
+            // ESP_LOGI(IR_DEBUG_TAG, "IR RAW VALUES : { ");
+            // for (uint16_t i = 0; i < results.rawlen; i++)
+            // {
+            //     printf("%d, ", results.rawbuf[i]);
+            // }
+            // ESP_LOGI(IR_DEBUG_TAG, "}\n");
 
-            if (description.length())
-                ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
+            if (description.length()) ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
             
             /**
              * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
@@ -815,17 +843,19 @@ void IR_receiver_task(void *args)
                 (protocol_detected == protocol_selected_num || (protocol_selected_num == RAW && teaching_mode_rawlen == results.rawlen)) &&
                 (gwy_ac_control_t.control.Locking || node_ac_control_t.control.Locking) &&
                 !teaching_mode)
-                locking_feature(result_description_char_str);
+                ;
+                // locking_feature(result_description_char_str);
             else
             {
                 ESP_LOGI(IR_DEBUG_TAG, "registered | provisioned : %d | %d", registered, provisioned);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode_rawlen : %d | results.rawlen : %d", teaching_mode_rawlen, results.rawlen);
-                ESP_LOGI(IR_DEBUG_TAG, "gwy_ac_control_t.Locking : %d", gwy_ac_control_t.control.Locking);
+                ESP_LOGI(IR_DEBUG_TAG, "gwy_ac_control_t.Locking | node_ac_control_t.Locking: %d | %d", gwy_ac_control_t.control.Locking, node_ac_control_t.control.Locking);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode : %d", teaching_mode);
                 ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num == RAW && teaching_mode_rawlen == results.rawlen : %d", (protocol_selected_num == RAW) && (teaching_mode_rawlen == results.rawlen));
+                ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num : %d",protocol_selected_num);
             }
 
-            if (teaching_mode && registered)
+            if (teaching_mode)
             {
                 if (teaching_mode_rawlen == 0)
                 {

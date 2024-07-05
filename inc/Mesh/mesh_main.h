@@ -36,6 +36,8 @@ void send_teaching_mode_start_ack_to_gwy();
 void send_teaching_mode_end_ack_to_gwy();
 void fill_element_addr_to_all_structures();
 void fetch_debug_info();
+void provision_node();
+void unprovision_node();
 
 #ifdef __cplusplus
 }

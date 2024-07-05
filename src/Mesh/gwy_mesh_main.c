@@ -1044,164 +1044,15 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
                                               esp_ble_mesh_sensor_client_cb_param_t *param)
 {
-    esp_ble_mesh_node_t *node = NULL;
-
     if (LOG_DATA) ESP_LOGI(MESH_DEBUG_TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
-    // printf("json id,%d",param->status_cb.sensor_status.marshalled_sensor_data->data[0]);
-    // if( param->status_cb.sensor_status.marshalled_sensor_data->data[0]!=64 || first != true){
     store_data_to_node_structures(param);
-    // }
-    // else{
-    //     example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
-    //     set.model_app_bind.element_addr = node->unicast_addr;
-    //     set.model_app_bind.model_app_idx = prov_key.app_idx;
-    //     set.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
-    //     set.model_app_bind.company_id = 0xffff;
-    //     err = esp_ble_mesh_config_client_set_state(&common, &set);
-    // }
     if (param->error_code)
     {
         if(LOG_DATA) ESP_LOGE(MESH_ERROR_TAG, "Send sensor client message failed (err %d)", param->error_code);
         return;
     }
-
-    /* node = esp_ble_mesh_provisioner_get_node_with_addr(param->params->ctx.addr);
-     if (!node) {
-         ESP_LOGE(MESH_ERROR_TAG, "Node 0x%04x not exists", param->params->ctx.addr);
-         return;
-     }*/
-    // if(ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS==param->params->opcode)
-    {
-        if(LOG_DATA) ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
-                           param->status_cb.sensor_status.marshalled_sensor_data->len);
-    }
-
-    switch (event)
-    {
-    case ESP_BLE_MESH_SENSOR_CLIENT_GET_STATE_EVT:
-        switch (param->params->opcode)
-        {
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_DESCRIPTOR_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Descriptor Status, opcode 0x%04" PRIx32, param->params->ctx.recv_op);
-            if (param->status_cb.descriptor_status.descriptor->len != ESP_BLE_MESH_SENSOR_SETTING_PROPERTY_ID_LEN &&
-                param->status_cb.descriptor_status.descriptor->len % ESP_BLE_MESH_SENSOR_DESCRIPTOR_LEN)
-            {
-                ESP_LOGE(MESH_ERROR_TAG, "Invalid Sensor Descriptor Status length %d", param->status_cb.descriptor_status.descriptor->len);
-                return;
-            }
-            if (param->status_cb.descriptor_status.descriptor->len)
-            {
-                ESP_LOG_BUFFER_HEX("Sensor Descriptor", param->status_cb.descriptor_status.descriptor->data,
-                                   param->status_cb.descriptor_status.descriptor->len);
-                /* If running with sensor server example, sensor client can get two Sensor Property IDs.
-                 * Currently we use the first Sensor Property ID for the following demonstration.
-                 */
-                sensor_prop_id = param->status_cb.descriptor_status.descriptor->data[1] << 8 |
-                                 param->status_cb.descriptor_status.descriptor->data[0];
-            }
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Cadence Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.cadence_status.property_id);
-            ESP_LOG_BUFFER_HEX("Sensor Cadence", param->status_cb.cadence_status.sensor_cadence_value->data,
-                               param->status_cb.cadence_status.sensor_cadence_value->len);
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_SETTINGS_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Settings Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.settings_status.sensor_property_id);
-            ESP_LOG_BUFFER_HEX("Sensor Settings", param->status_cb.settings_status.sensor_setting_property_ids->data,
-                               param->status_cb.settings_status.sensor_setting_property_ids->len);
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_SETTING_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Setting Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x, Sensor Setting Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.setting_status.sensor_property_id,
-                     param->status_cb.setting_status.sensor_setting_property_id);
-            if (param->status_cb.setting_status.op_en)
-            {
-                ESP_LOGI(MESH_DEBUG_TAG, "Sensor Setting Access 0x%02x", param->status_cb.setting_status.sensor_setting_access);
-                ESP_LOG_BUFFER_HEX("Sensor Setting Raw", param->status_cb.setting_status.sensor_setting_raw->data,
-                                   param->status_cb.setting_status.sensor_setting_raw->len);
-            }
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Status, opcode 0x%04" PRIx32, param->params->ctx.recv_op);
-            if (param->status_cb.sensor_status.marshalled_sensor_data->len)
-            {
-                ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
-                                   param->status_cb.sensor_status.marshalled_sensor_data->len);
-                uint8_t *data = param->status_cb.sensor_status.marshalled_sensor_data->data;
-                uint16_t length = 0;
-                for (; length < param->status_cb.sensor_status.marshalled_sensor_data->len;)
-                {
-                    uint8_t fmt = ESP_BLE_MESH_GET_SENSOR_DATA_FORMAT(data);
-                    uint8_t data_len = ESP_BLE_MESH_GET_SENSOR_DATA_LENGTH(data, fmt);
-                    uint16_t prop_id = ESP_BLE_MESH_GET_SENSOR_DATA_PROPERTY_ID(data, fmt);
-                    uint8_t mpid_len = (fmt == ESP_BLE_MESH_SENSOR_DATA_FORMAT_A ? ESP_BLE_MESH_SENSOR_DATA_FORMAT_A_MPID_LEN : ESP_BLE_MESH_SENSOR_DATA_FORMAT_B_MPID_LEN);
-                    ESP_LOGI(MESH_DEBUG_TAG, "Format %s, length 0x%02x, Sensor Property ID 0x%04x",
-                             fmt == ESP_BLE_MESH_SENSOR_DATA_FORMAT_A ? "A" : "B", data_len, prop_id);
-                    if (data_len != ESP_BLE_MESH_SENSOR_DATA_ZERO_LEN)
-                    {
-                        ESP_LOG_BUFFER_HEX("Sensor Data", data + mpid_len, data_len + 1);
-                        length += mpid_len + data_len + 1;
-                        data += mpid_len + data_len + 1;
-                    }
-                    else
-                    {
-                        length += mpid_len;
-                        data += mpid_len;
-                    }
-                }
-            }
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_COLUMN_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Column Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.column_status.property_id);
-            ESP_LOG_BUFFER_HEX("Sensor Column", param->status_cb.column_status.sensor_column_value->data,
-                               param->status_cb.column_status.sensor_column_value->len);
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_SERIES_GET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Series Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.series_status.property_id);
-            ESP_LOG_BUFFER_HEX("Sensor Series", param->status_cb.series_status.sensor_series_value->data,
-                               param->status_cb.series_status.sensor_series_value->len);
-            break;
-        default:
-            ESP_LOGE(MESH_ERROR_TAG, "Unknown Sensor Get opcode 0x%04" PRIx32, param->params->ctx.recv_op);
-            break;
-        }
-        break;
-    case ESP_BLE_MESH_SENSOR_CLIENT_SET_STATE_EVT:
-        switch (param->params->opcode)
-        {
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_SET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Cadence Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.cadence_status.property_id);
-            ESP_LOG_BUFFER_HEX("Sensor Cadence", param->status_cb.cadence_status.sensor_cadence_value->data,
-                               param->status_cb.cadence_status.sensor_cadence_value->len);
-            break;
-        case ESP_BLE_MESH_MODEL_OP_SENSOR_SETTING_SET:
-            ESP_LOGI(MESH_DEBUG_TAG, "Sensor Setting Status, opcode 0x%04" PRIx32 ", Sensor Property ID 0x%04x, Sensor Setting Property ID 0x%04x",
-                     param->params->ctx.recv_op, param->status_cb.setting_status.sensor_property_id,
-                     param->status_cb.setting_status.sensor_setting_property_id);
-            if (param->status_cb.setting_status.op_en)
-            {
-                ESP_LOGI(MESH_DEBUG_TAG, "Sensor Setting Access 0x%02x", param->status_cb.setting_status.sensor_setting_access);
-                ESP_LOG_BUFFER_HEX("Sensor Setting Raw", param->status_cb.setting_status.sensor_setting_raw->data,
-                                   param->status_cb.setting_status.sensor_setting_raw->len);
-            }
-            break;
-        default:
-            ESP_LOGE(MESH_ERROR_TAG, "Unknown Sensor Set opcode 0x%04" PRIx32, param->params->ctx.recv_op);
-            break;
-        }
-        break;
-    case ESP_BLE_MESH_SENSOR_CLIENT_PUBLISH_EVT:
-        break;
-    case ESP_BLE_MESH_SENSOR_CLIENT_TIMEOUT_EVT:
-        example_ble_mesh_sensor_timeout(param->params->opcode);
-    default:
-        break;
-    }
+    if(LOG_DATA) ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
+                        param->status_cb.sensor_status.marshalled_sensor_data->len);
 }
 
 #ifdef CONFIG_BT_BLUEDROID_ENABLED
@@ -1569,11 +1420,6 @@ uint8_t set_conf = 0;
 static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t event,
                                               esp_ble_mesh_cfg_client_cb_param_t *param)
 {
-    // esp_ble_mesh_client_common_param_t common = {0};
-    // esp_ble_mesh_cfg_client_set_state_t set = {0};
-    // esp_ble_mesh_node_t *node = NULL;
-    // esp_err_t err;
-
     ESP_LOGI(MESH_DEBUG_TAG, "Config client, err_code %d, event %u, addr 0x%04x, opcode 0x%04" PRIx32,
              param->error_code, event, param->params->ctx.addr, param->params->opcode);
 
