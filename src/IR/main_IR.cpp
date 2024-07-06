@@ -175,7 +175,6 @@ void IR_transmit(uint16_t protocol)
         // If the mode is not "Cool", then we must only set mode. We must not try to set any other thing.
         if (gwy_ac_control_t.control.mode_val != COOL)
         {
-
             ac_daikin216.setMode(ac_daikin280.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
             ac_daikin216.send();
             return;
@@ -786,7 +785,7 @@ void create_IR_sending_task()
 {
     TaskHandle_t IR_sending_task_handle;
     BaseType_t xReturned;
-    xReturned = xTaskCreatePinnedToCore(send_IR, "send_IR_task", 2048, (void *)1, 10, &IR_sending_task_handle, CORE1);
+    xReturned = xTaskCreatePinnedToCore(send_IR, "send_IR_task", 8192, (void *)1, 10, &IR_sending_task_handle, CORE1);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for IR Send task : ");
@@ -821,12 +820,12 @@ void IR_receiver_task(void *args)
             strcpy(result_description_char_str, (char *)description.c_str());
 
             //Print out received IR signal
-            // ESP_LOGI(IR_DEBUG_TAG, "IR RAW VALUES : { ");
-            // for (uint16_t i = 0; i < results.rawlen; i++)
-            // {
-            //     printf("%d, ", results.rawbuf[i]);
-            // }
-            // ESP_LOGI(IR_DEBUG_TAG, "}\n");
+            ESP_LOGI(IR_DEBUG_TAG, "IR RAW VALUES : { ");
+            for (uint16_t i = 0; i < results.rawlen; i++)
+            {
+                printf("%d, ", results.rawbuf[i]);
+            }
+            ESP_LOGI(IR_DEBUG_TAG, "}\n");
 
             if (description.length()) ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
             

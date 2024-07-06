@@ -188,6 +188,17 @@ void fetch_from_flash()
     node_ac_control_t.control.Locking = eeprom_read_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR);
     node_ac_control_t.control.TempLockLowLimit = eeprom_read_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR);
     node_ac_control_t.control.TempLockUpLimit = eeprom_read_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR);
+
+    //Doing this unnecessary thing because, gwy_ac_control_t is being used at sending IR command
+    //Later we can fix this.
+    gwy_ac_control_t.control.power = node_ac_control_t.control.power;
+    strcpy(gwy_ac_control_t.control.mode_str,node_ac_control_t.control.mode_str);
+    gwy_ac_control_t.control.fanSpeed = node_ac_control_t.control.fanSpeed;
+    gwy_ac_control_t.control.temp = node_ac_control_t.control.temp;
+    gwy_ac_control_t.control.swingH = node_ac_control_t.control.swingH;
+    gwy_ac_control_t.control.swingV = node_ac_control_t.control.swingV;
+    gwy_ac_control_t.control.OnTimer = node_ac_control_t.control.OnTimer;
+    gwy_ac_control_t.control.OffTimer = node_ac_control_t.control.OffTimer;
 #endif
 }
 

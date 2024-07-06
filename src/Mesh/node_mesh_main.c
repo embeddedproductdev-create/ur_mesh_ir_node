@@ -950,15 +950,15 @@ static void store_data_to_node_structures()
         ESP_LOGI(MESH_DEBUG_TAG, "Node AC Control Packet");
         vendor_node_ac_control_t = BLE_recvd_data;
         node_ac_control_t = *vendor_node_ac_control_t;
-
+        gwy_ac_control_t = node_ac_control_t;
         //Error Checks
         if(strcmp(node_ac_control_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING) != 0) 
             node_ac_control_t.base_data.error_code = NODE_SER_NO_INVALID;
         if (!configured) 
             node_ac_control_t.base_data.error_code = NODE_NOT_CONFIGURED_WITH_AC_REMOTE;
-        
+       
         //Store AC Settings to Flash
-        eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, node_ac_control_t.control.OffTimer);
+        eeprom_write_byte(EEPROM_SLAVE_ADDR, POWER_FLASH_ADDR, node_ac_control_t.control.power);
         vTaskDelay(pdMS_TO_TICKS(5));
         eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, node_ac_control_t.control.mode_val);
         vTaskDelay(pdMS_TO_TICKS(5));
