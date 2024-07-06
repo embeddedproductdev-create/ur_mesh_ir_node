@@ -849,15 +849,8 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
                       param->node_prov_complete.flags, param->node_prov_complete.iv_index);
         break;
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
-        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
-        send_unprovisioned_ack_to_gwy();
-        esp_ble_mesh_node_local_reset();
-        provisioned = false;
-        ELEMENT_ADDR = 0;
-        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
-        vTaskDelay(pdMS_TO_TICKS(5));
-        vTaskDelay(pdMS_TO_TICKS(100));
-        esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+        ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT - from prov callback");
+        factory_reset_device();
         break;
     case ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT:
         ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT, err_code %d", param->node_set_unprov_dev_name_comp.err_code);
@@ -909,26 +902,13 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                      param->value.state_change.mod_app_bind.app_idx,
                      param->value.state_change.mod_app_bind.company_id,
                      param->value.state_change.mod_app_bind.model_id);
-            provisioned=true;
             prov_key.app_idx=param->value.state_change.mod_app_bind.app_idx;
-
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0X00);
-            vTaskDelay(pdMS_TO_TICKS(5));
-            fill_element_addr_to_all_structures();
-            send_provisioned_ack_to_gwy();
+            provision_node();
             break;
 
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
-            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET");
-            op_bind_counter = 0;
-            send_unprovisioned_ack_to_gwy();
-            esp_ble_mesh_node_local_reset();
-            provisioned = false;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0XFF);
-            vTaskDelay(pdMS_TO_TICKS(5));
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, false);
-            vTaskDelay(pdMS_TO_TICKS(100));
-            esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+            ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET - from config callback");
+            // unprovision_node();
             break;
 
         case ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET:
@@ -1205,6 +1185,7 @@ void send_provisioned_ack_to_gwy()
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Provisioning ACK to Gwy");
     provision_t.base_data.json_packet_id = NODE_PROV_PACKET;
     provision_t.base_data.elementAddr = ELEMENT_ADDR;
+    strcpy(provision_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &provision_t;
     example_ble_mesh_send_sensor_status();
 }
@@ -1327,6 +1308,19 @@ void send_teaching_mode_start_ack_to_gwy()
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Node Teaching Mode Start ACK to Gwy");
     sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;
     example_ble_mesh_send_sensor_status();
+}
+
+/**
+ * @brief Function that takes care of all housekeeping of provisioning node
+ * @param none
+ * @retval none
+ */
+void provision_node()
+{
+    provisioned=true;
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0X00);
+    fill_element_addr_to_all_structures();
+    send_provisioned_ack_to_gwy();
 }
 
 #endif

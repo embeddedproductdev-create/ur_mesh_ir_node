@@ -43,13 +43,14 @@ void factory_reset_device()
     ESP_LOGI(MAIN_DEBUG_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= FACTORY RESETTING DEVICE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
 
     registered = false;
-    protocol_selected_num = -1;
+    provisioned = false;
     configured = false;
+    protocol_selected_num = -1;
 
     // Serial Number
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, 0);
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, 0);
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, 0);
+    // eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, 0);
+    // eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, 0);
+    // eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, 0);
 
 #if (IS_GWY)
     // Registered
