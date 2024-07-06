@@ -1589,7 +1589,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         ESP_LOGE(MESH_ERROR_TAG, "Failed to get node 0x%04x info", param->params->ctx.addr);
         return;
     }
-    ESP_LOGW(TAG, " config client event %d ", event);
+    //ESP_LOGW(TAG, " config client event %u ", event);
     switch (event)
     {
     case ESP_BLE_MESH_CFG_CLIENT_GET_STATE_EVT:
@@ -1660,8 +1660,16 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
         {   
             esp_ble_mesh_sensor_client_cb_param_t params;
-            store_data_to_node_structures(&params);
-            ESP_LOGI(MESH_DEBUG_TAG, " Node reset successfull ");
+            // //esp_ble_mesh_sensor_client_cb_param_t
+            struct net_buf_simple marshmell;
+            uint8_t data[130];
+            uint16_t element_addr = param->params->ctx.addr;
+            data[0]=NODE_UNPROV_PACKET;
+            params.status_cb.sensor_status.marshalled_sensor_data=&marshmell;
+            params.status_cb.sensor_status.marshalled_sensor_data->data=data;
+
+            //store_data_to_node_structures(&params);
+            ESP_LOGI(MESH_DEBUG_TAG, " Node reset successfull addr %d",element_addr);
             vTaskDelay(20);
         }
         else
