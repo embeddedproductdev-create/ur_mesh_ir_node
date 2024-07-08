@@ -988,12 +988,13 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_prov_queue();
             vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PROV ACK | FROM ELEMADDR : %d", vendor_provision_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
                 JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
                 MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
+                MAC_ID_KEY, vendor_provision_t->macid,
                 ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
                 LOCATION_KEY, vendor_provision_t->location,
                 APP_KEY_INDEX, vendor_provision_t->appindex,

@@ -80,7 +80,7 @@ void factory_reset_device()
     eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR, 0);
     eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR, 0);
     eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR, 0);
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, 0);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR, 0);
     eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR, 0);
     eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR, 0);
     eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR, 0);

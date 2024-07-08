@@ -40,11 +40,10 @@ void button_logic()
         /* Single Press */
         if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
-            // if (LOG_DATA)
-            //     LOG_DATA = false;
-            // else
-            //     LOG_DATA = true;
-            needToSendIRComamnd=true;
+            if (LOG_DATA)
+                LOG_DATA = false;
+            else
+                LOG_DATA = true;
         }
 
         /* Double Press */

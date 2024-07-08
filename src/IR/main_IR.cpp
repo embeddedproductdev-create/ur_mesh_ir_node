@@ -111,7 +111,6 @@ void IR_transmit_setup()
 
 void IR_transmit(uint16_t protocol)
 {
-    ESP_LOGI(IR_DEBUG_TAG, "%d", xTaskGetSchedulerState());
     switch (protocol)
     {
     case RAW:
