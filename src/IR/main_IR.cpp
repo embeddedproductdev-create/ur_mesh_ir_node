@@ -841,8 +841,7 @@ void IR_receiver_task(void *args)
                 (protocol_detected == protocol_selected_num || (protocol_selected_num == RAW && teaching_mode_rawlen == results.rawlen)) &&
                 (gwy_ac_control_t.control.Locking || node_ac_control_t.control.Locking) &&
                 !teaching_mode)
-                ;
-                // locking_feature(result_description_char_str);
+                locking_feature(result_description_char_str);
             else
             {
                 ESP_LOGI(IR_DEBUG_TAG, "registered | provisioned : %d | %d", registered, provisioned);

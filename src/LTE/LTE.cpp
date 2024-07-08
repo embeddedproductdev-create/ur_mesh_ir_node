@@ -118,7 +118,6 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
 		if (length > 0)
 		{
-			printf("%s",LTE_UART_data);
 			//reset the counters
 			rotate_client_index_counter = 0; 
 			long_run_issue_counter = 0;
@@ -614,8 +613,8 @@ void LTE_task(void *args)
 	basic_LTE_checks();
 	MQTT_config();
 	// send_cmd_and_check_response(LOG_DATA, TURN_OFF_ECHO_CMD, "TURN_OFF_ECHO_CMD", OK_RESPONSE, 100);
-	while(!send_cmd_and_check_response(LOG_DATA, "AT+QLTS=2\r\n", "GET LOCAL TIME", "+QLTS:", 300)){
-	vTaskDelay(1);}
+	// while(!send_cmd_and_check_response(LOG_DATA, "AT+QLTS=2\r\n", "GET LOCAL TIME", "+QLTS:", 300)){
+	// vTaskDelay(1);
 	while(1)
 	{
 		vTaskDelay(1);
