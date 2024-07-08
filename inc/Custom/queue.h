@@ -33,6 +33,7 @@ extern "C"
     void add_to_unprov_queue();
     uint8_t get_unprov_queue_count(unprov_t *);
     void maintain_unprov_queue();
+    void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr);
 
     //Node AC control
     void remove_from_ac_control_queue();

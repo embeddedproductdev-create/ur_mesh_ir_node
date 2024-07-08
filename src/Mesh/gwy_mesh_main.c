@@ -1518,6 +1518,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             //store_data_to_node_structures(&params);
             ESP_LOGI(MESH_DEBUG_TAG, " Node reset successfull addr %d",element_addr);
             vTaskDelay(20);
+            remove_from_unprov_queue_based_on_elemaddr(element_addr);
         }
         else
             break;

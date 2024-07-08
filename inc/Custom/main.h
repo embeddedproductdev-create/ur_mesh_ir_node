@@ -64,20 +64,20 @@
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY false
+#define IS_GWY true
 #define CLIENT_RELEASE false
 /*====================================================================*/
 
 #if(IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 5
+#define INTERNAL_MIN_VERSION 6
 #endif
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 5
+#define INTERNAL_MIN_VERSION 6
 #endif
 
 #define TAG "UART"

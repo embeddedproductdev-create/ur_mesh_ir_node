@@ -324,6 +324,32 @@ void maintain_ac_control_queue()
 
 /*-----------------------------------------------------------------------------------------*/
 
+void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr)
+{
+	prov_t *head = prov_queue_head;
+	while(head!=NULL)
+	{
+		if(head->base_data.elementAddr == elementAddr)
+		{
+			//remove from first
+			if(head->prev == NULL) remove_from_prov_queue();
+
+			//remove from last
+			if(head->next == NULL) {
+				head->prev->next = NULL;
+				free(head);
+			}
+
+			//remove from middle
+			head->prev->next = head->next;
+			head->next->prev = head->prev;
+			free(head);
+			
+		}
+		head = head->next;
+	}
+}
+
 void remove_from_unprov_queue()
 {
 	if (unprov_queue_head == NULL)

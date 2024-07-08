@@ -50,9 +50,6 @@ void button_logic()
         else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
             factory_reset_device();
-#if (!IS_GWY)
-            esp_ble_mesh_node_local_reset();
-#endif
         }
 
         /* Button held for 3s - 8s */

@@ -908,7 +908,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
 
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
             ESP_LOGI(MESH_DEBUG_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET - from config callback");
-            // unprovision_node();
+            unprovision_node();
             break;
 
         case ESP_BLE_MESH_MODEL_OP_HEARTBEAT_PUB_SET:
@@ -1323,4 +1323,10 @@ void provision_node()
     send_provisioned_ack_to_gwy();
 }
 
+void unprovision_node()
+{
+    ESP_LOGI(MESH_DEBUG_TAG, "Unprovisioning Node ...");
+    esp_ble_mesh_node_local_reset();
+    esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+}
 #endif
