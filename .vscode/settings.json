@@ -58,5 +58,6 @@
   },
   "editor.wordWrap": "off",
   "doxdocgen.generic.authorName": "Kulasekaran",
-  "doxdocgen.generic.authorEmail": "kulasekaran@qmaxsys.com"
+  "doxdocgen.generic.authorEmail": "kulasekaran@qmaxsys.com",
+  "C_Cpp.dimInactiveRegions": false
 }
