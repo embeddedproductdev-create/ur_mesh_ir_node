@@ -44,6 +44,7 @@ extern uint16_t teaching_mode_rawlen;
 /* FUNCTION DECLARATIONS - RECEIVER */
 void IR_receiver_task(void *args);
 void fetch_data_from_manual_control(char *input_string);
+char* get_protocol_string(uint16_t protocol);
 
 /* FUNCTION DECLARATIONS - TRANMSMITTER */
 void IR_transmit_setup();

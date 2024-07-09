@@ -920,7 +920,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_debug_info_queue();
             vendor_node_debug_info_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO ACK | FROM ELEMADDR : %d", vendor_node_debug_info_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
                 JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
                 MSG_SEQ_NO_KEY, vendor_node_debug_info_t->base_data.msg_seq_no,
@@ -928,7 +928,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                 NODE_SER_NO_KEY, vendor_node_debug_info_t->base_data.node_ser_no_str,
                 ELEMENT_ADDR_KEY, vendor_node_debug_info_t->base_data.elementAddr,
                 FIRMWARE_VERSION_KEY, vendor_node_debug_info_t->firmware,
-                PROTOCOL_SEL_NUM_KEY, vendor_node_debug_info_t->protocol,
+                PROTOCOL_SEL_NUM_KEY, get_protocol_string(vendor_node_debug_info_t->protocol),
                 DEVICE_UPTIME_KEY, vendor_node_debug_info_t->uptimestr,
                 LOGGING_KEY, vendor_node_debug_info_t->logging,
                 RESET_DEVICE_KEY, vendor_node_debug_info_t->resetDevice,

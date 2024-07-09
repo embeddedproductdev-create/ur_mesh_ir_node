@@ -23,7 +23,7 @@ uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
 uint32_t GWY_SER_NO=2;
-uint32_t NODE_SER_NO=2;
+uint32_t NODE_SER_NO=3;
 #endif
 
 char GWY_SER_NO_IN_STRING[15];
@@ -284,7 +284,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "General:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
-    ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %d", protocol_selected_num);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %s", get_protocol_string(protocol_selected_num));
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", gwy_pub_conf_t.pub_conf_period_in_sec);
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", gwy_ac_control_t.control.power);
@@ -318,7 +318,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "General:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tProvisioned         : %d", provisioned);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
-    ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %d", protocol_selected_num);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %s", get_protocol_string(protocol_selected_num));
     ESP_LOGI(MAIN_DEBUG_TAG, "\tElementAddr         : %d", node_ac_control_t.base_data.elementAddr);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");

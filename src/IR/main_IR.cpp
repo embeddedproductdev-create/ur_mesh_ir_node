@@ -109,6 +109,80 @@ void IR_transmit_setup()
     ac_custom.begin();
 }
 
+char* get_protocol_string(uint16_t protocol)
+{
+    switch(protocol)
+    {
+        case RAW:
+            return "RAW";
+        case DAIKIN:
+            return "DAIKIN280";
+        case DAIKIN200:
+            return "DAIKIN200";
+        case DAIKIN216:
+            return "DAIKIN216";
+        case DAIKIN2:
+            return "DAIKIN2";
+        case DAIKIN160:
+            return "DAIKIN160";
+        case DAIKIN176:
+            return "DAIKIN176";
+        case DAIKIN64:
+            return "DAIKIN64";
+        case DAIKIN152:
+            return "DAIKIN152";
+        case DAIKIN128:
+            return "DAIKIN128";
+        case HITACHI_AC296:
+            return "HITACHI_AC296";
+        case HITACHI_AC:
+            return "HITACHI_AC";
+        case HITACHI_AC1:
+            return "HITACHI_AC1";
+        case HITACHI_AC424:
+            return "HITACHI_AC424";
+        case HITACHI_AC344:
+            return "HITACHI_AC344";
+        case HITACHI_AC264:
+            return "HITACHI_AC264";
+        case VOLTAS:
+            return "VOLTAS";
+        case SAMSUNG_AC:
+            return "SAMSUNG_AC";
+        case HAIER_AC:
+            return "HAIER_AC";
+        case HAIER_AC176:
+            return "HAIER_AC176";
+        case HAIER_AC160:
+            return "HAIER_AC160";
+        case CARRIER_AC64:
+            return "CARRIER_AC64";
+        case LG2:
+            return "LG2";
+        case LG:
+            return "LG";
+        case TOSHIBA_AC:
+            return "TOSHIBA_AC";
+        case MITSUBISHI112:
+            return "MITSUBISHI112";
+        case MITSUBISHI136:
+            return "MITSUBISHI136";
+        case MITSUBISHI_AC:
+            return "MITSUBISHI_AC";
+        case MITSUBISHI_HEAVY_88:
+            return "MITSUBISHI_HEAVY_88";
+        case MITSUBISHI_HEAVY_152:
+            return "MITSUBISHI_HEAVY_152";
+        case UNKNOWN:  
+            return "UNKNOWN";
+        case UNUSED:
+            return "UNUSED";
+        default:
+            return "INVALID";
+    }
+    return "";
+}
+
 void IR_transmit(uint16_t protocol)
 {
     switch (protocol)

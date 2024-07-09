@@ -168,6 +168,7 @@ static void publish_temperature_cb(void *arg)
 
 #if (!IS_GWY)
     if (provisioned)
+        node_heartbeat_t.measured_temperature = measured_temperature;
         send_heartbeat_ack_to_gwy();
 #endif
 }

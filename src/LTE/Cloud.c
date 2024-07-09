@@ -518,14 +518,14 @@ void handle_sending_ack_to_cloud(uint8_t json_id)
         custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
         sprintf(gwy_debug_info_t.firmware, "%d.%d.%d", MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
         sprintf(gwy_debug_info_t.uptimestr, "%0.2f", (esp_timer_get_time() / (3600.00 * 1000000.00)));
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
                 JSON_PACKET_ID_KEY, GWY_DEBUG_INFO_PACKET,
                 JSON_ACK_NAME_KEY, GWY_DEBUG_INFO_ACK_NAME,
                 MSG_SEQ_NO_KEY, gwy_debug_info_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, gwy_debug_info_t.base_data.gwy_ser_no_str,
                 FIRMWARE_VERSION_KEY, gwy_debug_info_t.firmware,
                 REGISTERED_KEY, registered,
-                PROTOCOL_SEL_NUM_KEY, protocol_selected_num,
+                PROTOCOL_SEL_NUM_KEY, get_protocol_string(protocol_selected_num),
                 PUBLISH_MESG_QUEUE_COUNT_KEY, get_pubmesg_queue_count(pubmesg_queue_head),
                 PROV_QUEUE_COUNT_KEY, get_prov_queue_count(prov_queue_head),
                 UNPROV_QUEUE_COUNT_KEY, get_unprov_queue_count(unprov_queue_head),
