@@ -47,6 +47,7 @@ void fill_macid()
 {
     char macid[17];
     strcpy(macid, cJSON_GetObjectItem(json_packet_j, MAC_ID_KEY)->valuestring);
+    strcpy(provision_t.macid_str, macid);
     // printf("MAC ID recvd from cloud: %s\n", macid);
     char hex_char_str[2];
     for (uint8_t index = 0, i = 0; index < 6; index++, i += 3)

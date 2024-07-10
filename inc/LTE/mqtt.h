@@ -182,6 +182,7 @@ typedef struct prov_struct
 	struct base_data_t base_data;
 	char location[LOCATION_STR_LEN];
 	uint8_t macid[6];
+	char macid_str[17];
 	struct prov_struct *next;
 	struct prov_struct *prev;
 	uint8_t appkey[16];

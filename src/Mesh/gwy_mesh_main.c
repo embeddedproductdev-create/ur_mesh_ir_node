@@ -991,12 +991,12 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
                 JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
-                MSG_SEQ_NO_KEY, vendor_provision_t->base_data.msg_seq_no,
+                MSG_SEQ_NO_KEY, provision_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                NODE_SER_NO_KEY, vendor_provision_t->base_data.node_ser_no_str,
-                MAC_ID_KEY, vendor_provision_t->macid,
+                NODE_SER_NO_KEY, provision_t.base_data.node_ser_no_str,
+                MAC_ID_KEY, provision_t.macid_str,
                 ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
-                LOCATION_KEY, vendor_provision_t->location,
+                LOCATION_KEY, provision_t.location,
                 APP_KEY_INDEX, vendor_provision_t->appindex,
                 APP_KEY, vendor_provision_t->appkey,
                 NET_KEY_INDEX, vendor_provision_t->netindex,
@@ -1005,18 +1005,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             break;
 
         case NODE_UNPROV_PACKET:
-            remove_from_unprov_queue();
-            vendor_unprovision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
-            ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", vendor_unprovision_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
-                JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-                JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
-                MSG_SEQ_NO_KEY, vendor_unprovision_t->base_data.msg_seq_no,
-                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                NODE_SER_NO_KEY, vendor_unprovision_t->base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, vendor_unprovision_t->base_data.elementAddr,
-                LOCATION_KEY, vendor_unprovision_t->location,
-                ERROR_CODE_KEY, vendor_unprovision_t->base_data.error_code);
+            //this is a special case handled by a the prov/unprov callback. 
             break;
 
         case NODE_CONF_PACKET:
@@ -1506,6 +1495,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         }
         else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
         {   
+            char pubmessage[PUBMESG_LEN];
             esp_ble_mesh_sensor_client_cb_param_t params;
             // //esp_ble_mesh_sensor_client_cb_param_t
             struct net_buf_simple marshmell;
@@ -1514,9 +1504,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             data[0]=NODE_UNPROV_PACKET;
             params.status_cb.sensor_status.marshalled_sensor_data=&marshmell;
             params.status_cb.sensor_status.marshalled_sensor_data->data=data;
-
-            //store_data_to_node_structures(&params);
-            ESP_LOGI(MESH_DEBUG_TAG, " Node reset successfull addr %d",element_addr);
+            ESP_LOGI(MESH_DEBUG_TAG, "NODE UNPROV ACK | FROM ELEMADDR : %d", element_addr);
             vTaskDelay(20);
             remove_from_unprov_queue_based_on_elemaddr(element_addr);
         }

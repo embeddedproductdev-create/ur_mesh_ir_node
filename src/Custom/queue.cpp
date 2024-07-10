@@ -331,16 +331,32 @@ void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr)
 	{
 		if(head->base_data.elementAddr == elementAddr)
 		{
+			//Let's send the ACK first 
+			char pubmessage[PUBMESG_LEN];
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+                JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
+                JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
+                MSG_SEQ_NO_KEY, head->base_data.msg_seq_no,
+                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                NODE_SER_NO_KEY, head->base_data.node_ser_no_str,
+                ELEMENT_ADDR_KEY, head->base_data.elementAddr,
+                LOCATION_KEY, head->location,
+                ERROR_CODE_KEY, head->base_data.error_code);
+			add_to_pubmesg_queue(pubmessage, publish_topic);
+
 			//remove from first
+			ESP_LOGI(QUEUE_DEBUG_TAG, "Removing from first (%d)", elementAddr);
 			if(head->prev == NULL) remove_from_prov_queue();
 
 			//remove from last
+			ESP_LOGI(QUEUE_DEBUG_TAG, "Removing from last (%d)", elementAddr);
 			if(head->next == NULL) {
 				head->prev->next = NULL;
 				free(head);
 			}
 
 			//remove from middle
+			ESP_LOGI(QUEUE_DEBUG_TAG, "Removing from Middle (%d)", elementAddr);
 			head->prev->next = head->next;
 			head->next->prev = head->prev;
 			free(head);
