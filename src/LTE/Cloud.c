@@ -822,6 +822,10 @@ char *get_err_string(int16_t err_code)
         return "PUBLISH_PERIOD_NOT_FOUND";
     case PUBLISH_PERIOD_EXCEEDS_RANGE:
         return "PUBLISH_PERIOD_EXCEEDS_RANGE";
+    case RESET_DEVICE_NOT_FOUND:
+        return "RESET_DEVICE_NOT_FOUND";
+    case LOGGING_FLAG_NOT_FOUND:
+        return "LOGGING_FLAG_NOT_FOUND";
     case FORBIDDEN_OPERATION:
         return "FORBIDDEN_OPERATION";
     }

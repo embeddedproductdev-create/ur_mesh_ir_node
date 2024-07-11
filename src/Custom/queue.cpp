@@ -326,7 +326,7 @@ void maintain_ac_control_queue()
 
 void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr)
 {
-	prov_t *head = prov_queue_head;
+	unprov_t *head = unprov_queue_head;
 	while(head!=NULL)
 	{
 		if(head->base_data.elementAddr == elementAddr)
@@ -346,13 +346,17 @@ void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr)
 
 			//remove from first
 			ESP_LOGI(QUEUE_DEBUG_TAG, "Removing from first (%d)", elementAddr);
-			if(head->prev == NULL) remove_from_prov_queue();
+			if(head->prev == NULL) {
+				remove_from_unprov_queue();
+				return;
+			}
 
 			//remove from last
 			ESP_LOGI(QUEUE_DEBUG_TAG, "Removing from last (%d)", elementAddr);
 			if(head->next == NULL) {
 				head->prev->next = NULL;
 				free(head);
+				return;
 			}
 
 			//remove from middle

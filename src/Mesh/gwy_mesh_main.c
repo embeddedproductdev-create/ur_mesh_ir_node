@@ -1795,7 +1795,6 @@ void send_unprov_packet_to_node(unprov_t *unprov_packet)
     node.unicast_addr = unprov_packet->base_data.elementAddr;
     example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
     set_rst.model_app_bind.element_addr = unprov_packet->base_data.elementAddr;
-    ESP_LOGI(MESH_DEBUG_TAG, " addr to unprov%d", set_rst.model_app_bind.element_addr);
     set_rst.model_app_bind.model_app_idx = prov_key.app_idx;
     set_rst.model_app_bind.company_id = CID_ESP;
     err = esp_ble_mesh_config_client_set_state(&common, &set_rst);

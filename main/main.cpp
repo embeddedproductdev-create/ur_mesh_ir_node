@@ -191,14 +191,7 @@ void fetch_from_flash()
 
     //Doing this unnecessary thing because, gwy_ac_control_t is being used at sending IR command
     //Later we can fix this.
-    gwy_ac_control_t.control.power = node_ac_control_t.control.power;
-    strcpy(gwy_ac_control_t.control.mode_str,node_ac_control_t.control.mode_str);
-    gwy_ac_control_t.control.fanSpeed = node_ac_control_t.control.fanSpeed;
-    gwy_ac_control_t.control.temp = node_ac_control_t.control.temp;
-    gwy_ac_control_t.control.swingH = node_ac_control_t.control.swingH;
-    gwy_ac_control_t.control.swingV = node_ac_control_t.control.swingV;
-    gwy_ac_control_t.control.OnTimer = node_ac_control_t.control.OnTimer;
-    gwy_ac_control_t.control.OffTimer = node_ac_control_t.control.OffTimer;
+    gwy_ac_control_t = node_ac_control_t;
 #endif
 }
 

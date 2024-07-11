@@ -185,6 +185,7 @@ char* get_protocol_string(uint16_t protocol)
 
 void IR_transmit(uint16_t protocol)
 {
+    vTaskSuspendAll();
     switch (protocol)
     {
     case RAW:
@@ -636,6 +637,7 @@ void IR_transmit(uint16_t protocol)
         printf("Error in choosing the protocol for send");
         break;
     }
+    xTaskResumeAll();
 }
 
 /**
@@ -833,42 +835,6 @@ void locking_feature(char *result_description_char_str)
 }
 
 /**
- * @brief Thread to call the IR_transmit function
- * @param none
- * @retval none
- */
-void send_IR(void *args)
-{
-    irrecv.pause();
-    IR_transmit(protocol_selected_num);
-    sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
-    irrecv.resume();
-    needToSendIRComamnd = false;
-
-    //Must not let freeRTOS tasks to end. So, deleting before it could end.
-    vTaskDelete(NULL);
-}
-
-/**
- * @brief Function that takes care of creating a High priority task for sending out IR
- * @param none
- * @retval none
- */
-void create_IR_sending_task()
-{
-    TaskHandle_t IR_sending_task_handle;
-    BaseType_t xReturned;
-    xReturned = xTaskCreatePinnedToCore(send_IR, "send_IR_task", 8192, (void *)1, 10, &IR_sending_task_handle, CORE1);
-    if (xReturned != pdPASS)
-    {
-        perror("Error in taskCreate for IR Send task : ");
-        exit(FAILURE);
-    }
-    else ESP_LOGI(MAIN_DEBUG_TAG, "IR send task creation successful");
-    vTaskDelay(pdMS_TO_TICKS(1000));
-}
-
-/**
  * @brief Thread task that handles the IR signals received. Detects and sets the IR tranmsmission protocol
  * also takes care of the IR transmission part.
  * @param args
@@ -882,9 +848,14 @@ void IR_receiver_task(void *args)
     irrecv.enableIRIn();
     while (1)
     {
-        vTaskDelay(1);
         if (esp_restart_flag) ESP.restart();
-        if (needToSendIRComamnd) create_IR_sending_task();
+        if (needToSendIRComamnd) {
+            irrecv.pause();
+            IR_transmit(protocol_selected_num);
+            sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
+            irrecv.resume();
+            needToSendIRComamnd = false;
+        }
         if (irrecv.decode(&results))
         {
             resultToHumanReadableBasic(&results, &protocol_detected).c_str();
@@ -1027,6 +998,7 @@ void IR_receiver_task(void *args)
                 continue;
             }
         }
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
     vTaskDelete(NULL);
 }

@@ -35,63 +35,63 @@ let randNum = Math.floor((Math.random() * 65535) + 1);
 let Gwybasejson = {
     "JsonPacketID": msg.payload,
     "MsgSeqNo": randNum,
-    "GwySerNo": global.get("GwySerNo"),
+    "GwySerNo": flow.get("GwySerNo"),
 };
 
 let Nodebasejson = {
     "JsonPacketID": msg.payload,
     "MsgSeqNo": randNum,
-    "GwySerNo": global.get("GwySerNo"),
-    "NodeSerNo": global.get("NodeSerNo"),
-    "ElementAddr": global.get("ElementAddr"),
+    "GwySerNo": flow.get("GwySerNo"),
+    "NodeSerNo": flow.get("NodeSerNo"),
+    "ElementAddr": flow.get("ElementAddr"),
 }
 
 let json, mergedjson;
 switch (msg.payload) {
     case json_packet_enum.NODE_AC_CONTROL_PACKET:
         json = {
-            "Power": global.get("Power"),
-            "Temperature": global.get("Temperature"),
-            "FanSpeed": global.get("FanSpeed"),
-            "Mode": global.get("Mode"),
-            "SwingH": global.get("SwingH"),
-            "SwingV": global.get("SwingV"),
-            "Locking": global.get("Locking"),
-            "OnTimer": global.get("OnTimer"),
-            "OffTimer": global.get("OffTimer"),
-            "TempLockUpLimit": global.get("TempLockUpLimit"),
-            "TempLockLowLimit": global.get("TempLockLowLimit")
+            "Power": flow.get("Power"),
+            "Temperature": flow.get("Temperature"),
+            "FanSpeed": flow.get("FanSpeed"),
+            "Mode": flow.get("Mode"),
+            "SwingH": flow.get("SwingH"),
+            "SwingV": flow.get("SwingV"),
+            "Locking": flow.get("Locking"),
+            "OnTimer": flow.get("OnTimer"),
+            "OffTimer": flow.get("OffTimer"),
+            "TempLockUpLimit": flow.get("TempLockUpLimit"),
+            "TempLockLowLimit": flow.get("TempLockLowLimit")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
     case json_packet_enum.GWY_AC_CONTROL_PACKET:
         json = {
-            "Power": global.get("Power"),
-            "Temperature": global.get("Temperature"),
-            "FanSpeed": global.get("FanSpeed"),
-            "Mode": global.get("Mode"),
-            "SwingH": global.get("SwingH"),
-            "SwingV": global.get("SwingV"),
-            "Locking": global.get("Locking"),
-            "OnTimer": global.get("OnTimer"),
-            "OffTimer": global.get("OffTimer"),
-            "TempLockUpLimit": global.get("TempLockUpLimit"),
-            "TempLockLowLimit": global.get("TempLockLowLimit")
+            "Power": flow.get("Power"),
+            "Temperature": flow.get("Temperature"),
+            "FanSpeed": flow.get("FanSpeed"),
+            "Mode": flow.get("Mode"),
+            "SwingH": flow.get("SwingH"),
+            "SwingV": flow.get("SwingV"),
+            "Locking": flow.get("Locking"),
+            "OnTimer": flow.get("OnTimer"),
+            "OffTimer": flow.get("OffTimer"),
+            "TempLockUpLimit": flow.get("TempLockUpLimit"),
+            "TempLockLowLimit": flow.get("TempLockLowLimit")
         };
         msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
 
     case json_packet_enum.NODE_HEARTBEAT_PUB_CONF_PACKET:
         json = {
-            "PublishPeriodSec": global.get("NodePublishPeriod")
+            "PublishPeriodSec": flow.get("NodePublishPeriod")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
     case json_packet_enum.GWY_HEARTBEAT_PUB_CONF_PACKET:
         json = {
-            "PublishPeriodSec": global.get("GwyPublishPeriod")
+            "PublishPeriodSec": flow.get("GwyPublishPeriod")
         };
         msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
@@ -100,49 +100,60 @@ switch (msg.payload) {
         json = {
             "JsonPacketID": msg.payload,
             "MsgSeqNo": randNum,
-            "GwySerNo": global.get("GwySerNo"),
-            "NodeSerNo": global.get("NodeSerNo"),
-            "Location": global.get("Location"),
-            "MacId": global.get("MacId")
+            "GwySerNo": flow.get("GwySerNo"),
+            "NodeSerNo": flow.get("NodeSerNo"),
+            "Location": flow.get("Location"),
+            "MacId": flow.get("MacId")
         };
         msg = {payload: json};
         break;
 
     case json_packet_enum.GWY_REG_PACKET:
         json = {
-            "Location": global.get("Location")
+            "Location": flow.get("Location")
         };
         msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
 
     case json_packet_enum.GWY_UNREG_PACKET:
         json = {
-            "Location": global.get("Location")
+            "Location": flow.get("Location")
         };
         msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
 
     case json_packet_enum.GWY_RECONF_PACKET:
     case json_packet_enum.GWY_TEACHING_MODE_START_PACKET:
-    case json_packet_enum.GWY_DEBUG_INFO_PACKET:
         msg = { payload: Gwybasejson };
+        break;
+    
+    case json_packet_enum.NODE_DEBUG_INFO_PACKET:
+        json = {
+            "ResetDevice": 0,
+            "Logging": 0
+        };
+        msg = { payload: Object.assign({}, Nodebasejson, json) };
+        break;
+
+    case json_packet_enum.GWY_DEBUG_INFO_PACKET:
+        json = {
+            "ResetDevice": 0,
+            "Logging":0
+        };
+        msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
 
     case json_packet_enum.NODE_RECONF_PACKET:
     case json_packet_enum.NODE_UNPROV_PACKET:
         json = {
-            "ElementAddr":global.get("ElementAddr"),
-            "Location": global.get("Location")
+            "ElementAddr":flow.get("ElementAddr"),
+            "Location": flow.get("Location")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
 
     case json_packet_enum.NODE_TEACHING_MODE_START_PACKET:
-    case json_packet_enum.NODE_DEBUG_INFO_PACKET:
         msg = { payload: Nodebasejson };
         break;
-    
-    default:
-        node.warn("Unknown JSON Packet ID");
 }
 return msg;
