@@ -66,6 +66,11 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - BLE Mesh --> [Documentation](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/esp-ble-mesh/ble-mesh-index.html)
 - MQTT
 
+## CustomModificiations
+1. Alarm.c of ESP-IDF changed.
+2. esp_hal gpio logs turned off
+3. IR Library changed to include Daikin200 send functions
+
 ## Instructions to Build and compile the project
 1. Install VS Code in your PC. [Link to VS Code](https://code.visualstudio.com/download)
 2. Once Installed, click on extensions and download **ESP-IDF** extension.
