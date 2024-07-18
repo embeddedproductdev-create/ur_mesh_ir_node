@@ -11,6 +11,7 @@
 
 // Initialization
 uint8_t LED_state;
+bool unsupported_remote_flag = false;
 
 void LED_initial_setup()
 {
@@ -33,7 +34,9 @@ void LED_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-        if (show_boot_indication) 
+        if(unsupported_remote_flag)
+            LED_state = LED_STATE_UNSUPPORTED_REMOTE;
+        else if (show_boot_indication) 
             LED_state = LED_STATE_DEVICE_BOOT_SUCCESSFUL;
         else if (storing_IR_data_to_flash)
             LED_state = LED_STATE_OFF;
@@ -73,6 +76,17 @@ void LED_task(void *args)
             //Since by default we're turing off all LEDs for every cycle
             //we don't need to add any statements to this case.
             sleep(1);
+            break;
+        
+        case LED_STATE_UNSUPPORTED_REMOTE: //Blink Red
+            for(uint8_t i=0; i<3; i++)
+            {
+                digitalWrite(RED_LED_PIN,LOW);
+                vTaskDelay(FAST_BLINK_MS);
+                digitalWrite(RED_LED_PIN,HIGH);
+                vTaskDelay(FAST_BLINK_MS);
+            }
+            unsupported_remote_flag = false;
             break;
         
         case LED_STATE_SENDING_IR_COMMAND: // Solid Purple

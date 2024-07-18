@@ -754,8 +754,6 @@ char *get_err_string(int16_t err_code)
         return "NODE_COMM_TIMEOUT";
     case GWY_ALREADY_REG:
         return "GWY_ALREADY_REG";
-    case NODE_ALREADY_PROV:
-        return "NODE_ALREADY_PROV";
     case GWY_NOT_REG:
         return "GWY_NOT_REG";
     case GWY_NOT_CONFIGURED_WITH_AC_REMOTE:

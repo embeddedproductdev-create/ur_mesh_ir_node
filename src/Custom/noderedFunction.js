@@ -143,15 +143,15 @@ switch (msg.payload) {
         msg = { payload: Object.assign({}, Gwybasejson, json) };
         break;
 
-    case json_packet_enum.NODE_RECONF_PACKET:
+
     case json_packet_enum.NODE_UNPROV_PACKET:
         json = {
-            "ElementAddr":flow.get("ElementAddr"),
             "Location": flow.get("Location")
         };
         msg = { payload: Object.assign({}, Nodebasejson, json) };
         break;
-
+    
+    case json_packet_enum.NODE_RECONF_PACKET:
     case json_packet_enum.NODE_TEACHING_MODE_START_PACKET:
         msg = { payload: Nodebasejson };
         break;

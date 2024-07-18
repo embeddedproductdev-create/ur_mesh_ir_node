@@ -634,10 +634,50 @@ void IR_transmit(uint16_t protocol)
         break;
 
     default:
-        printf("Error in choosing the protocol for send");
+        sprintf(ir_log_buffer, "Error in choosing the protocol for send");
+        custom_printf(IR_ERROR_TAG, ir_log_buffer, RED);
         break;
     }
     xTaskResumeAll();
+}
+
+bool is_supported_remote(uint16_t protocol)
+{
+    switch(protocol)
+    {
+        case DAIKIN:
+        case DAIKIN200:
+        case DAIKIN216:
+        case DAIKIN2:
+        case DAIKIN160:
+        case DAIKIN176:
+        case DAIKIN64:
+        case DAIKIN152:
+        case DAIKIN128:
+        case HITACHI_AC296:
+        case HITACHI_AC:
+        case HITACHI_AC1:
+        case HITACHI_AC424:
+        case HITACHI_AC344:
+        case HITACHI_AC264:
+        case VOLTAS:
+        case SAMSUNG_AC:
+        case HAIER_AC:
+        case HAIER_AC176:
+        case HAIER_AC160:
+        case CARRIER_AC64:
+        case LG2:
+        case LG:
+        case TOSHIBA_AC:
+        case MITSUBISHI112:
+        case MITSUBISHI136:
+        case MITSUBISHI_AC:
+        case MITSUBISHI_HEAVY_88:
+        case MITSUBISHI_HEAVY_152:
+            return true;
+        default:
+            return false;
+    }
 }
 
 /**
@@ -880,16 +920,18 @@ void IR_receiver_task(void *args)
              * 2) The Identified protocol should match the protocol with which AC remote configuration process was done
              * 3) Device must not be in teaching mode
              * 4) Locking feature must be enabled in Gwy AC Control Packet
+             * 5) Device must be configured
              */
             // Also need to have this before the configuration part of code, or else, just after configuring, device will send manual ac control ack
             if ((registered || provisioned) &&
+                (configured) &&
                 (protocol_detected == protocol_selected_num || (protocol_selected_num == RAW && teaching_mode_rawlen == results.rawlen)) &&
                 (gwy_ac_control_t.control.Locking || node_ac_control_t.control.Locking) &&
                 !teaching_mode)
                 locking_feature(result_description_char_str);
             else
             {
-                ESP_LOGI(IR_DEBUG_TAG, "registered | provisioned : %d | %d", registered, provisioned);
+                ESP_LOGI(IR_DEBUG_TAG, "registered | provisioned || configured : %d | %d || %d", registered, provisioned, configured);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode_rawlen : %d | results.rawlen : %d", teaching_mode_rawlen, results.rawlen);
                 ESP_LOGI(IR_DEBUG_TAG, "gwy_ac_control_t.Locking | node_ac_control_t.Locking: %d | %d", gwy_ac_control_t.control.Locking, node_ac_control_t.control.Locking);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode : %d", teaching_mode);
@@ -969,13 +1011,19 @@ void IR_receiver_task(void *args)
             // After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
             if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
             {
-                protocol_selected_num = protocol_detected;
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
-                eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
 #if (IS_GWY)
                 if (registered)
                 {
-                    configured = true;
+                    if(is_supported_remote(protocol_detected)){
+                        protocol_selected_num = protocol_detected;
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
+                        configured = true;
+                    }
+                    else {
+                        unsupported_remote_flag = true;
+                        continue;
+                    }
                     eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                     char pubmessage[PUBMESG_LEN];
                     sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
@@ -990,7 +1038,16 @@ void IR_receiver_task(void *args)
 #if (!IS_GWY)
                 if (provisioned)
                 {
-                    configured = true;
+                    if(is_supported_remote(protocol_detected)){
+                        protocol_selected_num = protocol_detected;
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
+                        configured = true;
+                    }
+                    else {
+                        unsupported_remote_flag = true;
+                        continue;
+                    }
                     eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                     send_AC_configuration_ack_to_gwy();
                 }

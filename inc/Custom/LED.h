@@ -30,11 +30,13 @@ enum LED_STATES{
     LED_STATE_MQTT_NOT_CONNECTED,
     LED_STATE_SENDING_IR_COMMAND,
     LED_STATE_AP_MODE,
-    LED_STATE_TEACHING_MODE
+    LED_STATE_TEACHING_MODE,
+    LED_STATE_UNSUPPORTED_REMOTE
 };
 
 /* GLOBAL VARIABLES */
 extern uint8_t LED_state;
+extern bool unsupported_remote_flag;
 
 #ifdef __cplusplus
 extern "C" {
