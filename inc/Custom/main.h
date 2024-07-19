@@ -163,10 +163,10 @@ extern "C" {
 /* GLOBAL VARIABLES */
 
 /*TaskHandles*/
-// extern TaskHandle_t LTE_task_handle;
-// extern TaskHandle_t LED_task_handle;
-// extern TaskHandle_t queue_task_handle;
-// extern TaskHandle_t button_task_handle;
+extern TaskHandle_t LTE_task_handle;
+extern TaskHandle_t LED_task_handle;
+extern TaskHandle_t queue_task_handle;
+extern TaskHandle_t button_task_handle;
 
 /* FUNCTION DECLARATIONS */
 void app_main();

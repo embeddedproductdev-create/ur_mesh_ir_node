@@ -185,7 +185,6 @@ char* get_protocol_string(uint16_t protocol)
 
 void IR_transmit(uint16_t protocol)
 {
-    vTaskSuspendAll();
     switch (protocol)
     {
     case RAW:
@@ -638,7 +637,6 @@ void IR_transmit(uint16_t protocol)
         custom_printf(IR_ERROR_TAG, ir_log_buffer, RED);
         break;
     }
-    xTaskResumeAll();
 }
 
 bool is_supported_remote(uint16_t protocol)
@@ -890,11 +888,13 @@ void IR_receiver_task(void *args)
     {
         if (esp_restart_flag) ESP.restart();
         if (needToSendIRComamnd) {
+            // vTaskSuspendAll();
             irrecv.pause();
             IR_transmit(protocol_selected_num);
             sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
             irrecv.resume();
             needToSendIRComamnd = false;
+            // xTaskResumeAll();
         }
         if (irrecv.decode(&results))
         {

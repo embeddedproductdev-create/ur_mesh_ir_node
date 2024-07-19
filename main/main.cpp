@@ -23,11 +23,18 @@ uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
 uint32_t GWY_SER_NO=2;
-uint32_t NODE_SER_NO=2;
+uint32_t NODE_SER_NO=4;
 #endif
 
 char GWY_SER_NO_IN_STRING[15];
 char NODE_SER_NO_IN_STRING[15];
+
+/*Thread Handles*/
+TaskHandle_t LED_task_handle;
+TaskHandle_t IR_task_handle;
+TaskHandle_t LTE_task_handle;
+TaskHandle_t queue_task_handle;
+TaskHandle_t button_task_handle;
 
 /*Global Structures*/
 gwy_reg_t gwy_registration_t;
@@ -250,12 +257,6 @@ void app_main()
         factory_reset_device();
     }
     else fetch_from_flash();
-
-    TaskHandle_t LED_task_handle;
-    TaskHandle_t IR_task_handle;
-    TaskHandle_t LTE_task_handle;
-    TaskHandle_t queue_task_handle;
-    TaskHandle_t button_task_handle;
 
 #if (!IS_GWY)
     // fill element address into structures
