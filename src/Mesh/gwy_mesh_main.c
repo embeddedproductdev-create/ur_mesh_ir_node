@@ -2,7 +2,7 @@
  * @file mesh_main.c
  * @author Adhikesavan (Adhikesavan@qmaxsys.com)
  * @brief This file contains all ble-mesh related functions
- * @version 0.8
+ * @version 0.8.7
  * @date 2024-03-02
  * @copyright Copyright (c) 2024
  */

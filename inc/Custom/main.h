@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains the main functions and definitions
  * @version 0.1
- * @date 2024-06-19
+ * @date 2024-07-19
  * @copyright Copyright (c) 2024
  */
 
@@ -71,13 +71,13 @@
 #if(IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 7
+#define INTERNAL_MIN_VERSION 8
 #endif
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 7
+#define INTERNAL_MIN_VERSION 8
 #endif
 
 #define TAG "UART"
@@ -114,9 +114,11 @@
 #define CONFIGURED_FLAG_FLASH_ADDR (REGISTERED_FLAG_FLASH_ADDR+1)
 #define PROTOCOL_SEL_FLASH_ADDR_HI (CONFIGURED_FLAG_FLASH_ADDR+1)
 #define PROTOCOL_SEL_FLASH_ADDR_LO (PROTOCOL_SEL_FLASH_ADDR_HI+1)
-#define HB_PUB_CONF_PERIOD_ADDR (PROTOCOL_SEL_FLASH_ADDR_LO+1)
+#define HB_PUB_CONF_PERIOD_ADDR_HI (PROTOCOL_SEL_FLASH_ADDR_LO+1)
+#define HB_PUB_CONF_PERIOD_ADDR_LO (HB_PUB_CONF_PERIOD_ADDR_HI+1)
+
 /*AC Control Settings*/
-#define POWER_FLASH_ADDR (HB_PUB_CONF_PERIOD_ADDR+1)
+#define POWER_FLASH_ADDR (HB_PUB_CONF_PERIOD_ADDR_HI+1)
 #define MODE_FLASH_ADDR (POWER_FLASH_ADDR+1)
 #define FAN_FLASH_ADDR (MODE_FLASH_ADDR+1)
 #define TEMPERATURE_FLASH_ADDR (FAN_FLASH_ADDR+1)

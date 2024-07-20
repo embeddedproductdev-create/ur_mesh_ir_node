@@ -23,7 +23,7 @@ uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
 uint32_t GWY_SER_NO=2;
-uint32_t NODE_SER_NO=4;
+uint32_t NODE_SER_NO=2;
 #endif
 
 char GWY_SER_NO_IN_STRING[15];
@@ -163,11 +163,15 @@ void fetch_from_flash()
 
 /*Heartbeat Publish Period*/
 #if (IS_GWY)
-    gwy_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
+    gwy_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI);
+    gwy_pub_conf_t.pub_conf_period_in_sec <<= 8;
+    gwy_pub_conf_t.pub_conf_period_in_sec |= eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO);
 #endif
 
 #if (!IS_GWY)
-    node_heartbeat_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR);
+    node_heartbeat_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI);
+    node_heartbeat_pub_conf_t.pub_conf_period_in_sec <<= 8;
+    node_heartbeat_pub_conf_t.pub_conf_period_in_sec |= eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO);;
 #endif
 
 /*AC Settings*/

@@ -1027,10 +1027,10 @@ static void store_data_to_node_structures()
             node_heartbeat_pub_conf_t.base_data.error_code = NODE_SER_NO_INVALID;
 
         if(node_heartbeat_pub_conf_t.base_data.error_code == 0) {
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
-            vTaskDelay(pdMS_TO_TICKS(5));
-        delete_Temperature_data_publish_timer();
-        create_Temperature_data_publish_timer();
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
+            delete_Temperature_data_publish_timer();
+            create_Temperature_data_publish_timer();
         }
         sensor_states[0].sensor_data.raw_value->data = &node_heartbeat_pub_conf_t;
         example_ble_mesh_send_sensor_status();
@@ -1204,6 +1204,7 @@ void send_AC_configuration_ack_to_gwy()
     ESP_LOGI(MESH_DEBUG_TAG, "Sending AC Remote Configuration ACK to Gwy");
     node_conf_t.base_data.json_packet_id = NODE_CONF_PACKET;
     strcpy(node_conf_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
+    if(unsupported_remote_flag) node_conf_t.base_data.error_code = AC_REMOTE_UNSUPPORTED;
     sensor_states[0].sensor_data.raw_value->data = &node_conf_t;
     example_ble_mesh_send_sensor_status();
 }

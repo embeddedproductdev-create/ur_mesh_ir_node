@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions and definitions related to Temperature sensor
  * @version 0.1
- * @date 2024-06-19
+ * @date 2024-07-19
  * @link https://www.ti.com/lit/ds/symlink/tmp1075.pdf <-- Digital Temperature sensor Datasheet link
  * @copyright Copyright (c) 2024
  */

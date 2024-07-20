@@ -3,7 +3,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains variables and definitions related to MQTT
  * @version 0.1
- * @date 2024-06-19
+ * @date 2024-07-19
  * @copyright Copyright (c) 2024
  */
 
@@ -112,7 +112,7 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define TEMP_ABS_LOW_LIMIT 18
 #define TEMP_ABS_UP_LIMIT 32
 
-#define DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC 10
+#define DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC 300
 
 /* STRUCTURE DEFINITIONS */
 struct base_data_t
@@ -202,7 +202,7 @@ typedef struct unprov_struct
 typedef struct pub_conf_struct
 {
 	struct base_data_t base_data;
-	uint8_t pub_conf_period_in_sec;
+	uint16_t pub_conf_period_in_sec;
 	struct pub_conf_struct *next;
 	struct pub_conf_struct *prev;
 } pub_conf_t;
@@ -326,6 +326,7 @@ enum ERROR_CODES
 	NODE_SER_NO_INVALID,
 	RESET_DEVICE_NOT_FOUND,
 	LOGGING_FLAG_NOT_FOUND,
+	AC_REMOTE_UNSUPPORTED,
 	FORBIDDEN_OPERATION = 999,
 	UNKNOWN_ERROR_CODE = 9999
 };

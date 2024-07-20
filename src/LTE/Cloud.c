@@ -2,7 +2,7 @@
  * @file Cloud.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to MQTT packet handling and Sending Acknowledgements
- * @version 0.8
+ * @version 0.8.7
  * @date 2024-04-16
  * @copyright Copyright (c) 2024
  */
@@ -440,8 +440,8 @@ void error_check_json(uint8_t json_packet_id)
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
         if (cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY))
         {
-            int16_t PublishPeriodSec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
-            if (PublishPeriodSec >= 10 && PublishPeriodSec <= 255)
+            int32_t PublishPeriodSec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            if (PublishPeriodSec >= 300 && PublishPeriodSec <= 65535)
                 ;
             else
             {
@@ -1004,7 +1004,8 @@ void parse_json_packet(char *json_packet)
             strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, gwy_pub_conf_t.pub_conf_period_in_sec);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, gwy_pub_conf_t.pub_conf_period_in_sec);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, gwy_pub_conf_t.pub_conf_period_in_sec>>8);
 
             delete_Temperature_data_publish_timer();
             create_Temperature_data_publish_timer();

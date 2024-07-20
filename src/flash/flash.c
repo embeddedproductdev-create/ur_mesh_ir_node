@@ -4,7 +4,7 @@
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains all functions related to Storing/Retrieving contents to/from
  * EEPROM flash on-board.
- * @version 0.8
+ * @version 0.8.7
  * @date 2024-07-02
  * @copyright Copyright (c) 2024
  *
@@ -69,7 +69,8 @@ void factory_reset_device()
     eeprom_write_byte(EEPROM_SLAVE_ADDR, RAWLEN_ADDR_LO, 0);
 
     // Publish Period
-    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC>>8);
     gwy_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
     node_heartbeat_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
 

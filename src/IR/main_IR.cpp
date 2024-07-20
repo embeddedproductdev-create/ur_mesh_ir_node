@@ -2,8 +2,8 @@
  * @file main_IR_recv.c
  * @author Kulasekaran (kulasekaran@qmaxsys.com)
  * @brief This file contains functions related to the IR receiver part
- * @version 0.8
- * @date 2024-06-19
+ * @version 0.8.7
+ * @date 2024-07-19
  * @copyright Copyright (c) 2024
  */
 #include "../../inc/Custom/main.h"
@@ -1020,17 +1020,24 @@ void IR_receiver_task(void *args)
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
                     }
-                    else {
-                        unsupported_remote_flag = true;
-                        continue;
-                    }
+                    else unsupported_remote_flag = true;
                     eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                     char pubmessage[PUBMESG_LEN];
+                    
+                    if(!unsupported_remote_flag) {
                     sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
                             JSON_PACKET_ID_KEY, GWY_CONF_ACK,
                             JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
                             GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                             ERROR_CODE_KEY, 0);
+                    }
+                    else {
+                    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
+                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
+                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
+                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                            ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+                    }
                     white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
                     add_to_pubmesg_queue(pubmessage, publish_topic);
                 }
