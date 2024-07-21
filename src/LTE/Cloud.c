@@ -149,10 +149,13 @@ void error_check_json(uint8_t json_packet_id)
     case GWY_AC_CONTROL_PACKET:
     case GWY_HEARTBEAT_PUB_CONF_PACKET:
     case GWY_RECONF_PACKET:
+    case GWY_TEACHING_MODE_START_PACKET:
     case NODE_PROV_PACKET:
     case NODE_UNPROV_PACKET:
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
     case NODE_RECONF_PACKET:
+    case NODE_TEACHING_MODE_START_PACKET:
+    case NODE_DEBUG_INFO_PACKET:
         if (!registered)
         {
             json_ack_err_code = GWY_NOT_REG;
@@ -196,6 +199,7 @@ void error_check_json(uint8_t json_packet_id)
     switch (json_packet_id)
     {
     case GWY_DEBUG_INFO_PACKET:
+    case NODE_DEBUG_INFO_PACKET:
         if (cJSON_GetObjectItem(json_packet_j, RESET_DEVICE_KEY))
             ;
         else
@@ -271,7 +275,7 @@ void error_check_json(uint8_t json_packet_id)
         if (cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY))
         {
             int8_t fanspeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
-            if (fanspeed >= 0 && fanspeed <= 5)
+            if (fanspeed >= 1 && fanspeed <= 5)
                 ;
             else
             {
