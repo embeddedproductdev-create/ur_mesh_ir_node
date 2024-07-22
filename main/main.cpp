@@ -396,3 +396,18 @@ void app_main()
 
 ESP_LOGI(MAIN_DEBUG_TAG, "Successfully Created all tasks");
 }
+
+/**
+ * @brief Function that takes care of handling the OTA update
+ * @param none
+ * @retval none
+ */
+void ota_update()
+{
+    esp_err_t ret = ESP_OK;
+    esp_ota_begin(const esp_partition_t *partition, size_t image_size, esp_ota_handle_t *out_handle);
+    esp_ota_write(esp_ota_handle_t handle, const void *data, size_t size);
+    esp_ota_end(esp_ota_handle_t handle);
+    esp_ota_abort(esp_ota_handle_t handle);
+    esp_ota_get_boot_partition(void);
+}

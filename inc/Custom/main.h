@@ -41,6 +41,7 @@
 #include "esp_system.h"
 #include "esp_timer.h"
 #include "esp_log.h"
+#include "esp_ota_ops.h"
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -175,6 +176,7 @@ void app_main();
 void create_AP_task();
 void fetch_from_flash();
 void get_new_serial_no();
+void ota_update();
 
 #ifdef __cplusplus
 }
