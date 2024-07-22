@@ -16,6 +16,7 @@
 bool show_boot_indication = true;
 bool esp_restart_flag = false;
 bool provisioned = false;
+bool ota_in_progress = false;
 
 #if (CLIENT_RELEASE)
 uint32_t GWY_SER_NO=100;
@@ -47,6 +48,7 @@ pub_conf_t gwy_pub_conf_t;
 heartbeat_t gwy_heartbeat_t;
 teaching_mode_t gwy_teaching_mode_t;
 debug_info_t gwy_debug_info_t;
+ota_t gwy_ota_t;
 
 prov_t provision_t;
 prov_t *prov_queue_head;
@@ -81,6 +83,10 @@ teaching_mode_t *node_teaching_mode_queue_tail;
 debug_info_t node_debug_info_t;
 debug_info_t *node_debug_info_queue_head;
 debug_info_t *node_debug_info_queue_tail;
+
+ota_t node_ota_t;
+ota_t *node_ota_queue_head;
+ota_t *node_ota_queue_tail;
 
 #if (IS_GWY)
 void fill_gwy_ser_no_str()
@@ -395,19 +401,4 @@ void app_main()
 #endif
 
 ESP_LOGI(MAIN_DEBUG_TAG, "Successfully Created all tasks");
-}
-
-/**
- * @brief Function that takes care of handling the OTA update
- * @param none
- * @retval none
- */
-void ota_update()
-{
-    esp_err_t ret = ESP_OK;
-    esp_ota_begin(const esp_partition_t *partition, size_t image_size, esp_ota_handle_t *out_handle);
-    esp_ota_write(esp_ota_handle_t handle, const void *data, size_t size);
-    esp_ota_end(esp_ota_handle_t handle);
-    esp_ota_abort(esp_ota_handle_t handle);
-    esp_ota_get_boot_partition(void);
 }

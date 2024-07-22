@@ -55,6 +55,7 @@
 #define DEVICE_UPTIME_KEY "DeviceUpTimeHrs"
 #define LOGGING_KEY "Logging"
 #define RESET_DEVICE_KEY "ResetDevice"
+#define LINK_KEY "Link"
 
 /* JSON ACK NAMES */
 #define GWY_REG_ACK_NAME "Gwy Registration ACK"
@@ -240,6 +241,12 @@ typedef struct debug_info_struct
 	struct debug_info_struct *prev;
 }debug_info_t;
 
+typedef struct ota_struct
+{
+	struct base_data_t base_data;
+	char link[150];
+}ota_t;
+
 enum json_packet_enum
 {
 	/* GWY PACKETS */
@@ -254,6 +261,7 @@ enum json_packet_enum
 	GWY_TEACHING_MODE_START_PACKET,
 	GWY_TEACHING_MODE_END_ACK,
 	GWY_DEBUG_INFO_PACKET,
+	GWY_OTA_UPDATE,
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
@@ -267,6 +275,7 @@ enum json_packet_enum
 	NODE_TEACHING_MODE_START_PACKET,
 	NODE_TEACHING_MODE_END_ACK,
 	NODE_DEBUG_INFO_PACKET,
+	NODE_OTA_UPDATE,
 
 	/* MISC PACKETS */
 	SET_GWY_SER_NO = 800,
@@ -383,6 +392,9 @@ extern teaching_mode_t gwy_teaching_mode_t;
 /*Debug info*/
 extern debug_info_t gwy_debug_info_t;
 
+/*OTA*/
+extern ota_t gwy_ota_t;
+
 /*===============NODE====================*/
 
 /*node provision*/
@@ -428,6 +440,9 @@ extern teaching_mode_t *node_teaching_mode_queue_tail;
 extern debug_info_t node_debug_info_t;
 extern debug_info_t *node_debug_info_queue_head;
 extern debug_info_t *node_debug_info_queue_tail;
+
+/*OTA*/
+extern ota_t node_ota_t;
 
 /*===================================*/
 

@@ -152,6 +152,8 @@ extern bool teaching_mode;
 
 extern bool esp_restart_flag;
 
+extern bool ota_in_progress;
+
 extern int16_t protocol_selected_num;
 
 extern uint32_t GWY_SER_NO;

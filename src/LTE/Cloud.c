@@ -103,7 +103,7 @@ void error_check_json(uint8_t json_packet_id)
     /*
         Json packet id should be between (0 and 10) or (100 and 110) or be 99.
     */
-    if ((json_packet_id >= 0 && json_packet_id <= 10) || json_packet_id == 99 || (json_packet_id >= 100 && json_packet_id <= 110) || json_packet_id == 800);
+    if ((json_packet_id >= 0 && json_packet_id <= 11) || json_packet_id == 99 || (json_packet_id >= 100 && json_packet_id <= 111) || json_packet_id == 800);
     else
     {
         json_ack_err_code = JSON_PACKET_ID_UNKNOWN;
@@ -1086,16 +1086,13 @@ void parse_json_packet(char *json_packet)
             // factory resetting after receiving this packet is taken care at the place of sending ack
             break;
 
-        case SET_GWY_SER_NO: // Only for developer use //Not mentioned in document
-            ESP_LOGI(LTE_DEBUG_TAG, "Set GwySerNo Packet");
-            GWY_SER_NO = cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, GWY_SER_NO);
-
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, GWY_SER_NO >> 8);
-
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, GWY_SER_NO >> 16);
-
-            esp_restart_flag = true;
+        case GWY_OTA_UPDATE:
+            ESP_LOGI(LTE_DEBUG_TAG, "Gwy OTA Update Packet");
+            gwy_ota_t.base_data.json_packet_id = json_packet_id;
+            gwy_ota_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+            strcpy(gwy_ota_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
+            strcpy(gwy_ota_t.link, cJSON_GetObjectItem(json_packet_j, LINK_KEY)->valuestring);
+            ota_update();
             break;
         }
     }

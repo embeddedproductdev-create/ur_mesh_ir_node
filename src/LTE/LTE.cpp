@@ -73,6 +73,13 @@ char MQTT_SUB_CMD[200];
 char MQTT_SUB_RESP[100];
 char MQTT_READ_MSG_CMD[30];
 
+/*OTA*/
+char START_UDP_SERVICE_CMD[500];
+char START_UDP_SERVICE_RESP[20];
+char UDP_RECV_CMD[20];
+char UDP_RECV_RESP[1500];
+char CHECK_SOCKET_STATE_CMD[20];
+
 /**
  * @brief configure esp32 uart
  * @param None
@@ -320,6 +327,13 @@ void init_Strings()
 	sprintf(QMTSTAT_1_ERROR, "+QMTSTAT: %d,1", MQTT_CLIENT_INDEX);
 	sprintf(QMTOPEN_2_ERROR, "+QMTOPEN: %d,2", MQTT_CLIENT_INDEX);
 	sprintf(QMTOPEN_3_ERROR, "+QMTOPEN: %d,3", MQTT_CLIENT_INDEX);
+
+	/*OTA*/
+	sprintf(START_UDP_SERVICE_CMD, "AT+QIOPEN=1,0,\"UDP SERVICE\",\"54.215.188.103\",0,1881,0\r");
+	sprintf(START_UDP_SERVICE_RESP, "AT+QIOPEN:");
+	sprintf(UDP_RECV_CMD, "AT+QIRD=1\r");
+	sprintf(UDP_RECV_RESP, "+QIRD:");
+	sprintf(CHECK_SOCKET_STATE_CMD, "AT+QISTATE?\r");
 }
 
 /**
@@ -620,4 +634,36 @@ void LTE_task(void *args)
 		vTaskDelay(1);
 		establishMQTTConnectionNew();
 	}
+}
+
+/**
+ * @brief Function that takes care of handling the OTA update
+ * @param none
+ * @retval none
+ */
+void ota_update()
+{
+    ota_in_progress = true;
+    while(ota_in_progress)
+    {
+        //1. Start a UDP service.
+        //2. Receive data from remote.
+        //3. End the UDP service.
+        //4. Boot from the newly downloaded firmware.
+		vTaskDelay(pdMS_TO_TICKS(5));
+        // ESP_LOGI(LTE_DEBUG_TAG, "OTA update in progress ... ");
+        while(!send_cmd_and_check_response(LOG_DATA, START_UDP_SERVICE_CMD, "START_UDP_SERVICE", START_UDP_SERVICE_RESP, 150000)) vTaskDelay(pdMS_TO_TICKS(50));
+		while(1)
+		{
+			send_cmd_and_check_response(LOG_DATA, CHECK_SOCKET_STATE_CMD,"CHECK_SOCKET_STATE_CMD",OK_RESPONSE,1000);
+			send_cmd_and_check_response(LOG_DATA, UDP_RECV_CMD, "UDP_REC_CMD", UDP_RECV_RESP, 1000);
+			vTaskDelay(pdMS_TO_TICKS(1000));
+		}
+	}
+    // esp_err_t ret = ESP_OK;
+    // esp_ota_begin(const esp_partition_t *partition, size_t image_size, esp_ota_handle_t *out_handle);
+    // esp_ota_write(esp_ota_handle_t handle, const void *data, size_t size);
+    // esp_ota_end(esp_ota_handle_t handle);
+    // esp_ota_abort(esp_ota_handle_t handle);
+    // esp_ota_get_boot_partition(void);
 }
