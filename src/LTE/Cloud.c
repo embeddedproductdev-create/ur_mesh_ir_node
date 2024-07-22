@@ -859,11 +859,18 @@ void parse_json_packet(char *json_packet)
     {
         if (json_packet_j == NULL)
         {
-            red_printf(LTE_DEBUG_TAG, "Failure in parsing the JSON string");
+            red_printf(LTE_DEBUG_TAG, "Invalid JSON Packet");
+            json_ack_err_code = JSON_PACKET_INVALID;
+            add_to_pubmesg_queue("{\"ErrorCode\" : 48}", publish_topic);
             return;
         }
-        json_ack_err_code = JSON_PACKET_ID_NOT_FOUND;
-        add_to_pubmesg_queue("{\"ErrorCode\" : 1}", publish_topic);
+        else if(!cJSON_GetObjectItem(json_packet_j, JSON_PACKET_ID_KEY))
+        {
+            red_printf(LTE_DEBUG_TAG, "Packet ID not found");
+            json_ack_err_code = JSON_PACKET_ID_NOT_FOUND;
+            add_to_pubmesg_queue("{\"ErrorCode\" : 1}", publish_topic);
+            return;
+        }
     }
 
     /**
