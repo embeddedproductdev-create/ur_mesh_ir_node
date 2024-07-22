@@ -21,6 +21,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 |4|0.8.5|08.07.2024|Kulasekaran|1) Fixed issue in AC not getting controlled<br>2) Fix for NodeSerNo not found in Prov ACK<br>3) Fix for unable to perform Teaching Mode|[Ver 0.8.5](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/archive/v0.8.5.zip)|
 |5|0.8.6|10.07.2024|Kulasekaran|1) Fix for Manual Control ACK not appearing in v0.8.5<br>2)Fix for Gwy reboot issue<br>3)Fix for Node MacId missing in Node Prov Ack<br>4)Fix for Ambient temperature being 0 in Node Heartbeat ACK|[Ver 0.8.6](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/archive/v0.8.6.zip)|
 |6|0.8.7|19.07.2024|Kulasekaran|1) LED indication for unsupported remotes during AC remote configuration process<br>2) NODE_ALREADY_PROV error code removed<br>3) Removed suspend & resume method to avoid assert fail during AC control<br>4) Removed separate thread used for sending IR commands|[Ver 0.8.7](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/releases/tag/v0.8.7)|
+|7|0.8.8|23.07.2024|Kulasekaran|1) Added JSON_PACKET_INVALID errorcode<br>2) Default Heartbeat increased from 10s to 300s|[Ver 0.8.7](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/releases/tag/v0.8.7)|
 
 </center>
 
@@ -50,7 +51,8 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - [Schematics](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EcAzDj2xZpRPheBzz8MhQ4MBeOw5IVayl4XTD_MZNdEs2Q?e=pJdu1H)
 
 ## Software Documentation and other Helper documents
-- Software Documentation : [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EVaEBQlBNA1DoCinDPwBE_IBt691awvTQk0ohQl9dxLVjQ?e=Tk5M30)
+- Software Documentation: [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EVaEBQlBNA1DoCinDPwBE_IBt691awvTQk0ohQl9dxLVjQ?e=Tk5M30)
+- Software Flow: [Link To Software Flow PDF](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/ETi3Jls5hMJHh_DprKNjEb8Bi8FhMxQvkYVPa3WIUBaffA?e=LkIWIh)
 - MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
 - LTE : [Quectel's EC200U Hardware design document](https://forums.quectel.com/uploads/short-url/j0qEXlvPl25PfUDBf4QEkc9AQyx.pdf)
 - [AT commands manual](https://forums.quectel.com/uploads/short-url/dV5cK9eteeQmwyGPgfWB351oZde.pdf)
