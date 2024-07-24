@@ -843,7 +843,7 @@ void locking_feature(char *result_description_char_str)
             ;
 #endif
 #if (!IS_GWY)
-        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit)
+        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= node_ac_control_t.control.TempLockLowLimit)
             ;
 #endif
         else
