@@ -446,6 +446,12 @@ void establishMQTTConnectionNew()
 				while(1)
 				{
 					vTaskDelay(1);
+					if(needToSendIRComamnd) {
+						taskapprovalcount++;
+						while(needToSendIRComamnd){
+							vTaskDelay(1);
+						}
+					}
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{
 						mqtt_connected = true;

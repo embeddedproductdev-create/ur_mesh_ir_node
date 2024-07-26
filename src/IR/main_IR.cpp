@@ -40,6 +40,7 @@ uint16_t teaching_mode_rawlen = 0;
 bool needToSendIRComamnd = false;
 bool sending = false;
 int16_t protocol_selected_num = UNKNOWN;
+uint8_t taskapprovalcount = 0;
 
 IRDaikinESP ac_daikin280(IR_TRANSMIT_PIN);
 IRDaikin216 ac_daikin216(IR_TRANSMIT_PIN);
@@ -888,12 +889,19 @@ void IR_receiver_task(void *args)
     {
         if (esp_restart_flag) ESP.restart();
         if (needToSendIRComamnd) {
+            //We need to get approval from LTE, Queue and Button threads before proceeding ahead.
+            while(taskapprovalcount!=3)
+            {
+                //Wait here before sending out an IR signal until all tasks go to a pause
+                vTaskDelay(1); 
+            }
             // vTaskSuspendAll();
             irrecv.pause();
             IR_transmit(protocol_selected_num);
             sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
             irrecv.resume();
             needToSendIRComamnd = false;
+            taskapprovalcount=0;
             // xTaskResumeAll();
         }
         if (irrecv.decode(&results))

@@ -158,6 +158,7 @@ extern "C"
     void factory_reset_device();
     char* get_mode_string(uint8_t mode_value);
     char* get_protocol_string(uint16_t protocol);
+    void register_gwy();
 #ifdef __cplusplus
 }
 #endif

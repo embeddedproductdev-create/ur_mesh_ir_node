@@ -339,8 +339,7 @@ void app_main()
 #endif
 
 #if (TEMPERATURE_SENSOR_PART_ENABLED)
-    init_temperature_sensor();
-
+    if(registered || provisioned) init_temperature_sensor();
 #endif
 
 #if (LED_PART_ENABLED)

@@ -166,6 +166,7 @@ extern "C" {
 #endif
 
 /* GLOBAL VARIABLES */
+extern uint8_t taskapprovalcount;
 
 /*TaskHandles*/
 extern TaskHandle_t LTE_task_handle;

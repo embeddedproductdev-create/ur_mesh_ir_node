@@ -48,11 +48,6 @@ void factory_reset_device()
     configured = false;
     protocol_selected_num = -1;
 
-    // Serial Number
-    // eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI, 0);
-    // eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID, 0);
-    // eeprom_write_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO, 0);
-
 #if (IS_GWY)
     // Registered
     eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, 0);
@@ -90,6 +85,8 @@ void factory_reset_device()
 #if (!IS_GWY)
     unprovision_node();
 #endif
+
+    delete_Temperature_data_publish_timer();
 }
 
 /**

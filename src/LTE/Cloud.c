@@ -835,6 +835,19 @@ char *get_err_string(int16_t err_code)
 }
 
 /**
+ * @brief Function that handles Gwy Registration house keeping things
+ * @param none
+ * @retval none
+ */
+void register_gwy()
+{
+    init_temperature_sensor();
+    registered = true;
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, true);
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0x00);
+}
+
+/**
  * @brief Function that takes care of parsing the received JSON string using cJSON library and stores the information into respective structures
  * @param None
  * @retval None
@@ -1058,11 +1071,7 @@ void parse_json_packet(char *json_packet)
             strcpy(gwy_registration_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
             gwy_registration_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
             strcpy(gwy_registration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
-            registered = true;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, true);
-
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0x00);
-
+            register_gwy();
             break;
 
         case NODE_UNPROV_PACKET:

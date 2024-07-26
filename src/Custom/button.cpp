@@ -108,6 +108,12 @@ void button_task(void *args)
     while (1)
     {
         vTaskDelay(1);
+        if(needToSendIRComamnd) {
+            taskapprovalcount++;
+            while(needToSendIRComamnd){
+                vTaskDelay(1);
+            }
+        }
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {
             calculate_button_press_time();
