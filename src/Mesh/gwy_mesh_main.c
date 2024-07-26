@@ -967,7 +967,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_MANUAL_AC_CONTROL_ACK:
             vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK,
                     JSON_ACK_NAME_KEY, NODE_MANUAL_AC_CONTROL_ACK_NAME,
                     MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
@@ -978,10 +978,6 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     MODE_KEY, vendor_node_manual_ac_control_t->control.mode_str,
                     FAN_SPEED_KEY, vendor_node_manual_ac_control_t->control.fanSpeed,
                     TEMPERATURE_KEY, vendor_node_manual_ac_control_t->control.temp,
-                    SWING_H_KEY, vendor_node_manual_ac_control_t->control.swingH,
-                    SWING_V_KEY, vendor_node_manual_ac_control_t->control.swingV,
-                    ONTIMER_KEY, vendor_node_manual_ac_control_t->control.OnTimer,
-                    OFFTIMER_KEY, vendor_node_manual_ac_control_t->control.OffTimer);
             break;
 
         case NODE_PROV_PACKET:

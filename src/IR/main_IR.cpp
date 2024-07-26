@@ -38,6 +38,7 @@ uint16_t teaching_mode_rawlen = 0;
 
 // Initialization - Transmitter
 bool needToSendIRComamnd = false;
+bool glow_purple = false;
 bool sending = false;
 int16_t protocol_selected_num = UNKNOWN;
 uint8_t taskapprovalcount = 0;
@@ -110,76 +111,76 @@ void IR_transmit_setup()
     ac_custom.begin();
 }
 
-char* get_protocol_string(uint16_t protocol)
+char *get_protocol_string(uint16_t protocol)
 {
-    switch(protocol)
+    switch (protocol)
     {
-        case RAW:
-            return "RAW";
-        case DAIKIN:
-            return "DAIKIN280";
-        case DAIKIN200:
-            return "DAIKIN200";
-        case DAIKIN216:
-            return "DAIKIN216";
-        case DAIKIN2:
-            return "DAIKIN2";
-        case DAIKIN160:
-            return "DAIKIN160";
-        case DAIKIN176:
-            return "DAIKIN176";
-        case DAIKIN64:
-            return "DAIKIN64";
-        case DAIKIN152:
-            return "DAIKIN152";
-        case DAIKIN128:
-            return "DAIKIN128";
-        case HITACHI_AC296:
-            return "HITACHI_AC296";
-        case HITACHI_AC:
-            return "HITACHI_AC";
-        case HITACHI_AC1:
-            return "HITACHI_AC1";
-        case HITACHI_AC424:
-            return "HITACHI_AC424";
-        case HITACHI_AC344:
-            return "HITACHI_AC344";
-        case HITACHI_AC264:
-            return "HITACHI_AC264";
-        case VOLTAS:
-            return "VOLTAS";
-        case SAMSUNG_AC:
-            return "SAMSUNG_AC";
-        case HAIER_AC:
-            return "HAIER_AC";
-        case HAIER_AC176:
-            return "HAIER_AC176";
-        case HAIER_AC160:
-            return "HAIER_AC160";
-        case CARRIER_AC64:
-            return "CARRIER_AC64";
-        case LG2:
-            return "LG2";
-        case LG:
-            return "LG";
-        case TOSHIBA_AC:
-            return "TOSHIBA_AC";
-        case MITSUBISHI112:
-            return "MITSUBISHI112";
-        case MITSUBISHI136:
-            return "MITSUBISHI136";
-        case MITSUBISHI_AC:
-            return "MITSUBISHI_AC";
-        case MITSUBISHI_HEAVY_88:
-            return "MITSUBISHI_HEAVY_88";
-        case MITSUBISHI_HEAVY_152:
-            return "MITSUBISHI_HEAVY_152";
-        case UNKNOWN:  
-            return "UNKNOWN";
-        case UNUSED:
-            return "UNUSED";
-        default:
-            return "INVALID";
+    case RAW:
+        return "RAW";
+    case DAIKIN:
+        return "DAIKIN280";
+    case DAIKIN200:
+        return "DAIKIN200";
+    case DAIKIN216:
+        return "DAIKIN216";
+    case DAIKIN2:
+        return "DAIKIN2";
+    case DAIKIN160:
+        return "DAIKIN160";
+    case DAIKIN176:
+        return "DAIKIN176";
+    case DAIKIN64:
+        return "DAIKIN64";
+    case DAIKIN152:
+        return "DAIKIN152";
+    case DAIKIN128:
+        return "DAIKIN128";
+    case HITACHI_AC296:
+        return "HITACHI_AC296";
+    case HITACHI_AC:
+        return "HITACHI_AC";
+    case HITACHI_AC1:
+        return "HITACHI_AC1";
+    case HITACHI_AC424:
+        return "HITACHI_AC424";
+    case HITACHI_AC344:
+        return "HITACHI_AC344";
+    case HITACHI_AC264:
+        return "HITACHI_AC264";
+    case VOLTAS:
+        return "VOLTAS";
+    case SAMSUNG_AC:
+        return "SAMSUNG_AC";
+    case HAIER_AC:
+        return "HAIER_AC";
+    case HAIER_AC176:
+        return "HAIER_AC176";
+    case HAIER_AC160:
+        return "HAIER_AC160";
+    case CARRIER_AC64:
+        return "CARRIER_AC64";
+    case LG2:
+        return "LG2";
+    case LG:
+        return "LG";
+    case TOSHIBA_AC:
+        return "TOSHIBA_AC";
+    case MITSUBISHI112:
+        return "MITSUBISHI112";
+    case MITSUBISHI136:
+        return "MITSUBISHI136";
+    case MITSUBISHI_AC:
+        return "MITSUBISHI_AC";
+    case MITSUBISHI_HEAVY_88:
+        return "MITSUBISHI_HEAVY_88";
+    case MITSUBISHI_HEAVY_152:
+        return "MITSUBISHI_HEAVY_152";
+    case UNKNOWN:
+        return "UNKNOWN";
+    case UNUSED:
+        return "UNUSED";
+    default:
+        return "INVALID";
     }
     return "";
 }
@@ -642,40 +643,40 @@ void IR_transmit(uint16_t protocol)
 
 bool is_supported_remote(uint16_t protocol)
 {
-    switch(protocol)
+    switch (protocol)
     {
-        case DAIKIN:
-        case DAIKIN200:
-        case DAIKIN216:
-        case DAIKIN2:
-        case DAIKIN160:
-        case DAIKIN176:
-        case DAIKIN64:
-        case DAIKIN152:
-        case DAIKIN128:
-        case HITACHI_AC296:
-        case HITACHI_AC:
-        case HITACHI_AC1:
-        case HITACHI_AC424:
-        case HITACHI_AC344:
-        case HITACHI_AC264:
-        case VOLTAS:
-        case SAMSUNG_AC:
-        case HAIER_AC:
-        case HAIER_AC176:
-        case HAIER_AC160:
-        case CARRIER_AC64:
-        case LG2:
-        case LG:
-        case TOSHIBA_AC:
-        case MITSUBISHI112:
-        case MITSUBISHI136:
-        case MITSUBISHI_AC:
-        case MITSUBISHI_HEAVY_88:
-        case MITSUBISHI_HEAVY_152:
-            return true;
-        default:
-            return false;
+    case DAIKIN:
+    case DAIKIN200:
+    case DAIKIN216:
+    case DAIKIN2:
+    case DAIKIN160:
+    case DAIKIN176:
+    case DAIKIN64:
+    case DAIKIN152:
+    case DAIKIN128:
+    case HITACHI_AC296:
+    case HITACHI_AC:
+    case HITACHI_AC1:
+    case HITACHI_AC424:
+    case HITACHI_AC344:
+    case HITACHI_AC264:
+    case VOLTAS:
+    case SAMSUNG_AC:
+    case HAIER_AC:
+    case HAIER_AC176:
+    case HAIER_AC160:
+    case CARRIER_AC64:
+    case LG2:
+    case LG:
+    case TOSHIBA_AC:
+    case MITSUBISHI112:
+    case MITSUBISHI136:
+    case MITSUBISHI_AC:
+    case MITSUBISHI_HEAVY_88:
+    case MITSUBISHI_HEAVY_152:
+        return true;
+    default:
+        return false;
     }
 }
 
@@ -887,22 +888,30 @@ void IR_receiver_task(void *args)
     irrecv.enableIRIn();
     while (1)
     {
-        if (esp_restart_flag) ESP.restart();
-        if (needToSendIRComamnd) {
-            //We need to get approval from LTE, Queue and Button threads before proceeding ahead.
-            while(taskapprovalcount!=3)
+        if (esp_restart_flag)
+            ESP.restart();
+        if (needToSendIRComamnd)
+        {
+// We need to get approval from LTE, Queue and Button threads before proceeding ahead.
+#if (IS_GWY)
+            while (taskapprovalcount != 3)
             {
-                //Wait here before sending out an IR signal until all tasks go to a pause
-                vTaskDelay(1); 
+                // Wait here before sending out an IR signal until all tasks go to a pause
+                vTaskDelay(1);
             }
-            // vTaskSuspendAll();
+#endif
+            vTaskSuspendAll();
+            // vTaskSuspend(button_task_handle);
+            glow_purple = true;
             irrecv.pause();
             IR_transmit(protocol_selected_num);
             sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
             irrecv.resume();
             needToSendIRComamnd = false;
-            taskapprovalcount=0;
-            // xTaskResumeAll();
+            glow_purple = false;
+            taskapprovalcount = 0;
+            // vTaskResume(button_task_handle);
+            xTaskResumeAll();
         }
         if (irrecv.decode(&results))
         {
@@ -911,7 +920,7 @@ void IR_receiver_task(void *args)
             char result_description_char_str[200];
             strcpy(result_description_char_str, (char *)description.c_str());
 
-            //Print out received IR signal
+            // Print out received IR signal
             ESP_LOGI(IR_DEBUG_TAG, "IR RAW VALUES : { ");
             for (uint16_t i = 0; i < results.rawlen; i++)
             {
@@ -919,8 +928,9 @@ void IR_receiver_task(void *args)
             }
             ESP_LOGI(IR_DEBUG_TAG, "}\n");
 
-            if (description.length()) ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
-            
+            if (description.length())
+                ESP_LOGI(IR_DEBUG_TAG, "%s", result_description_char_str);
+
             /**
              * @brief Sending AC manual control ack or bringing back AC to within set Temperature limits as per Gwy AC Control packet should
              * occur only if the following conditions are met
@@ -944,7 +954,7 @@ void IR_receiver_task(void *args)
                 ESP_LOGI(IR_DEBUG_TAG, "gwy_ac_control_t.Locking | node_ac_control_t.Locking: %d | %d", gwy_ac_control_t.control.Locking, node_ac_control_t.control.Locking);
                 ESP_LOGI(IR_DEBUG_TAG, "teaching_mode : %d", teaching_mode);
                 ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num == RAW && teaching_mode_rawlen == results.rawlen : %d", (protocol_selected_num == RAW) && (teaching_mode_rawlen == results.rawlen));
-                ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num : %d",protocol_selected_num);
+                ESP_LOGI(IR_DEBUG_TAG, "protocol_selected_num : %d", protocol_selected_num);
             }
 
             if (teaching_mode)
@@ -1022,29 +1032,33 @@ void IR_receiver_task(void *args)
 #if (IS_GWY)
                 if (registered)
                 {
-                    if(is_supported_remote(protocol_detected)){
+                    if (is_supported_remote(protocol_detected))
+                    {
                         protocol_selected_num = protocol_detected;
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
                     }
-                    else unsupported_remote_flag = true;
+                    else
+                        unsupported_remote_flag = true;
                     eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                     char pubmessage[PUBMESG_LEN];
-                    
-                    if(!unsupported_remote_flag) {
-                    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
-                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
-                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                            ERROR_CODE_KEY, 0);
+
+                    if (!unsupported_remote_flag)
+                    {
+                        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
+                                JSON_PACKET_ID_KEY, GWY_CONF_ACK,
+                                JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
+                                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                                ERROR_CODE_KEY, 0);
                     }
-                    else {
-                    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
-                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
-                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                            ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+                    else
+                    {
+                        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
+                                JSON_PACKET_ID_KEY, GWY_CONF_ACK,
+                                JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
+                                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                                ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
                     }
                     white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
                     add_to_pubmesg_queue(pubmessage, publish_topic);
@@ -1053,13 +1067,15 @@ void IR_receiver_task(void *args)
 #if (!IS_GWY)
                 if (provisioned)
                 {
-                    if(is_supported_remote(protocol_detected)){
+                    if (is_supported_remote(protocol_detected))
+                    {
                         protocol_selected_num = protocol_detected;
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
                     }
-                    else {
+                    else
+                    {
                         unsupported_remote_flag = true;
                         continue;
                     }

@@ -49,7 +49,7 @@ void button_logic()
         /* Double Press */
         else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
-            factory_reset_device();
+            ESP.restart();
         }
 
         /* Button held for 3s - 8s */
@@ -77,7 +77,7 @@ void button_logic()
         /*  Button held for more than 8s */
         else if (pressed_duration_array[0] > ONE_SEC_IN_MS * 8) // Button held for more than 8s.
         {
-            ESP.restart();
+            factory_reset_device();
         }
     }
 }
@@ -108,12 +108,19 @@ void button_task(void *args)
     while (1)
     {
         vTaskDelay(1);
+#if (IS_GWY)
         if(needToSendIRComamnd) {
             taskapprovalcount++;
             while(needToSendIRComamnd){
                 vTaskDelay(1);
             }
         }
+#endif
+#if(!IS_GWY)
+        while(needToSendIRComamnd) {
+            vTaskDelay(1);
+        }
+#endif
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {
             calculate_button_press_time();

@@ -40,7 +40,7 @@ void LED_task(void *args)
             LED_state = LED_STATE_DEVICE_BOOT_SUCCESSFUL;
         else if (storing_IR_data_to_flash)
             LED_state = LED_STATE_OFF;
-        else if (needToSendIRComamnd)
+        else if (glow_purple)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
         else if (teaching_mode)
             LED_state = LED_STATE_TEACHING_MODE;

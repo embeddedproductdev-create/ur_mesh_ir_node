@@ -96,11 +96,9 @@
 #define TEACHING_PART_ENABLED true
 #if(IS_GWY)
     #define LTE_PART_ENABLED true
-    #define AP_PART_ENABLED false
     #define QUEUE_PART_ENABLED true
 #endif
 #if(!IS_GWY)
-    #define AP_PART_ENABLED false
     #define QUEUE_PART_ENABLED false
     #define LTE_PART_ENABLED false
 #endif
@@ -147,6 +145,7 @@ extern uint8_t op_bind_counter;
 extern bool configured;
 
 extern bool needToSendIRComamnd;
+extern bool glow_purple;
 extern bool sending;
 extern bool teaching_mode;
 
