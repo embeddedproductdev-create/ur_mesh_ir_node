@@ -719,7 +719,7 @@ union Daikin200Protocol{
     uint8_t Temp  :6;
     uint8_t       :1;
     // Byte 18
-    uint8_t SwingH  :4;
+    uint8_t SwingV  :4;
     uint8_t Fan     :4;
     // Byte 19~23
     uint8_t pad3[5];
@@ -748,7 +748,7 @@ class IRDaikin200 {
   void setTemp(const uint8_t temp);
   uint8_t* getRaw(void);
   void setFan(const uint8_t fan);
-  void setSwingHorizontal(const bool state);
+  void setSwingVertical(const bool state);
   void setMode(const uint8_t mode);
   static uint8_t convertMode(const stdAc::opmode_t mode);
 #ifndef UNIT_TEST

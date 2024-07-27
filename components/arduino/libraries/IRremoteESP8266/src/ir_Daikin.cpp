@@ -3799,12 +3799,12 @@ void IRDaikin200::checksum(void) {
   _.Sum2 = sumBytes(_.raw + kDaikin200Section1Length,
                     kDaikin200Section2Length - 1);
 }
-//horizontal swing on /off if state on horizontal swing on else off
-void IRDaikin200::setSwingHorizontal(const bool on) {
+//vertical swing on /off if state on vertical swing on else off
+void IRDaikin200::setSwingVertical(const bool on) {
   if(on)
-    _.SwingH=kDaikin200SwingHAuto;
+    _.SwingV=kDaikin200SwingHAuto;
   else
-    _.SwingH=kDaikin200SwingHOff;
+    _.SwingV=kDaikin200SwingHOff;
 }
 
 void IRDaikin200::setMode(const uint8_t mode) {
