@@ -238,7 +238,7 @@ void IR_transmit(uint16_t protocol)
     case DAIKIN200:
         strcpy(protocol_chosen_str, "Daikin200");
         ac_daikin200.setPower(gwy_ac_control_t.control.power);
-        ac_daikin200.setSwingVertical(gwy_ac_control_t.control.swingH);
+        ac_daikin200.setSwingVertical(gwy_ac_control_t.control.swingV);
         ac_daikin200.setFan(gwy_ac_control_t.control.fanSpeed);
         ac_daikin200.setTemp(gwy_ac_control_t.control.temp);
         ac_daikin200.setMode(ac_daikin200.convertMode((stdAc::opmode_t)gwy_ac_control_t.control.mode_val));
