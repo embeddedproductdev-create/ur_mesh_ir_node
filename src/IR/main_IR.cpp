@@ -770,7 +770,11 @@ void fetch_data_from_manual_control(char *input_string)
             node_manual_ac_control_t.control.power = 0;
     }
     else
+    {
         red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 
     // Fetch Mode
     if (strstr(input_string, "Mode"))
@@ -788,8 +792,12 @@ void fetch_data_from_manual_control(char *input_string)
             strcpy(node_manual_ac_control_t.control.mode_str, "Fan");
     }
     else
+    {
         red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
-
+        no_recv_function_flag = true;
+        return;
+    }
+    
     // Fetch Fan
     if (strstr(input_string, "Fan"))
     {
@@ -797,7 +805,11 @@ void fetch_data_from_manual_control(char *input_string)
         node_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
     else
+    {
         red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 
     // Fetch Temperature
     if (strstr(input_string, "Temp"))
@@ -806,7 +818,11 @@ void fetch_data_from_manual_control(char *input_string)
         node_manual_ac_control_t.control.temp = atoi(temperature);
     }
     else
+    {
         red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
+        no_recv_function_flag = true;
+        return;
+    }
 #endif
 }
 
@@ -841,19 +857,21 @@ void locking_feature(char *result_description_char_str)
     else
     {
 #if (IS_GWY)
-        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit)
-            ;
+        if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
 #endif
 #if (!IS_GWY)
-        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit || node_manual_ac_control_t.control.temp >= node_ac_control_t.control.TempLockLowLimit)
-            ;
+        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit && node_manual_ac_control_t.control.temp >= node_ac_control_t.control.TempLockLowLimit)
+        {
+            ESP_LOGI(IR_DEBUG_TAG, "node_manual_ac_control_t.control.temp : %d", node_manual_ac_control_t.control.temp);
+            ESP_LOGI(IR_DEBUG_TAG, "node_ac_control_t.control.TempLockUpLimit : %d", node_ac_control_t.control.TempLockUpLimit);
+            ESP_LOGI(IR_DEBUG_TAG, "node_ac_control_t.control.TempLockLowLimit : %d", node_ac_control_t.control.TempLockLowLimit);
+            custom_printf(IR_DEBUG_TAG, "AC control not required", WHITE);
+        }
 #endif
         else
         {
             ESP_LOGI(IR_DEBUG_TAG, "Reverting AC back to permissible limits ... ");
-            sleep(1); // Good to waste atleast 1 seconds here in order for this feature to work. Think about it :)
             needToSendIRComamnd = true;
-            sleep(1); // Good to waste atleast 1 seconds here in order for this feature to work. Think about it :)
         }
     }
 #if (IS_GWY)
@@ -892,26 +910,14 @@ void IR_receiver_task(void *args)
             ESP.restart();
         if (needToSendIRComamnd)
         {
-// We need to get approval from LTE, Queue and Button threads before proceeding ahead.
-#if (IS_GWY)
-            while (taskapprovalcount != 3)
-            {
-                // Wait here before sending out an IR signal until all tasks go to a pause
-                vTaskDelay(1);
-            }
-#endif
-            vTaskSuspendAll();
-            // vTaskSuspend(button_task_handle);
-            glow_purple = true;
             irrecv.pause();
+            vTaskPrioritySet(NULL, 50);
+            custom_printf(IR_DEBUG_TAG, "Firing IR signal", WHITE);
             IR_transmit(protocol_selected_num);
             sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
             irrecv.resume();
             needToSendIRComamnd = false;
-            glow_purple = false;
-            taskapprovalcount = 0;
-            // vTaskResume(button_task_handle);
-            xTaskResumeAll();
+            vTaskPrioritySet(NULL, tskIDLE_PRIORITY);
         }
         if (irrecv.decode(&results))
         {
@@ -1003,7 +1009,28 @@ void IR_receiver_task(void *args)
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
+
+                        //reset the AC control structure settings
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, MODE_FLASH_ADDR, 0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, FAN_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGH_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, SWINGV_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, ONTIMER_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, OFFTIMER_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, LOCKING_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKLOWLIMIT_FLASH_ADDR,0);
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, TEMPLOCKUPLIMIT_FLASH_ADDR,0);
 #if (IS_GWY)
+                        strcpy(gwy_ac_control_t.control.mode_str,"");
+                        gwy_ac_control_t.control.fanSpeed = 0;
+                        gwy_ac_control_t.control.swingH = 0;
+                        gwy_ac_control_t.control.swingV = 0;
+                        gwy_ac_control_t.control.OnTimer = 0;
+                        gwy_ac_control_t.control.OffTimer = 0;
+                        gwy_ac_control_t.control.Locking = 0;
+                        gwy_ac_control_t.control.TempLockLowLimit = 0;
+                        gwy_ac_control_t.control.TempLockUpLimit = 0;
+
                         char pubmessage[PUBMESG_LEN];
                         sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\"}",
                                 JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_END_ACK,
@@ -1012,6 +1039,16 @@ void IR_receiver_task(void *args)
                         add_to_pubmesg_queue(pubmessage, publish_topic);
 #endif
 #if (!IS_GWY)
+                        strcpy(node_ac_control_t.control.mode_str,"");
+                        node_ac_control_t.control.fanSpeed = 0;
+                        node_ac_control_t.control.swingH = 0;
+                        node_ac_control_t.control.swingV = 0;
+                        node_ac_control_t.control.OnTimer = 0;
+                        node_ac_control_t.control.OffTimer = 0;
+                        node_ac_control_t.control.Locking = 0;
+                        node_ac_control_t.control.TempLockLowLimit = 0;
+                        node_ac_control_t.control.TempLockUpLimit = 0;
+
                         send_teaching_mode_end_ack_to_gwy();
 #endif
                     }
@@ -1038,6 +1075,10 @@ void IR_receiver_task(void *args)
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
+
+                        //Just turning these off, because of the case, where the device could have gotten from teaching mode to configurtion mode and then gets configured.
+                        teaching_mode = false;
+                        teachMode_size_done = false;
                     }
                     else
                         unsupported_remote_flag = true;
@@ -1073,6 +1114,10 @@ void IR_receiver_task(void *args)
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
+
+                        //Just turning these off, because of the case, where the device could have gotten from teaching mode to configurtion mode and then gets configured.
+                        teaching_mode = false;
+                        teachMode_size_done = false;
                     }
                     else
                     {

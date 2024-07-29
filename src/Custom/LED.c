@@ -40,7 +40,7 @@ void LED_task(void *args)
             LED_state = LED_STATE_DEVICE_BOOT_SUCCESSFUL;
         else if (storing_IR_data_to_flash)
             LED_state = LED_STATE_OFF;
-        else if (glow_purple)
+        else if (needToSendIRComamnd)
             LED_state = LED_STATE_SENDING_IR_COMMAND;
         else if (teaching_mode)
             LED_state = LED_STATE_TEACHING_MODE;
@@ -92,6 +92,7 @@ void LED_task(void *args)
         case LED_STATE_SENDING_IR_COMMAND: // Solid Purple
             digitalWrite(RED_LED_PIN, LOW);
             digitalWrite(BLUE_LED_PIN, LOW);
+            while(glow_purple);
             break;
         
         case LED_STATE_IDLE: // Solid GREEN

@@ -40,6 +40,7 @@ void button_logic()
         /* Single Press */
         if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
+
             if (LOG_DATA)
                 LOG_DATA = false;
             else
@@ -108,19 +109,6 @@ void button_task(void *args)
     while (1)
     {
         vTaskDelay(1);
-#if (IS_GWY)
-        if(needToSendIRComamnd) {
-            taskapprovalcount++;
-            while(needToSendIRComamnd){
-                vTaskDelay(1);
-            }
-        }
-#endif
-#if(!IS_GWY)
-        while(needToSendIRComamnd) {
-            vTaskDelay(1);
-        }
-#endif
         if (!digitalRead(USER_SWITCH)) // button is pressed
         {
             calculate_button_press_time();

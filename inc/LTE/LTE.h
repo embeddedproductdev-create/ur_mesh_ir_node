@@ -121,6 +121,7 @@ enum AT_cmd_id{
 /* GLOBAL VARIABLES */
 extern char LTE_UART_data[1024];
 extern bool LOG_DATA;
+extern char JSON_PACKET[1024];
 
 /* GLOBAL VARIABLES - TEACHING MODE*/
 extern bool teachMode_size_done;

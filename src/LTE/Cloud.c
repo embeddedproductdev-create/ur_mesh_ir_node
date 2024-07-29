@@ -12,8 +12,8 @@
 // Initialization
 int32_t json_ack_err_code = SUCCESS;
 int32_t json_packet_id = UNKNOWN_PACKET;
-char json_packet[MQTT_PACKET_BUFF_SIZE];
 cJSON *json_packet_j;
+char JSON_PACKET[1024];
 
 struct pub_mesg_struct *pubmesg_queue_head = NULL;
 struct pub_mesg_struct *pubmesg_queue_tail = NULL;
@@ -274,7 +274,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY))
         {
-            int8_t fanspeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
+            int32_t fanspeed = cJSON_GetObjectItem(json_packet_j, FAN_SPEED_KEY)->valueint;
             if (fanspeed >= 1 && fanspeed <= 5)
                 ;
             else
@@ -290,7 +290,7 @@ void error_check_json(uint8_t json_packet_id)
         }
         if (cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY))
         {
-            int8_t temperature = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
+            int32_t temperature = cJSON_GetObjectItem(json_packet_j, TEMPERATURE_KEY)->valueint;
             if (temperature >= TEMP_ABS_LOW_LIMIT && temperature <= TEMP_ABS_UP_LIMIT)
                 ;
             else
@@ -848,6 +848,19 @@ void register_gwy()
 }
 
 /**
+ * @brief function that takes care of sending back error packet with appropriate error code
+ * @retval none
+ */
+void handle_send_error_ack_to_cloud()
+{
+    char err[30];
+    sprintf(err, ", \"%s\" : %ld}",ERROR_CODE_KEY, json_ack_err_code);
+    strcpy(strstr(JSON_PACKET, "}"), err);
+    custom_printf(LTE_ERROR_TAG, JSON_PACKET, RED);
+    add_to_pubmesg_queue(JSON_PACKET, publish_topic);
+}
+
+/**
  * @brief Function that takes care of parsing the received JSON string using cJSON library and stores the information into respective structures
  * @param None
  * @retval None
@@ -1116,8 +1129,10 @@ void parse_json_packet(char *json_packet)
     // Handle sending back ACK for gwy related packets here &
     // Handle sending back ACK for node related packets here only if the packet contains errors
     // Else it is taken care at the mesh side.
-    if ((json_packet_id >= 100 && json_ack_err_code != SUCCESS) || json_packet_id <= 10)
+    if (json_ack_err_code == SUCCESS)
         handle_sending_ack_to_cloud(json_packet_id);
+    else
+        handle_send_error_ack_to_cloud();
 }
 
 #endif

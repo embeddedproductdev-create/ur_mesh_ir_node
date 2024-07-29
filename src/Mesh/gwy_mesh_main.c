@@ -977,7 +977,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
                     POWER_KEY, vendor_node_manual_ac_control_t->control.power,
                     MODE_KEY, vendor_node_manual_ac_control_t->control.mode_str,
                     FAN_SPEED_KEY, vendor_node_manual_ac_control_t->control.fanSpeed,
-                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->control.temp,
+                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->control.temp);
             break;
 
         case NODE_PROV_PACKET:

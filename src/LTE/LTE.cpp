@@ -140,6 +140,7 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 				if (strstr(LTE_UART_data, "{"))
 				{
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
+					strcpy(JSON_PACKET, LTE_UART_data);
 					custom_printf(LTE_DEBUG_TAG, LTE_UART_data, CYAN);
 					parse_json_packet(LTE_UART_data);
 				}
@@ -446,12 +447,6 @@ void establishMQTTConnectionNew()
 				while(1)
 				{
 					vTaskDelay(1);
-					if(needToSendIRComamnd) {
-						taskapprovalcount++;
-						while(needToSendIRComamnd){
-							vTaskDelay(1);
-						}
-					}
 					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
 					{
 						mqtt_connected = true;
@@ -497,111 +492,6 @@ void establishMQTTConnectionNew()
 	{
 		retry_count = 0;
 		rotate_client_index();
-	}
-}
-
-/**
- * @brief Function that takes care of maintainig the MQTT communication
- * @param none
- * @return none
- */
-void establishMQTTConnection()
-{
-	static uint8_t retry_count = 0;
-	// Do not try to send an AT command in the following cases
-	// Already an AT command is in progress
-	// IR command is being sent out
-	sprintf(lte_log_buffer, "network_flag(%d) | client_flag(%d) | sub_flag(%d) | mqtt_connected(%d)", network_flag, client_flag, subscribe_flag, mqtt_connected);
-	cyan_printf(LTE_DEBUG_TAG, lte_log_buffer);
-	// If we are stuck at retrying for more than RETRY_COUNT times, then it's better to power cycle the LTE
-	if (retry_count > RETRY_COUNT)
-	{
-		network_flag = 0;
-		client_flag = 0;
-		subscribe_flag = 0;
-		retry_count = 0;
-		rotate_client_index();
-		powerCycleLTE();
-	}
-
-	// See if we have connected with Network first
-	else if (!network_flag)
-	{
-		if (send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE", OK_RESPONSE, 1000) == FAILURE)
-			retry_count++;
-		else
-			retry_count = 0;
-		if (send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000) == FAILURE)
-		{
-			retry_count++;
-		}
-		else
-		{
-			network_flag = 1;
-			retry_count = 0;
-		}
-	}
-
-	// Then see if we have established a client connection
-	else if (network_flag && !client_flag)
-	{
-		send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_DISCONN_CMD, "MQTT_CLIENT_DISCONN_CMD", OK_RESPONSE, 1000);
-		if (send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 4000) == FAILURE)
-		{
-			retry_count++;
-			network_flag = 0;
-		}
-		else
-		{
-			client_flag = 1;
-			retry_count = 0;
-		}
-	}
-
-	// Check if we have also subscribed to the topic
-	else if (network_flag && client_flag && !subscribe_flag)
-	{
-		if (send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 1000) == FAILURE)
-		{
-			retry_count++;
-			client_flag = 0;
-		}
-		else
-		{
-			subscribe_flag = 1;
-			mqtt_connected = 1;
-			retry_count = 0;
-		}
-	}
-
-	// If everything looks good, then we are good to check if we have recvd any message from MQTT on the topic we have subscribed
-	if (mqtt_connected && !publishing_flag)
-	{
-		if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200) == FAILURE)
-		{
-			retry_count++;
-			mqtt_connected = 0;
-			subscribe_flag = 0;
-		}
-		else
-			retry_count = 0;
-	}
-
-	// Don't try to publish in the middle of sending an IR command or while sending another AT command
-	// Some form of synchronization is required here.
-	if (pubmesg_queue_head != NULL && mqtt_connected)
-	{
-		if (publish_to_mqtt() == SUCCESS)
-		{
-			remove_from_pubmesg_queue();
-			snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Successfully published and removed from Queue");
-			yellow_printf(QUEUE_DEBUG_TAG, queue_log_buffer);
-		}
-		else
-		{
-			snprintf(queue_log_buffer, sizeof(queue_log_buffer), "Failed to publish to MQTT");
-			red_printf(QUEUE_ERROR_TAG, queue_log_buffer);
-		}
 	}
 }
 

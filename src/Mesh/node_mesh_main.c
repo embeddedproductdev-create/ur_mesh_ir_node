@@ -1028,7 +1028,7 @@ static void store_data_to_node_structures()
 
         if(node_heartbeat_pub_conf_t.base_data.error_code == 0) {
             eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, node_heartbeat_pub_conf_t.pub_conf_period_in_sec);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, node_heartbeat_pub_conf_t.pub_conf_period_in_sec>>8);
             delete_Temperature_data_publish_timer();
             create_Temperature_data_publish_timer();
         }
