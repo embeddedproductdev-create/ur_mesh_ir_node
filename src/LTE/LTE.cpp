@@ -456,27 +456,27 @@ void establishMQTTConnectionNew()
 				while(1)
 				{
 					vTaskDelay(1);
-					if (send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESPONSE, 1000) == SUCCESS)
+					if (send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", PING_RESP, 1000) == SUCCESS)
 						mqtt_connected = true;
 					else {
 						mqtt_connected = false;
 						break;
 					}
-					send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 100);
-					if (pubmesg_queue_head != NULL && mqtt_connected)
-					{
-						if (publish_to_mqtt() == SUCCESS)
-						{
-							yellow_printf(QUEUE_DEBUG_TAG, "Successfully published and removed from Queue");
-							remove_from_pubmesg_queue();
-						}
-						else
-						{
-							mqtt_connected=false;
-							red_printf(QUEUE_ERROR_TAG, "Failed to publish to MQTT");
-							break;
-						}
-					}
+					// send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000);
+					// if (pubmesg_queue_head != NULL && mqtt_connected)
+					// {
+					// 	if (publish_to_mqtt() == SUCCESS)
+					// 	{
+					// 		yellow_printf(QUEUE_DEBUG_TAG, "Successfully published and removed from Queue");
+					// 		remove_from_pubmesg_queue();
+					// 	}
+					// 	else
+					// 	{
+					// 		mqtt_connected=false;
+					// 		red_printf(QUEUE_ERROR_TAG, "Failed to publish to MQTT");
+					// 		break;
+					// 	}
+					// }
 				}
 			}
 		}

@@ -787,7 +787,7 @@ void handle_sending_ack_to_cloud()
         sprintf(lte_log_buffer, "Sending Node Heartbeat Publish Configuration ACK");
         custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
         sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
+                JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
                 MSG_SEQ_NO_KEY, node_heartbeat_pub_conf_t.base_data.msg_seq_no,
                 GWY_SER_NO_KEY, node_heartbeat_pub_conf_t.base_data.gwy_ser_no_str,
                 NODE_SER_NO_KEY, node_heartbeat_pub_conf_t.base_data.node_ser_no_str,
