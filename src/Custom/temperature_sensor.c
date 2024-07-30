@@ -210,7 +210,7 @@ void create_Temperature_data_publish_timer()
 {
     ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &temp_publish_timer));
 #if (IS_GWY)
-    ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_pub_conf_t.pub_conf_period_in_sec * 1000000));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec * 1000000));
 #endif
 #if (!IS_GWY)
     ESP_ERROR_CHECK(esp_timer_start_periodic(temp_publish_timer, node_heartbeat_pub_conf_t.pub_conf_period_in_sec * 1000000));

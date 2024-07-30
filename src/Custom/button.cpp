@@ -40,21 +40,17 @@ void button_logic()
         /* Single Press */
         if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] == 0)
         {
-
-            if (LOG_DATA)
-                LOG_DATA = false;
-            else
-                LOG_DATA = true;
+            ESP.restart();
         }
 
         /* Double Press */
         else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
-            ESP.restart();
+            LOG_DATA = ~LOG_DATA;
         }
 
         /* Button held for 3s - 8s */
-        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 3 && pressed_duration_array[0] < ONE_SEC_IN_MS * 8)
+        else if (pressed_duration_array[0] >= ONE_SEC_IN_MS * 1 && pressed_duration_array[0] < ONE_SEC_IN_MS * 3)
         {
 #if (IS_GWY)
             if (!teaching_mode && registered)
@@ -76,7 +72,7 @@ void button_logic()
         }
 
         /*  Button held for more than 8s */
-        else if (pressed_duration_array[0] > ONE_SEC_IN_MS * 8) // Button held for more than 8s.
+        else if (pressed_duration_array[0] > ONE_SEC_IN_MS * 3) // Button held for more than 8s.
         {
             factory_reset_device();
         }
@@ -93,9 +89,8 @@ void calculate_button_press_time()
     }
     releasedTime = esp_timer_get_time();
     pressedduration_ms = (releasedTime - pressedTime) / 1000;
-    pressed_duration_array[pressed_duration_array_index++] = pressedduration_ms;
-    sprintf(button_log_buffer, "=-=-=-=-=-=-=- Button held time in milliseconds : %ld =-=-=-=-=-=-=", pressed_duration_array[0]);
-    custom_printf(BUTTON_DEBUG_TAG, button_log_buffer, BLUE);
+    pressed_duration_array[pressed_duration_array_index] = pressedduration_ms;
+    pressed_duration_array_index = pressed_duration_array_index + 1;
 }
 
 /**

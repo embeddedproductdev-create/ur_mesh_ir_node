@@ -66,7 +66,7 @@ void factory_reset_device()
     // Publish Period
     eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC);
     eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC>>8);
-    gwy_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
+    gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
     node_heartbeat_pub_conf_t.pub_conf_period_in_sec = DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
 
     // AC Control Settings

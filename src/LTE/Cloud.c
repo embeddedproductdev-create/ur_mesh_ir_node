@@ -461,245 +461,6 @@ void error_check_json(uint8_t json_packet_id)
     }
 }
 
-/**
- * @brief Function that fills the message that needs to be sent as ACK to cloud
- * handles only the Gwy part. ACK for the Node part is being handled at the Gwy_mesh_main.c unless, the
- * packet had errors
- * @param json_id JSON PACKET ID
- * @retval none
- */
-void handle_sending_ack_to_cloud(uint8_t json_id)
-{
-    char pubmessage[PUBMESG_LEN];
-    switch (json_id)
-    {
-    case NODE_AC_CONTROL_PACKET:
-        sprintf(lte_log_buffer, "Sending Node AC Control ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-                JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
-                MSG_SEQ_NO_KEY, node_ac_control_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, node_ac_control_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, node_ac_control_t.base_data.elementAddr,
-                POWER_KEY, node_ac_control_t.control.power,
-                MODE_KEY, node_ac_control_t.control.mode_str,
-                FAN_SPEED_KEY, node_ac_control_t.control.fanSpeed,
-                TEMPERATURE_KEY, node_ac_control_t.control.temp,
-                SWING_H_KEY, node_ac_control_t.control.swingH,
-                SWING_V_KEY, node_ac_control_t.control.swingV,
-                ONTIMER_KEY, node_ac_control_t.control.OnTimer,
-                OFFTIMER_KEY, node_ac_control_t.control.OffTimer,
-                AC_LOCKING_KEY, node_ac_control_t.control.Locking,
-                TEMP_LOCK_UP_LIMIT_KEY, node_ac_control_t.control.TempLockUpLimit,
-                TEMP_LOCK_LOW_LIMIT_KEY, node_ac_control_t.control.TempLockLowLimit,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_AC_CONTROL_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy AC Control ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET,
-                JSON_ACK_NAME_KEY, GWY_AC_CONTROL_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_ac_control_t.base_data.gwy_ser_no_str,
-                POWER_KEY, gwy_ac_control_t.control.power,
-                MODE_KEY, gwy_ac_control_t.control.mode_str,
-                FAN_SPEED_KEY, gwy_ac_control_t.control.fanSpeed,
-                TEMPERATURE_KEY, gwy_ac_control_t.control.temp,
-                SWING_H_KEY, gwy_ac_control_t.control.swingH,
-                SWING_V_KEY, gwy_ac_control_t.control.swingV,
-                ONTIMER_KEY, gwy_ac_control_t.control.OnTimer,
-                OFFTIMER_KEY, gwy_ac_control_t.control.OffTimer,
-                AC_LOCKING_KEY, gwy_ac_control_t.control.Locking,
-                TEMP_LOCK_UP_LIMIT_KEY, gwy_ac_control_t.control.TempLockUpLimit,
-                TEMP_LOCK_LOW_LIMIT_KEY, gwy_ac_control_t.control.TempLockLowLimit,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_DEBUG_INFO_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Debug Info ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(gwy_debug_info_t.firmware, "%d.%d.%d", MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
-        sprintf(gwy_debug_info_t.uptimestr, "%0.2f", (esp_timer_get_time() / (3600.00 * 1000000.00)));
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_DEBUG_INFO_PACKET,
-                JSON_ACK_NAME_KEY, GWY_DEBUG_INFO_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_debug_info_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_debug_info_t.base_data.gwy_ser_no_str,
-                FIRMWARE_VERSION_KEY, gwy_debug_info_t.firmware,
-                REGISTERED_KEY, registered,
-                PROTOCOL_SEL_NUM_KEY, get_protocol_string(protocol_selected_num),
-                PUBLISH_MESG_QUEUE_COUNT_KEY, get_pubmesg_queue_count(pubmesg_queue_head),
-                PROV_QUEUE_COUNT_KEY, get_prov_queue_count(prov_queue_head),
-                UNPROV_QUEUE_COUNT_KEY, get_unprov_queue_count(unprov_queue_head),
-                AC_CONTROL_QUEUE_COUNT_KEY, get_ac_control_queue_count(node_ac_control_queue_head),
-                RECONF_QUEUE_COUNT_KEY, get_reconf_queue_count(node_reconf_queue_head),
-                PUB_CONF_QUEUE_COUNT_KEY, get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head),
-                TEACHING_MODE_QUEUE_COUNT_KEY, get_teaching_mode_queue_count(node_teaching_mode_queue_head),
-                DEBUG_INFO_QUEUE_COUNT_KEY, get_debug_info_queue_count(node_debug_info_queue_head),
-                DEVICE_UPTIME_KEY, gwy_debug_info_t.uptimestr,
-                LOGGING_KEY, LOG_DATA,
-                RESET_DEVICE_KEY, gwy_debug_info_t.resetDevice,
-                ERROR_CODE_KEY, json_ack_err_code);
-        // Only after filling up the ACK message, we must reset the device.
-        if (gwy_debug_info_t.resetDevice)
-            factory_reset_device();
-        break;
-
-    case NODE_DEBUG_INFO_PACKET:
-        sprintf(lte_log_buffer, "Sending Node Debug Info ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
-                JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
-                MSG_SEQ_NO_KEY, node_debug_info_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, node_debug_info_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, node_debug_info_t.base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, node_debug_info_t.base_data.elementAddr,
-                FIRMWARE_VERSION_KEY, node_debug_info_t.firmware,
-                PROTOCOL_SEL_NUM_KEY, node_debug_info_t.protocol,
-                DEVICE_UPTIME_KEY, node_debug_info_t.uptimestr,
-                LOGGING_KEY, node_debug_info_t.logging,
-                RESET_DEVICE_KEY, node_debug_info_t.resetDevice,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case NODE_TEACHING_MODE_START_PACKET:
-        sprintf(lte_log_buffer, "Sending Node Teaching Mode Start ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
-                JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
-                MSG_SEQ_NO_KEY, node_teaching_mode_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, node_teaching_mode_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, node_teaching_mode_t.base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, node_teaching_mode_t.base_data.elementAddr,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_TEACHING_MODE_START_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Teaching Mode Start ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_TEACHING_MODE_START_PACKET,
-                JSON_ACK_NAME_KEY, GWY_TEACHING_MODE_START_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_teaching_mode_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_teaching_mode_t.base_data.gwy_ser_no_str,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case NODE_RECONF_PACKET:
-        sprintf(lte_log_buffer, "Sending Node Reconfiguration ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-                JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
-                MSG_SEQ_NO_KEY, node_reconf_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, node_reconf_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, node_reconf_t.base_data.elementAddr,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_RECONF_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Reconfiguration ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_RECONF_PACKET,
-                JSON_ACK_NAME_KEY, GWY_RECONF_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_reconf_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_reconf_t.base_data.gwy_ser_no_str,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case NODE_HEARTBEAT_PUB_CONF_PACKET:
-        sprintf(lte_log_buffer, "Sending Node Heartbeat Publish Configuration ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                JSON_ACK_NAME_KEY, NODE_HEARTBEAT_ACK_NAME,
-                MSG_SEQ_NO_KEY, node_heartbeat_pub_conf_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, node_heartbeat_pub_conf_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, node_heartbeat_pub_conf_t.base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, node_heartbeat_pub_conf_t.base_data.elementAddr,
-                PUBLISH_PERIOD_KEY, node_heartbeat_pub_conf_t.pub_conf_period_in_sec,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_HEARTBEAT_PUB_CONF_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Heartbeat Publish Confiugration ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_HEARTBEAT_PUB_CONF_PACKET,
-                JSON_ACK_NAME_KEY, GWY_HEARTBEAT_PUB_CONF_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_pub_conf_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_pub_conf_t.base_data.gwy_ser_no_str,
-                PUBLISH_PERIOD_KEY, gwy_pub_conf_t.pub_conf_period_in_sec,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case NODE_PROV_PACKET:
-        sprintf(lte_log_buffer, "Sending Node Provision ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-                JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
-                MSG_SEQ_NO_KEY, provision_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, provision_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, provision_t.base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, provision_t.base_data.elementAddr,
-                LOCATION_KEY, provision_t.location,
-                APP_KEY_INDEX, provision_t.appindex,
-                APP_KEY, provision_t.appkey,
-                NET_KEY_INDEX, provision_t.netindex,
-                NET_KEY, provision_t.netkey,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_REG_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Registration ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_REG_PACKET,
-                JSON_ACK_NAME_KEY, GWY_REG_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_registration_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_registration_t.base_data.gwy_ser_no_str,
-                LOCATION_KEY, gwy_registration_t.location,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case NODE_UNPROV_PACKET:
-        sprintf(lte_log_buffer, "Sending Node Unprovision ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-                JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
-                MSG_SEQ_NO_KEY, unprovision_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, unprovision_t.base_data.gwy_ser_no_str,
-                NODE_SER_NO_KEY, unprovision_t.base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, unprovision_t.base_data.elementAddr,
-                LOCATION_KEY, unprovision_t.location,
-                ERROR_CODE_KEY, json_ack_err_code);
-        break;
-
-    case GWY_UNREG_PACKET:
-        sprintf(lte_log_buffer, "Sending Gwy Unregistration ACK");
-        custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %ld}",
-                JSON_PACKET_ID_KEY, GWY_UNREG_PACKET,
-                JSON_ACK_NAME_KEY, GWY_UNREG_ACK_NAME,
-                MSG_SEQ_NO_KEY, gwy_unregistration_t.base_data.msg_seq_no,
-                GWY_SER_NO_KEY, gwy_unregistration_t.base_data.gwy_ser_no_str,
-                LOCATION_KEY, gwy_unregistration_t.location,
-                ERROR_CODE_KEY, json_ack_err_code);
-        if (json_ack_err_code == SUCCESS)
-            factory_reset_device();
-        break;
-    }
-    add_to_pubmesg_queue(pubmessage, publish_topic);
-}
-
 void get_mode_value(char *device_type)
 {
     if (strcmp(device_type, "gwy") == 0)
@@ -848,15 +609,111 @@ void register_gwy()
 }
 
 /**
+ * @brief Function that gets the JSON ACK NAME to be filled in the ACK sent to cloud
+ * @param ack_name Pointer to the String where the ACK NAME needs to be filled in
+ * @retval none
+ */
+void get_json_ack_name(char *ack_name)
+{
+    switch(json_packet_id)
+    {
+        case GWY_REG_PACKET:
+            strcpy(ack_name, GWY_REG_ACK_NAME);
+            break;
+        case GWY_UNREG_PACKET:
+            strcpy(ack_name, GWY_UNREG_ACK_NAME);
+            break;
+        case GWY_AC_CONTROL_PACKET:
+            strcpy(ack_name, GWY_AC_CONTROL_ACK_NAME);
+            break;
+        case GWY_RECONF_PACKET:
+            strcpy(ack_name, GWY_RECONF_ACK_NAME);
+            break;
+        case GWY_HEARTBEAT_PUB_CONF_PACKET:
+            strcpy(ack_name, GWY_HEARTBEAT_PUB_CONF_ACK_NAME);
+            break;
+        case GWY_TEACHING_MODE_START_PACKET:
+            strcpy(ack_name, GWY_TEACHING_MODE_START_ACK_NAME);
+            break;
+        case GWY_DEBUG_INFO_PACKET:
+            strcpy(ack_name, GWY_DEBUG_INFO_ACK_NAME);
+            break;
+        case NODE_PROV_PACKET:
+            strcpy(ack_name, NODE_PROV_ACK_NAME);
+            break;
+        case NODE_UNPROV_PACKET:
+            strcpy(ack_name, NODE_UNPROV_ACK_NAME);
+            break;
+        case NODE_RECONF_PACKET:
+            strcpy(ack_name, NODE_RECONF_ACK_NAME);
+            break;
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            strcpy(ack_name, NODE_HEARTBEAT_PUB_CONF_ACK_NAME);
+            break;
+        case NODE_TEACHING_MODE_START_PACKET:
+            strcpy(ack_name, NODE_TEACHING_MODE_START_ACK_NAME);
+            break;
+        case NODE_DEBUG_INFO_PACKET:
+            strcpy(ack_name, NODE_DEBUG_INFO_ACK_NAME);
+            break;
+        default:
+            strcpy(ack_name, "INVALID_ACK_NAME");
+            break;
+    }
+}
+
+/**
  * @brief function that takes care of sending back error packet with appropriate error code
  * @retval none
  */
-void handle_send_error_ack_to_cloud()
+void handle_sending_ack_to_cloud()
 {
+    char pubmessage[PUBMESG_LEN];
+    switch(json_packet_id)
+    {
+        case GWY_DEBUG_INFO_PACKET:
+            sprintf(lte_log_buffer, "Sending Gwy Debug Info ACK");
+            custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
+            sprintf(gwy_debug_info_t.firmware, "%d.%d.%d", MAJ_VERSION, MIN_VERSION, INTERNAL_MIN_VERSION);
+            sprintf(gwy_debug_info_t.uptimestr, "%0.2f", (esp_timer_get_time() / (3600.00 * 1000000.00)));
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %ld}",
+                    JSON_PACKET_ID_KEY, GWY_DEBUG_INFO_PACKET,
+                    JSON_ACK_NAME_KEY, GWY_DEBUG_INFO_ACK_NAME,
+                    MSG_SEQ_NO_KEY, gwy_debug_info_t.base_data.msg_seq_no,
+                    GWY_SER_NO_KEY, gwy_debug_info_t.base_data.gwy_ser_no_str,
+                    FIRMWARE_VERSION_KEY, gwy_debug_info_t.firmware,
+                    REGISTERED_KEY, registered,
+                    PROTOCOL_SEL_NUM_KEY, get_protocol_string(protocol_selected_num),
+                    PUBLISH_MESG_QUEUE_COUNT_KEY, get_pubmesg_queue_count(pubmesg_queue_head),
+                    PROV_QUEUE_COUNT_KEY, get_prov_queue_count(prov_queue_head),
+                    UNPROV_QUEUE_COUNT_KEY, get_unprov_queue_count(unprov_queue_head),
+                    AC_CONTROL_QUEUE_COUNT_KEY, get_ac_control_queue_count(node_ac_control_queue_head),
+                    RECONF_QUEUE_COUNT_KEY, get_reconf_queue_count(node_reconf_queue_head),
+                    PUB_CONF_QUEUE_COUNT_KEY, get_heartbeat_pub_conf_queue_count(node_pub_conf_queue_head),
+                    TEACHING_MODE_QUEUE_COUNT_KEY, get_teaching_mode_queue_count(node_teaching_mode_queue_head),
+                    DEBUG_INFO_QUEUE_COUNT_KEY, get_debug_info_queue_count(node_debug_info_queue_head),
+                    DEVICE_UPTIME_KEY, gwy_debug_info_t.uptimestr,
+                    LOGGING_KEY, LOG_DATA,
+                    RESET_DEVICE_KEY, gwy_debug_info_t.resetDevice,
+                    ERROR_CODE_KEY, json_ack_err_code);
+            add_to_pubmesg_queue(pubmessage, publish_topic);
+            // Only after filling up the ACK message, we must reset the device.
+            if (gwy_debug_info_t.resetDevice)
+                factory_reset_device();
+            return;
+        default:
+            ;
+    }
+    char ack_name[100], temp_json[1024];
+    strcpy(temp_json, JSON_PACKET);
+    get_json_ack_name(ack_name);
+    strcpy(JSON_PACKET, ack_name);
+
     char err[30];
     sprintf(err, ", \"%s\" : %ld}",ERROR_CODE_KEY, json_ack_err_code);
+    
     strcpy(strstr(JSON_PACKET, "}"), err);
-    custom_printf(LTE_ERROR_TAG, JSON_PACKET, RED);
+    custom_printf(LTE_ERROR_TAG, JSON_PACKET, CYAN);
     add_to_pubmesg_queue(JSON_PACKET, publish_topic);
 }
 
@@ -1037,12 +894,12 @@ void parse_json_packet(char *json_packet)
 
         case GWY_HEARTBEAT_PUB_CONF_PACKET:
             ESP_LOGI(LTE_DEBUG_TAG, "Gwy Heartbeat Publish configuration Packet");
-            gwy_pub_conf_t.base_data.json_packet_id = json_packet_id;
-            strcpy(gwy_pub_conf_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
-            gwy_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            gwy_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, gwy_pub_conf_t.pub_conf_period_in_sec);
-            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, gwy_pub_conf_t.pub_conf_period_in_sec>>8);
+            gwy_heartbeat_pub_conf_t.base_data.json_packet_id = json_packet_id;
+            strcpy(gwy_heartbeat_pub_conf_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
+            gwy_heartbeat_pub_conf_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
+            gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec = cJSON_GetObjectItem(json_packet_j, PUBLISH_PERIOD_KEY)->valueint;
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO, gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec);
+            eeprom_write_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI, gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec>>8);
 
             delete_Temperature_data_publish_timer();
             create_Temperature_data_publish_timer();
@@ -1129,10 +986,9 @@ void parse_json_packet(char *json_packet)
     // Handle sending back ACK for gwy related packets here &
     // Handle sending back ACK for node related packets here only if the packet contains errors
     // Else it is taken care at the mesh side.
-    if (json_ack_err_code == SUCCESS)
-        handle_sending_ack_to_cloud(json_packet_id);
-    else
-        handle_send_error_ack_to_cloud();
+    if((json_packet_id >= 0 && json_packet_id < MAX_GWY_PACKET_ID-1 ) || 
+      (json_packet_id >= 100 && json_packet_id <= MAX_NODE_PACKET_ID-1 && json_ack_err_code !=SUCCESS))
+        handle_sending_ack_to_cloud();
 }
 
 #endif

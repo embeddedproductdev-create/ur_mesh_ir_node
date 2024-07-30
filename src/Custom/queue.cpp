@@ -296,24 +296,11 @@ void maintain_ac_control_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld,, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-					JSON_ACK_NAME_KEY, NODE_AC_CONTROL_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					POWER_KEY, temp->control.power,
-					MODE_KEY, temp->control.mode_str,
-					FAN_SPEED_KEY, temp->control.fanSpeed,
-					TEMPERATURE_KEY, temp->control.temp,
-					SWING_H_KEY, temp->control.swingH,
-					SWING_V_KEY, temp->control.swingV,
-					ONTIMER_KEY, temp->control.OnTimer,
-					OFFTIMER_KEY, temp->control.OffTimer,
-					AC_LOCKING_KEY, temp->control.Locking,
-					TEMP_LOCK_UP_LIMIT_KEY, temp->control.TempLockUpLimit,
-					TEMP_LOCK_LOW_LIMIT_KEY, temp->control.TempLockLowLimit,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_ac_control_queue();
@@ -333,14 +320,11 @@ void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr)
 		{
 			//Let's send the ACK first 
 			char pubmessage[PUBMESG_LEN];
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-                JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
                 MSG_SEQ_NO_KEY, head->base_data.msg_seq_no,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 NODE_SER_NO_KEY, head->base_data.node_ser_no_str,
-                ELEMENT_ADDR_KEY, head->base_data.elementAddr,
-                LOCATION_KEY, head->location,
                 ERROR_CODE_KEY, head->base_data.error_code);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 
@@ -449,14 +433,11 @@ void maintain_unprov_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-					JSON_ACK_NAME_KEY, NODE_UNPROV_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					LOCATION_KEY, temp->location,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_unprov_queue();
@@ -547,15 +528,11 @@ void maintain_prov_queue()
 			zero_out_match_arr_in_mesh();
 			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-					JSON_ACK_NAME_KEY, NODE_PROV_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					MAC_ID_KEY, temp->macid,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					LOCATION_KEY, temp->location,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_prov_queue();
@@ -655,13 +632,11 @@ void maintain_teaching_mode_queue()
 		{
 			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
-					JSON_ACK_NAME_KEY, NODE_TEACHING_MODE_START_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_teaching_mode_queue();
@@ -740,13 +715,11 @@ void maintain_debug_info_queue()
 		{
 			sprintf(queue_log_buffer, "Removing Node Debug Info request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
 					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
-					JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
 					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
 					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
 					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
 					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_debug_info_queue();

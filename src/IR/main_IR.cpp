@@ -698,22 +698,19 @@ void fetch_data_from_manual_control(char *input_string)
     if (strstr(input_string, "Power"))
     {
         snprintf(power, sizeof(power), (strstr(input_string, "Power") + 7));
-        if (strstr(power, "On"))
+        ESP_LOGI(IR_DEBUG_TAG, "Power detected : %s", power);
+        if (strstr(power, "On,"))
             gwy_manual_ac_control_t.control.power = 1;
         else
             gwy_manual_ac_control_t.control.power = 0;
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
 
     // Fetch Mode
     if (strstr(input_string, "Mode"))
     {
-        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 9));
+        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode:") + 9));
+        ESP_LOGI(IR_DEBUG_TAG, "Mode detected : %s", mode);
         if (strstr(mode, "Cool"))
             strcpy(gwy_manual_ac_control_t.control.mode_str, "Cool");
         else if (strstr(mode, "Heat"))
@@ -725,38 +722,25 @@ void fetch_data_from_manual_control(char *input_string)
         else if (strstr(mode, "Fan"))
             strcpy(gwy_manual_ac_control_t.control.mode_str, "Fan");
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
 
     // Fetch Fan
     if (strstr(input_string, "Fan"))
     {
         snprintf(fan, sizeof(fan), (strstr(input_string, "Fan") + 5));
+        ESP_LOGI(IR_DEBUG_TAG, "Fan detected : %s", fan);
         gwy_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
 
     // Fetch Temperature
     if (strstr(input_string, "Temp"))
     {
         snprintf(temperature, sizeof(temperature), (strstr(input_string, "Temp") + 6));
+        ESP_LOGI(IR_DEBUG_TAG, "Temperature detected : %s", temperature);
         gwy_manual_ac_control_t.control.temp = atoi(temperature);
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
 #endif
 
 #if (!IS_GWY)
@@ -764,22 +748,19 @@ void fetch_data_from_manual_control(char *input_string)
     if (strstr(input_string, "Power"))
     {
         snprintf(power, sizeof(power), (strstr(input_string, "Power") + 7));
-        if (!strcmp(power, "On"))
-            gwy_manual_ac_control_t.control.power = 1;
+        ESP_LOGI(IR_DEBUG_TAG, "Power detected : %s", power);
+        if (!strcmp(power, "On,"))
+            node_manual_ac_control_t.control.power = 1;
         else
             node_manual_ac_control_t.control.power = 0;
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
 
     // Fetch Mode
     if (strstr(input_string, "Mode"))
     {
-        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode") + 6));
+        snprintf(mode, sizeof(mode), (strstr(input_string, "Mode:") + 9));
+        ESP_LOGI(IR_DEBUG_TAG, "Mode detected : %s", mode);
         if (strstr(mode, "Cool"))
             strcpy(node_manual_ac_control_t.control.mode_str, "Cool");
         else if (strstr(mode, "Heat"))
@@ -791,38 +772,25 @@ void fetch_data_from_manual_control(char *input_string)
         else if (strstr(mode, "Fan"))
             strcpy(node_manual_ac_control_t.control.mode_str, "Fan");
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
     
     // Fetch Fan
     if (strstr(input_string, "Fan"))
     {
         snprintf(fan, sizeof(fan), (strstr(input_string, "Fan") + 5));
+        ESP_LOGI(IR_DEBUG_TAG, "Fan detected : %s", fan);
         node_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
 
     // Fetch Temperature
     if (strstr(input_string, "Temp"))
     {
         snprintf(temperature, sizeof(temperature), (strstr(input_string, "Temp") + 6));
+        ESP_LOGI(IR_DEBUG_TAG, "Temperature detected : %s", temperature);
         node_manual_ac_control_t.control.temp = atoi(temperature);
     }
-    else
-    {
-        red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
-        no_recv_function_flag = true;
-        return;
-    }
+    else red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
 #endif
 }
 
@@ -838,13 +806,14 @@ void locking_feature(char *result_description_char_str)
 {
     ESP_LOGI(IR_DEBUG_TAG, "Inside Locking Feature function");
     fetch_data_from_manual_control(result_description_char_str);
-    if (no_recv_function_flag || protocol_selected_num == RAW)
+    if (protocol_selected_num == RAW)
     {
 #if (IS_GWY)
         gwy_manual_ac_control_t.control.power = 0;
         gwy_manual_ac_control_t.control.temp = 0;
         gwy_manual_ac_control_t.control.fanSpeed = 0;
         strcpy(gwy_manual_ac_control_t.control.mode_str, "");
+        goto here;
 #endif
 
 #if (!IS_GWY)
@@ -852,6 +821,7 @@ void locking_feature(char *result_description_char_str)
         node_manual_ac_control_t.control.temp = 0;
         node_manual_ac_control_t.control.fanSpeed = 0;
         strcpy(node_manual_ac_control_t.control.mode_str, "");
+        goto here;
 #endif
     }
     else
@@ -860,13 +830,7 @@ void locking_feature(char *result_description_char_str)
         if (gwy_manual_ac_control_t.control.temp <= gwy_ac_control_t.control.TempLockUpLimit && gwy_manual_ac_control_t.control.temp >= gwy_ac_control_t.control.TempLockLowLimit);
 #endif
 #if (!IS_GWY)
-        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit && node_manual_ac_control_t.control.temp >= node_ac_control_t.control.TempLockLowLimit)
-        {
-            ESP_LOGI(IR_DEBUG_TAG, "node_manual_ac_control_t.control.temp : %d", node_manual_ac_control_t.control.temp);
-            ESP_LOGI(IR_DEBUG_TAG, "node_ac_control_t.control.TempLockUpLimit : %d", node_ac_control_t.control.TempLockUpLimit);
-            ESP_LOGI(IR_DEBUG_TAG, "node_ac_control_t.control.TempLockLowLimit : %d", node_ac_control_t.control.TempLockLowLimit);
-            custom_printf(IR_DEBUG_TAG, "AC control not required", WHITE);
-        }
+        if (node_manual_ac_control_t.control.temp <= node_ac_control_t.control.TempLockUpLimit && node_manual_ac_control_t.control.temp >= node_ac_control_t.control.TempLockLowLimit);
 #endif
         else
         {
@@ -874,6 +838,8 @@ void locking_feature(char *result_description_char_str)
             needToSendIRComamnd = true;
         }
     }
+
+here:
 #if (IS_GWY)
     white_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack");
     char pubmessage[PUBMESG_LEN];
@@ -1075,33 +1041,31 @@ void IR_receiver_task(void *args)
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
-
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                         //Just turning these off, because of the case, where the device could have gotten from teaching mode to configurtion mode and then gets configured.
                         teaching_mode = false;
                         teachMode_size_done = false;
                     }
-                    else
-                        unsupported_remote_flag = true;
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
+                    else unsupported_remote_flag = true;
+                    
                     char pubmessage[PUBMESG_LEN];
-
                     if (!unsupported_remote_flag)
                     {
                         sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                                JSON_PACKET_ID_KEY, GWY_CONF_ACK,
-                                JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
-                                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                                ERROR_CODE_KEY, 0);
+                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
+                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
+                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                            ERROR_CODE_KEY, 0);
                     }
                     else
                     {
                         sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                                JSON_PACKET_ID_KEY, GWY_CONF_ACK,
-                                JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
-                                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                                ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+                            JSON_PACKET_ID_KEY, GWY_CONF_ACK,
+                            JSON_ACK_NAME_KEY, GWY_CONF_ACK_NAME,
+                            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
+                            ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
                     }
-                    white_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration Ack");
+                    custom_printf(IR_DEBUG_TAG, "Sending Gwy AC Remote Configuration ACK", WHITE);
                     add_to_pubmesg_queue(pubmessage, publish_topic);
                 }
 #endif
@@ -1114,17 +1078,13 @@ void IR_receiver_task(void *args)
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_LO, protocol_selected_num);
                         eeprom_write_byte(EEPROM_SLAVE_ADDR, PROTOCOL_SEL_FLASH_ADDR_HI, protocol_selected_num >> 8);
                         configured = true;
-
+                        eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
                         //Just turning these off, because of the case, where the device could have gotten from teaching mode to configurtion mode and then gets configured.
                         teaching_mode = false;
                         teachMode_size_done = false;
                     }
-                    else
-                    {
-                        unsupported_remote_flag = true;
-                        continue;
-                    }
-                    eeprom_write_byte(EEPROM_SLAVE_ADDR, CONFIGURED_FLAG_FLASH_ADDR, true);
+                    else unsupported_remote_flag = true;
+
                     send_AC_configuration_ack_to_gwy();
                 }
 #endif

@@ -262,6 +262,7 @@ enum json_packet_enum
 	GWY_TEACHING_MODE_END_ACK,
 	GWY_DEBUG_INFO_PACKET,
 	GWY_OTA_UPDATE,
+	MAX_GWY_PACKET_ID,
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
@@ -276,6 +277,7 @@ enum json_packet_enum
 	NODE_TEACHING_MODE_END_ACK,
 	NODE_DEBUG_INFO_PACKET,
 	NODE_OTA_UPDATE,
+	MAX_NODE_PACKET_ID,
 
 	/* MISC PACKETS */
 	SET_GWY_SER_NO = 800,
@@ -337,6 +339,7 @@ enum ERROR_CODES
 	LOGGING_FLAG_NOT_FOUND,
 	AC_REMOTE_UNSUPPORTED,
 	JSON_PACKET_INVALID,
+	TEACHING_UNSUCCESSFUL,
 	FORBIDDEN_OPERATION = 999,
 	UNKNOWN_ERROR_CODE = 9999
 };
@@ -384,7 +387,7 @@ extern manual_ac_control_t gwy_manual_ac_control_t;
 extern heartbeat_t gwy_heartbeat_t;
 
 /*gwy publish configuration*/
-extern pub_conf_t gwy_pub_conf_t;
+extern pub_conf_t gwy_heartbeat_pub_conf_t;
 
 /*teaching mode*/
 extern teaching_mode_t gwy_teaching_mode_t;
@@ -472,7 +475,7 @@ extern "C"
 #endif
 void parse_json_packet(char *json_packet);
 void fill_macid(void);
-void handle_sending_ack_to_cloud(uint8_t json_id);
+void handle_sending_ack_to_cloud();
 void error_check_json(uint8_t json_packet_id);
 void isValidMacId(char *macid);
 #ifdef __cplusplus

@@ -1294,6 +1294,8 @@ void send_heartbeat_ack_to_gwy()
 void send_teaching_mode_end_ack_to_gwy()
 {
     ESP_LOGI(MESH_DEBUG_TAG, "Sending Teaching Mode End ACK to Gwy");
+    if(teaching_mode) node_teaching_mode_t.base_data.error_code = TEACHING_UNSUCCESSFUL;
+    else node_teaching_mode_t.base_data.error_code = SUCCESS;
     node_teaching_mode_t.base_data.json_packet_id = NODE_TEACHING_MODE_END_ACK;
     strcpy(node_teaching_mode_t.base_data.node_ser_no_str, NODE_SER_NO_IN_STRING);
     sensor_states[0].sensor_data.raw_value->data = &node_teaching_mode_t;

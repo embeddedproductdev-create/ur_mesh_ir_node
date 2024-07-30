@@ -44,7 +44,7 @@ reconf_t gwy_conf_t;
 reconf_t gwy_reconf_t;
 control_t gwy_ac_control_t;
 manual_ac_control_t gwy_manual_ac_control_t;
-pub_conf_t gwy_pub_conf_t;
+pub_conf_t gwy_heartbeat_pub_conf_t;
 heartbeat_t gwy_heartbeat_t;
 teaching_mode_t gwy_teaching_mode_t;
 debug_info_t gwy_debug_info_t;
@@ -169,9 +169,9 @@ void fetch_from_flash()
 
 /*Heartbeat Publish Period*/
 #if (IS_GWY)
-    gwy_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI);
-    gwy_pub_conf_t.pub_conf_period_in_sec <<= 8;
-    gwy_pub_conf_t.pub_conf_period_in_sec |= eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO);
+    gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec = eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_HI);
+    gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec <<= 8;
+    gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec |= eeprom_read_byte(EEPROM_SLAVE_ADDR, HB_PUB_CONF_PERIOD_ADDR_LO);
 #endif
 
 #if (!IS_GWY)
@@ -289,7 +289,7 @@ void app_main()
     ESP_LOGI(MAIN_DEBUG_TAG, "\tRegistered          : %d", registered);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tConfigured          : %d", configured);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tProtocol            : %s", get_protocol_string(protocol_selected_num));
-    ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", gwy_pub_conf_t.pub_conf_period_in_sec);
+    ESP_LOGI(MAIN_DEBUG_TAG, "\tPublishPeriodSec    : %d", gwy_heartbeat_pub_conf_t.pub_conf_period_in_sec);
     ESP_LOGI(MAIN_DEBUG_TAG, "AC Settings:");
     ESP_LOGI(MAIN_DEBUG_TAG, "\tPower               : %d", gwy_ac_control_t.control.power);
     ESP_LOGI(MAIN_DEBUG_TAG, "\tMode                : %s", gwy_ac_control_t.control.mode_str);
