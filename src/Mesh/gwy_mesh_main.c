@@ -923,7 +923,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_reconf_queue();
             vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
                     MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
@@ -935,7 +935,7 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             remove_from_heartbeat_pub_conf_queue();
             vendor_node_heartbeat_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_pub_conf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
                     JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
                     MSG_SEQ_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.msg_seq_no,
                     GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,

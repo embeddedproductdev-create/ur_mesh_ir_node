@@ -13,7 +13,6 @@
 int32_t json_ack_err_code = SUCCESS;
 int32_t json_packet_id = UNKNOWN_PACKET;
 cJSON *json_packet_j;
-char JSON_PACKET[1024];
 
 struct pub_mesg_struct *pubmesg_queue_head = NULL;
 struct pub_mesg_struct *pubmesg_queue_tail = NULL;

@@ -44,6 +44,9 @@ char AT_CMD[5];
 char CHECK_FIRMWARE_CMD[5];
 char CHECK_OPERATOR_SELECTION_CMD[10];
 char CHECK_DOMAIN_REG_CMD[10];
+char ENABLE_SIM_HOTSWAP_CMD[20];
+char PING_CMD[30];
+char PING_RESP[10];
 
 /*PDP and TCP config*/
 char TCP_CONFIG_CMD[50];
@@ -140,7 +143,6 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 				if (strstr(LTE_UART_data, "{"))
 				{
 					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
-					strcpy(JSON_PACKET, LTE_UART_data);
 					custom_printf(LTE_DEBUG_TAG, LTE_UART_data, CYAN);
 					parse_json_packet(LTE_UART_data);
 				}
@@ -269,13 +271,20 @@ void init_const_AT_cmd_strings()
 	sprintf(AT_CMD, "AT\r");
 	sprintf(CHECK_FIRMWARE_CMD, "ATI\r");
 	sprintf(CHECK_OPERATOR_SELECTION_CMD, "AT+COPS?\r");
-	sprintf(CHECK_DOMAIN_REG_CMD, "AT+CREG?");
+	sprintf(CHECK_DOMAIN_REG_CMD, "AT+CREG?\r");
+
+	/*Hot Swap*/
+	sprintf(ENABLE_SIM_HOTSWAP_CMD, "AT+QSIMDET=1,0\r");
 
 	/*Configuring TCP/IP parameters*/
-	sprintf(TCP_CONFIG_CMD, "AT+QICSGP=2,1,\"airtelgprs.com\",\"\",\"\",0\r");
+	sprintf(TCP_CONFIG_CMD, "AT+QICSGP=1,1,\"airtelgprs.com\",\"\",\"\",0\r");
 
 	/*Activating PDP context*/
-	sprintf(PDP_CONTXT_ACT_CMD, "AT+QIACT=2\r");
+	sprintf(PDP_CONTXT_ACT_CMD, "AT+QIACT=1\r");
+
+	/*Ping Command*/
+	sprintf(PING_CMD, "AT+QPING=1,\"google.com\"\r");
+	sprintf(PING_RESP, "+QPING:");
 }
 
 /**
@@ -310,11 +319,11 @@ void init_Strings()
 
 	sprintf(MQTT_NETWORK_CLOSE_CMD, "%s%d\r", MQTT_NETWORK_CLOSE, MQTT_CLIENT_INDEX);
 
-	/*CheckClientConn*/
+	/*Check Client Connection*/
 	sprintf(CHECK_CLIENT_CONN, "AT+QMTCONN?\r");
 	sprintf(CLIENT_CONN_OK, "+QMTCONN: %d,3", MQTT_CLIENT_INDEX);
 
-	/*Client Connection*/
+	/*Make Client Connection*/
 	sprintf(MQTT_CLIENT_CONN_CMD, "%s%d,\"%s\",\"%s\",\"%s\"\r", MQTT_CLIENT_CONN, MQTT_CLIENT_INDEX, mqtt_client_id, mqtt_broker_username, mqtt_broker_password);
 	sprintf(MQTT_CLIENT_CONN_RESP, "+QMTCONN: %d,0,0", MQTT_CLIENT_INDEX);
 
@@ -396,6 +405,7 @@ void basic_LTE_checks()
 	send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESPONSE, 1000);
 	send_cmd_and_check_response(LOG_DATA, CHECK_OPERATOR_SELECTION_CMD, "CHECK_OP_SEL_CMD", OK_RESPONSE, 1000);
 	send_cmd_and_check_response(LOG_DATA, CHECK_DOMAIN_REG_CMD, "CHECK_DOMAIN_REG_CMD", OK_RESPONSE, 1000);
+	send_cmd_and_check_response(LOG_DATA, ENABLE_SIM_HOTSWAP_CMD, "ENABLE_SIM_HOTSWAP_CMD", OK_RESPONSE, 1000);
 }
 
 /**
@@ -413,30 +423,29 @@ void establishMQTTConnectionNew()
 	 * - Start checking for msgs from Broker
 	 */
 	static uint8_t retry_count = 0;
-	//If we had recvd QMTOPEN 3 error, then it means PDP has not been activated and no point in trying further
-	//Let's actiate it first
-	// if(need_to_activate_pdp)
-	// {
-	// 	while(1)
-	// 	{
-	// 		vTaskDelay(1);
-	// 		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 1000);
-	// 		send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_ACTIVATION_CMD", OK_RESPONSE, 1000);
-	// 		if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000) != SUCCESS);
-	// 		else 
-	// 		{
-	// 			need_to_activate_pdp = false;
-	// 			break;
-	// 		}
-	// 	}
-	// }
-
-	//Printing the whole heap information
-	// multi_heap_info_t *heap_data = NULL;
-	// heap_caps_get_info(heap_data, MALLOC_CAP_DEFAULT);
-	// printf("Allocated Blocks : %d\nFree Blocks : %d\nLargest Free Block : %d\nMinimum Free Block : %d\nTotal Allocated Bytes : %d\nTotal Free Bytes : %d\nTotal Blocks  %d\n",
-	// heap_data->allocated_blocks, heap_data->free_blocks, heap_data->largest_free_block, 
-	// heap_data->minimum_free_bytes, heap_data->total_allocated_bytes, heap_data->total_free_bytes, heap_data->total_blocks);
+	// If we had recvd QMTOPEN 3 error, then it means PDP has not been activated and no point in trying further
+	// Let's actiate it first
+	if(need_to_activate_pdp)
+	{
+		while(1)
+		{
+			vTaskDelay(1);
+			send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 3000);
+			send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_ACTIVATION_CMD", OK_RESPONSE, 150000);
+			if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000) != SUCCESS);
+			else 
+			{
+				need_to_activate_pdp = false;
+				break;
+			}
+			retry_count++;
+			if(retry_count>RETRY_COUNT) {
+				rotate_client_index();
+				powerCycleLTE();
+				retry_count = 0;
+			}
+		}
+	}
 
 	if (send_cmd_and_check_response(LOG_DATA, CHECK_NETWORK, "CHECK_NETWORK", NETWORK_OK, 1000) == SUCCESS)
 	{
@@ -444,19 +453,16 @@ void establishMQTTConnectionNew()
 		{
 			if (send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB", OK_RESPONSE, 1000) == SUCCESS)
 			{
-				// while(1)
-				// {
-				// 	vTaskDelay(1);
-					if (send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000) == SUCCESS)
-					{
+				while(1)
+				{
+					vTaskDelay(1);
+					if (send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESPONSE, 1000) == SUCCESS)
 						mqtt_connected = true;
+					else {
+						mqtt_connected = false;
+						break;
 					}
-					else
-					{
-						mqtt_connected=false;
-						red_printf(LTE_ERROR_TAG, "Unexpected MQTT disconnection");
-						// break;
-					}
+					send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 100);
 					if (pubmesg_queue_head != NULL && mqtt_connected)
 					{
 						if (publish_to_mqtt() == SUCCESS)
@@ -468,10 +474,10 @@ void establishMQTTConnectionNew()
 						{
 							mqtt_connected=false;
 							red_printf(QUEUE_ERROR_TAG, "Failed to publish to MQTT");
-							// break;
+							break;
 						}
 					}
-				// }
+				}
 			}
 		}
 		else

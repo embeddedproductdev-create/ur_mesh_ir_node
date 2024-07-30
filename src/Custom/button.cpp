@@ -46,7 +46,8 @@ void button_logic()
         /* Double Press */
         else if (pressed_duration_array[0] < ONE_SEC_IN_MS && pressed_duration_array[1] < ONE_SEC_IN_MS)
         {
-            LOG_DATA = ~LOG_DATA;
+            if(LOG_DATA) LOG_DATA = false;
+            else LOG_DATA = true;
         }
 
         /* Button held for 3s - 8s */
