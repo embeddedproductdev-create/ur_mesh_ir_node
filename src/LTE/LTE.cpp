@@ -20,7 +20,7 @@ uint8_t MQTT_CLIENT_INDEX = 5;
 
 char mqtt_client_id[100];
 
-bool LOG_DATA = false;
+bool LOG_DATA = true;
 
 bool network_flag = false;
 bool client_flag = false;
@@ -115,7 +115,6 @@ void LTE_UART_INIT(void)
 int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_string, char *cmd_name)
 {
 	static uint8_t long_run_issue_counter = 0;
-
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
 	if (LTE_UART_data == NULL)
 	{
@@ -123,7 +122,8 @@ int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_strin
 		custom_printf(LTE_DEBUG_TAG, lte_log_buffer, RED);
 		return FAILURE;
 	}
-	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
+	uart_flush(UART_NUM_1);
+	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 300);
 	if (length > 0)
 	{
 		//reset the counters
@@ -194,6 +194,7 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 {
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
 	{
+		if(logging) ESP_LOGI(LTE_DEBUG_TAG, "Command sent : %s", cmd);
 		if (fetch_and_check_data(logging, timeout_ms, check_string, cmdName) == SUCCESS)
 		{
 			return SUCCESS;
