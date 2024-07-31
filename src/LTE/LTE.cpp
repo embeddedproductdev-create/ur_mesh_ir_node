@@ -29,6 +29,7 @@ bool mqtt_connected = false;
 bool registered = false;
 bool publishing_flag = false;
 bool hold_adding_to_pubmesg = false;
+bool need_to_rotate_client_index = false;
 bool need_to_activate_pdp = false;
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
@@ -63,6 +64,7 @@ char MQTT_NETWORK_OPEN_RESP[100];
 char CHECK_NETWORK[15];
 char NETWORK_OK[100];
 char MQTT_NETWORK_CLOSE_CMD[100];
+char MQTT_NETWORK_CLOSE_RESP[35];
 
 /*ClientConnection*/
 char CHECK_CLIENT_CONN[15];
@@ -98,7 +100,7 @@ void LTE_UART_INIT(void)
 		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
 		.source_clk = UART_SCLK_APB,
 	};
-	uart_driver_install(UART_NUM_1, 256, 0, 0, NULL, 0);
+	uart_driver_install(UART_NUM_1, BUF_SIZE, 0, 0, NULL, 0);
 	uart_param_config(UART_NUM_1, &uart_config);
 	uart_set_pin(UART_NUM_1, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 }
@@ -110,9 +112,8 @@ void LTE_UART_INIT(void)
  * @param check_string String that is used to check against the response to know if it is valid or not
  * @return int8_t
  */
-int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_name)
+int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_string, char *cmd_name)
 {
-	static uint8_t rotate_client_index_counter = 0;
 	static uint8_t long_run_issue_counter = 0;
 
 	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
@@ -122,45 +123,30 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 		custom_printf(LTE_DEBUG_TAG, lte_log_buffer, RED);
 		return FAILURE;
 	}
-	uint32_t in_time = esp_timer_get_time();
-	while ((esp_timer_get_time() - in_time) / 1000 < timeout_ms)
+	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
+	if (length > 0)
 	{
-		int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 100);
-		if (length > 0)
+		//reset the counters
+		long_run_issue_counter = 0;
+		// It's safe to add to pubmesg now that we've received some data over UART from LTE
+		hold_adding_to_pubmesg = false;
+		if(logging) ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
+		if (check_response(LTE_UART_data, check_string) == SUCCESS)
 		{
-			//reset the counters
-			rotate_client_index_counter = 0; 
-			long_run_issue_counter = 0;
-			if(LOG_DATA) {
-				sprintf(lte_log_buffer, "AT_CMD sent : %s | BUF_LEN : %d", cmd_name, strlen(LTE_UART_data));
-				custom_printf(LTE_DEBUG_TAG, lte_log_buffer, CYAN);
-			}
-			// It's safe to add to pubmesg now that we've received some data over UART from LTE
-			hold_adding_to_pubmesg = false;
-			if (check_response(LTE_UART_data, check_string) == SUCCESS)
+			/*If its the case of READ MESG, then we need to parse JSON*/
+			if (strstr(LTE_UART_data, "{"))
 			{
-				/*If its the case of READ MESG, then we need to parse JSON*/
-				if (strstr(LTE_UART_data, "{"))
-				{
-					strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
-					custom_printf(LTE_DEBUG_TAG, LTE_UART_data, CYAN);
-					parse_json_packet(LTE_UART_data);
-				}
-				free(LTE_UART_data);
-				return SUCCESS;
+				strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
+				custom_printf(LTE_DEBUG_TAG, LTE_UART_data, CYAN);
+				parse_json_packet(LTE_UART_data);
 			}
-			else
-			{
-				sprintf(lte_log_buffer, "%d bytes of Data Received : %s", length, LTE_UART_data);
-				custom_printf(LTE_ERROR_TAG, lte_log_buffer, RED);
-				rotate_client_index_counter++;
-				if(rotate_client_index_counter > RETRY_COUNT)
-				{
-					rotate_client_index();
-				}
-				free(LTE_UART_data);
-				return FAILURE;
-			}
+			free(LTE_UART_data);
+			return SUCCESS;
+		}
+		else
+		{
+			free(LTE_UART_data);
+			return FAILURE;
 		}
 	}
 	free(LTE_UART_data);
@@ -177,19 +163,19 @@ int8_t fetch_and_check_data(uint16_t timeout_ms, char *check_string, char *cmd_n
 
 int8_t check_response(char *uart_data, char *check_string)
 {
+	if (strstr(uart_data, check_string)) return SUCCESS;
 	if (strstr(uart_data, QMTSTAT_1_ERROR))
 		return FAILURE;
-	if (strstr(uart_data, QMTOPEN_2_ERROR))
+	if (strstr(uart_data, QMTOPEN_2_ERROR)){
+		need_to_rotate_client_index = true;
 		return FAILURE;
+	}
 	if (strstr(uart_data, QMTOPEN_3_ERROR))
 	{
 		need_to_activate_pdp = true;
 		return FAILURE;
 	}
-	if (strstr(uart_data, check_string))
-	{
-		return SUCCESS;
-	}
+	
 	return FAILURE;
 }
 
@@ -206,13 +192,9 @@ int8_t check_response(char *uart_data, char *check_string)
 int8_t send_cmd_and_check_response(bool logging, char *cmd,
 								   char *cmdName, char *check_string, uint32_t timeout_ms)
 {
-	//For safety reasons and in attemp to prevent the uart_read_bytes not responding after 1 hour issue, let's do the below
-	//before we send each command
-	uart_flush_input(UART_NUM_1);
-
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
 	{
-		if (fetch_and_check_data(timeout_ms, check_string, cmdName) == SUCCESS)
+		if (fetch_and_check_data(logging, timeout_ms, check_string, cmdName) == SUCCESS)
 		{
 			return SUCCESS;
 		}
@@ -318,6 +300,7 @@ void init_Strings()
 	sprintf(NETWORK_OK, "+QMTOPEN: %d,\"%s\",%d", MQTT_CLIENT_INDEX, mqtt_server_ip, mqtt_port);
 
 	sprintf(MQTT_NETWORK_CLOSE_CMD, "%s%d\r", MQTT_NETWORK_CLOSE, MQTT_CLIENT_INDEX);
+	sprintf(MQTT_NETWORK_CLOSE_RESP, "+QMTCLOSE: %d,0",MQTT_CLIENT_INDEX);
 
 	/*Check Client Connection*/
 	sprintf(CHECK_CLIENT_CONN, "AT+QMTCONN?\r");
@@ -399,105 +382,49 @@ void rotate_client_index()
  * @param none
  * @retval none
  */
-void basic_LTE_checks()
+void execute_general_AT_cmds()
 {
-	send_cmd_and_check_response(LOG_DATA, AT_CMD, "AT_CMD", OK_RESPONSE, 1000);
-	send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESPONSE, 1000);
-	send_cmd_and_check_response(LOG_DATA, CHECK_OPERATOR_SELECTION_CMD, "CHECK_OP_SEL_CMD", OK_RESPONSE, 1000);
-	send_cmd_and_check_response(LOG_DATA, CHECK_DOMAIN_REG_CMD, "CHECK_DOMAIN_REG_CMD", OK_RESPONSE, 1000);
-	send_cmd_and_check_response(LOG_DATA, ENABLE_SIM_HOTSWAP_CMD, "ENABLE_SIM_HOTSWAP_CMD", OK_RESPONSE, 1000);
+	send_cmd_and_check_response(LOG_DATA, "ATE0\r", "TURN_OFF_ECHO_CMD", OK_RESPONSE, 200);
+	send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESPONSE, 200);
+	send_cmd_and_check_response(LOG_DATA, CHECK_OPERATOR_SELECTION_CMD, "CHECK_OP_SEL_CMD", OK_RESPONSE, 200);
+	send_cmd_and_check_response(LOG_DATA, CHECK_DOMAIN_REG_CMD, "CHECK_DOMAIN_REG_CMD", OK_RESPONSE, 200);
+	send_cmd_and_check_response(LOG_DATA, ENABLE_SIM_HOTSWAP_CMD, "ENABLE_SIM_HOTSWAP_CMD", OK_RESPONSE, 200);
 }
 
 /**
  * Function that takes care of maintaining the MQTT communication with the broker
+ * and also publishing ACK message from pubmessage queue to the Cloud
  * @param none
  * @retval none
  */
-void establishMQTTConnectionNew()
+void establishMQTTConnection()
 {
-	/**
-	 * Steps that need to be followed to establishing a working MQTT communication with the broker
-	 * - Network Open
-	 * - Client Connection
-	 * - Subscribe to a Topic
-	 * - Start checking for msgs from Broker
-	 */
-	static uint8_t retry_count = 0;
-	// If we had recvd QMTOPEN 3 error, then it means PDP has not been activated and no point in trying further
-	// Let's actiate it first
+	if(need_to_rotate_client_index)
+	{
+		need_to_rotate_client_index = false;
+		send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 200);
+	}	
 	if(need_to_activate_pdp)
 	{
-		while(1)
-		{
-			vTaskDelay(1);
-			send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 3000);
-			send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_ACTIVATION_CMD", OK_RESPONSE, 150000);
-			if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000) != SUCCESS);
-			else 
-			{
-				need_to_activate_pdp = false;
-				break;
-			}
-			retry_count++;
-			if(retry_count>RETRY_COUNT) {
-				rotate_client_index();
-				powerCycleLTE();
-				retry_count = 0;
-			}
-		}
+		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 200);
+		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESPONSE, 200))
+			need_to_activate_pdp = false;
 	}
-
-	if (send_cmd_and_check_response(LOG_DATA, CHECK_NETWORK, "CHECK_NETWORK", NETWORK_OK, 1000) == SUCCESS)
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 200)!=SUCCESS) return;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 200)!=SUCCESS) return;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 200)!=SUCCESS) return ;
+	while(1)
 	{
-		if (send_cmd_and_check_response(LOG_DATA, CHECK_CLIENT_CONN, "CHECK_CLIENT_CONN", CLIENT_CONN_OK, 1000) == SUCCESS)
-		{
-			if (send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB", OK_RESPONSE, 1000) == SUCCESS)
-			{
-				while(1)
-				{
-					vTaskDelay(1);
-					if (send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", PING_RESP, 1000) == SUCCESS)
-						mqtt_connected = true;
-					else {
-						mqtt_connected = false;
-						break;
-					}
-					// send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 1000);
-					// if (pubmesg_queue_head != NULL && mqtt_connected)
-					// {
-					// 	if (publish_to_mqtt() == SUCCESS)
-					// 	{
-					// 		yellow_printf(QUEUE_DEBUG_TAG, "Successfully published and removed from Queue");
-					// 		remove_from_pubmesg_queue();
-					// 	}
-					// 	else
-					// 	{
-					// 		mqtt_connected=false;
-					// 		red_printf(QUEUE_ERROR_TAG, "Failed to publish to MQTT");
-					// 		break;
-					// 	}
-					// }
-				}
-			}
-		}
-		else
-		{
+		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", PING_RESP, 200)!=SUCCESS) {
 			mqtt_connected = false;
-			retry_count++;
-			send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN", MQTT_CLIENT_CONN_RESP, 1000);
+			break;
 		}
-	}
-	else
-	{
-		mqtt_connected = false;
-		if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN", MQTT_NETWORK_OPEN_RESP, 1000) != SUCCESS)
-			retry_count++;
-	}
-	// If we've retried and failed more than RETRY_COUNT times, it's better we rotate client_index before retrying again.
-	if (retry_count > RETRY_COUNT)
-	{
-		retry_count = 0;
-		rotate_client_index();
+		mqtt_connected = true;
+		send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200);
+		if (pubmesg_queue_head != NULL)
+		{
+			if (publish_to_mqtt() == SUCCESS) remove_from_pubmesg_queue();
+		}
 	}
 }
 
@@ -526,7 +453,7 @@ void LTE_task(void *args)
 	LTE_gpio_configuration();
 	powerCycleLTE();
 	LTE_UART_INIT();
-	basic_LTE_checks();
+	execute_general_AT_cmds();
 	MQTT_config();
 	// send_cmd_and_check_response(LOG_DATA, TURN_OFF_ECHO_CMD, "TURN_OFF_ECHO_CMD", OK_RESPONSE, 100);
 	// while(!send_cmd_and_check_response(LOG_DATA, "AT+QLTS=2\r\n", "GET LOCAL TIME", "+QLTS:", 300)){
@@ -534,7 +461,7 @@ void LTE_task(void *args)
 	while(1)
 	{
 		vTaskDelay(1);
-		establishMQTTConnectionNew();
+		establishMQTTConnection();
 	}
 }
 
