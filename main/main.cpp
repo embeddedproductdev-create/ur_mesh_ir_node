@@ -355,7 +355,7 @@ void app_main()
 
 #if (IR_RECV_PART_ENABLED)
     xReturned = xTaskCreatePinnedToCore(IR_receiver_task, "IR recv task",
-                                        8192, (void *)1, tskIDLE_PRIORITY, &IR_task_handle, CORE0);
+                                        8192, (void *)1, 25, &IR_task_handle, CORE1);
     if (xReturned != pdPASS)
     {
         perror("Error in taskCreate for IR recv task : ");
