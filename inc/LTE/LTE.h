@@ -70,7 +70,7 @@ enum AT_cmd_id{
 };
 
 /* GLOBAL VARIABLES */
-extern char LTE_UART_data[1024];
+extern char LTE_UART_data[BUF_SIZE];
 extern bool LOG_DATA;
 
 /* GLOBAL VARIABLES - TEACHING MODE*/

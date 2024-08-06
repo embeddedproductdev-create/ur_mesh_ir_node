@@ -20,7 +20,9 @@ uint8_t MQTT_CLIENT_INDEX = 5;
 
 char mqtt_client_id[100];
 
-bool LOG_DATA = true;
+char LTE_UART_data[BUF_SIZE];
+
+bool LOG_DATA = false;
 
 bool network_flag = false;
 bool client_flag = false;
@@ -93,7 +95,7 @@ char CHECK_SOCKET_STATE_CMD[20];
 void LTE_UART_INIT(void)
 {
 	const uart_config_t uart_config = {
-		.baud_rate = 115200,
+		.baud_rate = 921600,
 		.data_bits = UART_DATA_8_BITS,
 		.parity = UART_PARITY_DISABLE,
 		.stop_bits = UART_STOP_BITS_1,
@@ -115,20 +117,20 @@ void LTE_UART_INIT(void)
 int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_string, char *cmd_name)
 {
 	static uint8_t long_run_issue_counter = 0;
-	char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
-	if (LTE_UART_data == NULL)
-	{
-		sprintf(lte_log_buffer, "Memory allocation failed for LTE_uart_data");
-		custom_printf(LTE_DEBUG_TAG, lte_log_buffer, RED);
-		return FAILURE;
-	}
+	// char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
+	bzero(LTE_UART_data, BUF_SIZE);
+	// if (LTE_UART_data == NULL)
+	// {
+	// 	sprintf(lte_log_buffer, "Memory allocation failed for LTE_uart_data");
+	// 	custom_printf(LTE_DEBUG_TAG, lte_log_buffer, RED);
+	// 	return FAILURE;
+	// }
 	uart_flush(UART_NUM_1);
-	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, 300);
+	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, BUF_SIZE, timeout_ms);
 	if (length > 0)
 	{
-		//reset the counters
 		long_run_issue_counter = 0;
-		// It's safe to add to pubmesg now that we've received some data over UART from LTE
+		/*It's safe to add to pubmesg now that we've received some data over UART from LTE*/
 		hold_adding_to_pubmesg = false;
 		if(logging) ESP_LOGI(LTE_DEBUG_TAG, "Received : %s", LTE_UART_data);
 		if (check_response(LTE_UART_data, check_string) == SUCCESS)
@@ -140,16 +142,16 @@ int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_strin
 				custom_printf(LTE_DEBUG_TAG, LTE_UART_data, CYAN);
 				parse_json_packet(LTE_UART_data);
 			}
-			free(LTE_UART_data);
+			// free(LTE_UART_data);
 			return SUCCESS;
 		}
 		else
 		{
-			free(LTE_UART_data);
+			// free(LTE_UART_data);
 			return FAILURE;
 		}
 	}
-	free(LTE_UART_data);
+	// free(LTE_UART_data);
 	sprintf(lte_log_buffer, "No Data | data_len : %d", strlen(LTE_UART_data));
 	custom_printf(LTE_ERROR_TAG, lte_log_buffer, RED);
 
@@ -192,6 +194,7 @@ int8_t check_response(char *uart_data, char *check_string)
 int8_t send_cmd_and_check_response(bool logging, char *cmd,
 								   char *cmdName, char *check_string, uint32_t timeout_ms)
 {
+	uart_flush_input(UART_NUM_1);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
 	{
 		if(logging) ESP_LOGI(LTE_DEBUG_TAG, "Command sent : %s", cmd);
@@ -385,6 +388,13 @@ void rotate_client_index()
  */
 void execute_general_AT_cmds()
 {
+	if(send_cmd_and_check_response(LOG_DATA, "AT+IPR=921600\r", "SET_BAUD_RATE", OK_RESPONSE, 200)!=SUCCESS)
+	{
+		uart_set_baudrate(UART_NUM_1, 115200);
+		while(send_cmd_and_check_response(LOG_DATA, "AT+IPR=921600\r", "SET_BAUD_RATE", OK_RESPONSE, 200)!=SUCCESS);
+		uart_set_baudrate(UART_NUM_1, 921600);
+	}
+	send_cmd_and_check_response(LOG_DATA, "AT&V\r", "DISPLAY_CURRENT_CONFIGURATION", OK_RESPONSE, 200);
 	send_cmd_and_check_response(LOG_DATA, "ATE0\r", "TURN_OFF_ECHO_CMD", OK_RESPONSE, 200);
 	send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESPONSE, 200);
 	send_cmd_and_check_response(LOG_DATA, CHECK_OPERATOR_SELECTION_CMD, "CHECK_OP_SEL_CMD", OK_RESPONSE, 200);
@@ -400,32 +410,40 @@ void execute_general_AT_cmds()
  */
 void establishMQTTConnection()
 {
+	static uint8_t ping_fail_counter = 0;
 	if(need_to_rotate_client_index)
 	{
 		need_to_rotate_client_index = false;
-		send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 200);
+		send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 500);
 	}	
 	if(need_to_activate_pdp)
 	{
-		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 200);
-		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESPONSE, 200))
+		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 1000);
+		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESPONSE, 1000))
 			need_to_activate_pdp = false;
+		return;
 	}
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 200)!=SUCCESS) return;
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 200)!=SUCCESS) return;
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 200)!=SUCCESS) return ;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 500)!=SUCCESS) return;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 500)!=SUCCESS) return;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 500)!=SUCCESS) return ;
 	while(1)
 	{
-		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", PING_RESP, 200)!=SUCCESS) {
-			mqtt_connected = false;
-			break;
-		}
-		mqtt_connected = true;
-		send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 200);
+		send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 100);
 		if (pubmesg_queue_head != NULL)
 		{
 			if (publish_to_mqtt() == SUCCESS) remove_from_pubmesg_queue();
 		}
+		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESPONSE, 100)!=SUCCESS) {
+			if(ping_fail_counter++ > RETRY_COUNT){
+				ping_fail_counter = 0;
+				mqtt_connected = false;
+				break;
+			}
+			continue;
+		}
+		ping_fail_counter = 0;
+		mqtt_connected = true;
+		
 	}
 }
 
@@ -436,10 +454,8 @@ void establishMQTTConnection()
  */
 void MQTT_config()
 {
-	while (send_cmd_and_check_response(LOG_DATA, CLEAN_SESSION_CMD, "CLEAN_SESSION_CMD", OK_RESPONSE, 1000) != SUCCESS)
-		;
-	while (send_cmd_and_check_response(LOG_DATA, KEEP_ALIVE_CMD, "KEEP_ALIVE_CMD", OK_RESPONSE, 3000) != SUCCESS)
-		;
+	send_cmd_and_check_response(LOG_DATA, CLEAN_SESSION_CMD, "CLEAN_SESSION_CMD", OK_RESPONSE, 1000);
+	send_cmd_and_check_response(LOG_DATA, KEEP_ALIVE_CMD, "KEEP_ALIVE_CMD", OK_RESPONSE, 3000);
 }
 
 /**
