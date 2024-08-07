@@ -1028,7 +1028,7 @@ void IR_receiver_task(void *args)
             /* AC Remote configuration process */
             // Here's where we need to add something like protocol_detected > something and < something
             // After modifying the decode_type_t enum in order to avoid unsupported remotes getting falsely recognized
-            if (protocol_detected != UNKNOWN && protocol_detected != UNUSED && !configured && !teaching_mode)
+            if (!configured && !teaching_mode)
             {
 #if (IS_GWY)
                 if (registered)

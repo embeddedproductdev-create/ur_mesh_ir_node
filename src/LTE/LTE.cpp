@@ -435,6 +435,7 @@ void establishMQTTConnection()
 		}
 		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESPONSE, 100)!=SUCCESS) {
 			if(ping_fail_counter++ > RETRY_COUNT){
+				custom_printf(LTE_ERROR_TAG, "Lost MQTT connection", RED);
 				ping_fail_counter = 0;
 				mqtt_connected = false;
 				break;
@@ -443,7 +444,6 @@ void establishMQTTConnection()
 		}
 		ping_fail_counter = 0;
 		mqtt_connected = true;
-		
 	}
 }
 

@@ -309,6 +309,7 @@ set(includedirs
   libraries/IRremoteESP8266/src/ir_Aiwa.cpp
   libraries/IRremoteESP8266/src/ir_Airwell.cpp
   libraries/IRremoteESP8266/src/ir_Airton.cpp
+  libraries/IRremoteESP8266/src/ir_BluestartHeavy.cpp
   )
 
 set(srcs ${CORE_SRCS} ${LIBRARY_SRCS} ${BLE_SRCS} ${IR_LIB_SRCS})
