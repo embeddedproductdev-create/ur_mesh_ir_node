@@ -4181,6 +4181,13 @@ namespace IRAcUtils {
         return ac.toString();
       }
 #endif  // DECODE_DAIKIN64
+#if DECODE_DAIKIN200
+      case decode_type_t::DAIKIN200: {
+        IRDaikin200 ac(kGpioUnused);
+        ac.setRaw(result->state);
+        return ac.toString();
+      }
+#endif  // DECODE_DAIKIN64
 #if DECODE_DELONGHI_AC
       case decode_type_t::DELONGHI_AC: {
         IRDelonghiAc ac(kGpioUnused);
