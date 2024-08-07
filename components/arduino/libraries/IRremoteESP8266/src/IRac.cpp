@@ -4185,6 +4185,10 @@ namespace IRAcUtils {
       case decode_type_t::DAIKIN200: {
         IRDaikin200 ac(kGpioUnused);
         ac.setRaw(result->state);
+        for(uint8_t i=0;i<25;i++)
+        {
+          ESP_LOGI("[IR_DEBUG]","state[%d],%x",i,result->state[i]);
+        }
         return ac.toString();
       }
 #endif  // DECODE_DAIKIN64

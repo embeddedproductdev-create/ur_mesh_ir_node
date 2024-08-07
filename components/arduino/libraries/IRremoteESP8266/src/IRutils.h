@@ -24,18 +24,18 @@ String int64ToString(int64_t input, uint8_t base = 10);
 String typeToString(const decode_type_t protocol,
                     const bool isRepeat = false);
 void serialPrintUint64(uint64_t input, uint8_t base = 10);
-String resultToSourceCode(const decode_results * const results);
-String resultToTimingInfo(const decode_results * const results);
-String resultToHumanReadableBasic(const decode_results * const results, decode_type_t *protocol_detected);
-String resultToHexidecimal(const decode_results * const result);
+String resultToSourceCode(const decode_results *const results);
+String resultToTimingInfo(const decode_results *const results);
+String resultToHumanReadableBasic(const decode_results *const results, decode_type_t *protocol_detected);
+String resultToHexidecimal(const decode_results *const result);
 bool hasACState(const decode_type_t protocol);
-uint16_t getCorrectedRawLength(const decode_results * const results);
-uint16_t *resultToRawArray(const decode_results * const decode);
-uint8_t sumBytes(const uint8_t * const start, const uint16_t length,
+uint16_t getCorrectedRawLength(const decode_results *const results);
+uint16_t *resultToRawArray(const decode_results *const decode);
+uint8_t sumBytes(const uint8_t *const start, const uint16_t length,
                  const uint8_t init = 0);
-uint8_t xorBytes(const uint8_t * const start, const uint16_t length,
+uint8_t xorBytes(const uint8_t *const start, const uint16_t length,
                  const uint8_t init = 0);
-uint16_t countBits(const uint8_t * const start, const uint16_t length,
+uint16_t countBits(const uint8_t *const start, const uint16_t length,
                    const bool ones = true, const uint16_t init = 0);
 uint16_t countBits(const uint64_t data, const uint8_t length,
                    const bool ones = true, const uint16_t init = 0);
@@ -45,7 +45,8 @@ float celsiusToFahrenheit(const float deg);
 float fahrenheitToCelsius(const float deg);
 /// Namespace for covering common functions & procedures for advancd protocol
 /// handlers
-namespace irutils {
+namespace irutils
+{
   String addBoolToString(const bool value, const String label,
                          const bool precomma = true);
   String addToggleToString(const bool toggle, const String label,
@@ -73,6 +74,10 @@ namespace irutils {
                         const uint8_t quiet, const uint8_t medium,
                         const uint8_t maximum = 0xFF,
                         const uint8_t medium_high = 0xFF);
+  String addFanToString_daikin200(const uint8_t speed, const uint8_t automatic,
+                                  const uint8_t min, const uint8_t low,
+                                  const uint8_t med, const uint8_t high,
+                                  const uint8_t maximum);
   String addSwingHToString(const uint8_t position, const uint8_t automatic,
                            const uint8_t maxleft, const uint8_t left,
                            const uint8_t middle,
@@ -106,7 +111,7 @@ namespace irutils {
   String htmlEscape(const String unescaped);
   String msToString(uint32_t const msecs);
   String minsToString(const uint16_t mins);
-  uint8_t sumNibbles(const uint8_t * const start, const uint16_t length,
+  uint8_t sumNibbles(const uint8_t *const start, const uint16_t length,
                      const uint8_t init = 0);
   uint8_t sumNibbles(const uint64_t data, const uint8_t count = 16,
                      const uint8_t init = 0, const bool nibbleonly = true);
@@ -122,34 +127,34 @@ namespace irutils {
 #define GETBIT32(a, b) ((a) & ((uint32_t)1 << (b)))
 #define GETBIT64(a, b) ((a) & ((uint64_t)1 << (b)))
 #define GETBITS8(data, offset, size) \
-    (((data) & (((uint8_t)UINT8_MAX >> (8 - (size))) << (offset))) >> (offset))
-#define GETBITS16(data, offset, size) \
-    (((data) & (((uint16_t)UINT16_MAX >> (16 - (size))) << (offset))) >> \
-     (offset))
-#define GETBITS32(data, offset, size) \
-    (((data) & (((uint32_t)UINT32_MAX >> (32 - (size))) << (offset))) >> \
-     (offset))
-#define GETBITS64(data, offset, size) \
-    (((data) & (((uint64_t)UINT64_MAX >> (64 - (size))) << (offset))) >> \
-     (offset))
+  (((data) & (((uint8_t)UINT8_MAX >> (8 - (size))) << (offset))) >> (offset))
+#define GETBITS16(data, offset, size)                                  \
+  (((data) & (((uint16_t)UINT16_MAX >> (16 - (size))) << (offset))) >> \
+   (offset))
+#define GETBITS32(data, offset, size)                                  \
+  (((data) & (((uint32_t)UINT32_MAX >> (32 - (size))) << (offset))) >> \
+   (offset))
+#define GETBITS64(data, offset, size)                                  \
+  (((data) & (((uint64_t)UINT64_MAX >> (64 - (size))) << (offset))) >> \
+   (offset))
   uint64_t setBit(const uint64_t data, const uint8_t position,
                   const bool on = true, const uint8_t size = 64);
   uint8_t setBit(const uint8_t data, const uint8_t position,
                  const bool on = true);
-  void setBit(uint8_t * const data, const uint8_t position,
+  void setBit(uint8_t *const data, const uint8_t position,
               const bool on = true);
-  void setBit(uint32_t * const data, const uint8_t position,
+  void setBit(uint32_t *const data, const uint8_t position,
               const bool on = true);
-  void setBit(uint64_t * const data, const uint8_t position,
+  void setBit(uint64_t *const data, const uint8_t position,
               const bool on = true);
-  void setBits(uint8_t * const dst, const uint8_t offset, const uint8_t nbits,
+  void setBits(uint8_t *const dst, const uint8_t offset, const uint8_t nbits,
                const uint8_t data);
-  void setBits(uint32_t * const dst, const uint8_t offset, const uint8_t nbits,
+  void setBits(uint32_t *const dst, const uint8_t offset, const uint8_t nbits,
                const uint32_t data);
-  void setBits(uint64_t * const dst, const uint8_t offset, const uint8_t nbits,
+  void setBits(uint64_t *const dst, const uint8_t offset, const uint8_t nbits,
                const uint64_t data);
-  uint8_t * invertBytePairs(uint8_t *ptr, const uint16_t length);
-  bool checkInvertedBytePairs(const uint8_t * const ptr, const uint16_t length);
+  uint8_t *invertBytePairs(uint8_t *ptr, const uint16_t length);
+  bool checkInvertedBytePairs(const uint8_t *const ptr, const uint16_t length);
   uint8_t lowLevelSanityCheck(void);
-}  // namespace irutils
-#endif  // IRUTILS_H_
+} // namespace irutils
+#endif // IRUTILS_H_

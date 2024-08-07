@@ -804,9 +804,15 @@ const uint8_t kDaikin200Auto = 0b011; // 3
 const uint8_t kDaikin200Dry = 0b111;  // 7
 const uint8_t kDaikin200ModeButton = 0b00000100;
 const uint8_t kDaikin200DryFanTemp = 17; // Dry/Fan mode is always 17 Celsius.
-const uint8_t kDaikin200FanMax = 5;
 const uint8_t kDaikin200SwingHAuto = 0b101;
 const uint8_t kDaikin200SwingHOff = 0b110;
+
+const uint8_t kDaikin200FanAuto = 0;
+const uint8_t kDaikin200FanMin = 1;
+const uint8_t kDaikin200FanLow = 2;
+const uint8_t kDaikin200FanMed = 3;
+const uint8_t kDaikin200FanHigh = 4;
+const uint8_t kDaikin200FanMax = 5;
 
 const uint16_t kDaikin312HdrMark = 3518;
 const uint16_t kDaikin312HdrSpace = 1688;

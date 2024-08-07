@@ -879,7 +879,7 @@ void IR_receiver_task(void *args)
             irrecv.pause();
             custom_printf(IR_DEBUG_TAG, "Firing IR signal", WHITE);
             IR_transmit(protocol_selected_num);
-            sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
+            // sleep(1); // Let's wait a second before resume to avoid scattering IR signals getting false detected as Manual AC control.
             irrecv.resume();
             needToSendIRComamnd = false;
         }

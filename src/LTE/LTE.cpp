@@ -426,6 +426,7 @@ void establishMQTTConnection()
 	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 500)!=SUCCESS) return;
 	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 500)!=SUCCESS) return;
 	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 500)!=SUCCESS) return ;
+	custom_printf(LTE_DEBUG_TAG, "Resumed MQTT Connection", CYAN);
 	while(1)
 	{
 		send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESPONSE, 100);
@@ -433,7 +434,7 @@ void establishMQTTConnection()
 		{
 			if (publish_to_mqtt() == SUCCESS) remove_from_pubmesg_queue();
 		}
-		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESPONSE, 100)!=SUCCESS) {
+		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESPONSE, 300)!=SUCCESS) {
 			if(ping_fail_counter++ > RETRY_COUNT){
 				custom_printf(LTE_ERROR_TAG, "Lost MQTT connection", RED);
 				ping_fail_counter = 0;
