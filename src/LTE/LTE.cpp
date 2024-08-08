@@ -423,9 +423,9 @@ void establishMQTTConnection()
 			need_to_activate_pdp = false;
 		return;
 	}
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 500)!=SUCCESS) return;
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 500)!=SUCCESS) return;
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 500)!=SUCCESS) return ;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 1000)!=SUCCESS) return;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 1000)!=SUCCESS) return;
+	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 1000)!=SUCCESS) return ;
 	custom_printf(LTE_DEBUG_TAG, "Resumed MQTT Connection", CYAN);
 	while(1)
 	{
@@ -439,12 +439,14 @@ void establishMQTTConnection()
 				custom_printf(LTE_ERROR_TAG, "Lost MQTT connection", RED);
 				ping_fail_counter = 0;
 				mqtt_connected = false;
+				LOG_DATA = true;
 				break;
 			}
 			continue;
 		}
 		ping_fail_counter = 0;
 		mqtt_connected = true;
+		LOG_DATA = false;
 	}
 }
 
