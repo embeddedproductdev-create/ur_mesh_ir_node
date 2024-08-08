@@ -255,8 +255,6 @@ void app_main()
 
     // First step we need to do is to fetch registered, configured, provisioned, protocol_Sel_num details from flash
     initialize_i2c();
-    
-    
 
     /**
      * @brief Very first step for us to check if the device is a factory new device.
@@ -267,7 +265,6 @@ void app_main()
     if(eeprom_read_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR))
     {
         factory_reset_device();
-
     }
     
     else fetch_from_flash();

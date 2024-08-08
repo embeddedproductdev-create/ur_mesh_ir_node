@@ -146,9 +146,8 @@ static void publish_temperature_cb(void *arg)
             sprintf(temperature_log_buffer, "Sending Gwy Heartbeat ACK");
             magenta_printf(TEMPERATURE_DEBUG_TAG, temperature_log_buffer);
         }
-        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : %d,  \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
+        sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : \"%s\", \"%s\" : %d,  \"%s\" : %d,  \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
                 JSON_PACKET_ID_KEY, GWY_HEARTBEAT_ACK,
-                JSON_ACK_NAME_KEY, GWY_HEARTBEAT_ACK_NAME,
                 GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
                 POWER_KEY, gwy_ac_control_t.control.power,
                 MODE_KEY, gwy_ac_control_t.control.mode_str,

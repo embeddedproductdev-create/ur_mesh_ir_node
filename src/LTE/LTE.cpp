@@ -269,7 +269,7 @@ void init_const_AT_cmd_strings()
 	sprintf(PDP_CONTXT_ACT_CMD, "AT+QIACT=1\r");
 
 	/*Ping Command*/
-	sprintf(PING_CMD, "AT+QPING=1,\"google.com\"\r");
+	sprintf(PING_CMD, "AT+QPING=1,\"google.com\",4,1\r");
 	sprintf(PING_RESP, "+QPING:");
 }
 
@@ -418,8 +418,8 @@ void establishMQTTConnection()
 	}	
 	if(need_to_activate_pdp)
 	{
-		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 1000);
-		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESPONSE, 1000))
+		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESPONSE, 500);
+		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESPONSE, 500))
 			need_to_activate_pdp = false;
 		return;
 	}
