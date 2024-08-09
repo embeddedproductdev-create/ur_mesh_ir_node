@@ -23,8 +23,11 @@
 /* Arduino General */
 #include <Arduino.h>
 
+/* JSON */
+#include "../JSON/CJSON.h"
+#include "../JSON/json_maker.h"
+
 /* MQTT-LTE */
-#include "../LTE/CJSON.h"
 #include "../LTE/LTE.h"
 #include "../LTE/mqtt.h"
 
@@ -94,6 +97,7 @@
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
 #define TEACHING_PART_ENABLED true
+#define ESP_INSIGHTS_ENABLED true
 #if(IS_GWY)
     #define LTE_PART_ENABLED true
     #define QUEUE_PART_ENABLED true
@@ -172,6 +176,7 @@ extern TaskHandle_t LTE_task_handle;
 extern TaskHandle_t LED_task_handle;
 extern TaskHandle_t queue_task_handle;
 extern TaskHandle_t button_task_handle;
+extern TaskHandle_t esp_insights_task_handle;
 
 /* FUNCTION DECLARATIONS */
 void app_main();

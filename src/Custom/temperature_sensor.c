@@ -134,7 +134,7 @@ void init_digital_temperature_sensor()
     i2c_write(POINTER_REGISTER);
 }
 
-static void publish_temperature_cb(void *arg)
+void publish_temperature_cb(void *arg)
 {
     char pubmessage[PUBMESG_LEN];
     read_analog_temperature(&measured_temperature);

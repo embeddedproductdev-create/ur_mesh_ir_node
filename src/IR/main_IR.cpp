@@ -6,6 +6,7 @@
  * @date 2024-07-19
  * @copyright Copyright (c) 2024
  */
+#include "../../inc/JSON/json_maker.h"
 #include "../../inc/Custom/main.h"
 #include "../../inc/IR/main_IR.h"
 #include "../../inc/LTE/LTE.h"
@@ -111,7 +112,7 @@ void IR_transmit_setup()
     ac_custom.begin();
 }
 
-char *get_protocol_string(uint16_t protocol)
+const char *get_protocol_string(uint16_t protocol)
 {
     switch (protocol)
     {
@@ -704,7 +705,7 @@ void fetch_data_from_manual_control(char *input_string)
         else
             gwy_manual_ac_control_t.control.power = 0;
     }
-    else red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Power missing in result_description_str", RED);
 
     // Fetch Mode
     if (strstr(input_string, "Mode"))
@@ -722,7 +723,7 @@ void fetch_data_from_manual_control(char *input_string)
         else if (strstr(mode, "Fan"))
             strcpy(gwy_manual_ac_control_t.control.mode_str, "Fan");
     }
-    else red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Mode missing in result_description_str", RED);
 
     // Fetch Fan
     if (strstr(input_string, "Fan"))
@@ -731,7 +732,7 @@ void fetch_data_from_manual_control(char *input_string)
         ESP_LOGI(IR_DEBUG_TAG, "Fan detected : %s", fan);
         gwy_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
-    else red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Fan missing in result_description_str", RED);
 
     // Fetch Temperature
     if (strstr(input_string, "Temp"))
@@ -740,7 +741,7 @@ void fetch_data_from_manual_control(char *input_string)
         ESP_LOGI(IR_DEBUG_TAG, "Temperature detected : %s", temperature);
         gwy_manual_ac_control_t.control.temp = atoi(temperature);
     }
-    else red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Temp missing in result_description_str", RED);
 #endif
 
 #if (!IS_GWY)
@@ -754,7 +755,7 @@ void fetch_data_from_manual_control(char *input_string)
         else
             node_manual_ac_control_t.control.power = 0;
     }
-    else red_printf(IR_ERROR_TAG, "Power missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Power missing in result_description_str", RED);
 
     // Fetch Mode
     if (strstr(input_string, "Mode"))
@@ -772,7 +773,7 @@ void fetch_data_from_manual_control(char *input_string)
         else if (strstr(mode, "Fan"))
             strcpy(node_manual_ac_control_t.control.mode_str, "Fan");
     }
-    else red_printf(IR_ERROR_TAG, "Mode missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Mode missing in result_description_str", RED);
     
     // Fetch Fan
     if (strstr(input_string, "Fan"))
@@ -781,7 +782,7 @@ void fetch_data_from_manual_control(char *input_string)
         ESP_LOGI(IR_DEBUG_TAG, "Fan detected : %s", fan);
         node_manual_ac_control_t.control.fanSpeed = atoi(fan);
     }
-    else red_printf(IR_ERROR_TAG, "Fan missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Fan missing in result_description_str", RED);
 
     // Fetch Temperature
     if (strstr(input_string, "Temp"))
@@ -790,7 +791,7 @@ void fetch_data_from_manual_control(char *input_string)
         ESP_LOGI(IR_DEBUG_TAG, "Temperature detected : %s", temperature);
         node_manual_ac_control_t.control.temp = atoi(temperature);
     }
-    else red_printf(IR_ERROR_TAG, "Temp missing in result_description_str");
+    else custom_printf(IR_ERROR_TAG, "Temp missing in result_description_str", RED);
 #endif
 }
 
@@ -841,16 +842,16 @@ void locking_feature(char *result_description_char_str)
 
 here:
 #if (IS_GWY)
-    white_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack");
+    custom_printf(IR_DEBUG_TAG, "Sending Gwy Manual AC control ack", WHITE);
     char pubmessage[PUBMESG_LEN];
-    sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
-            JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK,
-            JSON_ACK_NAME_KEY, GWY_MANUAL_AC_CONTROL_ACK_NAME,
-            GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-            POWER_KEY, gwy_manual_ac_control_t.control.power,
-            MODE_KEY, gwy_manual_ac_control_t.control.mode_str,
-            FAN_SPEED_KEY, gwy_manual_ac_control_t.control.fanSpeed,
-            TEMPERATURE_KEY, gwy_manual_ac_control_t.control.temp);
+    jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+    jwObj_int(&jwc, JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
+    jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+    jwObj_int(&jwc, POWER_KEY, gwy_manual_ac_control_t.control.power);
+    jwObj_string(&jwc, MODE_KEY, gwy_manual_ac_control_t.control.mode_str);
+    jwObj_int(&jwc, FAN_SPEED_KEY, gwy_manual_ac_control_t.control.fanSpeed);
+    jwObj_int(&jwc, TEMPERATURE_KEY, gwy_manual_ac_control_t.control.temp);
+    jwClose(&jwc);
     add_to_pubmesg_queue(pubmessage, publish_topic);
 #endif
 #if (!IS_GWY)

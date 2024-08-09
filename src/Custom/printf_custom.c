@@ -48,7 +48,7 @@ char TEMPERATURE_DEBUG_TAG[20] = "[TEMP_DEBUG]";
 char TEMPERATURE_ERROR_TAG[20] = "[TEMP_ERROR]";
 char SETUP_TAG[20] = "[SETUP_DEBUG]";
 
-void custom_printf(char *tag, char *msg, char *color)
+void custom_printf(char *tag, const char *msg, const char *color)
 {
     sprintf(temp1, "%lld", esp_timer_get_time());
     sprintf(ir_log_buffer, "%s%s %s %s%s\n", color, temp1, tag, msg, RESET);

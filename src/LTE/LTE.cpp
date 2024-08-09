@@ -114,7 +114,7 @@ void LTE_UART_INIT(void)
  * @param check_string String that is used to check against the response to know if it is valid or not
  * @return int8_t
  */
-int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_string, char *cmd_name)
+int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name)
 {
 	static uint8_t long_run_issue_counter = 0;
 	// char *LTE_UART_data = (char *)calloc(BUF_SIZE, sizeof(char));
@@ -163,7 +163,7 @@ int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_strin
 	return FAILURE;
 }
 
-int8_t check_response(char *uart_data, char *check_string)
+int8_t check_response(char *uart_data, const char *check_string)
 {
 	if (strstr(uart_data, check_string)) return SUCCESS;
 	if (strstr(uart_data, QMTSTAT_1_ERROR))
@@ -192,7 +192,7 @@ int8_t check_response(char *uart_data, char *check_string)
  * @return 0=Success, -1=Failure
  */
 int8_t send_cmd_and_check_response(bool logging, char *cmd,
-								   char *cmdName, char *check_string, uint32_t timeout_ms)
+								   const char *cmdName, const char *check_string, uint32_t timeout_ms)
 {
 	uart_flush_input(UART_NUM_1);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
@@ -206,7 +206,7 @@ int8_t send_cmd_and_check_response(bool logging, char *cmd,
 	}
 	else
 	{
-		red_printf(LTE_ERROR_TAG, "Error in sending AT command to the EC200!!!");
+		custom_printf(LTE_ERROR_TAG, "Error in sending AT command to the EC200!!!", RED);
 		return FAILURE;
 	}
 }

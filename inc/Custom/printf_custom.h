@@ -58,7 +58,7 @@ void green_printf(char *tag, char *msg);
 void yellow_printf(char *tag, char *msg);
 void magenta_printf(char *tag, char *msg);
 void cyan_printf(char *tag, char *msg);
-void custom_printf(char *tag, char *msg, char *color);
+void custom_printf(char *tag, const char *msg, const char *color);
 #ifdef __cplusplus
 }
 #endif

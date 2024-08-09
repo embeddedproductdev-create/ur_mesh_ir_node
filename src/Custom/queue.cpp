@@ -7,6 +7,7 @@
  * @copyright Copyright (c) 2024
  */
 
+#include "../../inc/JSON/json_maker.h"
 #include "../../inc/Custom/queue.h"
 #include "../../inc/Mesh/mesh_main.h"
 
@@ -103,15 +104,13 @@ void maintain_heartbeat_pubconf_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodePubConf request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
-					JSON_ACK_NAME_KEY, NODE_HEARTBEAT_PUB_CONF_ACK_NAME,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					PUBLISH_PERIOD_KEY, temp->pub_conf_period_in_sec,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_heartbeat_pub_conf_queue();
 		}
@@ -200,14 +199,13 @@ void maintain_reconf_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeReconf request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-					JSON_ACK_NAME_KEY, NODE_RECONF_ACK_NAME,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ELEMENT_ADDR_KEY, temp->base_data.elementAddr,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_RECONF_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_reconf_queue();
 		}
@@ -296,12 +294,13 @@ void maintain_ac_control_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeACControl request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_ac_control_queue();
 		}
@@ -320,12 +319,13 @@ void remove_from_unprov_queue_based_on_elemaddr(uint16_t elementAddr)
 		{
 			//Let's send the ACK first 
 			char pubmessage[PUBMESG_LEN];
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-                MSG_SEQ_NO_KEY, head->base_data.msg_seq_no,
-                GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                NODE_SER_NO_KEY, head->base_data.node_ser_no_str,
-                ERROR_CODE_KEY, head->base_data.error_code);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, head->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, head->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, head->base_data.error_code);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 
 			//remove from first
@@ -433,12 +433,13 @@ void maintain_unprov_queue()
 		{
 			sprintf(queue_log_buffer, "Removing NodeUnprov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_unprov_queue();
 		}
@@ -528,12 +529,13 @@ void maintain_prov_queue()
 			zero_out_match_arr_in_mesh();
 			sprintf(queue_log_buffer, "Removing Prov request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_prov_queue();
 		}
@@ -632,12 +634,13 @@ void maintain_teaching_mode_queue()
 		{
 			sprintf(queue_log_buffer, "Removing teaching mode request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_teaching_mode_queue();
 		}
@@ -715,12 +718,13 @@ void maintain_debug_info_queue()
 		{
 			sprintf(queue_log_buffer, "Removing Node Debug Info request(msgseqno : %ld) due to NODE_COMM_TIMEOUT ... ", temp->base_data.msg_seq_no);
 			custom_printf(QUEUE_DEBUG_TAG, queue_log_buffer, RED);
-			sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-					JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
-					MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no,
-					GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str,
-					NODE_SER_NO_KEY, temp->base_data.node_ser_no_str,
-					ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
+			jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET);
+			jwObj_int(&jwc, MSG_SEQ_NO_KEY, temp->base_data.msg_seq_no);
+			jwObj_string(&jwc, GWY_SER_NO_KEY, temp->base_data.gwy_ser_no_str);
+			jwObj_string(&jwc, NODE_SER_NO_KEY, temp->base_data.node_ser_no_str);
+			jwObj_int(&jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+			jwClose(&jwc);
 			add_to_pubmesg_queue(pubmessage, publish_topic);
 			remove_from_debug_info_queue();
 		}

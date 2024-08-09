@@ -152,7 +152,7 @@ void LED_task(void *args)
             break;
 
         default:
-            red_printf(LED_ERROR_TAG,"Unknown LED state in LED_task function\n");
+            custom_printf(LED_ERROR_TAG,"Unknown LED state in LED_task function", RED);
             break;
         }
     }

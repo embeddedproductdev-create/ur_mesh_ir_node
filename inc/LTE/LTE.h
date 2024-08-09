@@ -96,19 +96,19 @@ extern "C"
     void init_structures();
     void init_const_AT_cmd_strings();
     void init_Strings();
-    int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, char *check_string, char *cmd_name);
+    int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, char *cmd_name);
     int8_t send_cmd_and_check_response(
         bool logging,
         char *cmd, 
-        char *cmdName,
-        char *check_string, 
+        const char *cmdName,
+        const char *check_string, 
         uint32_t timeout_ms
     );
-    int8_t check_response(char *data, char *response_check_string);
+    int8_t check_response(char *data, const char *response_check_string);
     void rotate_client_index();
     void factory_reset_device();
     char* get_mode_string(uint8_t mode_value);
-    char* get_protocol_string(uint16_t protocol);
+    const char* get_protocol_string(uint16_t protocol);
     void register_gwy();
 #ifdef __cplusplus
 }

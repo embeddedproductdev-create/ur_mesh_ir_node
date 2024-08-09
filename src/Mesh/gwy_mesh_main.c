@@ -839,6 +839,7 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
 static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t *param)
 {
     char pubmessage[PUBMESG_LEN];
+    jwOpen(&jwc, pubmessage, PUBMESG_LEN, JW_OBJECT, 1);
     uint8_t recvd_json_id = param->status_cb.sensor_status.marshalled_sensor_data->data[0];
     if (registered)
     {
@@ -847,127 +848,116 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
         case NODE_HEARTBEAT_ACK:
             vendor_node_heartbeat_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE HEARTBEAT ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_heartbeat_t->base_data.node_ser_no_str,
-                    POWER_KEY, vendor_node_heartbeat_t->control.power,
-                    MODE_KEY, vendor_node_heartbeat_t->control.mode_str,
-                    FAN_SPEED_KEY, vendor_node_heartbeat_t->control.fanSpeed,
-                    TEMPERATURE_KEY, vendor_node_heartbeat_t->control.temp,
-                    AMBIENT_TEMPERATURE_DATA_KEY, vendor_node_heartbeat_t->measured_temperature,
-                    SWING_H_KEY, vendor_node_heartbeat_t->control.swingH,
-                    SWING_V_KEY, vendor_node_heartbeat_t->control.swingV,
-                    ONTIMER_KEY, vendor_node_heartbeat_t->control.OnTimer,
-                    OFFTIMER_KEY, vendor_node_heartbeat_t->control.OffTimer,
-                    AC_LOCKING_KEY, vendor_node_heartbeat_t->control.Locking,
-                    TEMP_LOCK_UP_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockUpLimit,
-                    TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockLowLimit);
-            ESP_LOGI(MESH_DEBUG_TAG, "%s", pubmessage);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_heartbeat_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, POWER_KEY, vendor_node_heartbeat_t->control.power);
+            jwObj_string(&jwc, MODE_KEY, vendor_node_heartbeat_t->control.mode_str);
+            jwObj_int(&jwc, FAN_SPEED_KEY, vendor_node_heartbeat_t->control.fanSpeed);
+            jwObj_int(&jwc, TEMPERATURE_KEY, vendor_node_heartbeat_t->control.temp);
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DATA_KEY, vendor_node_heartbeat_t->measured_temperature);
+            jwObj_int(&jwc, SWING_H_KEY, vendor_node_heartbeat_t->control.swingH);
+            jwObj_int(&jwc, SWING_V_KEY, vendor_node_heartbeat_t->control.swingV);
+            jwObj_int(&jwc, ONTIMER_KEY, vendor_node_heartbeat_t->control.OnTimer);
+            jwObj_int(&jwc, OFFTIMER_KEY, vendor_node_heartbeat_t->control.OffTimer);
+            jwObj_int(&jwc, AC_LOCKING_KEY, vendor_node_heartbeat_t->control.Locking);
+            jwObj_int(&jwc, TEMP_LOCK_UP_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockUpLimit);
+            jwObj_int(&jwc, TEMP_LOCK_LOW_LIMIT_KEY, vendor_node_heartbeat_t->control.TempLockLowLimit);
             break;
 
         case NODE_AC_CONTROL_PACKET:
             remove_from_ac_control_queue();
             vendor_node_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET,
-                    MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.node_ser_no_str,
-                    ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_AC_CONTROL_PACKET);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, vendor_node_ac_control_t->base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_ac_control_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_ac_control_t->base_data.error_code);
             break;
 
         case NODE_TEACHING_MODE_START_PACKET:
             remove_from_teaching_mode_queue();
             vendor_node_teaching_mode_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE START ACK | FROM ELEMADDR : %d", vendor_node_teaching_mode_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET,
-                    MSG_SEQ_NO_KEY, vendor_node_teaching_mode_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.gwy_ser_no_str,
-                    NODE_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.node_ser_no_str,
-                    ERROR_CODE_KEY, vendor_node_teaching_mode_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_START_PACKET);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, vendor_node_teaching_mode_t->base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.gwy_ser_no_str);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_teaching_mode_t->base_data.error_code);
             break;
 
         case NODE_TEACHING_MODE_END_ACK:
             vendor_node_teaching_mode_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE TEACHING MODE END ACK | FROM ELEMADDR : %d", vendor_node_teaching_mode_t->base_data.elementAddr);
-            sprintf(pubmessage, "\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d",
-                    JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_END_ACK,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.node_ser_no_str,
-                    ERROR_CODE_KEY, vendor_node_teaching_mode_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE_END_ACK);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_teaching_mode_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_teaching_mode_t->base_data.error_code);
             break;
 
         case NODE_DEBUG_INFO_PACKET:
             remove_from_debug_info_queue();
             vendor_node_debug_info_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE DEBUG INFO ACK | FROM ELEMADDR : %d", vendor_node_debug_info_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d, \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_DEBUG_INFO_ACK_NAME,
-                    MSG_SEQ_NO_KEY, vendor_node_debug_info_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, vendor_node_debug_info_t->base_data.gwy_ser_no_str,
-                    NODE_SER_NO_KEY, vendor_node_debug_info_t->base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_node_debug_info_t->base_data.elementAddr,
-                    FIRMWARE_VERSION_KEY, vendor_node_debug_info_t->firmware,
-                    PROTOCOL_SEL_NUM_KEY, get_protocol_string(vendor_node_debug_info_t->protocol),
-                    DEVICE_UPTIME_KEY, vendor_node_debug_info_t->uptimestr,
-                    LOGGING_KEY, vendor_node_debug_info_t->logging,
-                    RESET_DEVICE_KEY, vendor_node_debug_info_t->resetDevice,
-                    ERROR_CODE_KEY, vendor_node_debug_info_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_DEBUG_INFO_PACKET);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, vendor_node_debug_info_t->base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, vendor_node_debug_info_t->base_data.gwy_ser_no_str);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_debug_info_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, vendor_node_debug_info_t->base_data.elementAddr);
+            jwObj_string(&jwc, FIRMWARE_VERSION_KEY, vendor_node_debug_info_t->firmware);
+            jwObj_string(&jwc, PROTOCOL_SEL_NUM_KEY, get_protocol_string(vendor_node_debug_info_t->protocol));
+            jwObj_string(&jwc, DEVICE_UPTIME_KEY, vendor_node_debug_info_t->uptimestr);
+            jwObj_int(&jwc, LOGGING_KEY, vendor_node_debug_info_t->logging);
+            jwObj_int(&jwc, RESET_DEVICE_KEY, vendor_node_debug_info_t->resetDevice);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_debug_info_t->base_data.error_code);
             break;
 
         case NODE_RECONF_PACKET:
             remove_from_reconf_queue();
-            vendor_node_reconf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            vendor_node_reconf_t = (reconf_t *)param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE RECONF ACK | FROM ELEMADDR : %d", vendor_node_reconf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_RECONF_PACKET,
-                    MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.node_ser_no_str,
-                    ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_RECONF_PACKET);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, vendor_node_reconf_t->base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_reconf_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_reconf_t->base_data.error_code);
             break;
 
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
             remove_from_heartbeat_pub_conf_queue();
-            vendor_node_heartbeat_pub_conf_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            vendor_node_heartbeat_pub_conf_t = (heartbeat_t *)param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PUB CONF ACK | FROM ELEMADDR : %d", vendor_node_heartbeat_pub_conf_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET,
-                    MSG_SEQ_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.node_ser_no_str,
-                    ERROR_CODE_KEY, vendor_node_heartbeat_pub_conf_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_HEARTBEAT_PUB_CONF_PACKET);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_heartbeat_pub_conf_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_heartbeat_pub_conf_t->base_data.error_code);
             break;
 
         case NODE_MANUAL_AC_CONTROL_ACK:
-            vendor_node_manual_ac_control_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            vendor_node_manual_ac_control_t = (control_t *)param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE MANUAL AC CONTROL ACK | FROM ELEMADDR : %d", vendor_node_manual_ac_control_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK,
-                    MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.node_ser_no_str,
-                    POWER_KEY, vendor_node_manual_ac_control_t->control.power,
-                    MODE_KEY, vendor_node_manual_ac_control_t->control.mode_str,
-                    FAN_SPEED_KEY, vendor_node_manual_ac_control_t->control.fanSpeed,
-                    TEMPERATURE_KEY, vendor_node_manual_ac_control_t->control.temp);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, vendor_node_manual_ac_control_t->base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_manual_ac_control_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, POWER_KEY, vendor_node_manual_ac_control_t->control.power);
+            jwObj_string(&jwc, MODE_KEY, vendor_node_manual_ac_control_t->control.mode_str);
+            jwObj_int(&jwc, FAN_SPEED_KEY, vendor_node_manual_ac_control_t->control.fanSpeed);
+            jwObj_int(&jwc, TEMPERATURE_KEY, vendor_node_manual_ac_control_t->control.temp);
             break;
 
         case NODE_PROV_PACKET:
             remove_from_prov_queue();
-            vendor_provision_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            vendor_provision_t = (prov_t *)param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE PROV ACK | FROM ELEMADDR : %d", vendor_provision_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : %ld, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d, \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_PROV_PACKET,
-                    MSG_SEQ_NO_KEY, provision_t.base_data.msg_seq_no,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, provision_t.base_data.node_ser_no_str,
-                    ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr,
-                    ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, provision_t.base_data.msg_seq_no);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, provision_t.base_data.node_ser_no_str);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, vendor_provision_t->base_data.elementAddr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_provision_t->base_data.error_code);
             break;
 
         case NODE_UNPROV_PACKET:
@@ -975,27 +965,23 @@ static void store_data_to_node_structures(esp_ble_mesh_sensor_client_cb_param_t 
             break;
 
         case NODE_CONF_PACKET:
-            vendor_node_config_t = param->status_cb.sensor_status.marshalled_sensor_data->data;
+            vendor_node_config_t = (reconf_t *) param->status_cb.sensor_status.marshalled_sensor_data->data;
             ESP_LOGI(MESH_DEBUG_TAG, "NODE CONF ACK | FROM ELEMADDR : %d", vendor_node_config_t->base_data.elementAddr);
-            sprintf(pubmessage, "{\"%s\" : %d, \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : \"%s\", \"%s\" : %d}",
-                    JSON_PACKET_ID_KEY, NODE_CONF_PACKET,
-                    JSON_ACK_NAME_KEY, NODE_CONF_ACK_NAME,
-                    GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING,
-                    NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no_str,
-                    ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_CONF_PACKET);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, GWY_SER_NO_IN_STRING);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, vendor_node_config_t->base_data.node_ser_no_str);
+            jwObj_int(&jwc, ERROR_CODE_KEY, vendor_node_config_t->base_data.error_code);
             break;
 
         default:
-            ESP_LOGE(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Node\r\n");
+            custom_printf(MESH_ERROR_TAG, "Unknown JSON PACKET ID recvd from Node", RED);
+            jwClose(&jwc);
             return;
         }
+        jwClose(&jwc);
         add_to_pubmesg_queue(pubmessage, publish_topic);
     }
-    else
-    {
-        sprintf(mesh_log_buffer, "Ack came in when Gwy in Unregistered state");
-        red_printf(MESH_ERROR_TAG, mesh_log_buffer);
-    }
+    else custom_printf(MESH_ERROR_TAG, "Ack came in when Gwy in Unregistered state", RED);
 }
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
                                               esp_ble_mesh_sensor_client_cb_param_t *param)
@@ -1464,9 +1450,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         }
         else if (param->params->opcode == ESP_BLE_MESH_MODEL_OP_NODE_RESET)
         {
-            char pubmessage[PUBMESG_LEN];
             esp_ble_mesh_sensor_client_cb_param_t params;
-            // //esp_ble_mesh_sensor_client_cb_param_t
             struct net_buf_simple marshmell;
             uint8_t data[130];
             uint16_t element_addr = param->params->ctx.addr;

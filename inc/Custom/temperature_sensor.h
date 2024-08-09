@@ -70,7 +70,7 @@ esp_err_t i2c_write(uint8_t reg_addr);
 void Read_Digital_Temperature(uint8_t *measured_temperature);
 void init_temperature_sensor();
 void create_Temperature_data_publish_timer();
-static void publish_temperature_cb(void *arg);
+void publish_temperature_cb(void *arg);
 #ifdef __cplusplus
 }
 #endif

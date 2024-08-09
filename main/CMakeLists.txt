@@ -1,4 +1,5 @@
 set(srcs "main.cpp"
+"../src/JSON/json_maker.c"
 "../src/Custom/LED.c"
 "../src/flash/flash.c"
 "../src/Custom/printf_custom.c"
@@ -11,6 +12,7 @@ set(srcs "main.cpp"
 "../src/Mesh/node_mesh_main.c"
 "../src/Custom/queue.cpp"
 "../src/Custom/accesspoint.cpp"
+"../src/Custom/esp_insights.cpp"
 )
 
 idf_component_register(SRCS "${srcs}"
