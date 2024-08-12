@@ -59,6 +59,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 - Software Documentation: [Link to Software Documentation](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/EVaEBQlBNA1DoCinDPwBE_IBt691awvTQk0ohQl9dxLVjQ?e=Tk5M30)
 - Software Flow: [Link To Software Flow PDF](https://qmaxltd-my.sharepoint.com/:b:/g/personal/embedded_qmaxsys_com/ETi3Jls5hMJHh_DprKNjEb8Bi8FhMxQvkYVPa3WIUBaffA?e=LkIWIh)
 - MCU : ESP32-S3 [Datasheet](https://www.espressif.com/sites/default/files/documentation/esp32-s3_datasheet_en.pdf)
+- MCU : ESP32-S3 [Technical Reference manual](https://www.espressif.com/sites/default/files/documentation/esp32-s3_technical_reference_manual_en.pdf)
 - LTE : [Quectel's EC200U Hardware design document](https://forums.quectel.com/uploads/short-url/j0qEXlvPl25PfUDBf4QEkc9AQyx.pdf)
 - [AT commands manual](https://forums.quectel.com/uploads/short-url/dV5cK9eteeQmwyGPgfWB351oZde.pdf)
 - [TCP/IP command manual](https://forums.quectel.com/uploads/short-url/1loXiVyd118F6AYTRvznNkCbh1L.pdf)
