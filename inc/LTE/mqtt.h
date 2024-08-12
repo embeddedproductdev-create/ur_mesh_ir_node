@@ -13,73 +13,71 @@
 #include "../Custom/main.h"
 
 /* JSON PACKET KEY STRINGS */
-#define JSON_PACKET_ID_KEY "JsonPacketID"
-#define JSON_ACK_NAME_KEY "JsonAckName"
-#define MSG_SEQ_NO_KEY "MsgSeqNo"
-#define GWY_SER_NO_KEY "GwySerNo"
-#define NODE_SER_NO_KEY "NodeSerNo"
-#define LOCATION_KEY "Location"
-#define APP_KEY_INDEX "AppKeyIndex"
-#define APP_KEY "AppKey"
-#define NET_KEY_INDEX "NetKeyIndex"
-#define NET_KEY "NetKey"
-#define ELEMENT_ADDR_KEY "ElementAddr"
-#define MAC_ID_KEY "MacId"
-#define MODE_KEY "Mode"
-#define POWER_KEY "Power"
-#define FAN_SPEED_KEY "FanSpeed"
-#define TEMPERATURE_KEY "Temperature"
-#define SWING_H_KEY "SwingH"
-#define SWING_V_KEY "SwingV"
-#define ONTIMER_KEY "OnTimer"
-#define OFFTIMER_KEY "OffTimer"
-#define AC_LOCKING_KEY "Locking"
-#define TEMP_LOCK_LOW_LIMIT_KEY "TempLockLowLimit"
-#define TEMP_LOCK_UP_LIMIT_KEY "TempLockUpLimit"
-#define TEMP_LOCK_UP_LIMIT_KEY "TempLockUpLimit"
-#define TEMP_LOCK_LOW_LIMIT_KEY "TempLockLowLimit"
-#define ERROR_CODE_KEY "ErrorCode"
-#define AMBIENT_TEMPERATURE_DATA_KEY "AmbientTemperature"
-#define PUBLISH_PERIOD_KEY "PublishPeriodSec"
-#define FIRMWARE_VERSION_KEY "FirmwareVersion"
-#define REGISTERED_KEY "Registered"
-#define PROTOCOL_SEL_NUM_KEY "Protocol"
-#define PUBLISH_MESG_QUEUE_COUNT_KEY "PubMsgQueueCount"
-#define PROV_QUEUE_COUNT_KEY "ProvQueueCount"
-#define UNPROV_QUEUE_COUNT_KEY "UnProvQueueCount"
-#define AC_CONTROL_QUEUE_COUNT_KEY "ACControlQueueCount"
-#define RECONF_QUEUE_COUNT_KEY "ReconfQueueCount"
-#define PUB_CONF_QUEUE_COUNT_KEY "PubConfQueueCount"
-#define TEACHING_MODE_QUEUE_COUNT_KEY "TeachingModeQueueCount"
-#define DEBUG_INFO_QUEUE_COUNT_KEY "DebugInfoQueueCount"
-#define DEVICE_UPTIME_KEY "DeviceUpTimeHrs"
-#define LOGGING_KEY "Logging"
-#define RESET_DEVICE_KEY "ResetDevice"
-#define LINK_KEY "Link"
+extern const char* JSON_PACKET_ID_KEY;
+extern const char* JSON_ACK_NAME_KEY;
+extern const char* MSG_SEQ_NO_KEY;
+extern const char* GWY_SER_NO_KEY;
+extern const char* NODE_SER_NO_KEY;
+extern const char* LOCATION_KEY;
+extern const char* APP_KEY_INDEX;
+extern const char* APP_KEY;
+extern const char* NET_KEY_INDEX;
+extern const char* NET_KEY;
+extern const char* ELEMENT_ADDR_KEY;
+extern const char* MAC_ID_KEY;
+extern const char* MODE_KEY;
+extern const char* POWER_KEY;
+extern const char* FAN_SPEED_KEY;
+extern const char* TEMPERATURE_KEY;
+extern const char* SWING_H_KEY;
+extern const char* SWING_V_KEY;
+extern const char* ONTIMER_KEY;
+extern const char* OFFTIMER_KEY;
+extern const char* AC_LOCKING_KEY;
+extern const char* TEMP_LOCK_UP_LIMIT_KEY;
+extern const char* TEMP_LOCK_LOW_LIMIT_KEY;
+extern const char* ERROR_CODE_KEY;
+extern const char* AMBIENT_TEMPERATURE_DATA_KEY;
+extern const char* PUBLISH_PERIOD_KEY;
+extern const char* FIRMWARE_VERSION_KEY;
+extern const char* REGISTERED_KEY;
+extern const char* PROTOCOL_SEL_NUM_KEY;
+extern const char* PUBLISH_MESG_QUEUE_COUNT_KEY;
+extern const char* PROV_QUEUE_COUNT_KEY;
+extern const char* UNPROV_QUEUE_COUNT_KEY;
+extern const char* AC_CONTROL_QUEUE_COUNT_KEY;
+extern const char* RECONF_QUEUE_COUNT_KEY;
+extern const char* PUB_CONF_QUEUE_COUNT_KEY;
+extern const char* TEACHING_MODE_QUEUE_COUNT_KEY;
+extern const char* DEBUG_INFO_QUEUE_COUNT_KEY;
+extern const char* DEVICE_UPTIME_KEY;
+extern const char* LOGGING_KEY;
+extern const char* RESET_DEVICE_KEY;
+extern const char* LINK_KEY;
 
 /* JSON ACK NAMES */
-#define GWY_REG_ACK_NAME "Gwy Registration ACK"
-#define GWY_UNREG_ACK_NAME "Gwy Unregistration ACK"
-#define GWY_CONF_ACK_NAME "Gwy AC Remote Configuration ACK"
-#define GWY_RECONF_ACK_NAME "Gwy AC Remote Reconfiguration ACK"
-#define GWY_AC_CONTROL_ACK_NAME "Gwy AC Control ACK"
-#define GWY_MANUAL_AC_CONTROL_ACK_NAME "Gwy Manual AC control ACK"
-#define GWY_HEARTBEAT_ACK_NAME "Gwy Heartbeat ACK"
-#define GWY_HEARTBEAT_PUB_CONF_ACK_NAME "Gwy Heartbeat Publish Configuration ACK"
-#define GWY_TEACHING_MODE_START_ACK_NAME "Gwy Teaching Mode Start ACK"
-#define GWY_TEACHING_MODE_END_ACK_NAME "Gwy Teaching Mode End ACK"
-#define GWY_DEBUG_INFO_ACK_NAME "Gwy Debug Info ACK"
-#define NODE_PROV_ACK_NAME "Node Provisioning ACK"
-#define NODE_UNPROV_ACK_NAME "Node Unprovisioing ACK"
-#define NODE_CONF_ACK_NAME "Node AC Remote Configuration ACK"
-#define NODE_RECONF_ACK_NAME "Node AC Remote Reconfiguration ACK"
-#define NODE_AC_CONTROL_ACK_NAME "Node AC Control ACK"
-#define NODE_MANUAL_AC_CONTROL_ACK_NAME "Node Manual AC Control ACK"
-#define NODE_HEARTBEAT_ACK_NAME "Node Heartbeat ACK"
-#define NODE_HEARTBEAT_PUB_CONF_ACK_NAME "Node Heartbeat Publish Configuration ACK"
-#define NODE_TEACHING_MODE_START_ACK_NAME "Node Teaching Mode Start ACK"
-#define NODE_TEACHING_MODE_END_ACK_NAME "Node Teaching Mode End ACK"
-#define NODE_DEBUG_INFO_ACK_NAME "Node Debug Info ACK"
+extern const char* GWY_REG_ACK_NAME;
+extern const char* GWY_UNREG_ACK_NAME;
+extern const char* GWY_CONF_ACK_NAME;
+extern const char* GWY_RECONF_ACK_NAME;
+extern const char* GWY_AC_CONTROL_ACK_NAME;
+extern const char* GWY_MANUAL_AC_CONTROL_ACK_NAME;
+extern const char* GWY_HEARTBEAT_ACK_NAME;
+extern const char* GWY_HEARTBEAT_PUB_CONF_ACK_NAME;
+extern const char* GWY_TEACHING_MODE_START_ACK_NAME;
+extern const char* GWY_TEACHING_MODE_END_ACK_NAME;
+extern const char* GWY_DEBUG_INFO_ACK_NAME;
+extern const char* NODE_PROV_ACK_NAME;
+extern const char* NODE_UNPROV_ACK_NAME;
+extern const char* NODE_CONF_ACK_NAME;
+extern const char* NODE_RECONF_ACK_NAME;
+extern const char* NODE_AC_CONTROL_ACK_NAME;
+extern const char* NODE_MANUAL_AC_CONTROL_ACK_NAME;
+extern const char* NODE_HEARTBEAT_ACK_NAME;
+extern const char* NODE_HEARTBEAT_PUB_CONF_ACK_NAME;
+extern const char* NODE_TEACHING_MODE_START_ACK_NAME;
+extern const char* NODE_TEACHING_MODE_END_ACK_NAME;
+extern const char* NODE_DEBUG_INFO_ACK_NAME;
 
 /*AT command related*/
 extern uint8_t MQTT_CLIENT_INDEX;

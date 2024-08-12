@@ -54,9 +54,9 @@ extern "C" {
 void jwOpen(struct jWriteControl *jwc, char *buffer, unsigned int buflen, enum jwNodeType rootType, int isPretty);
 int jwClose(struct jWriteControl *jwc);
 int jwErrorPos(struct jWriteControl *jwc);
-void jwObj_string(struct jWriteControl *jwc, char *key, char *value);
+void jwObj_string(struct jWriteControl *jwc, const char *key, char *value);
 
-void jwObj_int(struct jWriteControl *jwc, char *key, int value);
+void jwObj_int(struct jWriteControl *jwc, const char *key, int value);
 void jwObj_long_int(struct jWriteControl *jwc, char *key, int64_t value);
 
 void jwObj_double(struct jWriteControl *jwc, char *key, double value);

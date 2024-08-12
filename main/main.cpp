@@ -7,7 +7,6 @@
  * @copyright Copyright (c) 2024
  */
 
-#include "../../inc/Custom/esp_insights.h"
 #include "../../inc/IR/main_IR.h"
 #include "../../inc/Custom/main.h"
 #include "../../inc/Custom/accesspoint.h"
@@ -343,17 +342,6 @@ void app_main()
 
 #if (TEMPERATURE_SENSOR_PART_ENABLED)
     if(registered || provisioned) init_temperature_sensor();
-#endif
-
-#if (ESP_INSIGHTS_ENABLED)
-    xReturned = xTaskCreatePinnedToCore(ESP_insights_task, "ESP_insights_task",
-                                        4096, (void *)1, tskIDLE_PRIORITY, &esp_insights_task_handle, CORE0);
-    if (xReturned != pdPASS)
-    {
-        perror("Error in taskCreate for ESP insights task : ");
-        exit(FAILURE);
-    }
-    else ESP_LOGI(MAIN_DEBUG_TAG, "ESP insights task creation successful");
 #endif
 
 #if (LED_PART_ENABLED)

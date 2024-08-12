@@ -97,7 +97,6 @@
 #define LED_PART_ENABLED true
 #define MESH_PART_ENABLED true
 #define TEACHING_PART_ENABLED true
-#define ESP_INSIGHTS_ENABLED true
 #if(IS_GWY)
     #define LTE_PART_ENABLED true
     #define QUEUE_PART_ENABLED true

@@ -139,13 +139,13 @@ void jwObj_raw( JWC_DECL char *key, char *rawtext )
 
 // put "quoted" string to object
 //
-void jwObj_string( JWC_DECL char *key, char *value )
+void jwObj_string( JWC_DECL const char *key, char *value )
 {
 	if(_jwObj( JWC_PARAM key ) == JWRITE_OK)
 		jwPutstr( JWC_PARAM value );
 }
 
-void jwObj_int( JWC_DECL char *key, int value ) 
+void jwObj_int( JWC_DECL const char *key, int value ) 
 {
 	modp_itoa10( value, JWC(tmpbuf) );
 	jwObj_raw( JWC_PARAM key, JWC(tmpbuf) );

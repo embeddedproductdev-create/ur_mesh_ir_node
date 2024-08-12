@@ -5,6 +5,3 @@ mesh_nvs, data, nvs,        ,    0x4000,
 otadata,  data, ota,        ,    0x2000,
 ota_0,    app,  ota_0,      ,    5M,
 ota_1,    app,  ota_1,      ,    5M,
-factory,  app,  factory,    ,    0x1000,
-coredump, data, coredump,   ,    64000,
-fctry,    data, nvs,        ,    0x6000
