@@ -1,0 +1,109 @@
+- Overall it seems like when mode switch is happening, 
+	- Temperature needs to be set right
+	- Fan needs to be set right
+	- Other things like swing, powerful, econo, timers don't matter.
+
+
+DAIKIN:
+
+- When Dry, temperature switches to 32
+- when Fan, Fan switches to High
+
+I (00:18:26.887) [IR_DEBUG] : Power: On, Mode: 6 (Fan), Temp: 25C, Fan: 5 (High), Swing(H): Off, Swing(V): On, Quiet: Off, Powerful: Off
+I (00:18:33.068) [IR_DEBUG] : Power: On, Mode: 2 (Dry), Temp: 32C, Fan: 10 (Auto), Swing(H): Off, Swing(V): On, Quiet: Off, Powerful: Off
+I (00:18:34.402) [IR_DEBUG] : Power: Off, Mode: 3 (Cool), Temp: 25C, Fan: 5 (High), Swing(H): Off, Swing(V): On, Quiet: Off, Powerful: Off
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+LG
+
+- In this, for Cool alone the temperature stays at user settings
+- For Dry and Fan, the temperature is switched to 24
+- Same with fan, when dry mode, fan switches to 0 (quiet)
+
+I (00:30:18.032) [IR_DEBUG] : Model: 2 (AKB75215403), Power: On, Mode: 1 (Dry), Temp: 24C, Fan: 0 (Quiet)
+I (00:30:20.267) [IR_DEBUG] : Model: 2 (AKB75215403), Power: On, Mode: 2 (Fan), Temp: 24C, Fan: 4 (Maximum)
+I (00:30:21.945) [IR_DEBUG] : Model: 2 (AKB75215403), Power: On, Mode: 0 (Cool), Temp: 24C, Fan: 4 (Maximum)
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+SAMSUNG
+
+- Temperature is brought down to 24 when mode switching
+- Fan is also getting controlled 
+
+I (00:31:39.820) [IR_DEBUG] : Power: On, Mode: 1 (Cool), Temp: 24C, Fan: 0 (Auto), Swing(V): Off, Swing(H): Off, Beep: -, Clean: -, Quiet: Off, Powerful: Off, Econo: Off, Breeze: Off, Light: On, Ion: Off
+I (00:31:41.883) [IR_DEBUG] : Power: On, Mode: 2 (Dry), Temp: 24C, Fan: 0 (Auto), Swing(V): Off, Swing(H): Off, Beep: -, Clean: -, Quiet: Off, Powerful: Off, Econo: Off, Breeze: Off, Light: On, Ion: Off
+I (00:31:43.016) [IR_DEBUG] : Power: On, Mode: 3 (Fan), Temp: 24C, Fan: 2 (Low), Swing(V): Off, Swing(H): Off, Beep: -, Clean: -, Quiet: Off, Powerful: Off, Econo: Off, Breeze: Off, Light: On, Ion: Off
+I (00:31:44.035) [IR_DEBUG] : Power: On, Mode: 4 (Heat), Temp: 24C, Fan: 0 (Auto), Swing(V): Off, Swing(H): Off, Beep: -, Clean: -, Quiet: Off, Powerful: Off, Econo: Off, Breeze: Off, Light: On, Ion: Off
+I (00:31:45.258) [IR_DEBUG] : Power: On, Mode: 0 (Auto), Temp: 24C, Fan: 6 (Auto), Swing(V): Off, Swing(H): Off, Beep: -, Clean: -, Quiet: Off, Powerful: Off, Econo: Off, Breeze: Off, Light: On, Ion: Off
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+TOSHIBA
+
+- Toshiba has done it different
+- Dry, Cool, Auto modes have their own registers to store temperature. So, when, next time any of those 3 modes are chosen, the last set temperature in the respective mode is set again
+- For Fan mode alone, the temperature is brought to 22 degree celcius
+
+I (00:32:44.832) [IR_DEBUG] : Temp: 22C, Power: On, Mode: 1 (Cool), Fan: 0 (Auto), Turbo: Off, Econo: Off, Filter: Off
+I (00:32:45.860) [IR_DEBUG] : Temp: 22C, Power: On, Mode: 2 (Dry), Fan: 0 (Auto), Turbo: Off, Econo: Off, Filter: Off
+I (00:32:47.368) [IR_DEBUG] : Temp: 22C, Power: On, Mode: 4 (Fan), Fan: 0 (Auto), Turbo: Off, Econo: Off, Filter: Off
+I (00:32:48.666) [IR_DEBUG] : Temp: 22C, Power: On, Mode: 0 (Auto), Fan: 0 (Auto), Turbo: Off, Econo: Off, Filter: Off
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+HITACHI
+
+- Hitachi has also done it different 
+- It has three separate buttons : Auto, Dry, Cool
+- For Auto, the temperature is set to 0
+- For cool, any temperature can be set
+- For Dry, the temperature is brought to 25
+
+I (00:35:56.020) [IR_DEBUG] : Power: On, Mode: 7 (Auto), Temp: 0C, Fan: 5 (Auto)
+I (00:35:57.894) [IR_DEBUG] : Power: On, Mode: 5 (UNKNOWN), Temp: 25C, Fan: 2 (Low) <-- Dry mode in HITACHI
+I (00:36:00.626) [IR_DEBUG] : Power: On, Mode: 3 (Cool), Temp: 26C, Fan: 2 (Low)
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+VOLTAS
+
+- Same as Toshiba
+- Separate temperature registers exist for Heat and Cool mode, so they get set when the mode is set again
+- Dry mode doesn't allow temperature change, Temperature is brought to 24
+
+I (00:36:57.248) [IR_DEBUG] : Model: 1 (122LZF), Power: On, Mode: 4 (Dry), Temp: 24C, Fan: 4 (Low), Swing(V): Off, Swing(H): N/A, Turbo: Off, Econo: Off, WiFi: Off, Light: Off, Sleep: Off, On Timer: Off, Off Timer: Off
+I (00:36:58.273) [IR_DEBUG] : Model: 1 (122LZF), Power: On, Mode: 2 (Heat), Temp: 24C, Fan: 1 (High), Swing(V): Off, Swing(H): N/A, Turbo: Off, Econo: Off, WiFi: Off, Light: Off, Sleep: Off, On Timer: Off, Off Timer: Off
+I (00:36:59.077) [IR_DEBUG] : Model: 1 (122LZF), Power: On, Mode: 1 (Fan), Temp: 24C, Fan: 1 (High), Swing(V): Off, Swing(H): N/A, Turbo: Off, Econo: Off, WiFi: Off, Light: Off, Sleep: Off, On Timer: Off, Off Timer: Off
+I (00:36:59.744) [IR_DEBUG] : Model: 1 (122LZF), Power: On, Mode: 8 (Cool), Temp: 24C, Fan: 1 (High), Swing(V): Off, Swing(H): N/A, Turbo: Off, Econo: Off, WiFi: Off, Light: Off, Sleep: Off, On Timer: Off, Off Timer: Off
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+CARRIER
+
+- Carrier doesn't show temperature in both remote and decoded string when set to fan mode
+- Other modes don't care about temperature.
+- Fan does get changed
+
+I (00:38:00.687) [IR_DEBUG] : Power: On, Mode: 3 (Heat), Fan: 5 (Auto), Temp: 24C, Zone Follow: Off, Sensor Temp: Off
+I (00:38:03.077) [IR_DEBUG] : Power: On, Mode: 4 (Fan), Fan: 5 (Auto), Zone Follow: Off, Sensor Temp: Off
+I (00:38:04.939) [IR_DEBUG] : Power: On, Mode: 2 (Auto), Fan: 0 (Auto0), Temp: 24C, Zone Follow: Off, Sensor Temp: Off
+I (00:38:06.670) [IR_DEBUG] : Power: On, Mode: 0 (Cool), Fan: 5 (Auto), Temp: 24C, Zone Follow: Off, Sensor Temp: Off
+I (00:38:08.397) [IR_DEBUG] : Power: On, Mode: 1 (Dry), Fan: 0 (Auto0), Temp: 24C, Zone Follow: Off, Sensor Temp: Off
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+VOLTAS GZ-50GB-E1
+
+- In this the temperature stays at user set settings in Cool and Heat mode
+- In other cases, temperature gets changed to 24C
+
+I (00:50:45.177) [IR_DEBUG] : Model: 2 (GZ055BE1), Type: 1, Power: On, Mode: 8 (Auto), Temp: 24C, Fan: 0 (Auto), Swing(V): 1 (Highest), On Timer: Off, Off Timer: Off
+I (00:50:47.549) [IR_DEBUG] : Model: 2 (GZ055BE1), Type: 1, Power: On, Mode: 3 (Cool), Temp: 23C, Fan: 0 (Auto), Swing(V): 1 (Highest), On Timer: Off, Off Timer: Off
+I (00:50:49.263) [IR_DEBUG] : Model: 2 (GZ055BE1), Type: 1, Power: On, Mode: 2 (Dry), Temp: 24C, Fan: 0 (Auto), Swing(V): 1 (Highest), On Timer: Off, Off Timer: Off
+I (00:50:50.277) [IR_DEBUG] : Model: 2 (GZ055BE1), Type: 1, Power: On, Mode: 7 (Fan), Temp: 24C, Fan: 0 (Auto), Swing(V): 1 (Highest), On Timer: Off, Off Timer: Off
+I (00:50:51.412) [IR_DEBUG] : Model: 2 (GZ055BE1), Type: 1, Power: On, Mode: 1 (Heat), Temp: 23C, Fan: 0 (Auto), Swing(V): 1 (Highest), On Timer: Off, Off Timer: Off
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
