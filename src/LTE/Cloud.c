@@ -752,7 +752,7 @@ void handle_sending_ack_to_cloud()
     case GWY_AC_CONTROL_PACKET:
         custom_printf(LTE_DEBUG_TAG, "Sending Gwy AC Control ACK", CYAN);
         jwObj_int(&jwc, JSON_PACKET_ID_KEY, GWY_AC_CONTROL_PACKET);
-        jwObj_string(&jwc, MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no);
+        jwObj_int(&jwc, MSG_SEQ_NO_KEY, gwy_ac_control_t.base_data.msg_seq_no);
         jwObj_string(&jwc, GWY_SER_NO_KEY, gwy_ac_control_t.base_data.gwy_ser_no_str);
         jwObj_int(&jwc, ERROR_CODE_KEY, json_ack_err_code);
         break;

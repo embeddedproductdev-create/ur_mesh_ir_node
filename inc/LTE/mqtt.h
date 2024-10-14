@@ -111,8 +111,6 @@ extern uint8_t MQTT_CLIENT_INDEX;
 #define TEMP_ABS_LOW_LIMIT 18
 #define TEMP_ABS_UP_LIMIT 32
 
-#define DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC 300
-
 /* STRUCTURE DEFINITIONS */
 struct base_data_t
 {
@@ -352,6 +350,7 @@ enum Modes
 };
 
 /*GLOBAL VARIABLES */
+extern uint16_t DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC;
 
 /*json*/
 extern cJSON *json_packet_j;

@@ -48,6 +48,8 @@ void factory_reset_device()
     configured = false;
     protocol_selected_num = -1;
 
+    eeprom_write_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR, 0xFF);
+
 #if (IS_GWY)
     // Registered
     eeprom_write_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR, 0);
@@ -130,7 +132,6 @@ esp_err_t eeprom_write(uint8_t deviceaddress, uint16_t eeaddress, uint8_t *data,
     i2c_master_write_byte(cmd, (deviceaddress << 1) | EEPROM_WRITE, 1);
     i2c_master_write_byte(cmd, eeaddress >> 8, 1);
     i2c_master_write_byte(cmd, eeaddress & 0xFF, 1);
-    // printf("first_write_size:%d\n",first_write_size);
     if (bytes_remaining > EEPROM_PAGE_SIZE)
         first_write_size = EEPROM_PAGE_SIZE;
     if (bytes_remaining <= first_write_size)
@@ -270,6 +271,7 @@ void eeprom_task()
 
     printf("Read the following string from EEPROM: %d %d \n", received_array[0], received_array[1]);
 }
+
 /**
  * @brief Converts a 16-bit value to two 8-bit values.
  * @param value The 16-bit value to convert.

@@ -135,19 +135,6 @@ void fill_node_ser_no_str()
  */
 void fetch_from_flash()
 {
-/*Serial No*/
-#if (IS_GWY)
-    // GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
-    // GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
-    // GWY_SER_NO = (GWY_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
-#endif
-
-#if (!IS_GWY)
-    // NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_HI)) << 8;
-    // NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_MID)) << 8;
-    // NODE_SER_NO = (NODE_SER_NO | eeprom_read_byte(EEPROM_SLAVE_ADDR, SER_NO_IN_FLASH_ADDR_LO));
-#endif
-
 /*Registered/Provisioned*/
 #if (IS_GWY)
     registered = eeprom_read_byte(EEPROM_SLAVE_ADDR, REGISTERED_FLAG_FLASH_ADDR);
@@ -257,12 +244,6 @@ void app_main()
     // First step we need to do is to fetch registered, configured, provisioned, protocol_Sel_num details from flash
     initialize_i2c();
 
-    /**
-     * @brief Very first step for us to check if the device is a factory new device.
-     * Factory new devices will have their serial number as zero. If that's the case, then we
-     * need to get input from user for serial number through UART and store it to EEPROM flash.
-     * Upon the next reboot, we can fetch it from flash and fill it in RAM.
-     */
     if(eeprom_read_byte(EEPROM_SLAVE_ADDR, FACTORY_DEVICE_CHECK_FLASH_ADDR))
     {
         factory_reset_device();
@@ -277,7 +258,7 @@ void app_main()
 #endif
 
     //Let's printout the size of structures that we're using, as we need to know this for BLE MESH's sake
-    printout_struct_sizes();
+    // printout_struct_sizes();
 
     // Needed by freeRTOS
     BaseType_t xReturned;

@@ -14,6 +14,7 @@
 // Initialization
 uint8_t measured_temperature = 0;
 uint32_t TempDataFreqSec = 10;
+uint16_t DEFAULT_HEARTBEAT_PUB_CONF_PERIOD_SEC = 300;
 
 const esp_timer_create_args_t periodic_timer_args = {
     .callback = &publish_temperature_cb,
@@ -195,8 +196,11 @@ void init_temperature_sensor()
  */
 void delete_Temperature_data_publish_timer()
 {
-    ESP_ERROR_CHECK(esp_timer_stop(temp_publish_timer));
-    ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
+    //Only if we're reg/prov a timer would have been started and running
+    if(registered || provisioned) {
+        ESP_ERROR_CHECK(esp_timer_stop(temp_publish_timer));
+        ESP_ERROR_CHECK(esp_timer_delete(temp_publish_timer));
+    }
 }
 
 /**

@@ -68,7 +68,7 @@
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY true
+#define IS_GWY false
 #define CLIENT_RELEASE false
 /*====================================================================*/
 
@@ -135,7 +135,7 @@
 #define RAWLEN_ADDR_LO (RAWLEN_ADDR_HI+1)
 
 /*Misc*/
-#define FACTORY_DEVICE_CHECK_FLASH_ADDR  (TEMPLOCKLOWLIMIT_FLASH_ADDR+1)
+#define FACTORY_DEVICE_CHECK_FLASH_ADDR  (RAWLEN_ADDR_LO+1)
 
 /* GLOBAL VARIABLES */
 extern bool show_boot_indication;
