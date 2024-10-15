@@ -19,11 +19,11 @@ bool provisioned = false;
 bool ota_in_progress = false;
 
 #if (CLIENT_RELEASE)
-uint32_t GWY_SER_NO=100;
-uint32_t NODE_SER_NO=100;
+uint32_t GWY_SER_NO=4;
+uint32_t NODE_SER_NO=3;
 #endif
 #if (!CLIENT_RELEASE)
-uint32_t GWY_SER_NO=2;
+uint32_t GWY_SER_NO=1;
 uint32_t NODE_SER_NO=1;
 #endif
 
