@@ -24,7 +24,7 @@ uint32_t NODE_SER_NO=100;
 #endif
 #if (!CLIENT_RELEASE)
 uint32_t GWY_SER_NO=2;
-uint32_t NODE_SER_NO=4;
+uint32_t NODE_SER_NO=1;
 #endif
 
 char GWY_SER_NO_IN_STRING[15];
@@ -322,7 +322,7 @@ void app_main()
 #endif
 
 #if (TEMPERATURE_SENSOR_PART_ENABLED)
-    if(registered || provisioned) init_temperature_sensor();
+    init_temperature_sensor();
 #endif
 
 #if (LED_PART_ENABLED)
