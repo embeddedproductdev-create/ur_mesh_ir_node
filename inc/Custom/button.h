@@ -13,7 +13,7 @@
 #include "main.h"
 #include "accesspoint.h"
 
-#define USER_SWITCH 12
+#define USER_SWITCH (12)
 #define ONE_SEC_IN_MS 1000
 #define HALF_SEC_IN_MS 500
 
@@ -22,5 +22,5 @@ extern bool reset_node;
 
 /* FUNCTION DECLARATIONS */
 void clear_mqtt_settings();
-void button_task(void *args);
+void button_intr_init();
 #endif

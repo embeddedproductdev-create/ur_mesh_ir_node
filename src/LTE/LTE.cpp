@@ -484,35 +484,3 @@ void LTE_task(void *args)
 		establishMQTTConnection();
 	}
 }
-
-/**
- * @brief Function that takes care of handling the OTA update
- * @param none
- * @retval none
- */
-void ota_update()
-{
-    ota_in_progress = true;
-    while(ota_in_progress)
-    {
-        //1. Start a UDP service.
-        //2. Receive data from remote.
-        //3. End the UDP service.
-        //4. Boot from the newly downloaded firmware.
-		vTaskDelay(pdMS_TO_TICKS(5));
-        // ESP_LOGI(LTE_DEBUG_TAG, "OTA update in progress ... ");
-        while(!send_cmd_and_check_response(LOG_DATA, START_UDP_SERVICE_CMD, "START_UDP_SERVICE", START_UDP_SERVICE_RESP, 150000)) vTaskDelay(pdMS_TO_TICKS(50));
-		while(1)
-		{
-			send_cmd_and_check_response(LOG_DATA, CHECK_SOCKET_STATE_CMD,"CHECK_SOCKET_STATE_CMD",OK_RESPONSE,1000);
-			send_cmd_and_check_response(LOG_DATA, UDP_RECV_CMD, "UDP_REC_CMD", UDP_RECV_RESP, 1000);
-			vTaskDelay(pdMS_TO_TICKS(1000));
-		}
-	}
-    // esp_err_t ret = ESP_OK;
-    // esp_ota_begin(const esp_partition_t *partition, size_t image_size, esp_ota_handle_t *out_handle);
-    // esp_ota_write(esp_ota_handle_t handle, const void *data, size_t size);
-    // esp_ota_end(esp_ota_handle_t handle);
-    // esp_ota_abort(esp_ota_handle_t handle);
-    // esp_ota_get_boot_partition(void);
-}

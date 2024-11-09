@@ -31,6 +31,8 @@ uint32_t pressedduration_ms = 0;
 uint32_t pressed_duration_array[3] = {0, 0, 0};
 uint8_t pressed_duration_array_index = 0;
 
+static QueueHandle_t q1;
+
 void button_logic()
 {
     if (pressed_duration_array[0] != 0)
@@ -99,27 +101,46 @@ void calculate_button_press_time()
  * @param args
  * @return void*
  */
-void button_task(void *args)
+static void button_task(void *args)
+{
+    if (!digitalRead(USER_SWITCH)) // button is pressed
+    {
+        calculate_button_press_time();
+        // wait for a second button press within 500ms of first button press
+        while (((esp_timer_get_time() - beginTime) / 1000) < HALF_SEC_IN_MS)
+        {
+            vTaskDelay(1);
+            if (!digitalRead(USER_SWITCH))
+                calculate_button_press_time();
+        }
+    }
+    button_logic();
+
+    // Reset the timings and index
+    pressed_duration_array_index = 0;
+    memset(pressed_duration_array, 0, sizeof(pressed_duration_array));
+}
+
+/**
+ * @brief Function that sets up the button interrupt
+ * @param none
+ * @retval none
+ */
+void button_intr_init()
 {
     pinMode(USER_SWITCH, INPUT);
-    while (1)
-    {
-        vTaskDelay(1);
-        if (!digitalRead(USER_SWITCH)) // button is pressed
-        {
-            calculate_button_press_time();
-            // wait for a second button press within 500ms of first button press
-            while (((esp_timer_get_time() - beginTime) / 1000) < HALF_SEC_IN_MS)
-            {
-                vTaskDelay(1);
-                if (!digitalRead(USER_SWITCH))
-                    calculate_button_press_time();
-            }
-        }
-        button_logic();
+    
+    gpio_num_t gpio;
+    q1 = xQueueCreate(10, sizeof(gpio_num_t));
 
-        // Reset the timings and index
-        pressed_duration_array_index = 0;
-        memset(pressed_duration_array, 0, sizeof(pressed_duration_array));
-    }
+    gpio_config_t gpioConfig;
+	gpioConfig.pin_bit_mask = USER_SWITCH;
+	gpioConfig.mode         = GPIO_MODE_INPUT;
+	gpioConfig.pull_up_en   = GPIO_PULLUP_DISABLE;
+	gpioConfig.pull_down_en = GPIO_PULLDOWN_ENABLE;
+	gpioConfig.intr_type    = GPIO_INTR_POSEDGE;
+	gpio_config(&gpioConfig);
+
+    gpio_install_isr_service(0);
+	gpio_isr_handler_add(USER_SWITCH, button_task, NULL);
 }

@@ -16,7 +16,6 @@
 bool show_boot_indication = true;
 bool esp_restart_flag = false;
 bool provisioned = false;
-bool ota_in_progress = false;
 
 #if (CLIENT_RELEASE)
 uint32_t GWY_SER_NO=4;
@@ -36,7 +35,6 @@ TaskHandle_t IR_task_handle;
 TaskHandle_t LTE_task_handle;
 TaskHandle_t queue_task_handle;
 TaskHandle_t button_task_handle;
-TaskHandle_t esp_insights_task_handle;
 
 /*Global Structures*/
 gwy_reg_t gwy_registration_t;
@@ -371,14 +369,7 @@ void app_main()
 #endif
 
 #if (BUTTON_PART_ENABLED)
-    xReturned = xTaskCreatePinnedToCore(button_task, "button task",
-                                        4096, (void *)1, tskIDLE_PRIORITY, &button_task_handle, CORE0);
-    if (xReturned != pdPASS)
-    {
-        perror("Error in taskCreate for button task : ");
-        exit(FAILURE);
-    }
-    else ESP_LOGI(MAIN_DEBUG_TAG, "Button task creation successful");
+   button_intr_init();
 #endif
 
 ESP_LOGI(MAIN_DEBUG_TAG, "Successfully Created all tasks");

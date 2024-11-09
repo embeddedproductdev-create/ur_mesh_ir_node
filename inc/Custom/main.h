@@ -154,8 +154,6 @@ extern bool teaching_mode;
 
 extern bool esp_restart_flag;
 
-extern bool ota_in_progress;
-
 extern int16_t protocol_selected_num;
 
 extern uint32_t GWY_SER_NO;
@@ -175,7 +173,6 @@ extern TaskHandle_t LTE_task_handle;
 extern TaskHandle_t LED_task_handle;
 extern TaskHandle_t queue_task_handle;
 extern TaskHandle_t button_task_handle;
-extern TaskHandle_t esp_insights_task_handle;
 
 /* FUNCTION DECLARATIONS */
 void app_main();
