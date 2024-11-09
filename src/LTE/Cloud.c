@@ -1140,15 +1140,6 @@ void parse_json_packet(char *json_packet)
             strcpy(gwy_unregistration_t.location, cJSON_GetObjectItem(json_packet_j, LOCATION_KEY)->valuestring);
             // factory resetting after receiving this packet is taken care after sending out Unregistration ACK
             break;
-
-        case GWY_OTA_UPDATE:
-            custom_printf(LTE_DEBUG_TAG, "Gwy OTA Update Packet", CYAN);
-            gwy_ota_t.base_data.json_packet_id = json_packet_id;
-            gwy_ota_t.base_data.msg_seq_no = cJSON_GetObjectItem(json_packet_j, MSG_SEQ_NO_KEY)->valueint;
-            strcpy(gwy_ota_t.base_data.gwy_ser_no_str, cJSON_GetObjectItem(json_packet_j, GWY_SER_NO_KEY)->valuestring);
-            strcpy(gwy_ota_t.link, cJSON_GetObjectItem(json_packet_j, LINK_KEY)->valuestring);
-            ota_update();
-            break;
         }
     }
     if (json_ack_err_code == JSON_PACKET_ID_UNKNOWN)

@@ -47,6 +47,7 @@
 #include "esp_ota_ops.h"
 #include "esp_task_wdt.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 #include "nvs_flash.h"
 #include "rom/ets_sys.h"
@@ -69,19 +70,19 @@
  * ===================================================================
  */
 #define IS_GWY true
-#define CLIENT_RELEASE true
+#define CLIENT_RELEASE false
 /*====================================================================*/
 
 #if(IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 8
+#define INTERNAL_MIN_VERSION 9
 #endif
 
 #if(!IS_GWY)
 #define MAJ_VERSION 0
 #define MIN_VERSION 8
-#define INTERNAL_MIN_VERSION 8
+#define INTERNAL_MIN_VERSION 9
 #endif
 
 #define TAG "UART"

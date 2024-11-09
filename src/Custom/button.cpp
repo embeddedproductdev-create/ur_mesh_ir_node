@@ -31,8 +31,6 @@ uint32_t pressedduration_ms = 0;
 uint32_t pressed_duration_array[3] = {0, 0, 0};
 uint8_t pressed_duration_array_index = 0;
 
-static QueueHandle_t q1;
-
 void button_logic()
 {
     if (pressed_duration_array[0] != 0)
@@ -103,22 +101,23 @@ void calculate_button_press_time()
  */
 static void button_task(void *args)
 {
-    if (!digitalRead(USER_SWITCH)) // button is pressed
-    {
-        calculate_button_press_time();
-        // wait for a second button press within 500ms of first button press
-        while (((esp_timer_get_time() - beginTime) / 1000) < HALF_SEC_IN_MS)
-        {
-            vTaskDelay(1);
-            if (!digitalRead(USER_SWITCH))
-                calculate_button_press_time();
-        }
-    }
-    button_logic();
+    printf("Button pressed");
+    // if (!digitalRead(USER_SWITCH)) // button is pressed
+    // {
+    //     calculate_button_press_time();
+    //     // wait for a second button press within 500ms of first button press
+    //     while (((esp_timer_get_time() - beginTime) / 1000) < HALF_SEC_IN_MS)
+    //     {
+    //         vTaskDelay(1);
+    //         if (!digitalRead(USER_SWITCH))
+    //             calculate_button_press_time();
+    //     }
+    // }
+    // button_logic();
 
-    // Reset the timings and index
-    pressed_duration_array_index = 0;
-    memset(pressed_duration_array, 0, sizeof(pressed_duration_array));
+    // // Reset the timings and index
+    // pressed_duration_array_index = 0;
+    // memset(pressed_duration_array, 0, sizeof(pressed_duration_array));
 }
 
 /**
@@ -127,20 +126,12 @@ static void button_task(void *args)
  * @retval none
  */
 void button_intr_init()
-{
-    pinMode(USER_SWITCH, INPUT);
+{   
+    gpio_reset_pin(GPIO_NUM_12);
     
-    gpio_num_t gpio;
-    q1 = xQueueCreate(10, sizeof(gpio_num_t));
-
-    gpio_config_t gpioConfig;
-	gpioConfig.pin_bit_mask = USER_SWITCH;
-	gpioConfig.mode         = GPIO_MODE_INPUT;
-	gpioConfig.pull_up_en   = GPIO_PULLUP_DISABLE;
-	gpioConfig.pull_down_en = GPIO_PULLDOWN_ENABLE;
-	gpioConfig.intr_type    = GPIO_INTR_POSEDGE;
-	gpio_config(&gpioConfig);
-
+    gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
+    gpio_set_intr_type(GPIO_NUM_12, GPIO_INTR_POSEDGE);
     gpio_install_isr_service(0);
-	gpio_isr_handler_add(USER_SWITCH, button_task, NULL);
+	gpio_isr_handler_add(GPIO_NUM_12, button_task, NULL);
+    gpio_intr_enable(GPIO_NUM_12);
 }
