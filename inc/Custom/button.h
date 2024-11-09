@@ -13,7 +13,7 @@
 #include "main.h"
 #include "accesspoint.h"
 
-#define USER_SWITCH (12)
+#define USER_SWITCH 12
 #define ONE_SEC_IN_MS 1000
 #define HALF_SEC_IN_MS 500
 
