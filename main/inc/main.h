@@ -1,0 +1,3 @@
+#define MAJ_VERSION 0
+#define MIN_VERSION 8
+#define PATCH_VERSION 9
