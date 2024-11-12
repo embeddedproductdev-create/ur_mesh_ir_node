@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
+#include "esp_log.h"
 #include "sdkconfig.h"
 
 void print_chip_info()

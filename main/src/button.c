@@ -8,6 +8,7 @@
 #include "inttypes.h"
 
 #include "../inc/button.h"
+#include "../inc/led.h"
 
 #define DEBOUNCE_TIME_MS 10
 #define DOUBLE_PRESS_TIME_MS 450
@@ -69,24 +70,37 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
     switch (detected_press) {
 
         case MULTI_PRESS:
-            ESP_LOGI(BUTTON_TAG,"%d press(s) detected", *press_count);
+            switch(*press_count)
+            {
+                case 1:
+                    led_set_state(LED_STATE_IDLE);
+                    break;
+
+                case 2:
+                    led_set_state(LED_STATE_REGISTERED);
+                    break;
+
+                case 3:
+                    led_set_state(LED_STATE_UNREGISTERED);
+                    break;
+
+                default:
+                    ESP_LOGE(BUTTON_TAG, "Unknown Multi Button Press Event");
+            }
             break;
 
         case LONG_PRESS_3S:
-            ESP_LOGI(BUTTON_TAG, "Long Press (>3 seconds) detected");
+            led_set_state(LED_STATE_MQTT_NOT_CONNECTED);
             break;
 
         case LONG_PRESS_1S:
-            ESP_LOGI(BUTTON_TAG, "Long Press (1-3 seconds) detected");
-            printf("Long Press (1-3 seconds) detected\n");
+            led_set_state(LED_STATE_SENDING_IR_COMMAND);
             break;
 
         default:
             ESP_LOGI(BUTTON_TAG, "Unknown Press detected");
             break;
     }
-
-    // vTaskDelay(pdMS_TO_TICKS(100));
 
     gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
     gpio_intr_enable(BUTTON_GPIO);
