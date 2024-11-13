@@ -13,6 +13,8 @@
 #include "../inc/led.h"
 #include "../inc/main.h"
 #include "../inc/cJSON.h"
+#include "../inc/json_maker.h"
+#include "../inc/heartbeat.h"
 
 #define BAUD_RATE 115200
 
@@ -28,17 +30,11 @@
 
 #define GWY_SER_NO_IN_STRING "GWY00002"
 
-#define MQTT_SERVER_IP "54.215.188.103"
-#define MQTT_PORT 1883
-#define MQTT_BROKER_USERNAME "QmaxSystems"
-#define MQTT_BROKER_PASSWORD "Qmax_mosquitto_!@#"
-
 #define MQTT_TOPIC_CHAR_LEN 100
 #define MQTT_CMD_RESP_LEN 200
+#define MQTT_ACK_SIZE 1024
 
 #define RETRY_COUNT 5
-
-#define MIN_PUBLISH_PERIOD_SEC 300
 
 char LTE_UART_data[UART_BUF_SIZE];
 
@@ -139,6 +135,39 @@ bool LOG_DATA  = true;
 // Queues
 QueueHandle_t publish_queue;
 QueueHandle_t command_queue;
+
+// Publishes ACK messages from the publish queue to MQTT broker
+void publish_from_queue() {
+    char ack_message[MQTT_ACK_SIZE];
+    while (xQueueReceive(publish_queue, &ack_message, 0) == pdPASS) {
+        if (mqtt_publish(ack_message) != SUCCESS) {
+            ESP_LOGE(LTE_TAG, "Failed to publish ACK message to MQTT broker.\n");
+        }
+    }
+}
+
+// Adds an ACK JSON string to the publish queue
+void enqueue_for_publish(const char *ack_json) {
+    if (xQueueSend(publish_queue, &ack_json, portMAX_DELAY) != pdPASS) {
+        ESP_LOGE(LTE_TAG, "Publish Queue Full. Failed to enqueue ACK.\n");
+    }
+}
+
+/**
+ * @brief Function that generates the ack to be sent to cloud
+ * @param cmd_struct 
+ */
+void generate_ack(CommandStruct *cmd_struct)
+{
+    char *buffer = (char *)malloc(1024);
+    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
+    jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+    jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+    jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct.errorcode);
+    jwClose(jwc);
+    enqueue_for_publish(buffer);
+}
 
 /**
  * @brief Get the error code name
@@ -451,11 +480,61 @@ void parse_json()
     {
         cmd_struct.timestamp = xTaskGetTickCount();
 
-        // Enqueue the command for BLE processing
-        if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
-            ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
+        // Add only Node based packets into Queue
+        if(cmd_struct.packetid>=100 && cmd_struct.packetid<MAX_NODE_PACKET_ID) {
+            if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
+                ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
+                return;
+            }
             return;
         }
+
+        switch(cmd_struct.packetid)
+        {
+            case GWY_REG_PACKET:
+                registered = true; update_led_status();
+                hb_timer_start();
+                break;
+
+            case GWY_UNREG_PACKET:
+                registered = false; update_led_status();
+                hb_timer_stop();
+                break;
+
+            case GWY_AC_CONTROL_PACKET:
+                sending_ir_command = true; update_led_status();
+                sleep(1);
+                sending_ir_command = false; update_led_status();
+                break;
+
+            case GWY_RECONF_PACKET:
+                configured = false; update_led_status();
+                break;
+
+            case GWY_HEARTBEAT_PUB_CONF_PACKET:
+                publishPeriod = cmd_struct.publishPeriodSec;
+                break;
+
+            case GWY_DEBUG_INFO_PACKET:
+                char *buffer = (char *)malloc(1024);
+	            struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+                char version[10], uptime;
+                sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
+                sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000));
+                jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
+                jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct.packetid);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct.msgseqno);
+                jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
+                jwObj_int(jwc, REGISTERED_KEY, registered);
+                jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
+                jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
+                jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+                jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct.errorcode);
+                jwClose(jwc);
+                enqueue_for_publish(buffer);
+                return;
+        }
+        generate_ack(&cmd_struct);
     }
     else
     {
@@ -561,6 +640,7 @@ void establishMQTTConnection()
 	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 100)!=SUCCESS) return ;
 	ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
     mqtt_connected = true; update_led_status();
+    if(registered) hb_timer_start();
     LOG_DATA = false;
 	while(1)
 	{
@@ -570,13 +650,15 @@ void establishMQTTConnection()
 				ESP_LOGE(LTE_TAG, "Lost MQTT connection");
 				ping_fail_counter = 0;
 				mqtt_connected = false; update_led_status();
+                if(registered) hb_timer_stop();
 				LOG_DATA = true;
 				break;
 			}
 			continue;
 		}
 		ping_fail_counter = 0;
-        vTaskDelay(pdMS_TO_TICKS(50));
+        publish_from_queue();
+        vTaskDelay(pdMS_TO_TICKS(100));
 	}
 }
 

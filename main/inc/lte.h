@@ -3,6 +3,8 @@
 #define PUBLISH_QUEUE_SIZE 10
 #define COMMAND_QUEUE_SIZE 10
 
+#define MIN_PUBLISH_PERIOD_SEC 300
+
 typedef enum 
 {
 	// Basic

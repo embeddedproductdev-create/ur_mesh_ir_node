@@ -4,6 +4,7 @@ set( CUSTOM_SRCS
     src/button.c
     src/led.c
     src/lte.c
+    src/heartbeat.c
 )
 
 idf_component_register(

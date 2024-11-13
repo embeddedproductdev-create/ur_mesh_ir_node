@@ -120,7 +120,6 @@ void button_task(void *args)
         button_press_array[i].releasedTicks = xTaskGetTickCount();
         button_press_array[i].pressedDuration_ms = (button_press_array[i].releasedTicks - button_press_array[i].pressedTicks) * portTICK_PERIOD_MS;
         if(button_press_array[i].pressedDuration_ms > DEBOUNCE_TIME_MS) press_count++;
-        // printf("button_press_array[%d].pressedDuration_ms : %ld",i,button_press_array[i].pressedDuration_ms);
         // After a button release, let's wait for 500ms before starting to register the next button press
         while(((xTaskGetTickCount()-button_press_array[i].releasedTicks)* portTICK_PERIOD_MS) < DOUBLE_PRESS_TIME_MS && gpio_get_level(BUTTON_GPIO));
     }
