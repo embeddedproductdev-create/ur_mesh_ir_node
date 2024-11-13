@@ -14,15 +14,8 @@
 
 #define LED_INVERTED 1
 
-#if(LED_INVERTED)
-#define HIGH 0
-#define LOW 1
-#endif
-
-#if(!LED_INVERTED)
 #define HIGH 1
 #define LOW 0
-#endif
 
 #define LED_TAG "LED"
 
@@ -42,6 +35,17 @@ typedef struct {
     uint8_t green;
     uint8_t blue;
 } led_color_t;
+
+typedef struct colors{
+    led_color_t RED;
+    led_color_t BLUE;
+    led_color_t GREEN;
+    led_color_t YELLOW;
+    led_color_t MAGENTA;
+    led_color_t ORANGE;
+    led_color_t WHITE;
+    led_color_t OFF;
+} colors_t;
 
 void led_init(void);
 void led_set_state(led_state_t state);

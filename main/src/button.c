@@ -90,7 +90,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         case LONG_PRESS_3S:
-            led_set_state(LED_STATE_MQTT_NOT_CONNECTED);
+            led_set_state(LED_STATE_TEACHING_MODE);
             break;
 
         case LONG_PRESS_1S:
