@@ -3,6 +3,8 @@
 #include "esp_timer.h"
 #include "esp_log.h"
 
+#include "main.h"
+
 static led_color_t current_color = {LOW, LOW, LOW};
 static led_state_t current_state = LED_STATE_IDLE;
 static esp_timer_handle_t blink_timer;
@@ -28,7 +30,7 @@ void led_init(void) {
     gpio_set_direction(LED_PIN_GREEN, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_PIN_BLUE, GPIO_MODE_OUTPUT);
 
-    led_set_state(LED_STATE_IDLE);
+    update_led_status();
 
     // Configure blink timer
     esp_timer_create_args_t blink_timer_args = {
@@ -44,8 +46,8 @@ const char* get_led_state_string(led_state_t state) {
     switch (state) {
         case LED_STATE_IDLE:
             return "LED_STATE_IDLE";
-        case LED_STATE_REGISTERED:
-            return "LED_STATE_REGISTERED";
+        case LED_STATE_UNCONFIGURED:
+            return "LED_STATE_UNCONFIGURED";
         case LED_STATE_UNREGISTERED:
             return "LED_STATE_UNREGISTERED";
         case LED_STATE_MQTT_NOT_CONNECTED:
@@ -61,7 +63,7 @@ const char* get_led_state_string(led_state_t state) {
 
 void led_set_state(led_state_t state) {
     current_state = state;
-    ESP_LOGD(LED_TAG, "Setting LED State : %s",get_led_state_string(state));
+    ESP_LOGI(LED_TAG, "Setting LED State : %s",get_led_state_string(state));
     esp_timer_stop(blink_timer);  // Stop any existing blink pattern
 
     switch (state) {
@@ -74,7 +76,7 @@ void led_set_state(led_state_t state) {
             esp_timer_start_periodic(blink_timer, SLOW_BLINK_INTERVAL_MS * 1000); // Toggle Red/Blue every 500 ms
             break;
         
-        case LED_STATE_REGISTERED:
+        case LED_STATE_UNCONFIGURED:
             led_set_color(colors.BLUE);
             break;
 
@@ -95,6 +97,15 @@ void led_set_state(led_state_t state) {
             led_set_color(colors.OFF);
             break;
     }
+}
+
+void update_led_status()
+{
+    if(teaching_in_progress) led_set_state(LED_STATE_TEACHING_MODE);
+    else if(sending_ir_command) led_set_state(LED_STATE_SENDING_IR_COMMAND);
+    else if(!mqtt_connected) led_set_state(LED_STATE_MQTT_NOT_CONNECTED);
+    else if(!registered) led_set_state(LED_STATE_UNREGISTERED);
+    else if(!configured) led_set_state(LED_STATE_UNCONFIGURED);
 }
 
 void led_set_color(led_color_t color) {

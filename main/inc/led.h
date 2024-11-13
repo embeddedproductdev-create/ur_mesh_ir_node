@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 // Fast and slow blink intervals
-#define FAST_BLINK_INTERVAL_MS 250
+#define FAST_BLINK_INTERVAL_MS 100
 #define SLOW_BLINK_INTERVAL_MS 500
 
 // Define GPIO pins for RGB LED
@@ -22,7 +22,7 @@
 // Enum for LED states
 typedef enum {
     LED_STATE_IDLE,
-    LED_STATE_REGISTERED,
+    LED_STATE_UNCONFIGURED,
     LED_STATE_UNREGISTERED,
     LED_STATE_MQTT_NOT_CONNECTED,
     LED_STATE_SENDING_IR_COMMAND,
@@ -50,8 +50,6 @@ typedef struct colors{
 void led_init(void);
 void led_set_state(led_state_t state);
 void led_set_color(led_color_t color);
-void led_on(void);
-void led_off(void);
-void led_blink(void);
-
+const char* get_led_state_string(led_state_t state);
+void update_led_status();
 #endif

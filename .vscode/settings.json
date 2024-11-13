@@ -4,5 +4,6 @@
         "mqtt.h": "c",
         "general.h": "c"
     },
-    "idf.flashType": "UART"
+    "idf.flashType": "UART",
+    "idf.portWin": "COM23"
 }

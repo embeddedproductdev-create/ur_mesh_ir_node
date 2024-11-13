@@ -73,15 +73,12 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             switch(*press_count)
             {
                 case 1:
-                    led_set_state(LED_STATE_IDLE);
                     break;
 
                 case 2:
-                    led_set_state(LED_STATE_REGISTERED);
                     break;
 
                 case 3:
-                    led_set_state(LED_STATE_UNREGISTERED);
                     break;
 
                 default:
@@ -94,11 +91,10 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         case LONG_PRESS_1S:
-            led_set_state(LED_STATE_SENDING_IR_COMMAND);
             break;
 
         default:
-            ESP_LOGD(BUTTON_TAG, "Unknown Press detected");
+            ESP_LOGI(BUTTON_TAG, "Unknown Press detected");
             break;
     }
 

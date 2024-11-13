@@ -17,13 +17,17 @@
 TaskHandle_t button_task_handle = NULL;
 TaskHandle_t lte_task_handle = NULL;
 
+bool mqtt_connected = false;
+bool registered = false;
+bool provisioned = false;
+bool configured = false;
+bool sending_ir_command = false;
+bool teaching_in_progress;
+
 void app_main(void)
 {
     print_chip_info();
     button_intr_init();
     led_init();
     xTaskCreate(lte_task, "LTE Task", 4096, NULL, 2, &lte_task_handle);
-    while(1){
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
 }

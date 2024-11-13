@@ -20,3 +20,12 @@
 #define MIN_VERSION 8
 #define PATCH_VERSION 9
 #endif
+
+
+/*Global Variables*/
+extern bool mqtt_connected;
+extern bool registered;
+extern bool provisioned;
+extern bool configured;
+extern bool sending_ir_command;
+extern bool teaching_in_progress;
