@@ -12,9 +12,7 @@
 #include "../inc/lte.h"
 #include "../inc/led.h"
 #include "../inc/main.h"
-
-#define SUCCESS 0
-#define FAILURE -1
+#include "../inc/cJSON.h"
 
 #define BAUD_RATE 115200
 
@@ -39,6 +37,8 @@
 #define MQTT_CMD_RESP_LEN 200
 
 #define RETRY_COUNT 5
+
+#define MIN_PUBLISH_PERIOD_SEC 300
 
 char LTE_UART_data[UART_BUF_SIZE];
 
@@ -86,25 +86,389 @@ const char *QMTSTAT_1_ERROR = "+QMTSTAT: 2,1";
 const char *QMTOPEN_2_ERROR = "+QMTOPEN: 2,2";
 const char *QMTOPEN_3_ERROR = "+QMTOPEN: 2,3";
 
+/*MQTT Packet JSON Keys*/
+const char* JSON_PACKET_ID_KEY = "JsonPacketID";
+const char* JSON_ACK_NAME_KEY = "JsonAckName";
+const char* MSG_SEQ_NO_KEY = "MsgSeqNo";
+const char* GWY_SER_NO_KEY = "GwySerNo";
+const char* NODE_SER_NO_KEY = "NodeSerNo";
+const char* LOCATION_KEY = "Location";
+const char* APP_KEY_INDEX = "AppKeyIndex";
+const char* APP_KEY = "AppKey";
+const char* NET_KEY_INDEX = "NetKeyIndex";
+const char* NET_KEY = "NetKey";
+const char* ELEMENT_ADDR_KEY = "ElementAddr";
+const char* MAC_ID_KEY = "MacId";
+const char* MODE_KEY = "Mode";
+const char* POWER_KEY = "Power";
+const char* FAN_SPEED_KEY = "FanSpeed";
+const char* TEMPERATURE_KEY = "Temperature";
+const char* SWING_H_KEY = "SwingH";
+const char* SWING_V_KEY = "SwingV";
+const char* ONTIMER_KEY = "OnTimer";
+const char* OFFTIMER_KEY = "OffTimer";
+const char* AC_LOCKING_KEY = "Locking";
+const char* UPPER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
+const char* LOWER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
+const char* ERROR_CODE_KEY = "ErrorCode";
+const char* AMBIENT_TEMPERATURE_DATA_KEY = "AmbientTemperature";
+const char* PUBLISH_PERIOD_KEY = "PublishPeriodSec";
+const char* FIRMWARE_VERSION_KEY = "FirmwareVersion";
+const char* REGISTERED_KEY = "Registered";
+const char* PROTOCOL_SEL_NUM_KEY = "Protocol";
+const char* PUBLISH_MESG_QUEUE_COUNT_KEY = "PubMsgQueueCount";
+const char* PROV_QUEUE_COUNT_KEY = "ProvQueueCount";
+const char* UNPROV_QUEUE_COUNT_KEY = "UnProvQueueCount";
+const char* AC_CONTROL_QUEUE_COUNT_KEY = "ACControlQueueCount";
+const char* RECONF_QUEUE_COUNT_KEY = "ReconfQueueCount";
+const char* PUB_CONF_QUEUE_COUNT_KEY = "PubConfQueueCount";
+const char* TEACHING_MODE_QUEUE_COUNT_KEY = "TeachingModeQueueCount";
+const char* DEBUG_INFO_QUEUE_COUNT_KEY = "DebugInfoQueueCount";
+const char* DEVICE_UPTIME_KEY = "DeviceUpTimeHrs";
+const char* LOGGING_KEY = "Logging";
+const char* RESET_DEVICE_KEY = "ResetDevice";
+const char* LINK_KEY = "Link";
+const char* TEACHING_START_KEY = "TeachingStart";
+
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 bool need_to_activate_pdp = false;
 bool LOG_DATA  = true;
 
+// Queues
+QueueHandle_t publish_queue;
+QueueHandle_t command_queue;
+
 /**
- * @brief Function that checks the response from LTE to see if any error codes present
- * @param uart_data 
- * @param check_string 
- * @return int8_t 
+ * @brief Get the error code name
+ * @param code 
+ * @return const char* 
  */
+const char* get_error_code_name(error_codes code) {
+    static const char* error_code_names[] = {
+        "FAILURE",
+        "SUCCESS",
+        "JSON_PACKET_INVALID",
+        "MISSING_PACKET_ID",
+        "PACKET_ID_EXCEEDING_RANGE",
+        "MISSING_MSG_SEQ_NO",
+        "MSG_SEQ_NO_EXCEEDING_RANGE",
+        "MISSING_LOCATION",
+        "LOCATION_EXCEEDING_RANGE",
+        "NODE_COMM_TIMEOUT",
+        "GWY_NOT_REG",
+        "GWY_ALREADY_REG",
+        "MISSING_MACID",
+        "INVALID_MACID",
+        "MISSING_ELEMENT_ADDR",
+        "ELEMENT_ADDR_EXCEEDING_RANGE",
+        "GWY_NOT_CONFIGURED",
+        "NODE_NOT_CONFIGURED",
+        "MISSING_POWER",
+        "POWER_EXCEEDING_RANGE",
+        "MISSING_MODE",
+        "MODE_EXCEEDING_RANGE",
+        "MISSING_FAN_SPEED",
+        "FAN_SPEED_EXCEEDING_RANGE",
+        "MISSING_TEMPERATURE",
+        "TEMPERATURE_EXCEEDING_RANGE",
+        "MISSING_SWINGH",
+        "SWINGH_EXCEEDING_RANGE",
+        "MISSING_SWINGV",
+        "SWINGV_EXCEEDING_RANGE",
+        "MISSING_ONTIMER",
+        "ONTIMER_EXCEEDING_RANGE",
+        "MISSING_OFFTIMER",
+        "OFFTIMER_EXCEEDING_RANGE",
+        "MISSING_LOCKING",
+        "LOCKING_EXCEEDING_RANGE",
+        "MISSING_TEMPERATURE_UPPER_LIMIT",
+        "TEMPERATURE_UPPER_LIMIT_EXCEEDING_RANGE",
+        "MISSING_TEMPERATURE_LOWER_LIMIT",
+        "TEMPERATURE_LOWER_LIMIT_EXCEEDING_RANGE",
+        "INVALID_TEMPERATURE_LOCKING_LIMITS",
+        "MISSING_PUBLISH_PERIOD",
+        "PUBLISH_PERIOD_EXCEEDING_RANGE",
+        "MISSING_RESET_DEVICE",
+        "RESET_DEVICE_EXCEEDING_RANGE",
+        "MISSING_LOGGING",
+        "LOGGING_EXCEEDING_RANGE",
+        "AC_REMOTE_UNSUPPORTED",
+        "MISSING_TEACHING_START",
+        "TEACHING_START_EXCEEDING_RANGE",
+        "ENTERED_TEACHING_MODE",
+        "EXITED_TEACHING_MODE",
+        "DEVICE_ALREADY_IN_TEACHING_MODE",
+    };
+    
+    int index = code + 1; // Adjust index for negative `FAILURE` as -1
+
+    if (index >= 0 && index < sizeof(error_code_names) / sizeof(error_code_names[0])) {
+        return error_code_names[index];
+    }
+    return "UNKNOWN_ERROR";
+}
+
+/**
+ * @brief Function that validates the MacID
+ * @param macid 
+ * @return true 
+ * @return false 
+ */
+bool isValidMacId(char *macid)
+{
+    uint8_t d = 0, s = 0;
+    if (strlen(macid) != 17) return false;
+    for (uint8_t i = 0; i < 17; i++)
+    {
+        if ((macid[i] >= '0' && macid[i] <= '9') ||
+            (macid[i] >= 'a' && macid[i] <= 'f') ||
+            (macid[i] >= 'A' && macid[i] <= 'F'))
+            d++;
+        else if ((i == 2 || i == 5 || i == 8 || i == 11 || i == 14) && macid[i] == ':')
+            s++;
+    }
+    if (d == 12 && s == 5) return true;
+    else return false;
+    
+}
+
+/**
+ * @brief Function that validates the command received from MQTT
+ * @param json_obj Parsed MQTT command json object
+ * @param cmd_struct Strucutre to which the information will get stored
+ * @return int 
+ */
+void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
+{
+    cmd_struct->errorcode = SUCCESS;
+
+    // PacketId will be present in all packets, so let's check that first
+	if (cJSON_GetObjectItem(json_obj, JSON_PACKET_ID_KEY) == NULL)
+	{
+		cmd_struct->errorcode = MISSING_PACKET_ID;
+		return;
+	}
+	mqtt_packets packetid = cJSON_GetObjectItem(json_obj, JSON_PACKET_ID_KEY)->valueint;
+
+	if ( 
+        !(packetid>=0 && packetid<MAX_GWY_PACKET_ID) && 
+        !(packetid>=100 && packetid<MAX_NODE_PACKET_ID) &&
+        !(packetid == TEST_PACKET)
+        )
+	{
+		cmd_struct->errorcode = PACKET_ID_EXCEEDING_RANGE;
+		return;
+	}
+	cmd_struct->packetid = packetid;
+
+    // If it's a test packet, then need not worry about error handling.
+    if(packetid == TEST_PACKET){
+		ESP_LOGI(LTE_TAG, "Received TEST PACKET");
+		return;
+	}
+
+    // MsgSeqNo will be present in all packets, so let's check that first
+    if (cJSON_GetObjectItem(json_obj, MSG_SEQ_NO_KEY))
+    {
+        int32_t msg_seq_no = cJSON_GetObjectItem(json_obj, MSG_SEQ_NO_KEY)->valueint;
+        if (msg_seq_no < 0 && msg_seq_no > 65535) {
+            cmd_struct->errorcode = MSG_SEQ_NO_EXCEEDING_RANGE;
+            return;
+        }
+        cmd_struct->msgseqno = msg_seq_no;
+    }
+    else
+    {
+        cmd_struct->errorcode = MISSING_MSG_SEQ_NO;
+        return;
+    }
+
+    // If it's a Node packet (but not prov packet), let's check for element addr
+    if((cmd_struct->packetid>=100 && cmd_struct->packetid<MAX_NODE_PACKET_ID) && 
+        cmd_struct->packetid != NODE_PROV_PACKET)
+    {
+        if (!cJSON_GetObjectItem(json_obj, ELEMENT_ADDR_KEY)) {cmd_struct->errorcode = MISSING_ELEMENT_ADDR; return;}
+        else {
+            int elemaddr = cJSON_GetObjectItem(json_obj, ELEMENT_ADDR_KEY)->valueint;
+            if(elemaddr<=2 || elemaddr>=65535) {cmd_struct->errorcode = ELEMENT_ADDR_EXCEEDING_RANGE; return;}
+            else {
+                cmd_struct->elemaddr = elemaddr;
+            }
+        }
+    }
+
+    // We need to check registration packet before checking other packets
+    if (cmd_struct->packetid == GWY_REG_PACKET)
+    {
+        if(registered) cmd_struct->errorcode = GWY_ALREADY_REG;
+        return;
+    }
+
+    // Now before answering any other packet types, Gwy should have been registered
+    if (!registered) {
+        cmd_struct->errorcode = GWY_NOT_REG;
+        return;
+    }
+
+    if(cmd_struct->packetid == GWY_RECONF_PACKET && !configured) {
+        cmd_struct->errorcode = GWY_NOT_CONFIGURED;
+        return;
+    }
+
+    if(cmd_struct->packetid == GWY_AC_CONTROL_PACKET || cmd_struct->packetid == NODE_AC_CONTROL_PACKET)
+    {
+        if(cmd_struct->packetid == GWY_AC_CONTROL_PACKET && !configured) {
+            cmd_struct->errorcode = GWY_NOT_CONFIGURED;
+            return;
+        }
+
+        int power, temperature, fanspeed, swingh, swingv, locking, ontimer, offtimer, upperTemperatureLimit, lowerTemperatureLimit;
+        char mode[6] = "";
+
+        // First make sure the required Keys are available.
+        if(!cJSON_GetObjectItem(json_obj, POWER_KEY)) {cmd_struct->errorcode = MISSING_POWER; return;}
+        else power = cJSON_GetObjectItem(json_obj, POWER_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_TEMPERATURE; return;}
+        else temperature = cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, FAN_SPEED_KEY)) {cmd_struct->errorcode = MISSING_FAN_SPEED; return;}
+        else fanspeed = cJSON_GetObjectItem(json_obj, FAN_SPEED_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, MODE_KEY)) {cmd_struct->errorcode = MISSING_MODE; return;}
+        else strcpy(mode, cJSON_GetObjectItem(json_obj, MODE_KEY)->valuestring);
+        if(!cJSON_GetObjectItem(json_obj, SWING_H_KEY)) {cmd_struct->errorcode = MISSING_SWINGH; return;}
+        else swingh = cJSON_GetObjectItem(json_obj, SWING_H_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, SWING_V_KEY)) {cmd_struct->errorcode = MISSING_SWINGV; return;}
+        else swingv = cJSON_GetObjectItem(json_obj, SWING_V_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, AC_LOCKING_KEY)) {cmd_struct->errorcode = MISSING_LOCKING; return;}
+        else locking = cJSON_GetObjectItem(json_obj, AC_LOCKING_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, ONTIMER_KEY)) {cmd_struct->errorcode = MISSING_ONTIMER; return;}
+        else ontimer = cJSON_GetObjectItem(json_obj, ONTIMER_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, OFFTIMER_KEY)) {cmd_struct->errorcode = MISSING_OFFTIMER; return;}
+        else offtimer = cJSON_GetObjectItem(json_obj, OFFTIMER_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, UPPER_TEMPERATURE_LIMIT_KEY)) {cmd_struct->errorcode = MISSING_TEMPERATURE_UPPER_LIMIT; return;}
+        else upperTemperatureLimit = cJSON_GetObjectItem(json_obj, UPPER_TEMPERATURE_LIMIT_KEY)->valueint;
+        if(!cJSON_GetObjectItem(json_obj, LOWER_TEMPERATURE_LIMIT_KEY)) {cmd_struct->errorcode = MISSING_TEMPERATURE_LOWER_LIMIT; return;}
+        else lowerTemperatureLimit = cJSON_GetObjectItem(json_obj, LOWER_TEMPERATURE_LIMIT_KEY)->valueint;
+
+        // Now make sure all values are within range
+        if(power!=0 && power !=1) {cmd_struct->errorcode = POWER_EXCEEDING_RANGE; return;}
+        else cmd_struct->power = power;
+        if(temperature<18 && temperature>32) {cmd_struct->errorcode = TEMPERATURE_EXCEEDING_RANGE; return;}
+        else cmd_struct->temperature = temperature;
+        if(!(fanspeed>=0 && fanspeed<=5)) {cmd_struct->errorcode = FAN_SPEED_EXCEEDING_RANGE; return;}
+        else cmd_struct->fanspeed = fanspeed;
+        if( strcasecmp(mode, "Cool") ||
+            strcasecmp(mode, "Hot") ||
+            strcasecmp(mode, "Auto") ||
+            strcasecmp(mode, "Dry") ||
+            strcasecmp(mode, "Fan")
+            )
+        {
+            cmd_struct->errorcode = MODE_EXCEEDING_RANGE;
+        }
+        else strcpy(cmd_struct->mode_str, mode);
+        if(swingh!=0 && swingh!=1) {cmd_struct->errorcode = SWINGH_EXCEEDING_RANGE; return;}
+        else cmd_struct->swingh = swingh;
+        if(swingv!=0 && swingv!=1) {cmd_struct->errorcode = SWINGV_EXCEEDING_RANGE; return;}
+        else cmd_struct->swingv = swingv;
+        if(locking!=0 && locking!=1) {cmd_struct->errorcode = LOCKING_EXCEEDING_RANGE; return;}
+        else cmd_struct->locking = locking;
+        if(!(ontimer>=0 && ontimer<=12)) {cmd_struct->errorcode = ONTIMER_EXCEEDING_RANGE; return;}
+        else cmd_struct->ontimer = ontimer;
+        if(!(offtimer>=0 && offtimer<=12)) {cmd_struct->errorcode = OFFTIMER_EXCEEDING_RANGE; return;}
+        else cmd_struct->offtimer = offtimer;
+        if(upperTemperatureLimit<18 || upperTemperatureLimit>32) {cmd_struct->errorcode = TEMPERATURE_UPPER_LIMIT_EXCEEDING_RANGE; return;}
+        else cmd_struct->upperTemperatureLimit = upperTemperatureLimit;
+        if(lowerTemperatureLimit<18 || lowerTemperatureLimit>32) {cmd_struct->errorcode = TEMPERATURE_LOWER_LIMIT_EXCEEDING_RANGE; return;}
+        else cmd_struct->lowerTemperatureLimit = lowerTemperatureLimit;
+        if(upperTemperatureLimit<lowerTemperatureLimit) {cmd_struct->errorcode = INVALID_TEMPERATURE_LOCKING_LIMITS; return;}
+        return;
+    }
+
+    if(cmd_struct->packetid == GWY_HEARTBEAT_PUB_CONF_PACKET || cmd_struct->packetid == NODE_HEARTBEAT_PUB_CONF_PACKET)
+    {
+        if(!cJSON_GetObjectItem(json_obj, PUBLISH_PERIOD_KEY)) {cmd_struct->errorcode = MISSING_PUBLISH_PERIOD; return;}
+        else {
+            int publishperiod = cJSON_GetObjectItem(json_obj, PUBLISH_PERIOD_KEY)->valueint;
+            if(!(publishperiod>= MIN_PUBLISH_PERIOD_SEC && publishperiod <= 65535)) cmd_struct->errorcode = PUBLISH_PERIOD_EXCEEDING_RANGE;
+            else cmd_struct->publishPeriodSec = publishperiod;
+            return;
+        }
+    }
+
+    if(cmd_struct->packetid == NODE_PROV_PACKET)
+    {
+        if(!cJSON_GetObjectItem(json_obj, MAC_ID_KEY)) {cmd_struct->errorcode = MISSING_MACID; return;}
+        else {
+            char macid[20];
+            strcpy(macid, cJSON_GetObjectItem(json_obj, MAC_ID_KEY)->valuestring);
+            if(!isValidMacId(macid)) cmd_struct->errorcode = INVALID_MACID;
+            return;
+        }
+    }
+
+    if(cmd_struct->packetid == GWY_TEACHING_MODE || cmd_struct->packetid == NODE_TEACHING_MODE)
+    {
+        if(cmd_struct->packetid == GWY_TEACHING_MODE && 
+           teaching_in_progress) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+        if(!cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)) {cmd_struct->errorcode = MISSING_TEACHING_START; return;}
+        else {
+            int teaching_start = cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)->valueint;
+            if(teaching_start!=0 && teaching_start!=1)  {cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE; return;}
+            else cmd_struct->teachingStart = teaching_start;
+            return;
+        }
+    }
+
+    if(cmd_struct->packetid == GWY_DEBUG_INFO_PACKET || cmd_struct->packetid == NODE_DEBUG_INFO_PACKET)
+    {
+        int logging, reset;
+        if(!cJSON_GetObjectItem(json_obj, LOGGING_KEY)) {cmd_struct->errorcode = MISSING_LOGGING; return;}
+        if(!cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY)) {cmd_struct->errorcode = MISSING_RESET_DEVICE; return;}
+        logging = cJSON_GetObjectItem(json_obj, LOGGING_KEY)->valueint;
+        reset = cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY)->valueint;
+        if(logging!=0 && logging!=1) {cmd_struct->errorcode = LOGGING_EXCEEDING_RANGE; return;}
+        if(reset!=0 && reset!=1) {cmd_struct->errorcode = RESET_DEVICE_EXCEEDING_RANGE; return;}
+    }
+}
+
+void parse_json()
+{
+    led_set_state(LED_STATE_MQTT_CMD_RECVD);
+    CommandStruct cmd_struct;
+
+    cJSON *json_obj = cJSON_Parse(LTE_UART_data);
+    if(json_obj == NULL) {
+        ESP_LOGE(LTE_TAG, "MQTT command parsing failed");
+        return;
+    }
+
+    error_check_json(json_obj, &cmd_struct);
+    ESP_LOGE(LTE_TAG, "Error Code : %s - %d",get_error_code_name(cmd_struct.errorcode), cmd_struct.errorcode);
+
+    if(cmd_struct.errorcode == SUCCESS)
+    {
+        cmd_struct.timestamp = xTaskGetTickCount();
+
+        // Enqueue the command for BLE processing
+        if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
+            ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
+            return;
+        }
+    }
+    else
+    {
+        // generate_ack();
+    }
+}
+
 int8_t check_response(char *uart_data, const char *check_string)
 {
 	if (strstr(uart_data, check_string)) return SUCCESS;
 	if (strstr(uart_data, QMTSTAT_1_ERROR))
 		return FAILURE;
 	if (strstr(uart_data, QMTOPEN_2_ERROR)){
-        power_cycle_lte();
 		return FAILURE;
 	}
 	if (strstr(uart_data, QMTOPEN_3_ERROR))
@@ -112,7 +476,6 @@ int8_t check_response(char *uart_data, const char *check_string)
 		need_to_activate_pdp = true;
 		return FAILURE;
 	}
-	
 	return FAILURE;
 }
 
@@ -137,7 +500,7 @@ int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check
 			{
 				strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
 				ESP_LOGI(LTE_TAG, "%s", LTE_UART_data);
-				// parse_json_packet();
+				parse_json();
 			}
 			return SUCCESS;
 		}
@@ -315,6 +678,9 @@ void lte_uart_init(void)
  */
 void lte_task(void *args)
 {
+    publish_queue = xQueueCreate(PUBLISH_QUEUE_SIZE, sizeof(char*));
+    command_queue = xQueueCreate(COMMAND_QUEUE_SIZE, sizeof(CommandStruct));
+
 	initialize_mqtt_cmd_strings();
 	lte_gpio_configuration();
 	power_cycle_lte();

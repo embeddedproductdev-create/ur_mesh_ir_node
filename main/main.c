@@ -14,6 +14,8 @@
 #include "../inc/lte.h"
 #include "../inc/main.h"
 
+#define LTE_THREAD_STACK_SIZE 4096
+
 TaskHandle_t button_task_handle = NULL;
 TaskHandle_t lte_task_handle = NULL;
 
@@ -29,5 +31,5 @@ void app_main(void)
     print_chip_info();
     button_intr_init();
     led_init();
-    xTaskCreate(lte_task, "LTE Task", 4096, NULL, 2, &lte_task_handle);
+    xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 }
