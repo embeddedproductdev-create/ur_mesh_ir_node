@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "lte.h": "c",
+        "mqtt.h": "c",
+        "general.h": "c"
+    },
+    "idf.flashType": "UART"
+}

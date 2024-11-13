@@ -98,7 +98,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         default:
-            ESP_LOGI(BUTTON_TAG, "Unknown Press detected");
+            ESP_LOGD(BUTTON_TAG, "Unknown Press detected");
             break;
     }
 

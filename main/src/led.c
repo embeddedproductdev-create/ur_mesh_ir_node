@@ -61,7 +61,7 @@ const char* get_led_state_string(led_state_t state) {
 
 void led_set_state(led_state_t state) {
     current_state = state;
-    ESP_LOGI(LED_TAG, "Setting LED State : %s",get_led_state_string(state));
+    ESP_LOGD(LED_TAG, "Setting LED State : %s",get_led_state_string(state));
     esp_timer_stop(blink_timer);  // Stop any existing blink pattern
 
     switch (state) {

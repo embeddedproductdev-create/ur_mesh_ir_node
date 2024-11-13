@@ -3,6 +3,7 @@ set( CUSTOM_SRCS
     src/general.c
     src/button.c
     src/led.c
+    src/lte.c
 )
 
 idf_component_register(
