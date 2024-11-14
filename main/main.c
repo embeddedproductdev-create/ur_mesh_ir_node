@@ -33,6 +33,7 @@ char device_location_str[30] = "";
 
 void app_main(void)
 {
+    nvs_init();
     print_chip_info();
     button_intr_init();
     led_init();

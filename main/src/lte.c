@@ -150,10 +150,6 @@ bool LOG_DATA  = true;
 // Queues
 QueueHandle_t publish_queue;
 QueueHandle_t command_queue;
-// QueueHandle_t uart_event_queue;
-
-// Semaphores
-// SemaphoreHandle_t uart_semaphore;
 
 /**
  * @brief Function that publishes messages to MQTT
@@ -677,7 +673,7 @@ error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *
     error_codes rc = FAILURE;
     bzero(LTE_UART_data, UART_BUF_SIZE);
     uart_flush(UART_NUM_1);
-    int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, 20);
+    int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, 50);
     if (length > 0)
     {
         if(logging) ESP_LOGI(LTE_TAG, "Received : %s", LTE_UART_data);
@@ -738,8 +734,8 @@ void establishMQTTConnection()
 	if(need_to_activate_pdp)
 	{
 		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESP, 3000);
-		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 3000)!=SUCCESS);
-	        return;
+		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 3000)!=SUCCESS)
+            return;
 	}
 	if((rc=send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 100))==SUCCESS);
     else {
@@ -748,7 +744,7 @@ void establishMQTTConnection()
             case QMTOPEN_2_ERRORCODE:
                 send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 100);
                 return;
-            default :
+            default:
                 break;
         }
     }
@@ -803,7 +799,7 @@ void execute_general_AT_cmds()
         uart_set_baudrate(UART_NUM_1, 115200);
         //Force setting BaudRate to 921600
 		while(send_cmd_and_check_response(LOG_DATA, "AT+IPR=921600\r", "SET_BAUD_RATE", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS);
-		uart_set_baudrate(UART_NUM_1, 921600);
+		uart_set_baudrate(UART_NUM_1, BAUD_RATE);
     }
 	send_cmd_and_check_response(LOG_DATA, "AT&V\r", "DISPLAY_CURRENT_CONFIGURATION", OK_RESP, MIN_LTE_RESP_WAIT_MS);
 	send_cmd_and_check_response(LOG_DATA, "ATE0\r", "TURN_OFF_ECHO_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
@@ -894,9 +890,6 @@ void lte_task(void *args)
 {
     publish_queue = xQueueCreate(PUBLISH_QUEUE_SIZE, sizeof(char*));
     command_queue = xQueueCreate(COMMAND_QUEUE_SIZE, sizeof(CommandStruct));
-    // uart_event_queue = xQueueCreate(UART_EVENT_QUEUE_SIZE, sizeof(char*));
-
-    // uart_semaphore = xSemaphoreCreateBinary();
 
 	initialize_mqtt_cmd_strings();
 	lte_gpio_configuration();
