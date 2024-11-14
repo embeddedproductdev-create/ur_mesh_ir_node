@@ -4,6 +4,7 @@ set( CUSTOM_SRCS
     src/button.c
     src/led.c
     src/lte.c
+    src/json_maker.c
     src/heartbeat.c
 )
 

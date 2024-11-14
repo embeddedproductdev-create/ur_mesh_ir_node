@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "driver/gpio.h"
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
@@ -9,11 +10,11 @@
 #include "esp_log.h"
 #include "esp_system.h"
 
+#include "../inc/cJSON.h"
+#include "../inc/json_maker.h"
 #include "../inc/lte.h"
 #include "../inc/led.h"
 #include "../inc/main.h"
-#include "../inc/cJSON.h"
-#include "../inc/json_maker.h"
 #include "../inc/heartbeat.h"
 
 #define BAUD_RATE 115200
@@ -136,18 +137,49 @@ bool LOG_DATA  = true;
 QueueHandle_t publish_queue;
 QueueHandle_t command_queue;
 
+/**
+ * @brief Function that publishes messages to MQTT
+ * @param ack 
+ * @return int 
+ */
+int mqtt_publish(char *ack)
+{
+    char MQTT_PUBLISH_MESG_CMD[1024];
+	sprintf(MQTT_PUBLISH_MESG_CMD, "AT+QMTPUBEX=2,2,2,0,\"%s\",%d\r\n", publish_topic, strlen(ack));
+	if (send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", ">", 1000) == SUCCESS)
+	{
+		if (uart_write_bytes(UART_NUM_1, ack, strlen(ack)) != FAILURE)
+        {
+            return SUCCESS;
+        }
+        else {
+            ESP_LOGE(LTE_TAG, "Failed to write publish message to LTE UART");
+            return FAILURE;
+        }
+	}
+	else
+	{
+        ESP_LOGE(LTE_TAG, "Publish Prompt not received");
+		return FAILURE;
+	}
+	return FAILURE;
+}
+
 // Publishes ACK messages from the publish queue to MQTT broker
 void publish_from_queue() {
-    char ack_message[MQTT_ACK_SIZE];
+    char *ack_message;
     while (xQueueReceive(publish_queue, &ack_message, 0) == pdPASS) {
         if (mqtt_publish(ack_message) != SUCCESS) {
             ESP_LOGE(LTE_TAG, "Failed to publish ACK message to MQTT broker.\n");
         }
+        else {
+            ESP_LOGI(LTE_TAG, "Published \n%s",ack_message);
+            free(ack_message);
+        }
     }
 }
 
-// Adds an ACK JSON string to the publish queue
-void enqueue_for_publish(const char *ack_json) {
+void enqueue_for_publish(char *ack_json) {
     if (xQueueSend(publish_queue, &ack_json, portMAX_DELAY) != pdPASS) {
         ESP_LOGE(LTE_TAG, "Publish Queue Full. Failed to enqueue ACK.\n");
     }
@@ -160,13 +192,23 @@ void enqueue_for_publish(const char *ack_json) {
 void generate_ack(CommandStruct *cmd_struct)
 {
     char *buffer = (char *)malloc(1024);
+    if(!buffer) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        return;
+    }
     struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    if(!jwc) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
+        free(buffer);
+        return;
+    }
     jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
     jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
     jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-    jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct.errorcode);
+    jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
     jwClose(jwc);
     enqueue_for_publish(buffer);
+    free(jwc);
 }
 
 /**
@@ -332,6 +374,13 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     if (cmd_struct->packetid == GWY_REG_PACKET)
     {
         if(registered) cmd_struct->errorcode = GWY_ALREADY_REG;
+        else {
+            int length = 0;
+            if(!cJSON_GetObjectItem(json_obj, LOCATION_KEY)) {cmd_struct->errorcode = MISSING_LOCATION; return;}
+            length = strlen(cJSON_GetObjectItem(json_obj, LOCATION_KEY)->valuestring);
+            if(length==0 || length>20) {cmd_struct->errorcode = LOCATION_EXCEEDING_RANGE; return;}
+            strcpy(device_location_str, cJSON_GetObjectItem(json_obj, LOCATION_KEY)->valuestring);
+        }
         return;
     }
 
@@ -462,6 +511,39 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 }
 
+/**
+ * @brief Function that generates Debug Info ACK
+ * 
+ */
+void generate_debug_info_ack(CommandStruct *cmd_struct)
+{
+    char *buffer = (char *)malloc(1024);
+    if(!buffer) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        return;
+    }
+    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    if(!jwc) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
+        free(buffer);
+        return;
+    }
+    char version[10], uptime[10];
+    sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
+    sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
+    jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
+    jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+    jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+    jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
+    jwObj_int(jwc, REGISTERED_KEY, registered);
+    jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
+    jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
+    jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+    jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+    jwClose(jwc);
+    enqueue_for_publish(buffer);
+}
+
 void parse_json()
 {
     led_set_state(LED_STATE_MQTT_CMD_RECVD);
@@ -516,29 +598,16 @@ void parse_json()
                 break;
 
             case GWY_DEBUG_INFO_PACKET:
-                char *buffer = (char *)malloc(1024);
-	            struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-                char version[10], uptime;
-                sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
-                sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000));
-                jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
-                jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct.packetid);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct.msgseqno);
-                jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
-                jwObj_int(jwc, REGISTERED_KEY, registered);
-                jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
-                jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
-                jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
-                jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct.errorcode);
-                jwClose(jwc);
-                enqueue_for_publish(buffer);
+                generate_debug_info_ack(&cmd_struct);
                 return;
+            default:
+                break;
         }
         generate_ack(&cmd_struct);
     }
     else
     {
-        // generate_ack();
+        generate_ack(&cmd_struct);
     }
 }
 
@@ -569,7 +638,7 @@ int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check
 {
 	bzero(LTE_UART_data, UART_BUF_SIZE);
 	uart_flush(UART_NUM_1);
-	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, timeout_ms);
+	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, 50);
 	if (length > 0)
 	{
 		if(logging) ESP_LOGI(LTE_TAG, "Received : %s", LTE_UART_data);

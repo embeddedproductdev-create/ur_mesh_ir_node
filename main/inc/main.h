@@ -45,4 +45,5 @@ extern bool configured;
 extern bool sending_ir_command;
 extern bool teaching_in_progress;
 extern char ir_protocol[20];
-extern uint16_t publishPeriod; 
+extern uint16_t publishPeriod;
+extern char device_location_str[30];

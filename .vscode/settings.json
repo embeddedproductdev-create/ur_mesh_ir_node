@@ -33,8 +33,13 @@
         "xmemory": "c",
         "xstring": "c",
         "xtree": "c",
-        "xutility": "c"
+        "xutility": "c",
+        "main.h": "c",
+        "cjson.h": "c",
+        "json_maker.h": "c",
+        "led.h": "c"
     },
     "idf.flashType": "UART",
-    "idf.portWin": "COM23"
+    "idf.portWin": "COM23",
+    "idf.adapterTargetName": "esp32s3"
 }

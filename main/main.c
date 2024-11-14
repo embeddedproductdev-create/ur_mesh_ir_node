@@ -8,11 +8,12 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "../inc/general.h"
-#include "../inc/button.h"
-#include "../inc/led.h"
-#include "../inc/lte.h"
-#include "../inc/main.h"
+#include "inc/main.h"
+#include "inc/general.h"
+#include "inc/button.h"
+#include "inc/led.h"
+#include "inc/lte.h"
+#include "inc/heartbeat.h"
 
 #define LTE_THREAD_STACK_SIZE 4096
 
@@ -26,13 +27,15 @@ bool configured = false;
 bool sending_ir_command = false;
 bool teaching_in_progress;
 char ir_protocol[20] = "";
-uint16_t publishPeriod = MIN_PUBLISH_PERIOD_SEC;
+uint16_t publishPeriod = 2;
+CommandStruct last_command;
+char device_location_str[30] = "";
 
 void app_main(void)
 {
     print_chip_info();
     button_intr_init();
     led_init();
-    hb_init();
+    // hb_init();
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 }

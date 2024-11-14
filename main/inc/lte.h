@@ -1,9 +1,54 @@
 #include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define PUBLISH_QUEUE_SIZE 10
 #define COMMAND_QUEUE_SIZE 10
 
 #define MIN_PUBLISH_PERIOD_SEC 300
+
+extern const char* JSON_PACKET_ID_KEY;
+extern const char* JSON_ACK_NAME_KEY;
+extern const char* MSG_SEQ_NO_KEY;
+extern const char* GWY_SER_NO_KEY;
+extern const char* NODE_SER_NO_KEY;
+extern const char* LOCATION_KEY;
+extern const char* APP_KEY_INDEX;
+extern const char* APP_KEY;
+extern const char* NET_KEY_INDEX;
+extern const char* NET_KEY;
+extern const char* ELEMENT_ADDR_KEY;
+extern const char* MAC_ID_KEY;
+extern const char* MODE_KEY;
+extern const char* POWER_KEY;
+extern const char* FAN_SPEED_KEY;
+extern const char* TEMPERATURE_KEY;
+extern const char* SWING_H_KEY;
+extern const char* SWING_V_KEY;
+extern const char* ONTIMER_KEY;
+extern const char* OFFTIMER_KEY;
+extern const char* AC_LOCKING_KEY;
+extern const char* UPPER_TEMPERATURE_LIMIT_KEY;
+extern const char* LOWER_TEMPERATURE_LIMIT_KEY;
+extern const char* ERROR_CODE_KEY;
+extern const char* AMBIENT_TEMPERATURE_DATA_KEY;
+extern const char* PUBLISH_PERIOD_KEY;
+extern const char* FIRMWARE_VERSION_KEY;
+extern const char* REGISTERED_KEY;
+extern const char* PROTOCOL_SEL_NUM_KEY;
+extern const char* PUBLISH_MESG_QUEUE_COUNT_KEY;
+extern const char* PROV_QUEUE_COUNT_KEY;
+extern const char* UNPROV_QUEUE_COUNT_KEY;
+extern const char* AC_CONTROL_QUEUE_COUNT_KEY;
+extern const char* RECONF_QUEUE_COUNT_KEY;
+extern const char* PUB_CONF_QUEUE_COUNT_KEY;
+extern const char* TEACHING_MODE_QUEUE_COUNT_KEY;
+extern const char* DEBUG_INFO_QUEUE_COUNT_KEY;
+extern const char* DEVICE_UPTIME_KEY;
+extern const char* LOGGING_KEY;
+extern const char* RESET_DEVICE_KEY;
+extern const char* LINK_KEY;
+extern const char* TEACHING_START_KEY;
 
 typedef enum 
 {
@@ -121,6 +166,8 @@ typedef struct
     uint8_t teachingStart;
 } CommandStruct;
 
+extern CommandStruct last_command;
+
 /*Global Variables*/
 extern TaskHandle_t lte_task_handle;
 
@@ -130,3 +177,4 @@ int8_t check_response(char *uart_data, const char *check_string);
 int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name);
 int8_t send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
 void power_cycle_lte();
+void enqueue_for_publish(char *ack_json);
