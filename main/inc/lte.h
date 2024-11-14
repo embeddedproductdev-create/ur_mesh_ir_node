@@ -8,6 +8,20 @@
 
 #define MIN_PUBLISH_PERIOD_SEC 300
 
+#define SERIAL_NO_LEN 10
+#define IR_PROTOCOL_NAME_LEN 20
+#define LOCATION_STR_LEN 20
+#define MAX_MODE_STR_LEN 7
+
+#define DEFAULT_DEVICE_SER_NO "DEV99999"
+#define DEFAULT_DEVICE_LOCATION_STR "EARTH :)"
+
+#define COOL_MODE_STR "Cool"
+#define DRY_MODE_STR "Dry"
+#define HEAT_MODE_STR "Heat"
+#define FAN_MODE_STR "Fan"
+#define AUTO_MODE_STR "Auto"
+
 extern const char* JSON_PACKET_ID_KEY;
 extern const char* JSON_ACK_NAME_KEY;
 extern const char* MSG_SEQ_NO_KEY;
@@ -50,6 +64,18 @@ extern const char* LOGGING_KEY;
 extern const char* RESET_DEVICE_KEY;
 extern const char* LINK_KEY;
 extern const char* TEACHING_START_KEY;
+
+typedef enum
+{
+    INT8,
+    UINT8,
+    INT16,
+    UINT16,
+    INT32,
+    UINT32,
+    INT64,
+    UINT64
+}sizes_t;
 
 typedef enum 
 {
@@ -156,7 +182,7 @@ typedef struct
     uint8_t ambientTemperature;
     uint8_t fanspeed;
     uint8_t mode_num;
-    char mode_str[6];
+    char mode_str[MAX_MODE_STR_LEN];
     uint8_t swingh;
     uint8_t swingv;
     uint8_t locking;
@@ -174,6 +200,21 @@ extern CommandStruct last_command;
 
 /*Global Variables*/
 extern TaskHandle_t lte_task_handle;
+
+/*Global Variables*/
+extern char serialNoStr[SERIAL_NO_LEN];
+extern bool mqtt_connected;
+extern uint8_t registered;
+extern uint8_t provisioned;
+extern uint8_t configured;
+extern bool sending_ir_command;
+extern bool teaching_in_progress;
+extern char ir_protocol[IR_PROTOCOL_NAME_LEN];
+extern uint16_t publishPeriod;
+extern char device_location_str[LOCATION_STR_LEN];
+extern uint16_t teaching_mode_raw_len;
+extern int16_t ir_protocol_num;
+extern uint8_t newDevice;
 
 /*Function Declarations*/
 void lte_task(void *args);

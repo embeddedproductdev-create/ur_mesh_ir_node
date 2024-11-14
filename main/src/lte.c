@@ -17,6 +17,7 @@
 #include "../inc/led.h"
 #include "../inc/main.h"
 #include "../inc/heartbeat.h"
+#include "../inc/flash.h"
 
 #define BAUD_RATE 921600
 
@@ -29,8 +30,6 @@
 #define CTS_PIN 11
 #define RTS_PIN 10
 #define UART_BUF_SIZE 800
-
-#define GWY_SER_NO_IN_STRING "GWY00002"
 
 #define MIN_LTE_RESP_WAIT_MS 50
 
@@ -392,8 +391,9 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             int length = 0;
             if(!cJSON_GetObjectItem(json_obj, LOCATION_KEY)) {cmd_struct->errorcode = MISSING_LOCATION; return;}
             length = strlen(cJSON_GetObjectItem(json_obj, LOCATION_KEY)->valuestring);
-            if(length==0 || length>20) {cmd_struct->errorcode = LOCATION_EXCEEDING_RANGE; return;}
+            if(length==0 || length>LOCATION_STR_LEN) {cmd_struct->errorcode = LOCATION_EXCEEDING_RANGE; return;}
             strcpy(device_location_str, cJSON_GetObjectItem(json_obj, LOCATION_KEY)->valuestring);
+            set_str_in_nvs_flash(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, device_location_str);
         }
         return;
     }
@@ -588,13 +588,15 @@ void parse_json()
         switch(cmd_struct.packetid)
         {
             case GWY_REG_PACKET:
-                registered = true; update_led_status();
+                registered = 1; update_led_status();
                 hb_timer_start();
+                set_number_in_nvs_flash(general_nvs_handle, NVS_REGISTERED_KEY, 1, UINT8);
                 break;
 
             case GWY_UNREG_PACKET:
-                registered = false; update_led_status();
+                registered = 0; update_led_status();
                 hb_timer_stop();
+                set_number_in_nvs_flash(general_nvs_handle, NVS_REGISTERED_KEY, 0, UINT8);
                 break;
 
             case GWY_AC_CONTROL_PACKET:
@@ -604,11 +606,17 @@ void parse_json()
                 break;
 
             case GWY_RECONF_PACKET:
-                configured = false; update_led_status();
+                configured = 0; update_led_status();
+                set_number_in_nvs_flash(general_nvs_handle, NVS_CONFIGURED_KEY, 0, UINT8);
                 break;
 
             case GWY_HEARTBEAT_PUB_CONF_PACKET:
-                publishPeriod = cmd_struct.publishPeriodSec;
+                if(publishPeriod == cmd_struct.publishPeriodSec);
+                else {
+                    publishPeriod = cmd_struct.publishPeriodSec;
+                    set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16);
+                    hb_timer_restart();
+                }
                 break;
 
             case GWY_DEBUG_INFO_PACKET:
@@ -819,12 +827,12 @@ void execute_general_AT_cmds()
 void initialize_mqtt_cmd_strings()
 {
     sprintf(KEEP_ALIVE_CMD, "AT+QMTCFG=\"keepalive\",%d,%d\r", MQTT_CLIENT_INDEX, MQTT_KEEP_ALIVE_S);
-	sprintf(subscribe_topic, "%s/command", GWY_SER_NO_IN_STRING);
-	sprintf(publish_topic, "%s/message", GWY_SER_NO_IN_STRING);
+	sprintf(subscribe_topic, "%s/command", serialNoStr);
+	sprintf(publish_topic, "%s/message", serialNoStr);
     sprintf(SET_BAUD_RATE_CMD, "AT+IPR=%d\r", BAUD_RATE);
 	sprintf(MQTT_NETWORK_OPEN_CMD, "%s%d,\"%s\",%d\r", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
 	sprintf(NETWORK_OK, "+QMTOPEN: %d,\"%s\",%d", MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
-	sprintf(MQTT_CLIENT_CONN_CMD, "AT+QMTCONN=%d,\"%s\",\"%s\",\"%s\"\r", MQTT_CLIENT_INDEX, GWY_SER_NO_IN_STRING, MQTT_BROKER_USERNAME, MQTT_BROKER_PASSWORD);
+	sprintf(MQTT_CLIENT_CONN_CMD, "AT+QMTCONN=%d,\"%s_abcd\",\"%s\",\"%s\"\r", MQTT_CLIENT_INDEX, serialNoStr, MQTT_BROKER_USERNAME, MQTT_BROKER_PASSWORD);
 	sprintf(MQTT_SUB_CMD, "AT+QMTSUB=%d,%d,\"%s\",%d\r",MQTT_CLIENT_INDEX, MQTT_MSG_ID, subscribe_topic, MQTT_QOS);
     sprintf(WILL_CMD, "AT+QMTCFG=\"will\",%d,%d,%d,%d,\"%s\",\"%s\"\r",
     MQTT_CLIENT_INDEX, 
@@ -900,7 +908,6 @@ void lte_task(void *args)
     while(1)
 	{
         power_cycle_lte();
-        execute_general_AT_cmds();
 	    MQTT_config();
         establishMQTTConnection();
 		vTaskDelay(pdMS_TO_TICKS(500));

@@ -52,7 +52,7 @@ static void hb_callback(void *arg)
 void hb_timer_stop()
 {
     ESP_LOGI(HB_TAG, "Stopping HB Publishing");
-    esp_timer_stop(hb_timer_handle);
+    ESP_ERROR_CHECK(esp_timer_stop(hb_timer_handle));
 }
 
 /**
@@ -62,7 +62,17 @@ void hb_timer_stop()
 void hb_timer_start()
 {
     ESP_LOGI(HB_TAG, "Starting HB Publishing");
-    esp_timer_start_periodic(hb_timer_handle, publishPeriod*1000000);
+    ESP_ERROR_CHECK(esp_timer_start_periodic(hb_timer_handle, publishPeriod*1000000));
+}
+
+/**
+ * @brief Function that restarts the hb timer
+ * 
+ */
+void hb_timer_restart()
+{
+    ESP_LOGI(HB_TAG, "Restarting HB Publishing");
+    ESP_ERROR_CHECK(esp_timer_restart(hb_timer_handle, publishPeriod*1000000));
 }
 
 esp_timer_create_args_t hb_timer_args = {

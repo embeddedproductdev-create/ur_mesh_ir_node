@@ -5,7 +5,7 @@
 #include "esp_timer.h"
 #include "esp_log.h"
 
-#include "main.h"
+#include "lte.h"
 
 static led_color_t current_color = {LOW, LOW, LOW};
 static led_state_t current_state = LED_STATE_IDLE;

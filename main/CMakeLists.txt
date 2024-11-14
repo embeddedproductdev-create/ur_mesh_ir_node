@@ -6,6 +6,7 @@ set( CUSTOM_SRCS
     src/lte.c
     src/json_maker.c
     src/heartbeat.c
+    src/flash.c
 )
 
 idf_component_register(

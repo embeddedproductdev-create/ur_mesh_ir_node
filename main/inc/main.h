@@ -35,15 +35,3 @@
 #define MQTT_BROKER_USERNAME "unimaqtt"
 #define MQTT_BROKER_PASSWORD "T5DRIIJEBgfhjsrFkaDERkgJhswMwk4"
 #endif
-
-
-/*Global Variables*/
-extern bool mqtt_connected;
-extern bool registered;
-extern bool provisioned;
-extern bool configured;
-extern bool sending_ir_command;
-extern bool teaching_in_progress;
-extern char ir_protocol[20];
-extern uint16_t publishPeriod;
-extern char device_location_str[30];
