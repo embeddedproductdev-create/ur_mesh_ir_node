@@ -4,6 +4,7 @@
 
 #define PUBLISH_QUEUE_SIZE 10
 #define COMMAND_QUEUE_SIZE 10
+#define UART_EVENT_QUEUE_SIZE 10
 
 #define MIN_PUBLISH_PERIOD_SEC 300
 
@@ -53,6 +54,9 @@ extern const char* TEACHING_START_KEY;
 typedef enum 
 {
 	// Basic
+    QMTSTAT_1_ERRORCODE=-4,
+    QMTOPEN_2_ERRORCODE=-3,
+    QMTOPEN_3_ERRORCODE=-2,
 	FAILURE = -1,
 	SUCCESS,
     JSON_PACKET_INVALID,
@@ -173,8 +177,9 @@ extern TaskHandle_t lte_task_handle;
 
 /*Function Declarations*/
 void lte_task(void *args);
-int8_t check_response(char *uart_data, const char *check_string);
-int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name);
-int8_t send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
+void uart_event_task(void *pvParameters);
+error_codes check_response(char *uart_data, const char *check_string);
+error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name);
+error_codes send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
 void power_cycle_lte();
 void enqueue_for_publish(char *ack_json);

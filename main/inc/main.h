@@ -10,15 +10,15 @@
 /*====================================================================*/
 
 #if(IS_GWY)
-#define MAJ_VERSION 0
-#define MIN_VERSION 8
-#define PATCH_VERSION 9
+#define MAJ_VERSION 1
+#define MIN_VERSION 0
+#define PATCH_VERSION 0
 #endif
 
 #if(!IS_GWY)
-#define MAJ_VERSION 0
-#define MIN_VERSION 8
-#define PATCH_VERSION 9
+#define MAJ_VERSION 1
+#define MIN_VERSION 0
+#define PATCH_VERSION 1
 #endif
 
 

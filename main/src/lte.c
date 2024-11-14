@@ -7,6 +7,7 @@
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "esp_log.h"
 #include "esp_system.h"
 
@@ -17,7 +18,7 @@
 #include "../inc/main.h"
 #include "../inc/heartbeat.h"
 
-#define BAUD_RATE 115200
+#define BAUD_RATE 921600
 
 #define LTE_TAG "LTE"
 
@@ -31,11 +32,23 @@
 
 #define GWY_SER_NO_IN_STRING "GWY00002"
 
+#define MIN_LTE_RESP_WAIT_MS 50
+
 #define MQTT_TOPIC_CHAR_LEN 100
 #define MQTT_CMD_RESP_LEN 200
 #define MQTT_ACK_SIZE 1024
-
 #define RETRY_COUNT 5
+
+/*MQTT Configuration parameters*/
+#define MQTT_CLIENT_INDEX 2
+#define WILL_MSG "Device disconnected unexpectedly"
+#define WILL_MSG_LEN strlen(WILL_MSG)
+#define MQTT_MSG_ID 2
+#define MQTT_QOS 2
+#define MQTT_WILL_QOS 2
+#define MQTT_WILL_RETAIN 1
+#define MQTT_WILL_FLAG 1
+#define MQTT_KEEP_ALIVE_S 10
 
 char LTE_UART_data[UART_BUF_SIZE];
 
@@ -55,8 +68,9 @@ const char *PDP_CONTXT_ACT_CMD = "AT+QIACT=1\r";
 
 /*MQTT Cmd and Resp*/
 const char *CLEAN_SESSION_CMD = "AT+QMTCFG=\"session\",2,1\r";
-const char *KEEP_ALIVE_CMD = "AT+QMTCFG=\"keepalive\",2,3000\r";
+char KEEP_ALIVE_CMD[MQTT_CMD_RESP_LEN];
 const char *MSG_RECV_MODE_CMD = "AT+QMTCFG=\"recv/mode\",2,0\r";
+char WILL_CMD[MQTT_CMD_RESP_LEN];
 
 char MQTT_NETWORK_OPEN_CMD[MQTT_CMD_RESP_LEN];
 const char *MQTT_NETWORK_OPEN = "AT+QMTOPEN=";
@@ -136,6 +150,10 @@ bool LOG_DATA  = true;
 // Queues
 QueueHandle_t publish_queue;
 QueueHandle_t command_queue;
+// QueueHandle_t uart_event_queue;
+
+// Semaphores
+// SemaphoreHandle_t uart_semaphore;
 
 /**
  * @brief Function that publishes messages to MQTT
@@ -611,21 +629,41 @@ void parse_json()
     }
 }
 
-int8_t check_response(char *uart_data, const char *check_string)
+error_codes check_response(char *uart_data, const char *check_string)
 {
 	if (strstr(uart_data, check_string)) return SUCCESS;
 	if (strstr(uart_data, QMTSTAT_1_ERROR))
-		return FAILURE;
+		return QMTSTAT_1_ERRORCODE;
 	if (strstr(uart_data, QMTOPEN_2_ERROR)){
-		return FAILURE;
+        // MQTT_CLIENT_INDEX = (MQTT_CLIENT_INDEX%5)+1;
+        // initialize_mqtt_cmd_strings();
+		return QMTOPEN_2_ERRORCODE;
 	}
 	if (strstr(uart_data, QMTOPEN_3_ERROR))
 	{
 		need_to_activate_pdp = true;
-		return FAILURE;
+		return QMTOPEN_3_ERRORCODE;
 	}
 	return FAILURE;
 }
+
+// /**
+//  * @brief Function that waits for UART response and then signals 
+//  * the fetch_and_check_response to start reading
+//  * @param pvParameters 
+//  */
+// void uart_event_task(void *pvParameters) {
+//     uart_event_t event;
+//     while (1) {
+//         // Wait for UART event
+//         if (xQueueReceive(uart_event_queue, (void *)&event, portMAX_DELAY)) {
+//             if (event.type == UART_DATA) {
+//                 // Signal that data is available by releasing the semaphore
+//                 xSemaphoreGive(uart_semaphore);
+//             }
+//         }
+//     }
+// }
 
 /**
  * @brief Function that fetches data from LTE and checks if it is valid or not
@@ -634,28 +672,30 @@ int8_t check_response(char *uart_data, const char *check_string)
  * @param check_string String that is used to check against the response to know if it is valid or not
  * @return int8_t
  */
-int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name)
+error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name)
 {
-	bzero(LTE_UART_data, UART_BUF_SIZE);
-	uart_flush(UART_NUM_1);
-	int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, 50);
-	if (length > 0)
-	{
-		if(logging) ESP_LOGI(LTE_TAG, "Received : %s", LTE_UART_data);
-		if (check_response(LTE_UART_data, check_string) == SUCCESS)
-		{
-			if (strstr(LTE_UART_data, "{"))
-			{
-				strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
-				ESP_LOGI(LTE_TAG, "%s", LTE_UART_data);
-				parse_json();
-			}
-			return SUCCESS;
-		}
-		else return FAILURE;
-	}
-	ESP_LOGE(LTE_TAG, "No Data | data_len : %d", strlen(LTE_UART_data));
-	return FAILURE;
+    error_codes rc = FAILURE;
+    bzero(LTE_UART_data, UART_BUF_SIZE);
+    uart_flush(UART_NUM_1);
+    int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, 20);
+    if (length > 0)
+    {
+        if(logging) ESP_LOGI(LTE_TAG, "Received : %s", LTE_UART_data);
+        if ((rc=check_response(LTE_UART_data, check_string)) == SUCCESS)
+        {
+            if (strstr(LTE_UART_data, "{"))
+            {
+                strcpy(LTE_UART_data, strstr(LTE_UART_data, "{"));
+                ESP_LOGI(LTE_TAG, "%s", LTE_UART_data);
+                parse_json();
+            }
+        }
+    }
+    else 
+    {
+        ESP_LOGE(LTE_TAG, "No Data | data_len : %d", strlen(LTE_UART_data));
+    }
+    return rc;
 }
 
 /**
@@ -668,24 +708,21 @@ int8_t fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check
  * @param response_wait_time_ms How long should the LTE chip wait for a response (in milliseconds)
  * @return 0=Success, -1=Failure
  */
-int8_t send_cmd_and_check_response(bool logging, const char *cmd,
+error_codes send_cmd_and_check_response(bool logging, const char *cmd,
 								   const char *cmdName, const char *check_string, uint32_t timeout_ms)
 {
+    error_codes rc = FAILURE;
 	uart_flush_input(UART_NUM_1);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
 	{
 		if(logging) ESP_LOGI(LTE_TAG, "Command sent : %s", cmd);
-		if (fetch_and_check_data(logging, timeout_ms, check_string, cmdName) == SUCCESS)
-		{
-			return SUCCESS;
-		}
-		return FAILURE;
+		rc = fetch_and_check_data(logging, timeout_ms, check_string, cmdName);
 	}
 	else
 	{
 		ESP_LOGE(LTE_TAG, "Error in sending AT command to LTE!!!");
-		return FAILURE;
 	}
+    return rc;
 }
 
 /**
@@ -696,25 +733,36 @@ int8_t send_cmd_and_check_response(bool logging, const char *cmd,
  */
 void establishMQTTConnection()
 {
+    error_codes rc;
 	static uint8_t ping_fail_counter = 0;	
 	if(need_to_activate_pdp)
 	{
-		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESP, 100);
-		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 500))
-			need_to_activate_pdp = false;
-		return;
+		send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESP, 3000);
+		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 3000)!=SUCCESS);
+	        return;
 	}
-	if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 100)!=SUCCESS) return;
+	if((rc=send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, 100))==SUCCESS);
+    else {
+        switch(rc)
+        {
+            case QMTOPEN_2_ERRORCODE:
+                send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 100);
+                return;
+            default :
+                break;
+        }
+    }
 	if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 100)!=SUCCESS) return;
 	if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 100)!=SUCCESS) return ;
 	ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
+    need_to_activate_pdp = false;
     mqtt_connected = true; update_led_status();
     if(registered) hb_timer_start();
     LOG_DATA = false;
 	while(1)
 	{
-		send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, 100);
-		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESP, 50)!=SUCCESS) {
+		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, 100)==SUCCESS);
+		else if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESP, 50)!=SUCCESS) {
 			if(ping_fail_counter++ > RETRY_COUNT){
 				ESP_LOGE(LTE_TAG, "Lost MQTT connection");
 				ping_fail_counter = 0;
@@ -725,7 +773,7 @@ void establishMQTTConnection()
 			}
 			continue;
 		}
-		ping_fail_counter = 0;
+        ping_fail_counter = 0;
         publish_from_queue();
         vTaskDelay(pdMS_TO_TICKS(100));
 	}
@@ -738,8 +786,9 @@ void establishMQTTConnection()
  */
 void MQTT_config()
 {
-	send_cmd_and_check_response(LOG_DATA, CLEAN_SESSION_CMD, "CLEAN_SESSION_CMD", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, KEEP_ALIVE_CMD, "KEEP_ALIVE_CMD", OK_RESP, 50);
+	send_cmd_and_check_response(LOG_DATA, CLEAN_SESSION_CMD, "CLEAN_SESSION_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+	send_cmd_and_check_response(LOG_DATA, KEEP_ALIVE_CMD, "KEEP_ALIVE_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+    send_cmd_and_check_response(LOG_DATA, WILL_CMD, "WILL_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
 }
 
 /**
@@ -749,13 +798,19 @@ void MQTT_config()
  */
 void execute_general_AT_cmds()
 {
-	send_cmd_and_check_response(LOG_DATA, SET_BAUD_RATE_CMD, "SET_BAUD_RATE", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, "AT&V\r", "DISPLAY_CURRENT_CONFIGURATION", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, "ATE0\r", "TURN_OFF_ECHO_CMD", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, CHECK_OPERATOR_SELECTION_CMD, "CHECK_OP_SEL_CMD", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, CHECK_DOMAIN_REG_CMD, "CHECK_DOMAIN_REG_CMD", OK_RESP, 50);
-	send_cmd_and_check_response(LOG_DATA, ENABLE_SIM_HOTSWAP_CMD, "ENABLE_SIM_HOTSWAP_CMD", OK_RESP, 50);
+	if(send_cmd_and_check_response(LOG_DATA, SET_BAUD_RATE_CMD, "SET_BAUD_RATE", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
+    {
+        uart_set_baudrate(UART_NUM_1, 115200);
+        //Force setting BaudRate to 921600
+		while(send_cmd_and_check_response(LOG_DATA, "AT+IPR=921600\r", "SET_BAUD_RATE", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS);
+		uart_set_baudrate(UART_NUM_1, 921600);
+    }
+	send_cmd_and_check_response(LOG_DATA, "AT&V\r", "DISPLAY_CURRENT_CONFIGURATION", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+	send_cmd_and_check_response(LOG_DATA, "ATE0\r", "TURN_OFF_ECHO_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+	send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+	send_cmd_and_check_response(LOG_DATA, CHECK_OPERATOR_SELECTION_CMD, "CHECK_OP_SEL_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+	send_cmd_and_check_response(LOG_DATA, CHECK_DOMAIN_REG_CMD, "CHECK_DOMAIN_REG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+	send_cmd_and_check_response(LOG_DATA, ENABLE_SIM_HOTSWAP_CMD, "ENABLE_SIM_HOTSWAP_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
 }
 
 /**
@@ -767,14 +822,21 @@ void execute_general_AT_cmds()
  */
 void initialize_mqtt_cmd_strings()
 {
+    sprintf(KEEP_ALIVE_CMD, "AT+QMTCFG=\"keepalive\",%d,%d\r", MQTT_CLIENT_INDEX, MQTT_KEEP_ALIVE_S);
 	sprintf(subscribe_topic, "%s/command", GWY_SER_NO_IN_STRING);
 	sprintf(publish_topic, "%s/message", GWY_SER_NO_IN_STRING);
     sprintf(SET_BAUD_RATE_CMD, "AT+IPR=%d\r", BAUD_RATE);
-	sprintf(MQTT_NETWORK_OPEN_CMD, "%s2,\"%s\",%d\r", MQTT_NETWORK_OPEN, MQTT_SERVER_IP, MQTT_PORT);
-	sprintf(NETWORK_OK, "+QMTOPEN: 2,\"%s\",%d", MQTT_SERVER_IP, MQTT_PORT);
-	sprintf(MQTT_CLIENT_CONN_CMD, "%s2,\"%s\",\"%s\",\"%s\"\r", "AT+QMTCONN=", GWY_SER_NO_IN_STRING, MQTT_BROKER_USERNAME, MQTT_BROKER_PASSWORD);
-	sprintf(MQTT_SUB_CMD, "AT+QMTSUB=2,2,\"%s\",2\r", subscribe_topic);
-
+	sprintf(MQTT_NETWORK_OPEN_CMD, "%s%d,\"%s\",%d\r", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
+	sprintf(NETWORK_OK, "+QMTOPEN: %d,\"%s\",%d", MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
+	sprintf(MQTT_CLIENT_CONN_CMD, "AT+QMTCONN=%d,\"%s\",\"%s\",\"%s\"\r", MQTT_CLIENT_INDEX, GWY_SER_NO_IN_STRING, MQTT_BROKER_USERNAME, MQTT_BROKER_PASSWORD);
+	sprintf(MQTT_SUB_CMD, "AT+QMTSUB=%d,%d,\"%s\",%d\r",MQTT_CLIENT_INDEX, MQTT_MSG_ID, subscribe_topic, MQTT_QOS);
+    sprintf(WILL_CMD, "AT+QMTCFG=\"will\",%d,%d,%d,%d,\"%s\",\"%s\"\r",
+    MQTT_CLIENT_INDEX, 
+    MQTT_WILL_FLAG, 
+    MQTT_WILL_QOS,
+    MQTT_WILL_RETAIN,
+    publish_topic, 
+    WILL_MSG);
 }
 
 /**
@@ -818,7 +880,8 @@ void lte_uart_init(void)
 		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
 		.source_clk = UART_SCLK_APB,
 	};
-	uart_driver_install(UART_NUM_1, UART_BUF_SIZE, 0, 0, NULL, 0);
+	// uart_driver_install(UART_NUM_1, UART_BUF_SIZE, UART_BUF_SIZE, 10, &uart_event_queue, 0);
+    uart_driver_install(UART_NUM_1, UART_BUF_SIZE, 0, 0, NULL, 0);
 	uart_param_config(UART_NUM_1, &uart_config);
 	uart_set_pin(UART_NUM_1, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 }
@@ -831,6 +894,9 @@ void lte_task(void *args)
 {
     publish_queue = xQueueCreate(PUBLISH_QUEUE_SIZE, sizeof(char*));
     command_queue = xQueueCreate(COMMAND_QUEUE_SIZE, sizeof(CommandStruct));
+    // uart_event_queue = xQueueCreate(UART_EVENT_QUEUE_SIZE, sizeof(char*));
+
+    // uart_semaphore = xSemaphoreCreateBinary();
 
 	initialize_mqtt_cmd_strings();
 	lte_gpio_configuration();
@@ -840,7 +906,10 @@ void lte_task(void *args)
 	MQTT_config();
     while(1)
 	{
+        power_cycle_lte();
+        execute_general_AT_cmds();
+	    MQTT_config();
+        establishMQTTConnection();
 		vTaskDelay(pdMS_TO_TICKS(500));
-		establishMQTTConnection();
 	}
 }

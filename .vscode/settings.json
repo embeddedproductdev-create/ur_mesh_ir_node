@@ -37,7 +37,8 @@
         "main.h": "c",
         "cjson.h": "c",
         "json_maker.h": "c",
-        "led.h": "c"
+        "led.h": "c",
+        "span": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",
