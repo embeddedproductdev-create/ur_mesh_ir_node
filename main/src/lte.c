@@ -31,7 +31,7 @@
 #define RTS_PIN 10
 #define UART_BUF_SIZE 800
 
-#define MIN_LTE_RESP_WAIT_MS 40
+#define MIN_LTE_RESP_WAIT_MS 100
 
 #define MQTT_TOPIC_CHAR_LEN 100
 #define MQTT_CMD_RESP_LEN 200
@@ -638,17 +638,15 @@ void parse_json()
 
 error_codes check_response(char *uart_data, const char *check_string)
 {
-	if (strstr(uart_data, check_string)) 
-        return SUCCESS;
-	if (strstr(uart_data, QMTSTAT_1_ERROR))
-		return QMTSTAT_1_ERRORCODE;
-	if (strstr(uart_data, QMTOPEN_2_ERROR)){
+    if (strstr(uart_data, QMTOPEN_2_ERROR))
 		return QMTOPEN_2_ERRORCODE;
-	}
-	if (strstr(uart_data, QMTOPEN_3_ERROR)){
+	else if (strstr(uart_data, QMTOPEN_3_ERROR))
 		return QMTOPEN_3_ERRORCODE;
-	}
-	return FAILURE;
+	else if (strstr(uart_data, QMTSTAT_1_ERROR))
+		return QMTSTAT_1_ERRORCODE;
+    else if (strstr(uart_data, check_string)) 
+        return SUCCESS;
+	else return FAILURE;
 }
 
 /**
@@ -734,10 +732,12 @@ void establishMQTTConnection()
         switch(rc)
         {
             case QMTOPEN_2_ERRORCODE:
+                ESP_LOGE(LTE_TAG, "QMTOPEN_2_ERRORCODE");
                 send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 100);
                 return;
 
             case QMTOPEN_3_ERRORCODE:
+                ESP_LOGE(LTE_TAG, "QMTOPEN_3_ERRORCODE");
                 need_to_activate_pdp = true;
                 return;
 

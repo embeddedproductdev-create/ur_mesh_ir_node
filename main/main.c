@@ -17,6 +17,7 @@
 #include "inc/lte.h"
 #include "inc/heartbeat.h"
 #include "inc/flash.h"
+#include "inc/ir.h"
 
 #define TAG "MAIN"
 
@@ -24,6 +25,7 @@
 
 TaskHandle_t button_task_handle = NULL;
 TaskHandle_t lte_task_handle = NULL;
+TaskHandle_t ir_recv_task_handle = NULL;
 
 /*Global Flags Initialization*/
 uint8_t newDevice = 1;
@@ -79,5 +81,6 @@ void app_main(void)
     button_intr_init();
     led_init();
     hb_init();
+    ir_recv_intr_init();
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 }

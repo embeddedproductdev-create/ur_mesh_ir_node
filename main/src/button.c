@@ -101,7 +101,6 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
     }
 
     gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
-    gpio_intr_enable(BUTTON_GPIO);
     vTaskDelete(NULL);
 }
 

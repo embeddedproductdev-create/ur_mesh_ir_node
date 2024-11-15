@@ -45,7 +45,8 @@
         "adc_oneshot.h": "c",
         "esp32-hal-periman.h": "c",
         "esp32-hal-adc.h": "c",
-        "adc_continuous.h": "c"
+        "adc_continuous.h": "c",
+        "esp_log.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",
