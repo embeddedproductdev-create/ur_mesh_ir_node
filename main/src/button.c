@@ -5,10 +5,12 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "esp_system.h"
 #include "inttypes.h"
 
 #include "../inc/button.h"
 #include "../inc/led.h"
+#include "../inc/lte.h"
 
 #define DEBOUNCE_TIME_MS 10
 #define DOUBLE_PRESS_TIME_MS 450
@@ -57,6 +59,7 @@ static void IRAM_ATTR button_task_handler(void *args)
  */
 void process_press_type(button_press_t *button_press_array, uint8_t *press_count)
 {
+    if(powerDownInProgress) return;
     if (button_press_array[0].pressedDuration_ms >= LONG_PRESS_3S_MS) {
         detected_press = LONG_PRESS_3S;
     }
@@ -68,11 +71,14 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
     }
 
     switch (detected_press) {
-
         case MULTI_PRESS:
             switch(*press_count)
             {
                 case 1:
+                    if(!powerDownInProgress) {
+                        powerDownLTE();
+                        esp_restart();
+                    }
                     break;
 
                 case 2:
@@ -80,9 +86,6 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 
                 case 3:
                     break;
-
-                default:
-                    ESP_LOGE(BUTTON_TAG, "Unknown Multi Button Press Event");
             }
             break;
 
@@ -92,9 +95,8 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 
         case LONG_PRESS_1S:
             break;
-
+        
         default:
-            ESP_LOGI(BUTTON_TAG, "Unknown Press detected");
             break;
     }
 

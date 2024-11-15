@@ -27,7 +27,6 @@ void led_init(void) {
     colors.WHITE = (led_color_t){HIGH, HIGH, HIGH};
     colors.OFF = (led_color_t){LOW, LOW, LOW};
 
-
     gpio_set_direction(LED_PIN_RED, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_PIN_GREEN, GPIO_MODE_OUTPUT);
     gpio_set_direction(LED_PIN_BLUE, GPIO_MODE_OUTPUT);
@@ -67,7 +66,7 @@ const char* get_led_state_string(led_state_t state) {
 
 void led_set_state(led_state_t state) {
     current_state = state;
-    ESP_LOGI(LED_TAG, "Setting LED State : %s",get_led_state_string(state));
+    // ESP_LOGI(LED_TAG, "Setting LED State : %s",get_led_state_string(state));
     esp_timer_stop(blink_timer);  // Stop any existing blink pattern
 
     switch (state) {
@@ -101,6 +100,11 @@ void led_set_state(led_state_t state) {
             led_set_color(colors.ORANGE);
             sleep(1);
             update_led_status();
+            break;
+        
+        case LED_STATE_LTE_POWERING_DOWN:
+            led_set_color(colors.RED);
+            esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
             break;
 
         default:
@@ -146,6 +150,10 @@ static void led_blink_callback(void *arg) {
             if(current_color.blue) led_set_color(colors.OFF);
             else led_set_color(colors.BLUE);
 
+        case LED_STATE_LTE_POWERING_DOWN:
+            if(current_color.red) led_set_color(colors.OFF);
+            else led_set_color(colors.RED);
+            break;
         default:
             break;
     }

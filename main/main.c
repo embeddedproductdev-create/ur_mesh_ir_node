@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -45,7 +46,7 @@ uint16_t teaching_mode_raw_len = 0;
  */
 void print_basic_info()
 {
-    ESP_LOGI(TAG, "=-=-=-=-=-=-=-=-=-=- BOOT SUCCESSFUL - %d.%d.%d -=-=-=-=-=-=-=-=-=-=",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
+    ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=- BOOT SUCCESSFUL - %d.%d.%d -=-=-=-=-=-=-=-=-=-=",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
     ESP_LOGI(TAG, "%s : %d", NVS_NEW_DEVICE_KEY, newDevice);
     ESP_LOGI(TAG, "%s : %s", NVS_DEVICE_LOCATION_KEY, device_location_str);
     ESP_LOGI(TAG, "%s : %s", NVS_SERIAL_NO_KEY, serialNoStr);
@@ -53,8 +54,8 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d", NVS_CONFIGURED_KEY, configured);
     ESP_LOGI(TAG, "%s : %d", NVS_PUBPERIOD_KEY, publishPeriod);
     ESP_LOGI(TAG, "%s : %d", NVS_IR_PROTOCOL_KEY, ir_protocol_num);
-    ESP_LOGI(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(TAG, "LAST AC-SETTINGS:");
+    ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGW(TAG, "LAST AC-SETTINGS:");
     ESP_LOGI(TAG, "%s : %d",NVS_POWER_KEY, last_command.power);
     ESP_LOGI(TAG, "%s : %d",NVS_TEMPERATURE_KEY, last_command.temperature);
     ESP_LOGI(TAG, "%s : %d",NVS_FANSPEED_KEY, last_command.fanspeed);
@@ -66,13 +67,14 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d",NVS_LOCKING_KEY, last_command.locking);
     ESP_LOGI(TAG, "%s : %d",NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
     ESP_LOGI(TAG, "%s : %d",NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
-    ESP_LOGI(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
 }
 
 void app_main(void)
 {
     nvs_init();
-    print_chip_info();
+    strcpy(serialNoStr, "GWY00002");
+    // print_chip_info();
     print_basic_info();
     button_intr_init();
     led_init();

@@ -27,9 +27,16 @@ extern const char *NVS_UPPER_TEMPERATURE_LIMIT_KEY;
 extern const char *NVS_LOWER_TEMPERATURE_LIMIT_KEY;
 extern const char *NVS_PUBPERIOD_KEY;
 
+typedef enum
+{
+    BLE_HANDLE,
+    IR_HANDLE,
+    GENERAL_HANDLE,
+}handle_enum_t;
+
 /*Function declarations*/
 void nvs_init();
-void set_number_in_nvs_flash(nvs_handle_t handle, const char *key, int value, sizes_t size);
-void set_str_in_nvs_flash(nvs_handle_t handle, const char *key, char *value);
-int32_t get_number_from_nvs_flash(nvs_handle_t handle, const char *key, sizes_t size);
-char *get_str_from_nvs_flash(nvs_handle_t handle, const char *key);
+void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value, sizes_t size);
+void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value);
+int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, sizes_t size);
+char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key);

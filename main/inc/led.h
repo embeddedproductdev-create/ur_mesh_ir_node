@@ -28,6 +28,7 @@ typedef enum {
     LED_STATE_SENDING_IR_COMMAND,
     LED_STATE_TEACHING_MODE,
     LED_STATE_MQTT_CMD_RECVD,
+    LED_STATE_LTE_POWERING_DOWN,
 } led_state_t;
 
 // Structure for RGB color

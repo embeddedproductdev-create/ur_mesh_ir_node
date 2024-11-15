@@ -40,7 +40,8 @@
         "led.h": "c",
         "span": "c",
         "random": "c",
-        "flash.h": "c"
+        "flash.h": "c",
+        "esp_system.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

@@ -215,6 +215,7 @@ extern char device_location_str[LOCATION_STR_LEN];
 extern uint16_t teaching_mode_raw_len;
 extern int16_t ir_protocol_num;
 extern uint8_t newDevice;
+extern bool powerDownInProgress;
 
 /*Function Declarations*/
 void lte_task(void *args);
@@ -222,5 +223,6 @@ void uart_event_task(void *pvParameters);
 error_codes check_response(char *uart_data, const char *check_string);
 error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name);
 error_codes send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
-void power_cycle_lte();
+void powerUpLTE();
+void powerDownLTE();
 void enqueue_for_publish(char *ack_json);
