@@ -48,7 +48,7 @@ uint16_t teaching_mode_raw_len = 0;
  */
 void print_basic_info()
 {
-    ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=- BOOT SUCCESSFUL - %d.%d.%d -=-=-=-=-=-=-=-=-=-=",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
+    ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=- BOOT SUCCESSFUL - %d.%d.%d -=-=-=-=-=-=-=-=-=-=", MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
     ESP_LOGI(TAG, "%s : %d", NVS_NEW_DEVICE_KEY, newDevice);
     ESP_LOGI(TAG, "%s : %s", NVS_DEVICE_LOCATION_KEY, device_location_str);
     ESP_LOGI(TAG, "%s : %s", NVS_SERIAL_NO_KEY, serialNoStr);
@@ -81,6 +81,6 @@ void app_main(void)
     button_intr_init();
     led_init();
     hb_init();
-    ir_recv_intr_init();
+    ir_init();
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 }
