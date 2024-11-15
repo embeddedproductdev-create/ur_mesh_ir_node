@@ -41,7 +41,11 @@
         "span": "c",
         "random": "c",
         "flash.h": "c",
-        "esp_system.h": "c"
+        "esp_system.h": "c",
+        "adc_oneshot.h": "c",
+        "esp32-hal-periman.h": "c",
+        "esp32-hal-adc.h": "c",
+        "adc_continuous.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

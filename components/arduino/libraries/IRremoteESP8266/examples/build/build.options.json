@@ -1,0 +1,11 @@
+{
+  "additionalFiles": "..\\..\\..,..\\..\\..,..\\..\\..,..\\..\\..,..\\..",
+  "builtInToolsFolders": "",
+  "compiler.optimization_flags": "-Os",
+  "customBuildProperties": "",
+  "fqbn": "esp32:esp32:esp32s3:JTAGAdapter=bridge,PSRAM=enabled,FlashMode=dio,FlashSize=8M,LoopCore=1,EventsCore=1,USBMode=hwcdc,CDCOnBoot=default,MSCOnBoot=default,DFUOnBoot=default,UploadMode=default,PartitionScheme=default,CPUFreq=40,UploadSpeed=115200,DebugLevel=none,EraseFlash=all",
+  "hardwareFolders": "C:\\Users\\EmbeddedDevelopment\\AppData\\Local\\Arduino15\\packages",
+  "otherLibrariesFolders": "C:\\Users\\EmbeddedDevelopment\\Documents\\Arduino\\libraries",
+  "runtime.ide.version": "10607",
+  "sketchLocation": "C:\\Users\\EmbeddedDevelopment\\Desktop\\MyProjects\\IR_proj\\CODE\\c01230-ir-ble-mesh-ac-controller-gwy\\components\\arduino\\libraries\\IRremoteESP8266\\examples\\IRrecvDumpV3"
+}
