@@ -606,7 +606,7 @@ void parse_json()
                 break;
 
             case GWY_AC_CONTROL_PACKET:
-                sending_ir_command = true; update_led_status();
+                
                 last_command.power = cmd_struct.power;
                 last_command.temperature = cmd_struct.temperature;
                 last_command.fanspeed = cmd_struct.fanspeed;
@@ -617,8 +617,6 @@ void parse_json()
                 last_command.upperTemperatureLimit = cmd_struct.upperTemperatureLimit;
                 last_command.lowerTemperatureLimit = cmd_struct.lowerTemperatureLimit;
                 ir_transmit();
-                sleep(1);
-                sending_ir_command = false; update_led_status();
                 set_last_ac_cmd_in_nvs_flash();
                 break;
 

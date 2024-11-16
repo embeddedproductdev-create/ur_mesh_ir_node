@@ -63,7 +63,7 @@ void jwObj_double(struct jWriteControl *jwc, char *key, double value);
 void jwObj_bool(struct jWriteControl *jwc, char *key, int oneOrZero);
 void jwObj_null(struct jWriteControl *jwc, char *key);
 void jwObj_object(struct jWriteControl *jwc, char *key);
-void jwObj_array(struct jWriteControl *jwc, char *key);
+void jwObj_array(struct jWriteControl *jwc, const char *key);
 void jwArr_string(struct jWriteControl *jwc, char *value);
 void jwArr_int(struct jWriteControl *jwc, int value);
 void jwArr_double(struct jWriteControl *jwc, double value);

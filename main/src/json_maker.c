@@ -187,7 +187,7 @@ void jwObj_object( JWC_DECL char *key )
 
 // put Array in Object
 //
-void jwObj_array( JWC_DECL char *key )
+void jwObj_array( JWC_DECL const char *key )
 {
 	if(_jwObj( JWC_PARAM key ) == JWRITE_OK)
 	{

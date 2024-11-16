@@ -141,6 +141,10 @@ typedef enum
     ENTERED_TEACHING_MODE,
     EXITED_TEACHING_MODE,
     DEVICE_ALREADY_IN_TEACHING_MODE,
+    POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
+    MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
+    FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
+    TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING
 }error_codes;
 
 typedef enum
@@ -230,4 +234,11 @@ error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *
 error_codes send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
 void powerUpLTE();
 void powerDownLTE();
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 void enqueue_for_publish(char *ack_json);
+#ifdef __cplusplus
+}
+#endif
