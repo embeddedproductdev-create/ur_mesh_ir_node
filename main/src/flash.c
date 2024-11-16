@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <inttypes.h>
 #include "esp_system.h"
@@ -9,6 +10,7 @@
 #include "../inc/main.h"
 #include "../inc/lte.h"
 #include "../inc/flash.h"
+#include <ir.h>
 
 #define NVS_TAG "NVS"
 
@@ -311,6 +313,7 @@ esp_err_t pull_data_from_nvs(void)
     
     nvs_get_u16(ir_nvs_handle, NVS_RAWLEN_KEY, &teaching_mode_raw_len);
     nvs_get_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, &ir_protocol_num);
+    strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
 
     size_t serialNoReqSize = 10;
     nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &serialNoReqSize);

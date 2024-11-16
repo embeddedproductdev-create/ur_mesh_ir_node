@@ -109,6 +109,13 @@ void led_set_state(led_state_t state) {
             led_set_color(colors.RED);
             esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
             break;
+        
+        case LED_STATE_UNSUPPORTED_IR_PROTOCOL:
+            led_set_color(colors.RED);
+            esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
+            sleep(1);
+            update_led_status();
+            break;
 
         default:
             led_set_color(colors.OFF);
@@ -123,6 +130,7 @@ void update_led_status()
     else if(!mqtt_connected) led_set_state(LED_STATE_MQTT_NOT_CONNECTED);
     else if(!registered) led_set_state(LED_STATE_UNREGISTERED);
     else if(!configured) led_set_state(LED_STATE_UNCONFIGURED);
+    else led_set_state(LED_STATE_IDLE);
 }
 
 void led_set_color(led_color_t color) {
@@ -158,6 +166,12 @@ static void led_blink_callback(void *arg) {
             if(current_color.green && current_color.red) led_set_color(colors.OFF);
             else led_set_color(colors.ORANGE);
             break;
+        
+        case LED_STATE_UNSUPPORTED_IR_PROTOCOL:
+            if(current_color.red) led_set_color(colors.OFF);
+            else led_set_color(colors.RED);
+            break;
+
         default:
             break;
     }

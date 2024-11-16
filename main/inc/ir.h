@@ -45,10 +45,6 @@ extern const char *UNKNOWN_IR_PROTOCOL;
 extern const char *UNUSED_IR_PROTOCOL;
 extern const char *INVALID_IR_PROTOCOL;
 
-
-/*C - Function Declarations */
-
-/*C++ - Function Declarations*/
 #ifdef __cplusplus
 extern "C" {
 #endif

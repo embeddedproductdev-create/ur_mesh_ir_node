@@ -37,8 +37,17 @@ typedef enum
 
 /*Function declarations*/
 void nvs_init();
-void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value, sizes_t size);
-void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value);
 int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, sizes_t size);
 char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key);
 void set_last_ac_cmd_in_nvs_flash();
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value, sizes_t size);
+void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value);
+
+#ifdef __cplusplus
+}
+#endif

@@ -34,8 +34,7 @@
 
 #define MIN_LTE_RESP_WAIT_MS 500
 
-#define MQTT_TOPIC_CHAR_LEN 100
-#define MQTT_CMD_RESP_LEN 200
+
 #define MQTT_ACK_SIZE 1024
 #define RETRY_COUNT 5
 #define NETWORK_CHECK_INTERVAL_TICKS pdMS_TO_TICKS(60000) //60s once
@@ -600,7 +599,7 @@ void parse_json()
 
             case GWY_UNREG_PACKET:
                 registered = 0; update_led_status();
-                set_number_in_nvs_flash(general_nvs_handle, NVS_REGISTERED_KEY, 0, UINT8);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 0, UINT8);
                 hb_timer_stop();
                 break;
 
@@ -622,8 +621,11 @@ void parse_json()
                 break;
 
             case GWY_RECONF_PACKET:
+                ir_protocol_num = -1;
+                strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8);
+                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
                 configured = 0; update_led_status();
-                set_number_in_nvs_flash(general_nvs_handle, NVS_CONFIGURED_KEY, 0, UINT8);
                 break;
 
             case GWY_HEARTBEAT_PUB_CONF_PACKET:
@@ -841,8 +843,6 @@ void execute_general_AT_cmds()
 void initialize_mqtt_cmd_strings()
 {
     sprintf(KEEP_ALIVE_CMD, "AT+QMTCFG=\"keepalive\",%d,%d\r", MQTT_CLIENT_INDEX, publishPeriod+5);
-	sprintf(subscribe_topic, "%s/command", serialNoStr);
-	sprintf(publish_topic, "%s/message", serialNoStr);
     sprintf(SET_BAUD_RATE_CMD, "AT+IPR=%d\r", BAUD_RATE);
 	sprintf(MQTT_NETWORK_OPEN_CMD, "AT+QMTOPEN=%d,\"%s\",%d\r", MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
     sprintf(MQTT_NETWORK_OPEN_RESP, "+QMTOPEN: %d,0", MQTT_CLIENT_INDEX);

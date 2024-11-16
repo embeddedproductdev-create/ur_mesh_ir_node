@@ -49,7 +49,9 @@
         "esp_log.h": "c",
         "freertos.h": "c",
         "task.h": "c",
-        "*.txt": "cpp"
+        "*.txt": "cpp",
+        "stop_token": "c",
+        "irremoteesp8266.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

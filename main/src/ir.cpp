@@ -5,6 +5,9 @@
 #include <IRremoteESP8266.h>
 #include <ir.h>
 #include <lte.h>
+#include <flash.h>
+// #include <lte.h>
+#include <led.h>
 
 const char *RAW_IR_PROTOCOL = "RAW";
 const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
@@ -43,7 +46,6 @@ const char *INVALID_IR_PROTOCOL = "INVALID";
 /*IR Receiver Initializations*/
 IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
 decode_results results;
-decode_type_t ir_protocol_detected = UNKNOWN;
 const uint8_t kTolerancePercentage = 25;
 
 /*IR Transmitter Initializations*/
@@ -577,12 +579,30 @@ void ir_recv_task(void *args)
     {
         if(irrecv.decode(&results))
         {
+            decode_type_t protocol = UNKNOWN;
             if(results.overflow) ESP_LOGW(IR_TAG, "IR Buffer overflow");
-            ESP_LOGW(IR_TAG, "kTolerancePercentage : %d\n", kTolerancePercentage);
-            ESP_LOGW(IR_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-            ESP_LOGW(IR_TAG, "%s",resultToHumanReadableBasic(&results, &ir_protocol_detected).c_str());
+            ESP_LOGW(IR_TAG, "kTolerancePercentage : %d", kTolerancePercentage);
+            ESP_LOGW(IR_TAG, "%s",resultToHumanReadableBasic(&results, &protocol).c_str());
+            ESP_LOGW(IR_TAG, "Protocol Number : %d", protocol);
             String description = IRAcUtils::resultAcToString(&results);
-            if(description) ESP_LOGW(IR_TAG, "%s", description.c_str());
+            if(description.length()) ESP_LOGW(IR_TAG, "%s\n", description.c_str());
+
+            if(teaching_in_progress)
+            {
+                ;
+            }
+
+            if(registered && !configured && protocol != UNKNOWN && !teaching_in_progress) {
+                configured = true; update_led_status();
+                ir_protocol_num = protocol;
+                strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
+                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8);
+            }
+            if(!configured && protocol == UNKNOWN){
+                led_set_state(LED_STATE_UNSUPPORTED_IR_PROTOCOL);
+            }
+
             yield();
         }
         vTaskDelay(pdMS_TO_TICKS(50));

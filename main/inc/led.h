@@ -26,6 +26,7 @@ typedef enum {
     LED_STATE_TEACHING_MODE,
     LED_STATE_MQTT_CMD_RECVD,
     LED_STATE_LTE_POWERING_DOWN,
+    LED_STATE_UNSUPPORTED_IR_PROTOCOL,
 } led_state_t;
 
 // Structure for RGB color
@@ -47,8 +48,16 @@ typedef struct colors{
 } colors_t;
 
 void led_init(void);
-void led_set_state(led_state_t state);
 void led_set_color(led_color_t color);
 const char* get_led_state_string(led_state_t state);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 void update_led_status();
+void led_set_state(led_state_t state);
+#ifdef __cplusplus
+}
+#endif
+
 #endif

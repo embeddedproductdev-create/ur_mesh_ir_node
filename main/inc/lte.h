@@ -12,6 +12,8 @@
 #define IR_PROTOCOL_NAME_LEN 20
 #define LOCATION_STR_LEN 20
 #define MAX_MODE_STR_LEN 7
+#define MQTT_TOPIC_CHAR_LEN 100
+#define MQTT_CMD_RESP_LEN 200
 
 #define DEFAULT_DEVICE_SER_NO "DEV99999"
 #define DEFAULT_DEVICE_LOCATION_STR "EARTH :)"
@@ -64,6 +66,9 @@ extern const char* LOGGING_KEY;
 extern const char* RESET_DEVICE_KEY;
 extern const char* LINK_KEY;
 extern const char* TEACHING_START_KEY;
+
+extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
+extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 typedef enum
 {
