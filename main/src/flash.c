@@ -246,13 +246,14 @@ esp_err_t init_data_in_nvs(void)
     err=nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
     ESP_LOGW(NVS_TAG,"Opening %s partition : %s" ,GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
 
-    err=nvs_set_u8(general_nvs_handle, NVS_NEW_DEVICE_KEY, 0);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_NEW_DEVICE_KEY, 0, esp_err_to_name(err));
+    
     err=nvs_set_u16(ir_nvs_handle, NVS_RAWLEN_KEY, teaching_mode_raw_len);
     ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_RAWLEN_KEY, teaching_mode_raw_len, esp_err_to_name(err));
-    err=nvs_set_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
 
+    err=nvs_set_u8(general_nvs_handle, NVS_NEW_DEVICE_KEY, 0);
+    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_NEW_DEVICE_KEY, 0, esp_err_to_name(err));
+    err=nvs_set_i16(general_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
+    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
     err=nvs_set_str(general_nvs_handle, NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO);
     ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO, esp_err_to_name(err));
     err=nvs_set_u8(general_nvs_handle, NVS_REGISTERED_KEY, registered);
@@ -312,9 +313,9 @@ esp_err_t pull_data_from_nvs(void)
     ESP_LOGW(NVS_TAG, "ErrorCode for pulling from flash : %s", esp_err_to_name(nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle)));
     
     nvs_get_u16(ir_nvs_handle, NVS_RAWLEN_KEY, &teaching_mode_raw_len);
-    nvs_get_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, &ir_protocol_num);
+    
+    nvs_get_i16(general_nvs_handle, NVS_IR_PROTOCOL_KEY, &ir_protocol_num);
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-
     size_t serialNoReqSize = 10;
     nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &serialNoReqSize);
     nvs_get_u8(general_nvs_handle, NVS_REGISTERED_KEY, &registered);

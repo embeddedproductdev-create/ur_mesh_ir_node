@@ -119,8 +119,8 @@ const char* SWING_V_KEY = "SwingV";
 const char* ONTIMER_KEY = "OnTimer";
 const char* OFFTIMER_KEY = "OffTimer";
 const char* AC_LOCKING_KEY = "Locking";
-const char* UPPER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
-const char* LOWER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
+const char* UPPER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
+const char* LOWER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
 const char* ERROR_CODE_KEY = "ErrorCode";
 const char* AMBIENT_TEMPERATURE_DATA_KEY = "AmbientTemperature";
 const char* PUBLISH_PERIOD_KEY = "PublishPeriodSec";
@@ -453,16 +453,14 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else cmd_struct->temperature = temperature;
         if(!(fanspeed>=0 && fanspeed<=5)) {cmd_struct->errorcode = FAN_SPEED_EXCEEDING_RANGE; return;}
         else cmd_struct->fanspeed = fanspeed;
-        if( strcasecmp(mode, "Cool") ||
-            strcasecmp(mode, "Hot") ||
-            strcasecmp(mode, "Auto") ||
-            strcasecmp(mode, "Dry") ||
-            strcasecmp(mode, "Fan")
-            )
-        {
-            cmd_struct->errorcode = MODE_EXCEEDING_RANGE;
-        }
-        else strcpy(cmd_struct->mode_str, mode);
+        if( strcasecmp(mode, "Cool") == 0 ||
+            strcasecmp(mode, "Hot") == 0 ||
+            strcasecmp(mode, "Auto") == 0 ||
+            strcasecmp(mode, "Dry") == 0 ||
+            strcasecmp(mode, "Fan") == 0
+            );
+        else { cmd_struct->errorcode = MODE_EXCEEDING_RANGE; return;}
+        strcpy(cmd_struct->mode_str, mode);
         if(swingh!=0 && swingh!=1) {cmd_struct->errorcode = SWINGH_EXCEEDING_RANGE; return;}
         else cmd_struct->swingh = swingh;
         if(swingv!=0 && swingv!=1) {cmd_struct->errorcode = SWINGV_EXCEEDING_RANGE; return;}
@@ -477,7 +475,11 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else cmd_struct->upperTemperatureLimit = upperTemperatureLimit;
         if(lowerTemperatureLimit<18 || lowerTemperatureLimit>32) {cmd_struct->errorcode = TEMPERATURE_LOWER_LIMIT_EXCEEDING_RANGE; return;}
         else cmd_struct->lowerTemperatureLimit = lowerTemperatureLimit;
-        if(upperTemperatureLimit<lowerTemperatureLimit) {cmd_struct->errorcode = INVALID_TEMPERATURE_LOCKING_LIMITS; return;}    
+        if(upperTemperatureLimit<lowerTemperatureLimit) {
+            ESP_LOGD(LTE_TAG, "UL : %d | LL : %d",upperTemperatureLimit, lowerTemperatureLimit);
+            cmd_struct->errorcode = INVALID_TEMPERATURE_LOCKING_LIMITS; 
+            return;
+        }    
         return;
     }
 
@@ -616,15 +618,15 @@ void parse_json()
                 last_command.lowerTemperatureLimit = cmd_struct.lowerTemperatureLimit;
                 ir_transmit();
                 sleep(1);
-                set_last_ac_cmd_in_nvs_flash();
                 sending_ir_command = false; update_led_status();
+                set_last_ac_cmd_in_nvs_flash();
                 break;
 
             case GWY_RECONF_PACKET:
                 ir_protocol_num = -1;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8);
-                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
                 configured = 0; update_led_status();
                 break;
 

@@ -124,6 +124,7 @@ void ir_tran_setup()
  */
 void ir_transmit()
 {
+    irrecv.pause();
     switch(ir_protocol_num)
     {
         case DAIKIN:
@@ -439,6 +440,7 @@ void ir_transmit()
         //     ac_mitsubishi152.send();
         //     break;
         }
+        irrecv.resume();
 }
 
 /**
@@ -596,7 +598,7 @@ void ir_recv_task(void *args)
                 configured = true; update_led_status();
                 ir_protocol_num = protocol;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8);
             }
             if(!configured && protocol == UNKNOWN){
