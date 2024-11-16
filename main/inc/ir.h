@@ -47,17 +47,13 @@ extern const char *INVALID_IR_PROTOCOL;
 
 
 /*C - Function Declarations */
-void ir_init();
-void ir_recv_intr_init();
-void ir_recv_task(void *args);
-void ir_receiver_setup();
 
 /*C++ - Function Declarations*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void ir_recv_init();
+void ir_recv_task(void *args);
 void ir_tran_setup();
 const char *get_protocol_string(int16_t protocol);
 bool is_supported_remote(int16_t protocol);

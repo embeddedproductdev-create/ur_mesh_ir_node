@@ -45,10 +45,10 @@ press_type_t detected_press = UNKNOWN_PRESS;
  */
 static void IRAM_ATTR button_task_handler(void *args)
 {
-    gpio_intr_disable(BUTTON_GPIO);
+    gpio_isr_handler_remove(BUTTON_GPIO);
     if (xTaskCreate(button_task, "button_task", 4096, NULL, 10, &button_task_handle) != pdPASS) {
         ESP_LOGE(BUTTON_TAG, "Failed to create button task");
-        gpio_intr_enable(BUTTON_GPIO);
+       gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
     }
 }
 
@@ -100,7 +100,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
     }
 
-    gpio_intr_enable(BUTTON_GPIO);
+    gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
     vTaskDelete(NULL);
 }
 

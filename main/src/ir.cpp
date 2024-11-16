@@ -6,9 +6,45 @@
 #include <ir.h>
 #include <lte.h>
 
+const char *RAW_IR_PROTOCOL = "RAW";
+const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
+const char *DAIKIN200_IR_PROTOCOL = "DAIKIN200";
+const char *DAIKIN216_IR_PROTOCOL = "DAIKIN216";
+const char *DAIKIN2_IR_PROTOCOL = "DAIKIN2";
+const char *DAIKIN160_IR_PROTOCOL = "DAIKIN160";
+const char *DAIKIN176_IR_PROTOCOL = "DAIKIN176";
+const char *DAIKIN64_IR_PROTOCOL = "DAIKIN64";
+const char *DAIKIN152_IR_PROTOCOL = "DAIKIN152";
+const char *DAIKIN128_IR_PROTOCOL = "DAIKIN128";
+const char *HITACHI_AC296_IR_PROTOCOL = "HITACHI_AC296";
+const char *HITACHI_AC_IR_PROTOCOL = "HITACHI_AC";
+const char *HITACHI_AC1_IR_PROTOCOL = "HITACHI_AC1";
+const char *HITACHI_AC424_IR_PROTOCOL = "HITACHI_AC424";
+const char *HITACHI_AC344_IR_PROTOCOL = "HITACHI_AC344";
+const char *HITACHI_AC264_IR_PROTOCOL = "HITACHI_AC264";
+const char *VOLTAS_IR_PROTOCOL = "VOLTAS";
+const char *SAMSUNG_AC_IR_PROTOCOL = "SAMSUNG_AC";
+const char *HAIER_AC_IR_PROTOCOL = "HAIER_AC";
+const char *HAIER_AC176_IR_PROTOCOL = "HAIER_AC176";
+const char *HAIER_AC160_IR_PROTOCOL = "HAIER_AC160";
+const char *CARRIER_AC64_IR_PROTOCOL = "CARRIER_AC64";
+const char *LG2_IR_PROTOCOL = "LG2";
+const char *LG_IR_PROTOCOL = "LG";
+const char *TOSHIBA_AC_IR_PROTOCOL = "TOSHIBA_AC";
+const char *MITSUBISHI112_IR_PROTOCOL = "MITSUBISHI112";
+const char *MITSUBISHI136_IR_PROTOCOL = "MITSUBISHI136";
+const char *MITSUBISHI_AC_IR_PROTOCOL = "MITSUBISHI_AC";
+const char *MITSUBISHI_HEAVY_88_IR_PROTOCOL = "MITSUBISHI_HEAVY_88";
+const char *MITSUBISHI_HEAVY_152_IR_PROTOCOL = "MITSUBISHI_HEAVY_152";
+const char *UNKNOWN_IR_PROTOCOL = "UNKNOWN";
+const char *UNUSED_IR_PROTOCOL = "UNUSED";
+const char *INVALID_IR_PROTOCOL = "INVALID";
+
 /*IR Receiver Initializations*/
+IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
 decode_results results;
-decode_type_t protocol_detected = UNKNOWN;
+decode_type_t ir_protocol_detected = UNKNOWN;
+const uint8_t kTolerancePercentage = 25;
 
 /*IR Transmitter Initializations*/
 
@@ -528,19 +564,27 @@ bool is_supported_remote(uint16_t protocol)
     }
 }
  
-void ir_recv_init()
-{
-    IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
-    decode_results results;
-    decode_type_t ir_protocol_detected;
-    
+/**
+ * @brief Thread that takes care of decoding IR signals
+ * @param args 
+ */
+void ir_recv_task(void *args)
+{    
     irrecv.setUnknownThreshold(12);
-    irrecv.setTolerance(25);
+    irrecv.setTolerance(kTolerancePercentage);
     irrecv.enableIRIn();
-    
-    if(irrecv.decode(&results))
+    while(1)
     {
-        resultToHumanReadableBasic(&results, &ir_protocol_detected);
-        IRAcUtils::resultAcToString(&results);
+        if(irrecv.decode(&results))
+        {
+            if(results.overflow) ESP_LOGW(IR_TAG, "IR Buffer overflow");
+            ESP_LOGW(IR_TAG, "kTolerancePercentage : %d\n", kTolerancePercentage);
+            ESP_LOGW(IR_TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+            ESP_LOGW(IR_TAG, "%s",resultToHumanReadableBasic(&results, &ir_protocol_detected).c_str());
+            String description = IRAcUtils::resultAcToString(&results);
+            if(description) ESP_LOGW(IR_TAG, "%s", description.c_str());
+            yield();
+        }
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }

@@ -23,6 +23,7 @@
 #define TAG "MAIN"
 
 #define LTE_THREAD_STACK_SIZE 4096
+#define IR_THREAD_STACK_SIZE 4096
 
 TaskHandle_t button_task_handle = NULL;
 TaskHandle_t lte_task_handle = NULL;
@@ -85,8 +86,8 @@ void app_main(void)
 
     gpio_install_isr_service(0);
     button_intr_init();
-    ir_recv_intr_init();
     ir_tran_setup();
 
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
+    xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle);
 }

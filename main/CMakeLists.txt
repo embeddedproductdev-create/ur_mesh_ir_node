@@ -7,7 +7,6 @@ set( CUSTOM_SRCS
     src/json_maker.c
     src/heartbeat.c
     src/flash.c
-    src/ir.c
     src/ir.cpp
 )
 
