@@ -1,9 +1,12 @@
-#include "../../components/arduino/libraries/IRremoteESP8266/src/IRac.h"
-#include "../../components/arduino/libraries/IRremoteESP8266/src/IRutils.h"
-#include "../inc/ir.h"
+#include "esp_log.h"
+
+#include <IRac.h>
+#include <IRutils.h>
+#include <IRremoteESP8266.h>
+#include <ir.h>
+#include <lte.h>
 
 /*IR Receiver Initializations*/
-IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
 decode_results results;
 decode_type_t protocol_detected = UNKNOWN;
 
@@ -78,80 +81,403 @@ void ir_tran_setup()
 }
 
 /**
+ * @brief Function that transmits the ir command to control AC
+ * 
+ */
+void ir_transmit()
+{
+    switch(ir_protocol_num)
+    {
+        case DAIKIN:
+            ac_daikin280.setPower(last_command.power);
+            ac_daikin280.setTemp(last_command.temperature);
+            if (last_command.swingh)
+                last_command.swingh = kDaikinSwingOn;
+            ac_daikin280.setSwingHorizontal(last_command.swingh);
+            if (last_command.swingv)
+                last_command.swingv = kDaikinSwingOn;
+            ac_daikin280.setSwingVertical(last_command.swingv);
+            ac_daikin280.setFan(ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_daikin280.enableOffTimer(last_command.offtimer);
+            ac_daikin280.enableOnTimer(last_command.ontimer);
+            ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_daikin280.send();
+            break;
+
+        case DAIKIN200:
+            ac_daikin200.setPower(last_command.power);
+            ac_daikin200.setSwingHorizontal(last_command.swingh);
+            ac_daikin200.setFan(last_command.fanspeed);
+            ac_daikin200.setTemp(last_command.temperature);
+            ac_daikin200.setMode(ac_daikin200.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_daikin200.send();
+            break;
+
+        case DAIKIN216:
+            ac_daikin216.setPower(last_command.power);
+            ac_daikin216.setTemp(last_command.temperature);
+            if (last_command.swingh)
+                last_command.swingh = kDaikinSwingOn;
+            ac_daikin216.setSwingHorizontal(last_command.swingh);
+            if (last_command.swingv)
+                last_command.swingv = kDaikinSwingOn;
+            ac_daikin216.setSwingVertical(last_command.swingv);
+            ac_daikin216.setFan(ac_daikin216.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_daikin216.setMode(ac_daikin216.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_daikin216.send();
+            break;
+
+        // case DAIKIN2:
+        //     ac_daikin2.setPower(last_command.power);
+        //     ac_daikin2.setTemp(last_command.temperature);
+        //     if (last_command.swingh)
+        //         ac_daikin2.setSwingHorizontal(kDaikin2swinghAuto);
+        //     else
+        //         ac_daikin2.setSwingHorizontal(kDaikin2swinghOff);
+        //     if (last_command.swingv)
+        //         ac_daikin2.setSwingVertical(kDaikin2swingvAuto);
+        //     else
+        //         ac_daikin2.setSwingVertical(kDaikin2swingvOff);
+        //     ac_daikin2.setFan(ac_daikin2.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        //     ac_daikin2.enableOffTimer(last_command.offtimer);
+        //     ac_daikin2.enableOnTimer(last_command.ontimer);
+        //     ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)last_command.mode_num));
+        //     ac_daikin2.send();
+        //     break;
+
+        // case DAIKIN160:
+        //     ac_daikin160.setPower(last_command.power);
+        //     ac_daikin160.setTemp(last_command.temperature);
+        //     if (last_command.swingv)
+        //         ac_daikin160.setSwingVertical(kDaikin160swingvAuto);
+        //     ac_daikin160.setFan(ac_daikin160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        //     ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)last_command.mode_num));
+        //     ac_daikin160.send();
+        //     break;
+
+        // case DAIKIN176:
+        //     ac_daikin176.setPower(last_command.power);
+        //     ac_daikin176.setTemp(last_command.temperature);
+        //     if (last_command.swingh)
+        //         ac_daikin176.setSwingHorizontal(kDaikin176swinghAuto);
+        //     else
+        //         ac_daikin176.setSwingHorizontal(kDaikin176swinghOff);
+        //     ac_daikin176.setFan(ac_daikin176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        //     ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)last_command.mode_num));
+        //     ac_daikin176.send();
+        //     break;
+
+        case DAIKIN64:
+            ac_daikinac64.setPowerToggle(last_command.power);
+            ac_daikinac64.setTemp(last_command.temperature);
+            ac_daikinac64.setSwingVertical(last_command.swingv);
+            ac_daikinac64.setFan(ac_daikinac64.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_daikinac64.setOnTime(last_command.offtimer);
+            ac_daikinac64.setOffTime(last_command.ontimer);
+            ac_daikinac64.setMode(ac_daikinac64.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_daikinac64.send();
+            break;
+
+        case DAIKIN152:
+            ac_daikin152.setPower(last_command.power);
+            ac_daikin152.setTemp(last_command.temperature);
+            ac_daikin152.setSwingV(last_command.swingv);
+            ac_daikin152.setFan(ac_daikin152.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_daikin152.setMode(ac_daikin152.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_daikin152.send();
+            break;
+
+        case DAIKIN128:
+            ac_daikin128.setPowerToggle(last_command.power);
+            ac_daikin128.setTemp(last_command.temperature);
+            ac_daikin128.setSwingVertical(last_command.swingv);
+            ac_daikin128.setFan(ac_daikin128.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_daikin128.setOffTimer(last_command.offtimer);
+            ac_daikin128.setOnTimer(last_command.ontimer);
+            ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_daikin128.send();
+            break;
+
+        case HITACHI_AC296:
+            ac_hitachi296.setPower(last_command.power);
+            ac_hitachi296.setTemp(last_command.temperature);
+            ac_hitachi296.setFan(ac_hitachi296.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_hitachi296.setMode(ac_hitachi296.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_hitachi296.send();
+            break;
+
+        case HITACHI_AC:
+            ac_hitachi224.setPower(last_command.power);
+            ac_hitachi224.setTemp(last_command.temperature);
+            ac_hitachi224.setFan(ac_hitachi224.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_hitachi224.setSwingHorizontal(last_command.swingh);
+            ac_hitachi224.setSwingVertical(last_command.swingv);
+            ac_hitachi224.setMode(ac_hitachi224.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_hitachi224.send();
+            break;
+
+        case HITACHI_AC1:
+            ac_hitachi104.setPower(last_command.power);
+            ac_hitachi104.setTemp(last_command.temperature);
+            ac_hitachi104.setFan(ac_hitachi104.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_hitachi104.setSwingH(last_command.swingh);
+            ac_hitachi104.setSwingV(last_command.swingv);
+            ac_hitachi104.setOffTimer(last_command.offtimer);
+            ac_hitachi104.setOnTimer(last_command.ontimer);
+            ac_hitachi104.setMode(ac_hitachi104.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_hitachi104.send();
+            break;
+
+        case HITACHI_AC424:
+            ac_hitachi424.setPower(last_command.power);
+            ac_hitachi424.setTemp(last_command.temperature);
+            ac_hitachi424.setFan(ac_hitachi424.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_hitachi424.setSwingVToggle(last_command.swingv);
+            ac_hitachi424.setMode(ac_hitachi424.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_hitachi424.send();
+            break;
+
+        case HITACHI_AC344:
+            ac_hitachi344.setSwingH(last_command.swingh);
+            ac_hitachi344.setSwingV(last_command.swingv);
+            ac_hitachi344.send();
+            break;
+
+        case HITACHI_AC264:
+            ac_hitachi264.setFan(ac_hitachi264.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_hitachi264.send();
+            break;
+
+        case VOLTAS:
+            ac_voltas.setPower(last_command.power);
+            ac_voltas.setTemp(last_command.temperature);
+            ac_voltas.setSwingH(last_command.swingh);
+            ac_voltas.setSwingV(last_command.swingv);
+            ac_voltas.setFan(ac_voltas.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_voltas.setOffTime(last_command.offtimer);
+            ac_voltas.setOnTime(last_command.ontimer);
+            ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_voltas.send();
+            break;
+
+        case SAMSUNG_AC:
+            ac_samsung.setPower(last_command.power);
+            ac_samsung.setTemp(last_command.temperature);
+            ac_samsung.setSwingH(last_command.swingh);
+            ac_samsung.setSwing(last_command.swingv);
+            ac_samsung.setFan(ac_samsung.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_samsung.setOffTimer(last_command.offtimer);
+            ac_samsung.setOnTimer(last_command.ontimer);
+            ac_samsung.setMode(ac_samsung.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_samsung.send();
+            break;
+
+        case HAIER_AC:
+            ac_haier.setTemp(last_command.temperature);
+            ac_haier.setSwingV(last_command.swingv);
+            ac_haier.setFan(ac_haier.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_haier.setOffTimer(last_command.offtimer);
+            ac_haier.setOnTimer(last_command.ontimer);
+            ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_haier.send();
+            break;
+
+        case HAIER_AC176:
+            ac_haier176.setPower(last_command.power);
+            ac_haier176.setTemp(last_command.temperature);
+            ac_haier176.setSwingH(last_command.swingh);
+            ac_haier176.setSwingV(last_command.swingv);
+            ac_haier176.setFan(ac_haier176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_haier176.setOffTimer(last_command.offtimer);
+            ac_haier176.setOnTimer(last_command.ontimer);
+            ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_haier176.send();
+            break;
+
+        case HAIER_AC160:
+            ac_haier160.setPower(last_command.power);
+            ac_haier160.setTemp(last_command.temperature);
+            ac_haier160.setSwingV(last_command.swingv);
+            ac_haier160.setFan(ac_haier160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_haier160.setOffTimer(last_command.offtimer);
+            ac_haier160.setOnTimer(last_command.ontimer);
+            ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_haier160.send();
+            break;
+
+        case CARRIER_AC64:
+            ac_carrier64.setPower(last_command.power);
+            ac_carrier64.setTemp(last_command.temperature);
+            ac_carrier64.setSwingV(last_command.swingv);
+            ac_carrier64.setFan(ac_carrier64.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_carrier64.setOffTimer(last_command.offtimer);
+            ac_carrier64.setOnTimer(last_command.ontimer);
+            ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_carrier64.send();
+            break;
+
+        case LG2:
+        case LG:
+            ac_lg.setPower(last_command.power);
+            ac_lg.setTemp(last_command.temperature);
+            ac_lg.setSwingH(last_command.swingh);
+            ac_lg.setSwingV(last_command.swingv);
+            ac_lg.setFan(ac_lg.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_lg.send();
+            break;
+
+        case TOSHIBA_AC:
+            ac_toshiba.setPower(last_command.power);
+            ac_toshiba.setTemp(last_command.temperature);
+            ac_toshiba.setFan(ac_toshiba.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            if (last_command.swingv || last_command.swingh)
+                ac_toshiba.setSwing(kToshibaAcSwingOn);
+            else
+                ac_toshiba.setSwing(kToshibaAcSwingOff);
+            ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_toshiba.send();
+            break;
+
+        case MITSUBISHI112:
+            ac_mitsubishi112.setPower(last_command.power);
+            ac_mitsubishi112.setTemp(last_command.temperature);
+            ac_mitsubishi112.setSwingH(last_command.swingh);
+            ac_mitsubishi112.setSwingV(last_command.swingv);
+            ac_mitsubishi112.setFan(ac_mitsubishi112.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_mitsubishi112.send();
+            break;
+
+        // case MITSUBISHI136:
+        //     ac_mitsubishi136.setPower(last_command.power);
+        //     ac_mitsubishi136.setTemp(last_command.temperature);
+        //     if (last_command.swingv)
+        //     {
+        //         ac_mitsubishi136.setSwingV(kMitsubishi136swingvAuto);
+        //     }
+        //     ac_mitsubishi136.setFan(ac_mitsubishi136.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        //     ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)last_command.mode_num));
+        //     ac_mitsubishi136.send();
+        //     break;
+
+        case MITSUBISHI_AC:
+            ac_mitsubishi144.setPower(last_command.power);
+            ac_mitsubishi144.setTemp(last_command.temperature);
+            ac_mitsubishi144.setFan(ac_mitsubishi144.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+            ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)last_command.mode_num));
+            ac_mitsubishi144.send();
+            break;
+
+        // case MITSUBISHI_HEAVY_88:
+        //     ac_mitsubishi88.setPower(last_command.power);
+        //     ac_mitsubishi88.setTemp(last_command.temperature);
+        //     ac_mitsubishi88.setFan(ac_mitsubishi88.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        //     if (last_command.swingh)
+        //         ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
+        //     else
+        //         ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
+        //     if (last_command.swingv)
+        //         ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
+        //     else
+        //         ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvOff);
+        //     ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)last_command.mode_num));
+        //     ac_mitsubishi88.send();
+        //     break;
+
+        // case MITSUBISHI_HEAVY_152:
+        //     ac_mitsubishi152.setPower(last_command.power);
+        //     ac_mitsubishi152.setTemp(last_command.temperature);
+        //     ac_mitsubishi152.setFan(ac_mitsubishi152.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        //     if (last_command.swingh)
+        //         ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
+        //     else
+        //         ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
+        //     if (last_command.swingv)
+        //         ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
+        //     else
+        //         ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88swingvOff);
+        //     ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)last_command.mode_num));
+        //     ac_mitsubishi152.send();
+        //     break;
+        }
+}
+
+/**
  * @brief Function that returns the detected protocol's name
  * @param protocol 
  * @return char* 
  */
-char* get_protocol_string(uint16_t protocol)
+const char *get_protocol_string(int16_t protocol)
 {
-    switch(protocol)
+    switch (protocol)
     {
         case RAW:
-            return "RAW";
+            return RAW_IR_PROTOCOL;
         case DAIKIN:
-            return "DAIKIN280";
+            return DAIKIN_IR_PROTOCOL;
         case DAIKIN200:
-            return "DAIKIN200";
+            return DAIKIN200_IR_PROTOCOL;
         case DAIKIN216:
-            return "DAIKIN216";
+            return DAIKIN216_IR_PROTOCOL;
         case DAIKIN2:
-            return "DAIKIN2";
+            return DAIKIN2_IR_PROTOCOL;
         case DAIKIN160:
-            return "DAIKIN160";
+            return DAIKIN160_IR_PROTOCOL;
         case DAIKIN176:
-            return "DAIKIN176";
+            return DAIKIN176_IR_PROTOCOL;
         case DAIKIN64:
-            return "DAIKIN64";
+            return DAIKIN64_IR_PROTOCOL;
         case DAIKIN152:
-            return "DAIKIN152";
+            return DAIKIN152_IR_PROTOCOL;
         case DAIKIN128:
-            return "DAIKIN128";
+            return DAIKIN128_IR_PROTOCOL;
         case HITACHI_AC296:
-            return "HITACHI_AC296";
+            return HITACHI_AC296_IR_PROTOCOL;
         case HITACHI_AC:
-            return "HITACHI_AC";
+            return HITACHI_AC_IR_PROTOCOL;
         case HITACHI_AC1:
-            return "HITACHI_AC1";
+            return HITACHI_AC1_IR_PROTOCOL;
         case HITACHI_AC424:
-            return "HITACHI_AC424";
+            return HITACHI_AC424_IR_PROTOCOL;
         case HITACHI_AC344:
-            return "HITACHI_AC344";
+            return HITACHI_AC344_IR_PROTOCOL;
         case HITACHI_AC264:
-            return "HITACHI_AC264";
+            return HITACHI_AC264_IR_PROTOCOL;
         case VOLTAS:
-            return "VOLTAS";
+            return VOLTAS_IR_PROTOCOL;
         case SAMSUNG_AC:
-            return "SAMSUNG_AC";
+            return SAMSUNG_AC_IR_PROTOCOL;
         case HAIER_AC:
-            return "HAIER_AC";
+            return HAIER_AC_IR_PROTOCOL;
         case HAIER_AC176:
-            return "HAIER_AC176";
+            return HAIER_AC176_IR_PROTOCOL;
         case HAIER_AC160:
-            return "HAIER_AC160";
+            return HAIER_AC160_IR_PROTOCOL;
         case CARRIER_AC64:
-            return "CARRIER_AC64";
+            return CARRIER_AC64_IR_PROTOCOL;
         case LG2:
-            return "LG2";
+            return LG2_IR_PROTOCOL;
         case LG:
-            return "LG";
+            return LG_IR_PROTOCOL;
         case TOSHIBA_AC:
-            return "TOSHIBA_AC";
+            return TOSHIBA_AC_IR_PROTOCOL;
         case MITSUBISHI112:
-            return "MITSUBISHI112";
+            return MITSUBISHI112_IR_PROTOCOL;
         case MITSUBISHI136:
-            return "MITSUBISHI136";
+            return MITSUBISHI136_IR_PROTOCOL;
         case MITSUBISHI_AC:
-            return "MITSUBISHI_AC";
+            return MITSUBISHI_AC_IR_PROTOCOL;
         case MITSUBISHI_HEAVY_88:
-            return "MITSUBISHI_HEAVY_88";
+            return MITSUBISHI_HEAVY_88_IR_PROTOCOL;
         case MITSUBISHI_HEAVY_152:
-            return "MITSUBISHI_HEAVY_152";
-        case UNKNOWN:  
-            return "UNKNOWN";
+            return MITSUBISHI_HEAVY_152_IR_PROTOCOL;
+        case UNKNOWN:
+            return UNKNOWN_IR_PROTOCOL;
         case UNUSED:
-            return "UNUSED";
+            return UNUSED_IR_PROTOCOL;
         default:
-            return "INVALID";
+            return INVALID_IR_PROTOCOL;
     }
 }
 
@@ -201,23 +527,17 @@ bool is_supported_remote(uint16_t protocol)
             return false;
     }
 }
-
-/**
- * @brief Function that configures the IR Receiver parameters like thresh and tolerance
- * helpful while decoding detected IR signals
- * 
- */
-void ir_recv_configure()
+ 
+void ir_recv_init()
 {
+    IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
+    decode_results results;
+    decode_type_t ir_protocol_detected;
+    
     irrecv.setUnknownThreshold(12);
     irrecv.setTolerance(25);
     irrecv.enableIRIn();
-}
-
-void decode_ir()
-{
-    decode_results results;
-    decode_type_t ir_protocol_detected;
+    
     if(irrecv.decode(&results))
     {
         resultToHumanReadableBasic(&results, &ir_protocol_detected);

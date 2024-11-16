@@ -7,6 +7,9 @@
 
 #include "lte.h"
 
+#define LOW 0
+#define HIGH 1
+
 static led_color_t current_color = {LOW, LOW, LOW};
 static led_state_t current_state = LED_STATE_IDLE;
 static esp_timer_handle_t blink_timer;
@@ -149,10 +152,11 @@ static void led_blink_callback(void *arg) {
         case LED_STATE_TEACHING_MODE:
             if(current_color.blue) led_set_color(colors.OFF);
             else led_set_color(colors.BLUE);
+            break;
 
         case LED_STATE_LTE_POWERING_DOWN:
-            if(current_color.red) led_set_color(colors.OFF);
-            else led_set_color(colors.RED);
+            if(current_color.green && current_color.red) led_set_color(colors.OFF);
+            else led_set_color(colors.ORANGE);
             break;
         default:
             break;

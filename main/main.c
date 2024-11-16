@@ -8,6 +8,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
 #include "esp_log.h"
 
 #include "inc/main.h"
@@ -75,12 +76,17 @@ void print_basic_info()
 void app_main(void)
 {
     nvs_init();
+
     strcpy(serialNoStr, "GWY00002");
-    // print_chip_info();
     print_basic_info();
-    button_intr_init();
+
     led_init();
     hb_init();
-    ir_init();
+
+    gpio_install_isr_service(0);
+    button_intr_init();
+    ir_recv_intr_init();
+    ir_tran_setup();
+
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 }

@@ -162,7 +162,7 @@ set(CORE_SRCS
   libraries/IRremoteESP8266/src/ir_Airton.cpp
 )
 
-set(includedirs variants/${CONFIG_ARDUINO_VARIANT}/ cores/esp32/ ${ARDUINO_LIBRARIES_INCLUDEDIRS})
+set(includedirs variants/${CONFIG_ARDUINO_VARIANT}/ cores/esp32/ libraries/IRremoteESP8266/src/)
 set(srcs ${CORE_SRCS} ${IR_LIB_SRCS})
 set(priv_includes cores/esp32/libb64)
 set(requires esp_adc)

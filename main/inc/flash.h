@@ -26,6 +26,7 @@ extern const char *NVS_OFFTIMER_KEY;
 extern const char *NVS_UPPER_TEMPERATURE_LIMIT_KEY;
 extern const char *NVS_LOWER_TEMPERATURE_LIMIT_KEY;
 extern const char *NVS_PUBPERIOD_KEY;
+extern const char *NVS_LAST_COMMAND_KEY;
 
 typedef enum
 {
@@ -40,3 +41,4 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
 void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value);
 int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, sizes_t size);
 char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key);
+void set_last_ac_cmd_in_nvs_flash();

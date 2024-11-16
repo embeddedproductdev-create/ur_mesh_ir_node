@@ -44,9 +44,27 @@ const char *NVS_OFFTIMER_KEY = "OffTimer";
 const char *NVS_UPPER_TEMPERATURE_LIMIT_KEY = "UTL";
 const char *NVS_LOWER_TEMPERATURE_LIMIT_KEY = "LTL";
 const char *NVS_PUBPERIOD_KEY = "PubPeriod";
+const char *NVS_LAST_COMMAND_KEY = "LastCommand";
 
 /**
- * @brief Set the number in nvs flash
+ * @brief Function that saves a blob to nvs flash
+ * 
+ * @param nvshandle 
+ * @param key 
+ */
+void set_last_ac_cmd_in_nvs_flash()
+{
+    esp_err_t err;
+    nvs_handle_t handle;
+    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
+    ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
+    nvs_set_blob(handle, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+/**
+ * @brief Function that saves a number to nvs flash
  * @param handle 
  * @param key 
  * @param value 
@@ -120,7 +138,7 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
 }
 
 /**
- * @brief Set the str in nvs flash
+ * @brief Function that saves a string to nvs flash
  * @param handle 
  * @param key 
  * @param value 
@@ -155,7 +173,7 @@ void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value)
 }
 
 /**
- * @brief Get the number from nvs flash
+ * @brief Function that gets a number from the nvs flash
  * @param handle 
  * @param key 
  * @return int32_t 
@@ -199,7 +217,7 @@ int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, size
 }
 
 /**
- * @brief Get the str from nvs flash
+ * @brief Function that gets a string from the nvs flash
  * @param handle 
  * @param key 
  * @return char* 

@@ -18,6 +18,7 @@
 #include "../inc/main.h"
 #include "../inc/heartbeat.h"
 #include "../inc/flash.h"
+#include "../inc/ir.h"
 
 #define BAUD_RATE 115200
 
@@ -31,12 +32,13 @@
 #define RTS_PIN 10
 #define UART_BUF_SIZE 800
 
-#define MIN_LTE_RESP_WAIT_MS 100
+#define MIN_LTE_RESP_WAIT_MS 500
 
 #define MQTT_TOPIC_CHAR_LEN 100
 #define MQTT_CMD_RESP_LEN 200
 #define MQTT_ACK_SIZE 1024
 #define RETRY_COUNT 5
+#define NETWORK_CHECK_INTERVAL_TICKS pdMS_TO_TICKS(60000) //60s once
 
 /*MQTT Configuration parameters*/
 #define MQTT_CLIENT_INDEX 2
@@ -73,10 +75,9 @@ const char *MSG_RECV_MODE_CMD = "AT+QMTCFG=\"recv/mode\",2,0\r";
 char WILL_CMD[MQTT_CMD_RESP_LEN];
 
 char MQTT_NETWORK_OPEN_CMD[MQTT_CMD_RESP_LEN];
-const char *MQTT_NETWORK_OPEN = "AT+QMTOPEN=";
-const char *MQTT_NETWORK_OPEN_RESP = "+QMTOPEN: 2,0";
-const char *CHECK_NETWORK_CMD = "AT+QMTOPEN?\r";
-char NETWORK_OK[MQTT_CMD_RESP_LEN];
+char MQTT_NETWORK_OPEN_RESP[MQTT_CMD_RESP_LEN];
+const char *MQTT_NETWORK_CHECK_CMD = "AT+QMTOPEN?\r";
+char MQTT_NETWORK_CHECK_RESP[MQTT_CMD_RESP_LEN];
 
 const char *MQTT_NETWORK_CLOSE_CMD = "AT+QMTCLOSE=2\r";
 const char *MQTT_NETWORK_CLOSE_RESP = "+QMTCLOSE: 2,0";
@@ -148,6 +149,8 @@ bool need_to_activate_pdp = false;
 bool LOG_DATA  = true;
 bool powerDownInProgress = false;
 
+TickType_t lastNetworkCheckedTime = 0;
+
 // Queues
 QueueHandle_t publish_queue;
 QueueHandle_t command_queue;
@@ -157,10 +160,10 @@ QueueHandle_t command_queue;
  * @param ack 
  * @return int 
  */
-int mqtt_publish(char *ack)
+int mqtt_publish(char *ack, char *topic)
 {
     char MQTT_PUBLISH_MESG_CMD[1024];
-	sprintf(MQTT_PUBLISH_MESG_CMD, "AT+QMTPUBEX=2,2,2,0,\"%s\",%d\r\n", publish_topic, strlen(ack));
+	sprintf(MQTT_PUBLISH_MESG_CMD, "AT+QMTPUBEX=2,2,2,0,\"%s\",%d\r\n", topic, strlen(ack));
 	if (send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", ">", 1000) == SUCCESS)
 	{
 		if (uart_write_bytes(UART_NUM_1, ack, strlen(ack)) != FAILURE)
@@ -184,7 +187,7 @@ int mqtt_publish(char *ack)
 void publish_from_queue() {
     char *ack_message;
     while (xQueueReceive(publish_queue, &ack_message, 0) == pdPASS) {
-        if (mqtt_publish(ack_message) != SUCCESS) {
+        if (mqtt_publish(ack_message, publish_topic) != SUCCESS) {
             ESP_LOGE(LTE_TAG, "Failed to publish ACK message to MQTT broker.\n");
         }
         else {
@@ -475,7 +478,7 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else cmd_struct->upperTemperatureLimit = upperTemperatureLimit;
         if(lowerTemperatureLimit<18 || lowerTemperatureLimit>32) {cmd_struct->errorcode = TEMPERATURE_LOWER_LIMIT_EXCEEDING_RANGE; return;}
         else cmd_struct->lowerTemperatureLimit = lowerTemperatureLimit;
-        if(upperTemperatureLimit<lowerTemperatureLimit) {cmd_struct->errorcode = INVALID_TEMPERATURE_LOCKING_LIMITS; return;}
+        if(upperTemperatureLimit<lowerTemperatureLimit) {cmd_struct->errorcode = INVALID_TEMPERATURE_LOCKING_LIMITS; return;}    
         return;
     }
 
@@ -603,7 +606,18 @@ void parse_json()
 
             case GWY_AC_CONTROL_PACKET:
                 sending_ir_command = true; update_led_status();
+                last_command.power = cmd_struct.power;
+                last_command.temperature = cmd_struct.temperature;
+                last_command.fanspeed = cmd_struct.fanspeed;
+                strcpy(last_command.mode_str, cmd_struct.mode_str);
+                last_command.swingh = cmd_struct.swingh;
+                last_command.swingv = cmd_struct.swingv;
+                last_command.locking = cmd_struct.locking;
+                last_command.upperTemperatureLimit = cmd_struct.upperTemperatureLimit;
+                last_command.lowerTemperatureLimit = cmd_struct.lowerTemperatureLimit;
+                ir_transmit();
                 sleep(1);
+                set_last_ac_cmd_in_nvs_flash();
                 sending_ir_command = false; update_led_status();
                 break;
 
@@ -625,6 +639,7 @@ void parse_json()
             case GWY_DEBUG_INFO_PACKET:
                 generate_debug_info_ack(&cmd_struct);
                 return;
+
             default:
                 break;
         }
@@ -658,7 +673,6 @@ error_codes check_response(char *uart_data, const char *check_string)
  */
 error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name)
 {
-    static uint8_t fail_counter = 0;
     error_codes rc = FAILURE;
     bzero(LTE_UART_data, UART_BUF_SIZE);
     uart_flush(UART_NUM_1);
@@ -679,7 +693,6 @@ error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *
     else 
     {
         ESP_LOGE(LTE_TAG, "No Data | data_len : %d", strlen(LTE_UART_data));
-        if(fail_counter++ > 10);
     }
     return rc;
 }
@@ -733,7 +746,7 @@ void establishMQTTConnection()
         {
             case QMTOPEN_2_ERRORCODE:
                 ESP_LOGE(LTE_TAG, "QMTOPEN_2_ERRORCODE");
-                send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, 100);
+                send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, MIN_LTE_RESP_WAIT_MS);
                 return;
 
             case QMTOPEN_3_ERRORCODE:
@@ -746,19 +759,35 @@ void establishMQTTConnection()
         }
     }
 	
-    if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, 100)==SUCCESS);
+    if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, MIN_LTE_RESP_WAIT_MS)==SUCCESS);
     else {
         ;
     }
 	
-    if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, 100)!=SUCCESS) return ;
+    if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS) return ;
 	ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
     need_to_activate_pdp = false; mqtt_connected = true; update_led_status(); LOG_DATA = false;
     if(registered) hb_timer_start();
 	while(!powerDownInProgress)
 	{
-		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)==SUCCESS);
-		if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESP, 50)!=SUCCESS) {
+		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)==SUCCESS){;}
+        if(xTaskGetTickCount()-lastNetworkCheckedTime > NETWORK_CHECK_INTERVAL_TICKS){
+            
+            lastNetworkCheckedTime = xTaskGetTickCount();
+            if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CHECK_CMD, "MQTT_NETWORK_CHECK_CMD", MQTT_NETWORK_CHECK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
+            {
+                ESP_LOGE(LTE_TAG, "Lost MQTT connection");
+                return;
+            }
+            else
+            {
+                char msg[20];
+                sprintf(msg, "%s is alive", serialNoStr);
+                if(mqtt_publish(msg, publish_topic)==SUCCESS){;}
+                else ESP_LOGE(LTE_TAG, "Alive message publish failed");
+            }
+        }
+        if(send_cmd_and_check_response(LOG_DATA, PING_CMD, "PING_CMD", OK_RESP, 50)!=SUCCESS) {
 			if(ping_fail_counter++ > RETRY_COUNT){
 				ESP_LOGE(LTE_TAG, "Lost MQTT connection");
 				ping_fail_counter = 0;
@@ -815,8 +844,9 @@ void initialize_mqtt_cmd_strings()
 	sprintf(subscribe_topic, "%s/command", serialNoStr);
 	sprintf(publish_topic, "%s/message", serialNoStr);
     sprintf(SET_BAUD_RATE_CMD, "AT+IPR=%d\r", BAUD_RATE);
-	sprintf(MQTT_NETWORK_OPEN_CMD, "%s%d,\"%s\",%d\r", MQTT_NETWORK_OPEN, MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
-	sprintf(NETWORK_OK, "+QMTOPEN: %d,\"%s\",%d", MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
+	sprintf(MQTT_NETWORK_OPEN_CMD, "AT+QMTOPEN=%d,\"%s\",%d\r", MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
+    sprintf(MQTT_NETWORK_OPEN_RESP, "+QMTOPEN: %d,0", MQTT_CLIENT_INDEX);
+	sprintf(MQTT_NETWORK_CHECK_RESP, "+QMTOPEN: %d,\"%s\",%d", MQTT_CLIENT_INDEX, MQTT_SERVER_IP, MQTT_PORT);
 	sprintf(MQTT_CLIENT_CONN_CMD, "AT+QMTCONN=%d,\"%s_abcd\",\"%s\",\"%s\"\r", MQTT_CLIENT_INDEX, serialNoStr, MQTT_BROKER_USERNAME, MQTT_BROKER_PASSWORD);
 	sprintf(MQTT_SUB_CMD, "AT+QMTSUB=%d,%d,\"%s\",%d\r",MQTT_CLIENT_INDEX, MQTT_MSG_ID, subscribe_topic, MQTT_QOS);
     sprintf(WILL_CMD, "AT+QMTCFG=\"will\",%d,%d,%d,%d,\"%s\",\"%s\"\r",

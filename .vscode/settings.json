@@ -47,7 +47,9 @@
         "esp32-hal-adc.h": "c",
         "adc_continuous.h": "c",
         "esp_log.h": "c",
-        "freertos.h": "c"
+        "freertos.h": "c",
+        "task.h": "c",
+        "*.txt": "cpp"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",
