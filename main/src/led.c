@@ -110,7 +110,7 @@ void led_set_state(led_state_t state) {
             esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
             break;
         
-        case LED_STATE_UNSUPPORTED_IR_PROTOCOL:
+        case LED_STATE_INVALID_OPERATION:
             led_set_color(colors.RED);
             esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
             sleep(1);
@@ -167,7 +167,7 @@ static void led_blink_callback(void *arg) {
             else led_set_color(colors.ORANGE);
             break;
         
-        case LED_STATE_UNSUPPORTED_IR_PROTOCOL:
+        case LED_STATE_INVALID_OPERATION:
             if(current_color.red) led_set_color(colors.OFF);
             else led_set_color(colors.RED);
             break;

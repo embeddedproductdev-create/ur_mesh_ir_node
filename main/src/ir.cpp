@@ -1,4 +1,5 @@
 #include "esp_log.h"
+#include <stdbool.h>
 
 #include <IRac.h>
 #include <IRutils.h>
@@ -44,10 +45,32 @@ const char *UNKNOWN_IR_PROTOCOL = "UNKNOWN";
 const char *UNUSED_IR_PROTOCOL = "UNUSED";
 const char *INVALID_IR_PROTOCOL = "INVALID";
 
+const char *TEACHING_MODE_SEQUENCE[] = {
+    "Temperature - 18 | Power - Off", //0
+    "Temperature - 18 | Power - On", //1
+    "Temperature - 19 | Power - On", //2
+    "Temperature - 20 | Power - On", //3
+    "Temperature - 21 | Power - On", //4
+    "Temperature - 22 | Power - On", //5
+    "Temperature - 23 | Power - On", //6
+    "Temperature - 24 | Power - On", //7
+    "Temperature - 25 | Power - On", //8
+    "Temperature - 26 | Power - On", //9
+    "Temperature - 27 | Power - On", //10
+    "Temperature - 28 | Power - On", //11
+    "Temperature - 29 | Power - On", //12
+    "Temperature - 30 | Power - On", //13
+    "Temperature - 31 | Power - On", //14
+    "Temperature - 32 | Power - On"  //15
+}
+
 /*IR Receiver Initializations*/
 IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
 decode_results results;
 const uint8_t kTolerancePercentage = 25;
+
+manual_control ac_manual_control_t;
+teaching_mode teaching_mode_t;
 
 /*IR Transmitter Initializations*/
 
@@ -575,48 +598,91 @@ bool is_supported_remote(uint16_t protocol)
 }
 
 
+
 /**
- * @brief Function that generates the manual AC control ack and adds it into the queue
+ * @brief Function that initializes the value for teaching mode process
+ * @param startingTemp Starting Temperature of Teaching Mode
+ * @param endingTemp Ending Temperature of Teaching Mode
  */
-void generate_manual_control_ack(int8_t power, int8_t fanspeed, int8_t temperature, char *mode,
-error_codes power_err, error_codes fanspeed_err, error_codes temperature_err, error_codes mode_err)
+void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
-    int size = 1024;
-    char buffer[5][size];
-    struct jWriteControl jwc[5];
+    teaching_in_progress = true;
+    teaching_mode_t.remaining_commands = endingTemp-startingTemp+2;
+    teaching_mode_t.command_index = (startingTemp - MAX_LOW_TEMP)+1;
+    strcpy(teaching_mode_t.last_command = "");
+    strcpy(teaching_mode_t.next_command, TEACHING_MODE_SEQUENCE[teaching_mode_t.command_index]);
+    generate_ack(GWY_TEACHING_MODE, NULL);
+}
 
-    /*Constructing the ACK Json*/
-    jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
-    jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
-    jwObj_int(&jwc[0], POWER_KEY, power);
-    jwObj_int(&jwc[0], TEMPERATURE_KEY, temperature);
-    jwObj_int(&jwc[0], FAN_SPEED_KEY, fanspeed);
-    jwObj_string(&jwc[0], MODE_KEY, mode);
-    jwObj_array(&jwc[0], ERROR_CODE_KEY);
-        jwOpen(&jwc[1], buffer[1], size, JW_OBJECT, 1);
-        jwOpen(&jwc[2], buffer[1], size, JW_OBJECT, 1);
-        jwOpen(&jwc[3], buffer[1], size, JW_OBJECT, 1);
-        jwOpen(&jwc[4], buffer[1], size, JW_OBJECT, 1);
-        jwObj_int(&jwc[1], "POWER_ERRORCODE", power_err);
-        jwObj_int(&jwc[2], "TEMPERATURE_ERRORCODE", temperature_err);
-        jwObj_int(&jwc[3], "FANSPEED_ERRORCODE", fanspeed_err);
-        jwObj_int(&jwc[4], "MODE_ERRORCODE", mode_err);
-        jwArr_object(&jwc[1]);
-        jwArr_object(&jwc[2]);
-        jwArr_object(&jwc[3]);
-        jwArr_object(&jwc[4]);
-        jwEnd(&jwc[1]);
-        jwClose(&jwc[1]);
-        jwEnd(&jwc[2]);
-        jwClose(&jwc[2]);
-        jwEnd(&jwc[3]);
-        jwClose(&jwc[3]);
-        jwEnd(&jwc[4]);
-        jwClose(&jwc[4]);
-    jwEnd(&jwc[0]);
-    jwClose(&jwc[0]);
+/**
+ * @brief Function that fetches the info of Power, Temperature, Fanspeed and Mode
+ * from received IR Signal. 
+ * @warning Both teaching mode and Lockign feature depend on the Temperature value that was detected, 
+ * if that fails, then it's FATAL
+ * @retval true = If Temperature parse was success
+ * @retval false = If Temperature parse was failure
+ */
+bool isFetchControlInfoSuccessful(const char *description)
+{
+    /*Initializing to Defaults*/
+    strcpy(ac_manual_control_t.temperature[3], "");
+    strcpy(ac_manual_control_t.power[4], "");
+    strcpy(ac_manual_control_t.fan[2], "");
+    strcpy(ac_manual_control_t.mode[5], "");
 
-    enqueue_for_publish(buffer[0]);
+    ac_manual_control_t.power_value -1;
+    ac_manual_control_t.fanspeed_value = -1;
+    ac_manual_control_t.temperature_value = -1;
+
+    ac_manual_control_t.power_err = SUCCESS;
+    ac_manual_control_t.fanspeed_err = SUCCESS;
+    ac_manual_control_t.mode_err = SUCCESS;
+    ac_manual_control_t.temperature_err = SUCCESS;
+
+    /*Starting Decoding Power, Mode, Fanspeed, Temperature Info*/
+    if (strstr(description, "Power"))
+    {
+        snprintf(ac_manual_control_t.power, sizeof(ac_manual_control_t.power), (strstr(description, "Power") + 7));
+        if (strstr(ac_manual_control_t.power, "On")) ac_manual_control_t.power_value = 1;
+        else ac_manual_control_t.power_value = 0;
+    }
+    else {ac_manual_control_t.power_err = POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING; ac_manual_control_t.power_value=-1;}
+
+    if (strstr(description, "Mode"))
+    {
+        snprintf(ac_manual_control_t.mode, sizeof(ac_manual_control_t.mode), (strstr(description, "Mode") + 9));
+        if (strstr(ac_manual_control_t.mode, COOL_MODE_STR))
+            strcpy(ac_manual_control_t.mode, COOL_MODE_STR);
+        else if (strstr(ac_manual_control_t.mode, HEAT_MODE_STR))
+            strcpy(ac_manual_control_t.mode, HEAT_MODE_STR);
+        else if (strstr(ac_manual_control_t.mode, DRY_MODE_STR))
+            strcpy(ac_manual_control_t.mode, DRY_MODE_STR);
+        else if (strstr(ac_manual_control_t.mode, AUTO_MODE_STR))
+            strcpy(ac_manual_control_t.mode, AUTO_MODE_STR);
+        else if (strstr(ac_manual_control_t.mode, FAN_MODE_STR))
+            strcpy(ac_manual_control_t.mode, FAN_MODE_STR);
+    }
+    else {ac_manual_control_t.mode_err = MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;strcpy(ac_manual_control_t.mode,"-1");}
+
+    if (strstr(description, "Fan"))
+    {
+        snprintf(ac_manual_control_t.fan, sizeof(ac_manual_control_t.fan), (strstr(description, "Fan") + 5));
+        ac_manual_control_t.fanspeed_value = atoi(ac_manual_control_t.fan);
+    }
+    else {ac_manual_control_t.fanspeed_err = FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;ac_manual_control_t.fanspeed_value=-1;}
+
+    if (strstr(description, "Temp"))
+    {
+        snprintf(ac_manual_control_t.temperature, sizeof(ac_manual_control_t.temperature), (strstr(description, "Temp") + 6));
+        ac_manual_control_t.temperature_value = atoi(ac_manual_control_t.temperature);
+        return true;
+    }
+    else {
+        ac_manual_control_t.temperature_err = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+        ac_manual_control_t.temperature_value=-1;
+        return false;
+    }
+
 }
 
 /**
@@ -624,65 +690,24 @@ error_codes power_err, error_codes fanspeed_err, error_codes temperature_err, er
  */
 void locking_feature(const char *description)
 {
-    char temperature[3] = "";
-    char power[4] = "";
-    char fan[2] = "";
-    char mode[5] = "";
-
-    int8_t power_value;
-    int8_t fanspeed_value;
-    int8_t temperature_value;
-
-    error_codes power_err = SUCCESS;
-    error_codes fanspeed_err = SUCCESS;
-    error_codes mode_err = SUCCESS;
-    error_codes temperature_err = SUCCESS;
-
-    if (strstr(description, "Power"))
+    if(isFetchControlInfoSuccessful(description))
     {
-        snprintf(power, sizeof(power), (strstr(description, "Power") + 7));
-        if (strstr(power, "On")) power_value = 1;
-        else power_value = 0;
+        if (!(ac_manual_control_t.temperature_value >= last_command.lowerTemperatureLimit &&
+            ac_manual_control_t.temperature_value <= last_command.upperTemperatureLimit))
+        {
+            ir_transmit();
+        }
     }
-    else {power_err = POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING; power_value=-1;}
 
-    if (strstr(description, "Mode"))
-    {
-        snprintf(mode, sizeof(mode), (strstr(description, "Mode") + 9));
-        if (strstr(mode, COOL_MODE_STR))
-            strcpy(mode, COOL_MODE_STR);
-        else if (strstr(mode, HEAT_MODE_STR))
-            strcpy(mode, HEAT_MODE_STR);
-        else if (strstr(mode, DRY_MODE_STR))
-            strcpy(mode, DRY_MODE_STR);
-        else if (strstr(mode, AUTO_MODE_STR))
-            strcpy(mode, AUTO_MODE_STR);
-        else if (strstr(mode, FAN_MODE_STR))
-            strcpy(mode, FAN_MODE_STR);
-    }
-    else {mode_err = MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;strcpy(mode,"N/A");}
-
-    if (strstr(description, "Fan"))
-    {
-        snprintf(fan, sizeof(fan), (strstr(description, "Fan") + 5));
-        fanspeed_value = atoi(fan);
-    }
-    else {fanspeed_err = FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;fanspeed_value=-1;}
-
-    if (strstr(description, "Temp"))
-    {
-        snprintf(temperature, sizeof(temperature), (strstr(description, "Temp") + 6));
-        temperature_value = atoi(temperature);
-    }
-    else {temperature_err = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;temperature_value=-1;}
-
-    if (!(temperature_value >= last_command.lowerTemperatureLimit &&
-          temperature_value <= last_command.upperTemperatureLimit))
-    {
-        ir_transmit();
-    }
-    generate_manual_control_ack(power_value, fanspeed_value, temperature_value, mode,
-    power_err, fanspeed_err, temperature_err, mode_err);
+    generate_manual_control_ack(
+        ac_manual_control_t.power_value, 
+        ac_manual_control_t.fanspeed_value, 
+        ac_manual_control_t.temperature_value, 
+        ac_manual_control_t.mode,
+        ac_manual_control_t.power_err, 
+        ac_manual_control_t.fanspeed_err, 
+        ac_manual_control_t.temperature_err, 
+        ac_manual_control_t.mode_err);
 }
 
 /**
@@ -699,14 +724,19 @@ void ir_recv_task(void *args)
         if (irrecv.decode(&results))
         {
             decode_type_t protocol = UNKNOWN;
-            if (results.overflow)
-                ESP_LOGW(IR_TAG, "IR Buffer overflow");
+            if (results.overflow) ESP_LOGW(IR_TAG, "IR Buffer overflow");
             ESP_LOGW(IR_TAG, "kTolerancePercentage : %d", kTolerancePercentage);
             ESP_LOGW(IR_TAG, "%s", resultToHumanReadableBasic(&results, &protocol).c_str());
             ESP_LOGW(IR_TAG, "Protocol Number : %d", protocol);
             String description = IRAcUtils::resultAcToString(&results);
-            if (description.length())
-                ESP_LOGW(IR_TAG, "%s\n", description.c_str());
+            if (description.length()) ESP_LOGW(IR_TAG, "%s\n", description.c_str());
+
+            /**  @warning DO NOT CHANGE THE FOLLOWING ORDER
+            * 1) locking Feature 
+            * 2) Teaching Mode
+            * 3) AC Remote Configuration
+            * 4) Unsupported AC Remote Check
+            */
 
             /*Locking Feature*/
             if (registered && configured && last_command.locking && !teaching_in_progress &&
@@ -720,7 +750,7 @@ void ir_recv_task(void *args)
             /*Teaching Mode*/
             if (teaching_in_progress)
             {
-                ;
+                if(isFetchControlInfoSuccessful(description));
             }
 
             /*AC Remote Configuration Process*/
@@ -737,7 +767,7 @@ void ir_recv_task(void *args)
             /*Unsupported AC Remote*/
             if (!configured && protocol == UNKNOWN)
             {
-                led_set_state(LED_STATE_UNSUPPORTED_IR_PROTOCOL);
+                led_set_state(LED_STATE_INVALID_OPERATION);
             }
 
             yield();

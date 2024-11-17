@@ -8,9 +8,10 @@
 #include "esp_system.h"
 #include "inttypes.h"
 
-#include "../inc/button.h"
-#include "../inc/led.h"
-#include "../inc/lte.h"
+#include <button.h>
+#include <led.h>
+#include <lte.h>
+#include <ir.h>
 
 #define DEBOUNCE_TIME_MS 10
 #define DOUBLE_PRESS_TIME_MS 450
@@ -90,10 +91,11 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         case LONG_PRESS_3S:
-            led_set_state(LED_STATE_TEACHING_MODE);
             break;
 
         case LONG_PRESS_1S:
+            if(!teaching_in_progress) teaching_mode_init(MAX_LOW_TEMP, MAX_HIGH_TEMP);
+            else led_set_state(LED_STATE_INVALID_OPERATION);
             break;
         
         default:

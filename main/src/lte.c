@@ -98,48 +98,57 @@ const char *QMTOPEN_2_ERROR = "+QMTOPEN: 2,2";
 const char *QMTOPEN_3_ERROR = "+QMTOPEN: 2,3";
 
 /*MQTT Packet JSON Keys*/
-const char* JSON_PACKET_ID_KEY = "JsonPacketID";
-const char* JSON_ACK_NAME_KEY = "JsonAckName";
-const char* MSG_SEQ_NO_KEY = "MsgSeqNo";
-const char* GWY_SER_NO_KEY = "GwySerNo";
-const char* NODE_SER_NO_KEY = "NodeSerNo";
-const char* LOCATION_KEY = "Location";
-const char* APP_KEY_INDEX = "AppKeyIndex";
-const char* APP_KEY = "AppKey";
-const char* NET_KEY_INDEX = "NetKeyIndex";
-const char* NET_KEY = "NetKey";
-const char* ELEMENT_ADDR_KEY = "ElementAddr";
-const char* MAC_ID_KEY = "MacId";
-const char* MODE_KEY = "Mode";
-const char* POWER_KEY = "Power";
-const char* FAN_SPEED_KEY = "FanSpeed";
-const char* TEMPERATURE_KEY = "Temperature";
-const char* SWING_H_KEY = "SwingH";
-const char* SWING_V_KEY = "SwingV";
-const char* ONTIMER_KEY = "OnTimer";
-const char* OFFTIMER_KEY = "OffTimer";
-const char* AC_LOCKING_KEY = "Locking";
-const char* UPPER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
-const char* LOWER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
-const char* ERROR_CODE_KEY = "ErrorCode";
-const char* AMBIENT_TEMPERATURE_DATA_KEY = "AmbientTemperature";
-const char* PUBLISH_PERIOD_KEY = "PublishPeriodSec";
-const char* FIRMWARE_VERSION_KEY = "FirmwareVersion";
-const char* REGISTERED_KEY = "Registered";
-const char* PROTOCOL_SEL_NUM_KEY = "Protocol";
-const char* PUBLISH_MESG_QUEUE_COUNT_KEY = "PubMsgQueueCount";
-const char* PROV_QUEUE_COUNT_KEY = "ProvQueueCount";
-const char* UNPROV_QUEUE_COUNT_KEY = "UnProvQueueCount";
-const char* AC_CONTROL_QUEUE_COUNT_KEY = "ACControlQueueCount";
-const char* RECONF_QUEUE_COUNT_KEY = "ReconfQueueCount";
-const char* PUB_CONF_QUEUE_COUNT_KEY = "PubConfQueueCount";
-const char* TEACHING_MODE_QUEUE_COUNT_KEY = "TeachingModeQueueCount";
-const char* DEBUG_INFO_QUEUE_COUNT_KEY = "DebugInfoQueueCount";
-const char* DEVICE_UPTIME_KEY = "DeviceUpTimeHrs";
-const char* LOGGING_KEY = "Logging";
-const char* RESET_DEVICE_KEY = "ResetDevice";
-const char* LINK_KEY = "Link";
-const char* TEACHING_START_KEY = "TeachingStart";
+const char *JSON_PACKET_ID_KEY = "JsonPacketID";
+const char *JSON_ACK_NAME_KEY = "JsonAckName";
+const char *MSG_SEQ_NO_KEY = "MsgSeqNo";
+const char *GWY_SER_NO_KEY = "GwySerNo";
+const char *NODE_SER_NO_KEY = "NodeSerNo";
+const char *LOCATION_KEY = "Location";
+const char * APP_KEY_INDEX = "AppKeyIndex";
+const char *APP_KEY = "AppKey";
+const char *NET_KEY_INDEX = "NetKeyIndex";
+const char *NET_KEY = "NetKey";
+const char *ELEMENT_ADDR_KEY = "ElementAddr";
+const char *MAC_ID_KEY = "MacId";
+const char *MODE_KEY = "Mode";
+const char *POWER_KEY = "Power";
+const char *FAN_SPEED_KEY = "FanSpeed";
+const char *TEMPERATURE_KEY = "Temperature";
+const char *SWING_H_KEY = "SwingH";
+const char *SWING_V_KEY = "SwingV";
+const char *ONTIMER_KEY = "OnTimer";
+const char *OFFTIMER_KEY = "OffTimer";
+const char *AC_LOCKING_KEY = "Locking";
+const char *UPPER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
+const char *LOWER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
+const char *ERROR_CODE_KEY = "ErrorCode";
+const char *AMBIENT_TEMPERATURE_DATA_KEY = "AmbientTemperature";
+const char *PUBLISH_PERIOD_KEY = "PublishPeriodSec";
+const char *FIRMWARE_VERSION_KEY = "FirmwareVersion";
+const char *REGISTERED_KEY = "Registered";
+const char *PROTOCOL_SEL_NUM_KEY = "Protocol";
+const char *PUBLISH_MESG_QUEUE_COUNT_KEY = "PubMsgQueueCount";
+const char *PROV_QUEUE_COUNT_KEY = "ProvQueueCount";
+const char *UNPROV_QUEUE_COUNT_KEY = "UnProvQueueCount";
+const char *AC_CONTROL_QUEUE_COUNT_KEY = "ACControlQueueCount";
+const char *RECONF_QUEUE_COUNT_KEY = "ReconfQueueCount";
+const char *PUB_CONF_QUEUE_COUNT_KEY = "PubConfQueueCount";
+const char *TEACHING_MODE_QUEUE_COUNT_KEY = "TeachingModeQueueCount";
+const char *DEBUG_INFO_QUEUE_COUNT_KEY = "DebugInfoQueueCount";
+const char *DEVICE_UPTIME_KEY = "DeviceUpTimeHrs";
+const char *LOGGING_KEY = "Logging";
+const char *RESET_DEVICE_KEY = "ResetDevice";
+const char *LINK_KEY = "Link";
+const char *TEACHING_START_KEY = "TeachingStart";
+const char *STARTING_TEMPERATURE_KEY ="StartingTemperature";
+const char *ENDING_TEMPERATURE_KEY = "EndingTemperature";
+const char *POWER_ERROR_KEY = "PowerErrorCode";
+const char *TEMPERATURE_ERROR_KEY = "TemperatureErrorCode";
+const char *FANSPEED_ERROR_KEY = "FanspeedErrorCode";
+const char *MODE_ERROR_KEY = "ModeErrorCode";
+const char *LAST_CMD_KEY = "LastCommand";
+const char *NEXT_CMD_KEY = "NextCommand";
+const char *REMAINING_CMD_KEY = "RemainingCommands";
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
@@ -206,26 +215,88 @@ void enqueue_for_publish(char *ack_json) {
  * @brief Function that generates the ack to be sent to cloud
  * @param cmd_struct 
  */
-void generate_ack(CommandStruct *cmd_struct)
+void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 {
-    char *buffer = (char *)malloc(1024);
-    if(!buffer) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
-        return;
+    int size = 1024;
+    char buffer[5][size];
+    struct jWriteControl jwc[5];
+
+    switch(packetid)
+    {
+        GWY_TEACHING_MODE:
+            jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
+            
+            jwEnd(&jwc[0]);
+            jwClose(&jwc[0]);
+            break;
+        
+        NODE_TEACHING_MODE:
+            jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
+            
+            jwEnd(&jwc[0]);
+            jwClose(&jwc[0]);
+            break;
+
+        GWY_MANUAL_AC_CONTROL_ACK:
+            jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
+            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
+            jwObj_int(&jwc[0], POWER_KEY, ac_manual_control_t.power_value);
+            jwObj_int(&jwc[0], TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
+            jwObj_int(&jwc[0], FAN_SPEED_KEY, ac_manual_control_t.fanspeed_value);
+            jwObj_string(&jwc[0], MODE_KEY, ac_manual_control_t.mode);
+            jwObj_array(&jwc[0], ERROR_CODE_KEY);
+                jwOpen(&jwc[1], buffer[1], size, JW_OBJECT, 1);
+                jwOpen(&jwc[2], buffer[1], size, JW_OBJECT, 1);
+                jwOpen(&jwc[3], buffer[1], size, JW_OBJECT, 1);
+                jwOpen(&jwc[4], buffer[1], size, JW_OBJECT, 1);
+                jwObj_int(&jwc[1], POWER_ERROR_KEY, ac_manual_control_t.power_err);
+                jwObj_int(&jwc[2], TEMPERATURE_ERROR_KEY, ac_manual_control_t.temperature_err);
+                jwObj_int(&jwc[3], FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
+                jwObj_int(&jwc[4], MODE_ERROR_KEY, ac_manual_control_t.mode_err);
+                jwArr_object(&jwc[1]);
+                jwArr_object(&jwc[2]);
+                jwArr_object(&jwc[3]);
+                jwArr_object(&jwc[4]);
+                jwEnd(&jwc[1]);
+                jwClose(&jwc[1]);
+                jwEnd(&jwc[2]);
+                jwClose(&jwc[2]);
+                jwEnd(&jwc[3]);
+                jwClose(&jwc[3]);
+                jwEnd(&jwc[4]);
+                jwClose(&jwc[4]);
+            jwEnd(&jwc[0]);
+            jwClose(&jwc[0]);
+            break;
+
+        NODE_MANUAL_AC_CONTROL_ACK:
+            break;
+
+        GWY_DEBUG_INFO_PACKET:
+            char version[10], uptime[10];
+            sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
+            sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
+            jwOpen(&jwc[0], buffer[0], 1024, JW_OBJECT, 1);
+            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, cmd_struct->packetid);
+            jwObj_int(&jwc[0], MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc[0], FIRMWARE_VERSION_KEY, version);
+            jwObj_int(&jwc[0], REGISTERED_KEY, registered);
+            jwObj_string(&jwc[0], PROTOCOL_SEL_NUM_KEY, ir_protocol);
+            jwObj_int(&jwc[0], PUBLISH_PERIOD_KEY, publishPeriod);
+            jwObj_string(&jwc[0], DEVICE_UPTIME_KEY, uptime);
+            jwObj_int(&jwc[0], ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwClose(&jwc[0]);
+            break;
+
+        default:
+            jwOpen(&jwc[0], buffer[0], 1024, JW_OBJECT, 1);
+            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, cmd_struct->packetid);
+            jwObj_int(&jwc[0], MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(&jwc[0], ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwClose(&jwc[0]);
+            break;
     }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
-    jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
-    jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
-    jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-    jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-    jwClose(jwc);
-    enqueue_for_publish(buffer);
-    free(jwc);
+    enqueue_for_publish(buffer[0]);
 }
 
 /**
@@ -530,39 +601,6 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 }
 
-/**
- * @brief Function that generates Debug Info ACK
- * 
- */
-void generate_debug_info_ack(CommandStruct *cmd_struct)
-{
-    char *buffer = (char *)malloc(1024);
-    if(!buffer) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
-        return;
-    }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
-    char version[10], uptime[10];
-    sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
-    sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
-    jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
-    jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
-    jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-    jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
-    jwObj_int(jwc, REGISTERED_KEY, registered);
-    jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
-    jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
-    jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
-    jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-    jwClose(jwc);
-    enqueue_for_publish(buffer);
-}
-
 void parse_json()
 {
     led_set_state(LED_STATE_MQTT_CMD_RECVD);
@@ -639,17 +677,17 @@ void parse_json()
                 break;
 
             case GWY_DEBUG_INFO_PACKET:
-                generate_debug_info_ack(&cmd_struct);
+                generate_ack(cmd_struct.packetid, &cmd_struct);
                 return;
 
             default:
                 break;
         }
-        generate_ack(&cmd_struct);
+        generate_ack(cmd_struct.packetid, &cmd_struct);
     }
     else
     {
-        generate_ack(&cmd_struct);
+        generate_ack(cmd_struct.packetid, &cmd_struct);
     }
 }
 
