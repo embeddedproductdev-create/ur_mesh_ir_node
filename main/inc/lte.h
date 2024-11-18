@@ -75,6 +75,7 @@ extern const char *MODE_ERROR_KEY;
 extern const char *LAST_CMD_KEY;
 extern const char *NEXT_CMD_KEY;
 extern const char *REMAINING_CMD_KEY; 
+extern const char *DETECTED_TEMPERATURE_KEY;
 
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 extern char publish_topic[MQTT_TOPIC_CHAR_LEN];

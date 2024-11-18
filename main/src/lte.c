@@ -149,6 +149,7 @@ const char *MODE_ERROR_KEY = "ModeErrorCode";
 const char *LAST_CMD_KEY = "LastCommand";
 const char *NEXT_CMD_KEY = "NextCommand";
 const char *REMAINING_CMD_KEY = "RemainingCommands";
+const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
@@ -229,10 +230,11 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         free(buffer);
         return;
     }
+    
+    jwOpen(jwc, buffer, size, JW_OBJECT, 1);
     switch(packetid)
     {
         case GWY_TEACHING_MODE:
-            jwOpen(jwc, buffer, size, JW_OBJECT, 1);
             jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);
             jwObj_int(jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
             jwObj_int(jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
@@ -244,10 +246,10 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
-            jwOpen(jwc, buffer, size, JW_OBJECT, 1);
             jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
             jwObj_int(jwc, POWER_KEY, ac_manual_control_t.power_value);
-            jwObj_int(jwc, TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
+            jwObj_int(jwc, DETECTED_TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
+            jwObj_int(jwc, TEMPERATURE_KEY, last_command.temperature);
             jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_value);
             jwObj_string(jwc, MODE_KEY, ac_manual_control_t.mode);
             jwObj_int(jwc, POWER_ERROR_KEY, ac_manual_control_t.power_err);
@@ -263,7 +265,6 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             char version[10], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
-            jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
@@ -273,9 +274,15 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             break;
+        
+        case GWY_CONF_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_CONF_ACK);
+            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
+            if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+            else jwObj_string(jwc, ERROR_CODE_KEY, SUCCESS);
+            break;
 
         default:
-            jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);

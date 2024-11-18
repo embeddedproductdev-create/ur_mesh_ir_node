@@ -695,10 +695,23 @@ void locking_feature(const char *description)
 {
     if (isFetchControlInfoSuccessful(description))
     {
-        if (!(ac_manual_control_t.temperature_value >= last_command.lowerTemperatureLimit &&
+        if (last_command.locking && !(ac_manual_control_t.temperature_value >= last_command.lowerTemperatureLimit &&
               ac_manual_control_t.temperature_value <= last_command.upperTemperatureLimit))
         {
+            ESP_LOGW(IR_TAG, "AC temperature limit exceeded  (Current set Temperature : %d) | (Limits %d - %d)",
+            ac_manual_control_t.temperature_value,
+            last_command.lowerTemperatureLimit,
+            last_command.upperTemperatureLimit);
+            ESP_LOGW(IR_TAG, "Setting AC Temperature to : %d", last_command.temperature);
             ir_transmit();
+        }
+        else 
+        {
+            last_command.power = ac_manual_control_t.power_value;
+            last_command.temperature = ac_manual_control_t.temperature_value;
+            last_command.fanspeed = ac_manual_control_t.fanspeed_value;
+            strcpy(last_command.mode_str, ac_manual_control_t.mode);
+            set_blob_in_nvs_flash(IR_HANDLE, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
         }
     }
 
@@ -725,6 +738,7 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8);
     generate_ack(GWY_TEACHING_MODE, NULL);
+    ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
 }
 
 /**
@@ -740,11 +754,13 @@ void exit_teaching_mode(bool success)
         ir_protocol_num = RAW;
         strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
         set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+        ESP_LOGI(IR_TAG, "Teaching mode completed successfully");
     }
     strcpy(teaching_mode_t.nextCommand, "");
     teaching_in_progress = false; update_led_status();
     teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
     generate_ack(GWY_TEACHING_MODE, NULL);
+    ESP_LOGW(IR_TAG, "Quitting Teaching mode without completion");
 }
 
 /**
@@ -863,7 +879,7 @@ void ir_recv_task(void *args)
              */
 
             /*Locking Feature*/
-            if (registered && configured && last_command.locking && !teaching_in_progress &&
+            if (registered && configured && !teaching_in_progress &&
                 ((protocol == ir_protocol_num) || (ir_protocol_num == RAW && results.rawlen == teaching_mode_raw_len)) &&
                 description.length())
             {
@@ -872,27 +888,30 @@ void ir_recv_task(void *args)
             }
 
             /*Teaching Mode*/
-            if (teaching_in_progress)
+            else if (teaching_in_progress)
             {
                 perform_teaching_process(description.c_str());
                 continue;
             }
 
             /*AC Remote Configuration Process*/
-            if (registered && !configured && protocol != UNKNOWN && !teaching_in_progress)
+            else if (registered && !configured && protocol != UNKNOWN && !teaching_in_progress)
             {
-                configured = true;
-                update_led_status();
+                configured = true; update_led_status();
                 ir_protocol_num = protocol;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
                 set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8);
+                generate_ack(GWY_CONF_ACK, NULL);
+                ESP_LOGI(IR_TAG, "AC Remote configuration successful");
             }
 
             /*Unsupported AC Remote*/
-            if (!configured && protocol == UNKNOWN)
+            else if (!configured && protocol == UNKNOWN)
             {
                 led_set_state(LED_STATE_INVALID_OPERATION);
+                ESP_LOGD(IR_TAG, "AC Remote Unsupported");
+                generate_ack(GWY_CONF_ACK, NULL);
             }
 
             yield();
