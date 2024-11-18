@@ -52,7 +52,10 @@
         "*.txt": "cpp",
         "stop_token": "c",
         "irremoteesp8266.h": "c",
-        "ir.h": "c"
+        "ir.h": "c",
+        "stdio.h": "c",
+        "esp_ble_mesh_defs.h": "c",
+        "esp_ble_mesh_common_api.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

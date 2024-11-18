@@ -11,14 +11,14 @@
 #include "esp_log.h"
 #include "esp_system.h"
 
-#include "../inc/cJSON.h"
-#include "../inc/json_maker.h"
-#include "../inc/lte.h"
-#include "../inc/led.h"
-#include "../inc/main.h"
-#include "../inc/heartbeat.h"
-#include "../inc/flash.h"
-#include "../inc/ir.h"
+#include <cJSON.h>
+#include <json_maker.h>
+#include <lte.h>
+#include <led.h>
+#include <main.h>
+#include <heartbeat.h>
+#include <flash.h>
+#include <ir.h>
 
 #define BAUD_RATE 115200
 

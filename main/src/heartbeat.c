@@ -2,10 +2,10 @@
 #include "esp_timer.h"
 #include "esp_log.h"
 
-#include "../inc/main.h"
-#include "../inc/lte.h"
-#include "../inc/cJSON.h"
-#include "../inc/json_maker.h"
+#include <main.h>
+#include <lte.h>
+#include <cJSON.h>
+#include <json_maker.h>
 
 
 #define HB_TAG "HEARTBEAT"

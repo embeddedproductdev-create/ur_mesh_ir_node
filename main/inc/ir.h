@@ -15,6 +15,7 @@
 /*Global Variables*/
 extern TaskHandle_t ir_recv_task_handle;
 extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
+extern const char *TEACHING_MODE_SEQUENCE[];
 
 extern const char *RAW_IR_PROTOCOL;
 extern const char *DAIKIN_IR_PROTOCOL;
@@ -61,6 +62,7 @@ bool is_supported_remote(int16_t protocol);
 void ir_transmit();
 void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
 void exit_teaching_mode(bool success);
+
 #ifdef __cplusplus
 }
 #endif

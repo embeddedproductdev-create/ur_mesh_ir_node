@@ -11,14 +11,15 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 
-#include "inc/main.h"
-#include "inc/general.h"
-#include "inc/button.h"
-#include "inc/led.h"
-#include "inc/lte.h"
-#include "inc/heartbeat.h"
-#include "inc/flash.h"
-#include "inc/ir.h"
+#include <main.h>
+#include <general.h>
+#include <button.h>
+#include <led.h>
+#include <lte.h>
+#include <heartbeat.h>
+#include <flash.h>
+#include <ir.h>
+#include <ble.h>
 
 #define TAG "MAIN"
 
@@ -77,6 +78,7 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d", NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
     ESP_LOGI(TAG, "%s : %d", NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
     ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+    ESP_LOGW(TAG, "%s : %d", "CommandStruct Size", sizeof(CommandStruct));
 }
 
 /**
@@ -111,6 +113,7 @@ void app_main(void)
 
     print_basic_info();
 
+    ble_init();
     led_init();
     hb_init();
 

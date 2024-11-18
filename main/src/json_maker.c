@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>	// memset()
 #include <stdint.h>
-#include "../inc/json_maker.h"
+#include <json_maker.h>
 
 // the jWrite functions take the above jWriteControl structure pointer
 // to maintain state while writing a JSON string.

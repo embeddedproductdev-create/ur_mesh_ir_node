@@ -8,6 +8,7 @@ set( CUSTOM_SRCS
     src/heartbeat.c
     src/flash.c
     src/ir.cpp
+    src/ble.c
 )
 
 idf_component_register(
