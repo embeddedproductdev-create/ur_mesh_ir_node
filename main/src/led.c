@@ -94,8 +94,15 @@ void led_set_state(led_state_t state) {
             led_set_color(colors.RED);
             break;
         
-        case LED_STATE_SENDING_IR_COMMAND:
-            led_set_color(colors.MAGENTA);
+        case LED_STATE_SENDING_IR_COMMAND: // Blink Magenta twice
+            for(uint8_t i=0;i<2;i++)
+            {
+                led_set_color(colors.MAGENTA);
+                vTaskDelay(pdMS_TO_TICKS(FAST_BLINK_INTERVAL_MS));
+                led_set_color(colors.OFF);
+                vTaskDelay(pdMS_TO_TICKS(FAST_BLINK_INTERVAL_MS));
+            }
+            update_led_status();
             break;
         
         case LED_STATE_TEACHING_MODE:
@@ -105,7 +112,7 @@ void led_set_state(led_state_t state) {
         
         case LED_STATE_MQTT_CMD_RECVD:
             led_set_color(colors.ORANGE);
-            sleep(1);
+            vTaskDelay(pdMS_TO_TICKS(1000));
             update_led_status();
             break;
         
@@ -130,7 +137,6 @@ void led_set_state(led_state_t state) {
 void update_led_status()
 {
     if(teaching_in_progress) led_set_state(LED_STATE_TEACHING_MODE);
-    else if(sending_ir_command) led_set_state(LED_STATE_SENDING_IR_COMMAND);
     else if(!mqtt_connected) led_set_state(LED_STATE_MQTT_NOT_CONNECTED);
     else if(!registered) led_set_state(LED_STATE_UNREGISTERED);
     else if(!configured) led_set_state(LED_STATE_UNCONFIGURED);

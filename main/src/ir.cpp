@@ -151,8 +151,8 @@ void ir_tran_setup()
 void ir_transmit()
 {
     irrecv.pause();
-    sending_ir_command = true;
-    update_led_status();
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    led_set_state(LED_STATE_SENDING_IR_COMMAND);
     switch (ir_protocol_num)
     {
     case RAW:
@@ -475,9 +475,6 @@ void ir_transmit()
         //     ac_mitsubishi152.send();
         //     break;
     }
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    sending_ir_command = false;
-    update_led_status();
     irrecv.resume();
 }
 
@@ -747,7 +744,6 @@ void exit_teaching_mode(bool success)
     strcpy(teaching_mode_t.nextCommand, "");
     teaching_in_progress = false; update_led_status();
     teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
-    update_led_status();
     generate_ack(GWY_TEACHING_MODE, NULL);
 }
 
@@ -764,7 +760,7 @@ void perform_teaching_process(const char *description)
 {
     /*Let's pause the IR Reception until we process the recevied ir signal*/
     irrecv.pause();
-    led_set_state(LED_STATE_OFF);
+
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
         ESP_LOGE(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
@@ -831,11 +827,8 @@ void perform_teaching_process(const char *description)
     if(teaching_mode_t.remainingCommands!=0) generate_ack(GWY_TEACHING_MODE, NULL);
 
     /*Teaching mode has been successfully completed*/
-    else
-    {
-        exit_teaching_mode(true);
-    }
-    led_set_state(LED_STATE_TEACHING_MODE);
+    else exit_teaching_mode(true);
+    
     irrecv.resume();
 }
 
@@ -882,6 +875,7 @@ void ir_recv_task(void *args)
             if (teaching_in_progress)
             {
                 perform_teaching_process(description.c_str());
+                continue;
             }
 
             /*AC Remote Configuration Process*/
@@ -891,7 +885,7 @@ void ir_recv_task(void *args)
                 update_led_status();
                 ir_protocol_num = protocol;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8);
             }
 

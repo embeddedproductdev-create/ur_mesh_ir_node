@@ -684,7 +684,7 @@ void parse_json()
                 ir_protocol_num = -1;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8);
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
                 configured = 0; update_led_status();
                 break;
 

@@ -77,12 +77,13 @@ const char *NVS_TEACHING_MODE_CMD_KEYS[] = {
  */
 void get_last_ac_cmd_in_nvs_flash()
 {
+    ESP_LOGW(NVS_TAG, "Fetching last ac cmd from nvs flash");
     esp_err_t err;
     nvs_handle_t handle;
     err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
     ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
-    nvs_get_blob(handle, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
-    nvs_commit(handle);
+    size_t size = sizeof(CommandStruct);
+    nvs_get_blob(handle, NVS_LAST_COMMAND_KEY, &last_command, &size);
     nvs_close(handle);
 }
 
@@ -355,11 +356,12 @@ esp_err_t init_data_in_nvs(void)
     
     err=nvs_set_u16(ir_nvs_handle, NVS_RAWLEN_KEY, teaching_mode_raw_len);
     ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_RAWLEN_KEY, teaching_mode_raw_len, esp_err_to_name(err));
+    err=nvs_set_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
+    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
+    
 
     err=nvs_set_u8(general_nvs_handle, NVS_NEW_DEVICE_KEY, 0);
     ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_NEW_DEVICE_KEY, 0, esp_err_to_name(err));
-    err=nvs_set_i16(general_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
     err=nvs_set_str(general_nvs_handle, NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO);
     ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO, esp_err_to_name(err));
     err=nvs_set_u8(general_nvs_handle, NVS_REGISTERED_KEY, registered);
@@ -414,9 +416,24 @@ esp_err_t init_data_in_nvs(void)
 void pull_ir_cmd_data(nvs_handle_t handle)
 {
     ESP_LOGW(NVS_TAG, "Pulling IR Cmd data from flash ... ");
+    size_t size = TEACHING_MODE_CMD_SIZE;
     for(uint8_t i=0;i<MAX_CMDS_IN_TEACHING_MODE;i++)
     {
-        nvs_get_blob(handle, NVS_TEACHING_MODE_CMD_KEYS[i], teachingModeIrCmds[i], (size_t *)TEACHING_MODE_CMD_SIZE);
+        nvs_get_blob(handle, NVS_TEACHING_MODE_CMD_KEYS[i], teachingModeIrCmds[i], &size);
+    }
+}
+
+void print_ir_cmds()
+{
+    for(uint8_t i=0;i<MAX_CMDS_IN_TEACHING_MODE;i++)
+    {
+        if(teaching_mode_raw_len==0) ESP_LOGE(NVS_TAG, "Raw len is zero");
+        ESP_LOGW(NVS_TAG, "IR Cmd #%d",i);
+        for(uint16_t j=0;j<teaching_mode_raw_len;j++)
+        {
+            printf("%d ",teachingModeIrCmds[i][j]);
+        }
+        printf("\n");
     }
 }
 
@@ -434,12 +451,13 @@ esp_err_t pull_data_from_nvs(void)
     nvs_get_u8(ir_nvs_handle, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, &teaching_mode_t.startingTemperature);
     nvs_get_u8(ir_nvs_handle, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, &teaching_mode_t.endingTemperature);
 
-    nvs_get_i16(general_nvs_handle, NVS_IR_PROTOCOL_KEY, &ir_protocol_num);
+    nvs_get_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, &ir_protocol_num);
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
 
     if(strcmp(ir_protocol, RAW_IR_PROTOCOL)==0) {
         nvs_get_u16(ir_nvs_handle, NVS_RAWLEN_KEY, &teaching_mode_raw_len);
         pull_ir_cmd_data(ir_nvs_handle);
+        print_ir_cmds();
     }
 
     size_t serialNoReqSize = 10;
@@ -448,23 +466,9 @@ esp_err_t pull_data_from_nvs(void)
     nvs_get_u8(general_nvs_handle, NVS_CONFIGURED_KEY, &configured);
 
     if(configured) get_last_ac_cmd_in_nvs_flash();
-    
+
     size_t locationReqSize = LOCATION_STR_LEN;
     nvs_get_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, device_location_str, &locationReqSize);
-    nvs_get_u16(general_nvs_handle, NVS_PUBPERIOD_KEY, &publishPeriod);
-
-    nvs_get_u8(general_nvs_handle, NVS_POWER_KEY, &last_command.power);
-    nvs_get_u8(general_nvs_handle, NVS_TEMPERATURE_KEY, &last_command.temperature);
-    nvs_get_u8(general_nvs_handle, NVS_FANSPEED_KEY, &last_command.fanspeed);
-    size_t modeReqSize = MAX_MODE_STR_LEN;
-    nvs_get_str(general_nvs_handle, NVS_MODE_KEY, last_command.mode_str, &modeReqSize);
-    nvs_get_u8(general_nvs_handle, NVS_SWINGH_KEY, &last_command.swingh);
-    nvs_get_u8(general_nvs_handle, NVS_SWINGV_KEY, &last_command.swingv);
-    nvs_get_u16(general_nvs_handle, NVS_ONTIMER_KEY, &last_command.ontimer);
-    nvs_get_u16(general_nvs_handle, NVS_OFFTIMER_KEY, &last_command.offtimer);
-    nvs_get_u8(general_nvs_handle, NVS_LOCKING_KEY, &last_command.locking);
-    nvs_get_u8(general_nvs_handle, NVS_UPPER_TEMPERATURE_LIMIT_KEY, &last_command.upperTemperatureLimit);
-    nvs_get_u8(general_nvs_handle, NVS_LOWER_TEMPERATURE_LIMIT_KEY, &last_command.lowerTemperatureLimit);
     
     // Close
     nvs_close(ble_nvs_handle);

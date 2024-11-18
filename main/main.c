@@ -60,6 +60,7 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d", NVS_CONFIGURED_KEY, configured);
     ESP_LOGI(TAG, "%s : %ds", "Heartbeat Interval", publishPeriod);
     ESP_LOGI(TAG, "%s : %s", NVS_IR_PROTOCOL_KEY, ir_protocol);
+    if(strcmp(ir_protocol, RAW_IR_PROTOCOL)==0) ESP_LOGI(TAG, "%s : %d", NVS_RAWLEN_KEY, teaching_mode_raw_len);
     ESP_LOGI(TAG, "%s : %s", "MQTT Publish Topic", publish_topic);
     ESP_LOGI(TAG, "%s : %s", "MQTT Subscribe Topic", subscribe_topic);
     ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
