@@ -6,11 +6,15 @@
 #define KTIMEOUT 50
 #define SAVE_BUFFER_FLAG true
 
+#define MAX_CMDS_IN_TEACHING_MODE 16
+#define TEACHING_MODE_CMD_SIZE 800
+
 #define MAX_LOW_TEMP 18
 #define MAX_HIGH_TEMP 32
 
 /*Global Variables*/
 extern TaskHandle_t ir_recv_task_handle;
+extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
 
 extern const char *RAW_IR_PROTOCOL;
 extern const char *DAIKIN_IR_PROTOCOL;

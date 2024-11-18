@@ -26,6 +26,9 @@ nvs_handle_t ble_nvs_handle;
 nvs_handle_t ir_nvs_handle;
 nvs_handle_t general_nvs_handle;
 
+/**
+ * @warning The keys below are used by nvs. They should not be more than 15 chars
+ */
 const char *NVS_NEW_DEVICE_KEY = "NewDevice";
 const char *NVS_SERIAL_NO_KEY = "SerialNo";
 const char *NVS_DEVICE_LOCATION_KEY = "Location";
@@ -47,6 +50,27 @@ const char *NVS_UPPER_TEMPERATURE_LIMIT_KEY = "UTL";
 const char *NVS_LOWER_TEMPERATURE_LIMIT_KEY = "LTL";
 const char *NVS_PUBPERIOD_KEY = "PubPeriod";
 const char *NVS_LAST_COMMAND_KEY = "LastCommand";
+const char *NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY = "StartTemp";
+const char *NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY = "EndTemp";
+
+const char *NVS_TEACHING_MODE_CMD_KEYS[] = {
+    "CMD1",
+    "CMD2",
+    "CMD3",
+    "CMD4",
+    "CMD5",
+    "CMD6",
+    "CMD7",
+    "CMD8",
+    "CMD9",
+    "CMD10",
+    "CMD11",
+    "CMD12",
+    "CMD13",
+    "CMD14",
+    "CMD15",
+    "CMD16"
+};
 
 /**
  * @brief Function that saves a blob to nvs flash
@@ -175,6 +199,40 @@ void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value)
 }
 
 /**
+ * @brief Function that writes a blob of values to nvs flash
+ * @param nvshandle 
+ * @param key 
+ * @param value 
+ */
+void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void *value, size_t length)
+{
+    esp_err_t err;
+    nvs_handle_t handle;
+    switch(nvshandle)
+    {
+        case IR_HANDLE:
+            err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
+            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
+            break;
+        case BLE_HANDLE:
+            err = nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &handle);
+            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
+            break;
+        case GENERAL_HANDLE:
+            err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
+            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
+            break;
+        default:
+            return;
+    }
+
+    nvs_set_blob(handle, key, value, length);
+    
+    nvs_commit(general_nvs_handle);
+    nvs_close(general_nvs_handle);
+}
+
+/**
  * @brief Function that gets a number from the nvs flash
  * @param handle 
  * @param key 
@@ -230,6 +288,40 @@ char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key)
     
     nvs_close(general_nvs_handle);
     return "";
+}
+
+/**
+ * @brief Funtion that gets a blob of values from the nvs flash
+ * @param nvshandle 
+ * @param key 
+ * @param out_value 
+ * @param length 
+ */
+void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *out_value, size_t *length)
+{
+    esp_err_t err;
+    nvs_handle_t handle;
+    switch(nvshandle)
+    {
+        case IR_HANDLE:
+            err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
+            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
+            break;
+        case BLE_HANDLE:
+            err = nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &handle);
+            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
+            break;
+        case GENERAL_HANDLE:
+            err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
+            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
+            break;
+        default:
+            return;
+    }
+
+    nvs_get_blob(handle, key, out_value, length);
+
+    nvs_close(general_nvs_handle);
 }
 
 /**
@@ -302,6 +394,19 @@ esp_err_t init_data_in_nvs(void)
 }
 
 /**
+ * @brief Function that pulls the IR command data from flash and fills it in ram for access
+ * 
+ */
+void pull_ir_cmd_data(nvs_handle_t handle)
+{
+    ESP_LOGW(NVS_TAG, "Pulling IR Cmd data from flash ... ");
+    for(uint8_t i=0;i<MAX_CMDS_IN_TEACHING_MODE;i++)
+    {
+        nvs_get_blob(handle, NVS_TEACHING_MODE_CMD_KEYS[i], teachingModeIrCmds[i], (size_t *)TEACHING_MODE_CMD_SIZE);
+    }
+}
+
+/**
  * @brief Function that pulls data from NVS flash. If no data present, 
  * meaning its a fresh device, then initializes the defaults to NVS
  * @return esp_err_t 
@@ -312,10 +417,17 @@ esp_err_t pull_data_from_nvs(void)
     nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
     ESP_LOGW(NVS_TAG, "ErrorCode for pulling from flash : %s", esp_err_to_name(nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle)));
     
-    nvs_get_u16(ir_nvs_handle, NVS_RAWLEN_KEY, &teaching_mode_raw_len);
-    
+    nvs_get_u8(ir_nvs_handle, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, &teaching_mode_t.startingTemperature);
+    nvs_get_u8(ir_nvs_handle, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, &teaching_mode_t.endingTemperature);
+
     nvs_get_i16(general_nvs_handle, NVS_IR_PROTOCOL_KEY, &ir_protocol_num);
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
+
+    if(strcmp(ir_protocol, RAW_IR_PROTOCOL)==0) {
+        nvs_get_u16(ir_nvs_handle, NVS_RAWLEN_KEY, &teaching_mode_raw_len);
+        pull_ir_cmd_data(ir_nvs_handle);
+    }
+
     size_t serialNoReqSize = 10;
     nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &serialNoReqSize);
     nvs_get_u8(general_nvs_handle, NVS_REGISTERED_KEY, &registered);

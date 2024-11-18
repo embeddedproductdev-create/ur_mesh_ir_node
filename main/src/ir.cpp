@@ -11,6 +11,8 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
+#define KHZ_38 38
+
 const char *RAW_IR_PROTOCOL = "RAW";
 const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
 const char *DAIKIN200_IR_PROTOCOL = "DAIKIN200";
@@ -46,7 +48,7 @@ const char *UNUSED_IR_PROTOCOL = "UNUSED";
 const char *INVALID_IR_PROTOCOL = "INVALID";
 
 const char *TEACHING_MODE_SEQUENCE[] = {
-    "Temperature - 18 | Power - Off", // 0
+    "Power - Off", // 0
     "Temperature - 18 | Power - On",  // 1
     "Temperature - 19 | Power - On",  // 2
     "Temperature - 20 | Power - On",  // 3
@@ -153,6 +155,13 @@ void ir_transmit()
     update_led_status();
     switch (ir_protocol_num)
     {
+    case RAW:
+        if(!last_command.power) ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_38);
+        else {
+            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature-teaching_mode_t.startingTemperature+1], teaching_mode_raw_len, KHZ_38);
+        }
+        break;
+
     case DAIKIN:
         ac_daikin280.setPower(last_command.power);
         ac_daikin280.setTemp(last_command.temperature);
@@ -716,6 +725,8 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     teaching_mode_t.remainingCommands = endingTemp - startingTemp + 2;
     strcpy(teaching_mode_t.lastCommand, "");
     strcpy(teaching_mode_t.nextCommand, cmd);
+    set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8);
+    set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8);
     generate_ack(GWY_TEACHING_MODE, NULL);
 }
 
@@ -729,6 +740,9 @@ void exit_teaching_mode(bool success)
 {
     if(success) {
         configured = true;
+        ir_protocol_num = RAW;
+        strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
+        set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
     }
     strcpy(teaching_mode_t.nextCommand, "");
     teaching_in_progress = false; update_led_status();
@@ -750,6 +764,7 @@ void perform_teaching_process(const char *description)
 {
     /*Let's pause the IR Reception until we process the recevied ir signal*/
     irrecv.pause();
+    led_set_state(LED_STATE_OFF);
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
         ESP_LOGE(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
@@ -764,13 +779,20 @@ void perform_teaching_process(const char *description)
              */
             if (ac_manual_control_t.power_value == 0)
             {
+                set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, results.rawlen, UINT16);
+
+                /*Let's store raw values to nvs flash*/
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen-1);
+
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
                 teaching_mode_t.commandIndex++;
                 teaching_mode_t.remainingCommands--;
                 teaching_mode_t.errorCode = SUCCESS;
-                strcpy(teaching_mode_t.lastCommand, "Power - Off");
+                strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[0]);
                 strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
+
+                
             }
             else
             {
@@ -782,6 +804,9 @@ void perform_teaching_process(const char *description)
         {
             if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
             {
+                /*Let's store raw values to nvs flash*/
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, results.rawlen-1);
+
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
                 teaching_mode_t.commandIndex++;
@@ -810,6 +835,7 @@ void perform_teaching_process(const char *description)
     {
         exit_teaching_mode(true);
     }
+    led_set_state(LED_STATE_TEACHING_MODE);
     irrecv.resume();
 }
 

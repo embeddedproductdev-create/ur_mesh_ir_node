@@ -45,6 +45,8 @@ CommandStruct last_command;
 char device_location_str[LOCATION_STR_LEN];
 uint16_t teaching_mode_raw_len;
 
+uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
+
 /**
  * @brief Function that prints basic information about the device after fetching info from nvs flash
  */

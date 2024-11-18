@@ -51,7 +51,8 @@
         "task.h": "c",
         "*.txt": "cpp",
         "stop_token": "c",
-        "irremoteesp8266.h": "c"
+        "irremoteesp8266.h": "c",
+        "ir.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

@@ -355,7 +355,8 @@ const char* get_error_code_name(error_codes code) {
         "POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
         "MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
         "FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
-        "TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING"
+        "TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
+        "IR_CMD_NOT_AVAILABLE_IN_FLASH",
     };
     
     int index = code + 1; // Adjust index for negative `FAILURE` as -1
@@ -519,6 +520,11 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else cmd_struct->power = power;
         if(temperature<18 && temperature>32) {cmd_struct->errorcode = TEMPERATURE_EXCEEDING_RANGE; return;}
         else cmd_struct->temperature = temperature;
+
+        // If Device is using teaching mode, then let's check if the temperature is within range w.r.t saved values
+        if(!(cmd_struct->temperature >= teaching_mode_t.startingTemperature && 
+            cmd_struct->temperature <= teaching_mode_t.endingTemperature))
+            {cmd_struct->errorcode = IR_CMD_NOT_AVAILABLE_IN_FLASH; return;}
         if(!(fanspeed>=0 && fanspeed<=5)) {cmd_struct->errorcode = FAN_SPEED_EXCEEDING_RANGE; return;}
         else cmd_struct->fanspeed = fanspeed;
         if( strcasecmp(mode, "Cool") == 0 ||

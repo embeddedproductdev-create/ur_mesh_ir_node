@@ -5,6 +5,7 @@
 extern nvs_handle_t ble_nvs_handle;
 extern nvs_handle_t ir_nvs_handle;
 extern nvs_handle_t general_nvs_handle;
+extern const char *NVS_TEACHING_MODE_CMD_KEYS[];
 
 extern const char *NVS_NEW_DEVICE_KEY;
 extern const char *NVS_SERIAL_NO_KEY;
@@ -27,6 +28,8 @@ extern const char *NVS_UPPER_TEMPERATURE_LIMIT_KEY;
 extern const char *NVS_LOWER_TEMPERATURE_LIMIT_KEY;
 extern const char *NVS_PUBPERIOD_KEY;
 extern const char *NVS_LAST_COMMAND_KEY;
+extern const char *NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY;
+extern const char *NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY;
 
 typedef enum
 {
@@ -47,7 +50,8 @@ extern "C" {
 
 void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value, sizes_t size);
 void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value);
-
+void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void *value, size_t length);
+void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *value, size_t *length);
 #ifdef __cplusplus
 }
 #endif
