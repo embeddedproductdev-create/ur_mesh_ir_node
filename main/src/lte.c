@@ -223,21 +223,24 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 
     switch(packetid)
     {
-        GWY_TEACHING_MODE:
+        case GWY_TEACHING_MODE:
             jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
-            
+            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);
+            jwObj_int(&jwc[0], ERROR_CODE_KEY, teaching_mode_t.errorCode);
+            jwObj_string(&jwc[0], LAST_CMD_KEY, teaching_mode_t.lastCommand);
+            jwObj_string(&jwc[0], NEXT_CMD_KEY, teaching_mode_t.nextCommand);
             jwEnd(&jwc[0]);
             jwClose(&jwc[0]);
             break;
         
-        NODE_TEACHING_MODE:
+        case NODE_TEACHING_MODE:
             jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
             
             jwEnd(&jwc[0]);
             jwClose(&jwc[0]);
             break;
 
-        GWY_MANUAL_AC_CONTROL_ACK:
+        case GWY_MANUAL_AC_CONTROL_ACK:
             jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
             jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
             jwObj_int(&jwc[0], POWER_KEY, ac_manual_control_t.power_value);
@@ -269,10 +272,10 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwClose(&jwc[0]);
             break;
 
-        NODE_MANUAL_AC_CONTROL_ACK:
+        case NODE_MANUAL_AC_CONTROL_ACK:
             break;
 
-        GWY_DEBUG_INFO_PACKET:
+        case GWY_DEBUG_INFO_PACKET:
             char version[10], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
@@ -356,9 +359,19 @@ const char* get_error_code_name(error_codes code) {
         "AC_REMOTE_UNSUPPORTED",
         "MISSING_TEACHING_START",
         "TEACHING_START_EXCEEDING_RANGE",
+        "MISSING_STARTING_TEMPERATURE",
+        "STARTING_TEMPERATURE_EXCEEDING_RANGE",
+        "MISSING_ENDING_TEMPERATURE",
+        "ENDING_TEMPERATURE_EXCEEDING_RANGE",
+        "STARTING_TEMPERATURE_LESS_THAN_ENDING_TEMPERATURE",
         "ENTERED_TEACHING_MODE",
         "EXITED_TEACHING_MODE",
         "DEVICE_ALREADY_IN_TEACHING_MODE",
+        "DEVICE_NOT_IN_TEACHING_MODE",
+        "POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
+        "MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
+        "FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
+        "TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING"
     };
     
     int index = code + 1; // Adjust index for negative `FAILURE` as -1
@@ -578,13 +591,31 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
     if(cmd_struct->packetid == GWY_TEACHING_MODE || cmd_struct->packetid == NODE_TEACHING_MODE)
     {
-        if(cmd_struct->packetid == GWY_TEACHING_MODE && 
-           teaching_in_progress) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
         if(!cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)) {cmd_struct->errorcode = MISSING_TEACHING_START; return;}
+        if(!cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_STARTING_TEMPERATURE; return;}
+        if(!cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_ENDING_TEMPERATURE; return;}
         else {
-            int teaching_start = cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)->valueint;
+            int teaching_start, startingTemp, endingTemp;    
+            
+            teaching_start = cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)->valueint;
+            startingTemp = cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY)->valueint;
+            endingTemp = cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY)->valueint;
+            
             if(teaching_start!=0 && teaching_start!=1)  {cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE; return;}
             else cmd_struct->teachingStart = teaching_start;
+            
+            if(teaching_start && teaching_in_progress) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+            if(!teaching_start && !teaching_in_progress) {cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
+            
+            if(!(startingTemp>=MAX_LOW_TEMP && startingTemp<=MAX_HIGH_TEMP)) {cmd_struct->errorcode = STARTING_TEMPERATURE_EXCEEDING_RANGE; return;}
+            else cmd_struct->startingTemperature = startingTemp;
+            
+            
+            if(!(endingTemp>=MAX_LOW_TEMP && endingTemp<=MAX_HIGH_TEMP)) {cmd_struct->errorcode = ENDING_TEMPERATURE_EXCEEDING_RANGE; return;}
+            else cmd_struct->endingTemperature = endingTemp;
+            
+            
+            if(startingTemp>endingTemp) {cmd_struct->errorcode = STARTING_TEMPERATURE_LESS_THAN_ENDING_TEMPERATURE;}
             return;
         }
     }
@@ -680,6 +711,15 @@ void parse_json()
                 generate_ack(cmd_struct.packetid, &cmd_struct);
                 return;
 
+            case GWY_TEACHING_MODE:
+                teaching_mode_t.errorCode = cmd_struct.errorcode;
+                teaching_mode_t.teachingStart = cmd_struct.teachingStart;
+                teaching_mode_t.startingTemperature = cmd_struct.startingTemperature;
+                teaching_mode_t.endingTemperature = cmd_struct.endingTemperature;
+                teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
+                generate_ack(GWY_TEACHING_MODE, NULL);
+                break;
+
             default:
                 break;
         }
@@ -687,6 +727,14 @@ void parse_json()
     }
     else
     {
+        led_set_state(LED_STATE_INVALID_OPERATION);
+
+        if(cmd_struct.packetid == GWY_TEACHING_MODE) {
+            cmd_struct.errorcode = teaching_mode_t.errorCode;
+            generate_ack(GWY_TEACHING_MODE, NULL);
+            return;
+        }
+
         generate_ack(cmd_struct.packetid, &cmd_struct);
     }
 }

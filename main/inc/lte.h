@@ -147,9 +147,15 @@ typedef enum
     AC_REMOTE_UNSUPPORTED,
     MISSING_TEACHING_START,
     TEACHING_START_EXCEEDING_RANGE,
+    MISSING_STARTING_TEMPERATURE,
+    STARTING_TEMPERATURE_EXCEEDING_RANGE,
+    MISSING_ENDING_TEMPERATURE,
+    ENDING_TEMPERATURE_EXCEEDING_RANGE,
+    STARTING_TEMPERATURE_LESS_THAN_ENDING_TEMPERATURE,
     ENTERED_TEACHING_MODE,
     EXITED_TEACHING_MODE,
     DEVICE_ALREADY_IN_TEACHING_MODE,
+    DEVICE_NOT_IN_TEACHING_MODE,
     POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
     MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
     FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
@@ -212,9 +218,43 @@ typedef struct
     uint8_t resetDevice;
     uint8_t logging;
     uint8_t teachingStart;
+    uint8_t startingTemperature;
+    uint8_t endingTemperature;
 } CommandStruct;
 
+typedef struct 
+{
+    char temperature[3];
+    char power[4];
+    char fan[2];
+    char mode[5];
+
+    int8_t power_value;
+    int8_t fanspeed_value;
+    int8_t temperature_value;
+
+    error_codes power_err;
+    error_codes fanspeed_err;
+    error_codes mode_err;
+    error_codes temperature_err;
+}manual_control;
+
+typedef struct
+{
+    uint8_t teachingStart;
+    uint8_t startingTemperature;
+    uint8_t endingTemperature;
+    char *lastCommand;
+    char *nextCommand;
+    uint8_t nextTemperature;
+    uint8_t commandIndex;
+    uint8_t remainingCommand;
+    error_codes errorCode;
+}teaching_mode;
+
 extern CommandStruct last_command;
+extern manual_control ac_manual_control_t;
+extern teaching_mode teaching_mode_t;
 
 /*Global Variables*/
 extern TaskHandle_t lte_task_handle;
@@ -247,6 +287,7 @@ void powerDownLTE();
 #ifdef __cplusplus
 extern "C" {
 #endif
+void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct);
 void enqueue_for_publish(char *ack_json);
 #ifdef __cplusplus
 }

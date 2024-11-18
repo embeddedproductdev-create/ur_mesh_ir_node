@@ -62,7 +62,7 @@ const char *TEACHING_MODE_SEQUENCE[] = {
     "Temperature - 30 | Power - On", //13
     "Temperature - 31 | Power - On", //14
     "Temperature - 32 | Power - On"  //15
-}
+};
 
 /*IR Receiver Initializations*/
 IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
@@ -607,11 +607,10 @@ bool is_supported_remote(uint16_t protocol)
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
     teaching_in_progress = true;
-    teaching_mode_t.remaining_commands = endingTemp-startingTemp+2;
-    teaching_mode_t.command_index = (startingTemp - MAX_LOW_TEMP)+1;
-    strcpy(teaching_mode_t.last_command = "");
-    strcpy(teaching_mode_t.next_command, TEACHING_MODE_SEQUENCE[teaching_mode_t.command_index]);
-    generate_ack(GWY_TEACHING_MODE, NULL);
+    teaching_mode_t.remainingCommand = endingTemp-startingTemp+2;
+    teaching_mode_t.commandIndex = (startingTemp - MAX_LOW_TEMP)+1;
+    strcpy(teaching_mode_t.lastCommand, "");
+    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
 }
 
 /**
@@ -625,12 +624,12 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 bool isFetchControlInfoSuccessful(const char *description)
 {
     /*Initializing to Defaults*/
-    strcpy(ac_manual_control_t.temperature[3], "");
-    strcpy(ac_manual_control_t.power[4], "");
-    strcpy(ac_manual_control_t.fan[2], "");
-    strcpy(ac_manual_control_t.mode[5], "");
+    strcpy(ac_manual_control_t.temperature, "");
+    strcpy(ac_manual_control_t.power, "");
+    strcpy(ac_manual_control_t.fan, "");
+    strcpy(ac_manual_control_t.mode, "");
 
-    ac_manual_control_t.power_value -1;
+    ac_manual_control_t.power_value = -1;
     ac_manual_control_t.fanspeed_value = -1;
     ac_manual_control_t.temperature_value = -1;
 
@@ -699,15 +698,7 @@ void locking_feature(const char *description)
         }
     }
 
-    generate_manual_control_ack(
-        ac_manual_control_t.power_value, 
-        ac_manual_control_t.fanspeed_value, 
-        ac_manual_control_t.temperature_value, 
-        ac_manual_control_t.mode,
-        ac_manual_control_t.power_err, 
-        ac_manual_control_t.fanspeed_err, 
-        ac_manual_control_t.temperature_err, 
-        ac_manual_control_t.mode_err);
+    generate_ack(GWY_MANUAL_AC_CONTROL_ACK, NULL);
 }
 
 /**
@@ -750,7 +741,17 @@ void ir_recv_task(void *args)
             /*Teaching Mode*/
             if (teaching_in_progress)
             {
-                if(isFetchControlInfoSuccessful(description));
+                if(isFetchControlInfoSuccessful(description.c_str()))
+                {
+                    ;
+                }
+                
+                else 
+                {
+                    led_set_state(LED_STATE_INVALID_OPERATION);
+                    teaching_mode_t.errorCode = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+                    generate_ack(GWY_TEACHING_MODE, NULL);
+                }
             }
 
             /*AC Remote Configuration Process*/

@@ -1,5 +1,3 @@
-
-
 #define IR_TAG "IR"
 #define IR_RECV_GPIO 38
 #define IR_TRAN_GPIO 7
@@ -11,37 +9,8 @@
 #define MAX_LOW_TEMP 18
 #define MAX_HIGH_TEMP 32
 
-typedef struct 
-{
-    char temperature[3];
-    char power[4];
-    char fan[2];
-    char mode[5];
-
-    int8_t power_value;
-    int8_t fanspeed_value;
-    int8_t temperature_value;
-
-    error_codes power_err;
-    error_codes fanspeed_err;
-    error_codes mode_err;
-    error_codes temperature_err;
-}manual_control;
-
-typedef struct
-{
-    uint8_t starting_temperature;
-    uint8_t ending_temperature;
-    char *last_command;
-    char *next_command;
-    uint8_t command_index;
-    uint8_t remaining_commands;
-}teaching_mode;
-
 /*Global Variables*/
 extern TaskHandle_t ir_recv_task_handle;
-extern manual_control ac_manual_control_t;
-extern teaching_mode teaching_mode_t;
 
 extern const char *RAW_IR_PROTOCOL;
 extern const char *DAIKIN_IR_PROTOCOL;
@@ -86,7 +55,7 @@ void ir_tran_setup();
 const char *get_protocol_string(int16_t protocol);
 bool is_supported_remote(int16_t protocol);
 void ir_transmit();
-void teaching_mode_init();
+void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
 
 #ifdef __cplusplus
 }
