@@ -598,23 +598,6 @@ bool is_supported_remote(uint16_t protocol)
 }
 
 /**
- * @brief Function that initializes the value for teaching mode process
- * @param startingTemp Starting Temperature of Teaching Mode
- * @param endingTemp Ending Temperature of Teaching Mode
- */
-void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
-{
-    char cmd[50];
-    sprintf(cmd, "Temperature - %d | Power - Off", startingTemp);
-    teaching_in_progress = true; update_led_status();
-    teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
-    teaching_mode_t.remainingCommands = endingTemp - startingTemp + 2;
-    strcpy(teaching_mode_t.lastCommand, "");
-    strcpy(teaching_mode_t.nextCommand, cmd);
-    generate_ack(GWY_TEACHING_MODE, NULL);
-}
-
-/**
  * @brief Function that fetches the info of Power, Temperature, Fanspeed and Mode
  * from received IR Signal.
  * @warning Both teaching mode and Lockign feature depend on the Temperature value that was detected,
@@ -716,6 +699,26 @@ void locking_feature(const char *description)
     generate_ack(GWY_MANUAL_AC_CONTROL_ACK, NULL);
 }
 
+
+/**
+ * @brief Function that initializes the value for teaching mode process
+ * @param startingTemp Starting Temperature of Teaching Mode
+ * @param endingTemp Ending Temperature of Teaching Mode
+ */
+void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
+{
+    char cmd[50];
+    sprintf(cmd, "Temperature - %d | Power - Off", startingTemp);
+    teaching_in_progress = true; update_led_status();
+    teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
+    teaching_mode_t.expectedTemperature = startingTemp;
+    teaching_mode_t.commandIndex = startingTemp - MAX_LOW_TEMP;
+    teaching_mode_t.remainingCommands = endingTemp - startingTemp + 2;
+    strcpy(teaching_mode_t.lastCommand, "");
+    strcpy(teaching_mode_t.nextCommand, cmd);
+    generate_ack(GWY_TEACHING_MODE, NULL);
+}
+
 /**
  * @brief Function that exits the device from teaching mode
  * @param success - Flag indicating if its a successful exit or forced exit
@@ -727,6 +730,7 @@ void exit_teaching_mode(bool success)
     if(success) {
         configured = true;
     }
+    strcpy(teaching_mode_t.nextCommand, "");
     teaching_in_progress = false; update_led_status();
     teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
     update_led_status();
@@ -746,8 +750,10 @@ void perform_teaching_process(const char *description)
 {
     /*Let's pause the IR Reception until we process the recevied ir signal*/
     irrecv.pause();
-    if (isFetchControlInfoSuccessful(description))
+    if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
+        ESP_LOGE(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
         /*If this is the first IR Signal*/
         if (teaching_mode_t.commandsReceived == 0)
         {
@@ -763,6 +769,8 @@ void perform_teaching_process(const char *description)
                 teaching_mode_t.commandIndex++;
                 teaching_mode_t.remainingCommands--;
                 teaching_mode_t.errorCode = SUCCESS;
+                strcpy(teaching_mode_t.lastCommand, "Power - Off");
+                strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
             }
             else
             {
@@ -779,6 +787,9 @@ void perform_teaching_process(const char *description)
                 teaching_mode_t.commandIndex++;
                 teaching_mode_t.remainingCommands--;
                 teaching_mode_t.errorCode = SUCCESS;
+                teaching_mode_t.expectedTemperature++;
+                strcpy(teaching_mode_t.lastCommand, teaching_mode_t.nextCommand);
+                strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
             }
             else
             {
@@ -792,10 +803,10 @@ void perform_teaching_process(const char *description)
         led_set_state(LED_STATE_INVALID_OPERATION);
         teaching_mode_t.errorCode = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
     }
-    generate_ack(GWY_TEACHING_MODE, NULL);
+    if(teaching_mode_t.remainingCommands!=0) generate_ack(GWY_TEACHING_MODE, NULL);
 
     /*Teaching mode has been successfully completed*/
-    if(teaching_mode_t.remainingCommands==0)
+    else
     {
         exit_teaching_mode(true);
     }
