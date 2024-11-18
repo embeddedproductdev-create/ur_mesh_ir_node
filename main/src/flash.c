@@ -73,6 +73,20 @@ const char *NVS_TEACHING_MODE_CMD_KEYS[] = {
 };
 
 /**
+ * @brief Get the last ac cmd from nvs flash
+ */
+void get_last_ac_cmd_in_nvs_flash()
+{
+    esp_err_t err;
+    nvs_handle_t handle;
+    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
+    ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
+    nvs_get_blob(handle, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
+    nvs_commit(handle);
+    nvs_close(handle);
+}
+
+/**
  * @brief Function that saves a blob to nvs flash
  * 
  * @param nvshandle 
@@ -432,6 +446,9 @@ esp_err_t pull_data_from_nvs(void)
     nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &serialNoReqSize);
     nvs_get_u8(general_nvs_handle, NVS_REGISTERED_KEY, &registered);
     nvs_get_u8(general_nvs_handle, NVS_CONFIGURED_KEY, &configured);
+
+    if(configured) get_last_ac_cmd_in_nvs_flash();
+    
     size_t locationReqSize = LOCATION_STR_LEN;
     nvs_get_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, device_location_str, &locationReqSize);
     nvs_get_u16(general_nvs_handle, NVS_PUBPERIOD_KEY, &publishPeriod);
