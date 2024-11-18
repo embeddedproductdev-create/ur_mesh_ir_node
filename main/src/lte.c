@@ -730,7 +730,7 @@ void parse_json()
         led_set_state(LED_STATE_INVALID_OPERATION);
 
         if(cmd_struct.packetid == GWY_TEACHING_MODE) {
-            cmd_struct.errorcode = teaching_mode_t.errorCode;
+            teaching_mode_t.errorCode = cmd_struct.errorcode;
             generate_ack(GWY_TEACHING_MODE, NULL);
             return;
         }

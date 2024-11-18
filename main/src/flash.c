@@ -26,6 +26,25 @@ nvs_handle_t ble_nvs_handle;
 nvs_handle_t ir_nvs_handle;
 nvs_handle_t general_nvs_handle;
 
+const char *TEACHING_MODE_SEQUENCE[] = {
+    "Power - Off", // 0
+    "Temperature - 18 | Power - On",  // 1
+    "Temperature - 19 | Power - On",  // 2
+    "Temperature - 20 | Power - On",  // 3
+    "Temperature - 21 | Power - On",  // 4
+    "Temperature - 22 | Power - On",  // 5
+    "Temperature - 23 | Power - On",  // 6
+    "Temperature - 24 | Power - On",  // 7
+    "Temperature - 25 | Power - On",  // 8
+    "Temperature - 26 | Power - On",  // 9
+    "Temperature - 27 | Power - On",  // 10
+    "Temperature - 28 | Power - On",  // 11
+    "Temperature - 29 | Power - On",  // 12
+    "Temperature - 30 | Power - On",  // 13
+    "Temperature - 31 | Power - On",  // 14
+    "Temperature - 32 | Power - On"   // 15
+};
+
 /**
  * @warning The keys below are used by nvs. They should not be more than 15 chars
  */
@@ -425,10 +444,10 @@ void pull_ir_cmd_data(nvs_handle_t handle)
 
 void print_ir_cmds()
 {
-    for(uint8_t i=0;i<MAX_CMDS_IN_TEACHING_MODE;i++)
+    for(uint8_t i=0;i<teaching_mode_raw_len;i++)
     {
         if(teaching_mode_raw_len==0) ESP_LOGE(NVS_TAG, "Raw len is zero");
-        ESP_LOGW(NVS_TAG, "IR Cmd #%d",i);
+        ESP_LOGW(NVS_TAG, "IR Cmd #%d - %s",i, TEACHING_MODE_SEQUENCE[i]);
         for(uint16_t j=0;j<teaching_mode_raw_len;j++)
         {
             printf("%d ",teachingModeIrCmds[i][j]);

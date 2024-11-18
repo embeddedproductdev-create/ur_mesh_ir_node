@@ -11,7 +11,7 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
-#define KHZ_38 38
+#define KHZ_41 41
 
 const char *RAW_IR_PROTOCOL = "RAW";
 const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
@@ -156,9 +156,9 @@ void ir_transmit()
     switch (ir_protocol_num)
     {
     case RAW:
-        if(!last_command.power) ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_38);
+        if(!last_command.power) ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_41);
         else {
-            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature-teaching_mode_t.startingTemperature+1], teaching_mode_raw_len, KHZ_38);
+            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature-teaching_mode_t.startingTemperature+1], teaching_mode_raw_len, KHZ_41);
         }
         break;
 
@@ -726,15 +726,13 @@ void locking_feature(const char *description)
  */
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
-    char cmd[50];
-    sprintf(cmd, "Temperature - %d | Power - Off", startingTemp);
     teaching_in_progress = true; update_led_status();
     teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
     teaching_mode_t.expectedTemperature = startingTemp;
     teaching_mode_t.commandIndex = startingTemp - MAX_LOW_TEMP;
     teaching_mode_t.remainingCommands = endingTemp - startingTemp + 2;
     strcpy(teaching_mode_t.lastCommand, "");
-    strcpy(teaching_mode_t.nextCommand, cmd);
+    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[0]);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8);
     generate_ack(GWY_TEACHING_MODE, NULL);
