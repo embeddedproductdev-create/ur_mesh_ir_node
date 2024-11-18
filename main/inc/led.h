@@ -18,6 +18,7 @@
 
 // Enum for LED states
 typedef enum {
+    LED_STATE_OFF,
     LED_STATE_IDLE,
     LED_STATE_UNCONFIGURED,
     LED_STATE_UNREGISTERED,

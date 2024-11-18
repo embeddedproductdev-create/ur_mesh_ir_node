@@ -95,7 +95,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 
         case LONG_PRESS_1S:
             if(!teaching_in_progress) teaching_mode_init(MAX_LOW_TEMP, MAX_HIGH_TEMP);
-            else led_set_state(LED_STATE_INVALID_OPERATION);
+            else exit_teaching_mode(false);
             break;
         
         default:

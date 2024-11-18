@@ -73,6 +73,10 @@ void led_set_state(led_state_t state) {
     esp_timer_stop(blink_timer);  // Stop any existing blink pattern
 
     switch (state) {
+        case LED_STATE_OFF:
+            led_set_color(colors.OFF);
+            break;
+
         case LED_STATE_IDLE:
             led_set_color(colors.GREEN);
             break;

@@ -46,22 +46,22 @@ const char *UNUSED_IR_PROTOCOL = "UNUSED";
 const char *INVALID_IR_PROTOCOL = "INVALID";
 
 const char *TEACHING_MODE_SEQUENCE[] = {
-    "Temperature - 18 | Power - Off", //0
-    "Temperature - 18 | Power - On", //1
-    "Temperature - 19 | Power - On", //2
-    "Temperature - 20 | Power - On", //3
-    "Temperature - 21 | Power - On", //4
-    "Temperature - 22 | Power - On", //5
-    "Temperature - 23 | Power - On", //6
-    "Temperature - 24 | Power - On", //7
-    "Temperature - 25 | Power - On", //8
-    "Temperature - 26 | Power - On", //9
-    "Temperature - 27 | Power - On", //10
-    "Temperature - 28 | Power - On", //11
-    "Temperature - 29 | Power - On", //12
-    "Temperature - 30 | Power - On", //13
-    "Temperature - 31 | Power - On", //14
-    "Temperature - 32 | Power - On"  //15
+    "Temperature - 18 | Power - Off", // 0
+    "Temperature - 18 | Power - On",  // 1
+    "Temperature - 19 | Power - On",  // 2
+    "Temperature - 20 | Power - On",  // 3
+    "Temperature - 21 | Power - On",  // 4
+    "Temperature - 22 | Power - On",  // 5
+    "Temperature - 23 | Power - On",  // 6
+    "Temperature - 24 | Power - On",  // 7
+    "Temperature - 25 | Power - On",  // 8
+    "Temperature - 26 | Power - On",  // 9
+    "Temperature - 27 | Power - On",  // 10
+    "Temperature - 28 | Power - On",  // 11
+    "Temperature - 29 | Power - On",  // 12
+    "Temperature - 30 | Power - On",  // 13
+    "Temperature - 31 | Power - On",  // 14
+    "Temperature - 32 | Power - On"   // 15
 };
 
 /*IR Receiver Initializations*/
@@ -597,8 +597,6 @@ bool is_supported_remote(uint16_t protocol)
     }
 }
 
-
-
 /**
  * @brief Function that initializes the value for teaching mode process
  * @param startingTemp Starting Temperature of Teaching Mode
@@ -606,17 +604,20 @@ bool is_supported_remote(uint16_t protocol)
  */
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
-    teaching_in_progress = true;
-    teaching_mode_t.remainingCommand = endingTemp-startingTemp+2;
-    teaching_mode_t.commandIndex = (startingTemp - MAX_LOW_TEMP)+1;
+    char cmd[50];
+    sprintf(cmd, "Temperature - %d | Power - Off", startingTemp);
+    teaching_in_progress = true; update_led_status();
+    teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
+    teaching_mode_t.remainingCommands = endingTemp - startingTemp + 2;
     strcpy(teaching_mode_t.lastCommand, "");
-    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
+    strcpy(teaching_mode_t.nextCommand, cmd);
+    generate_ack(GWY_TEACHING_MODE, NULL);
 }
 
 /**
  * @brief Function that fetches the info of Power, Temperature, Fanspeed and Mode
- * from received IR Signal. 
- * @warning Both teaching mode and Lockign feature depend on the Temperature value that was detected, 
+ * from received IR Signal.
+ * @warning Both teaching mode and Lockign feature depend on the Temperature value that was detected,
  * if that fails, then it's FATAL
  * @retval true = If Temperature parse was success
  * @retval false = If Temperature parse was failure
@@ -642,10 +643,16 @@ bool isFetchControlInfoSuccessful(const char *description)
     if (strstr(description, "Power"))
     {
         snprintf(ac_manual_control_t.power, sizeof(ac_manual_control_t.power), (strstr(description, "Power") + 7));
-        if (strstr(ac_manual_control_t.power, "On")) ac_manual_control_t.power_value = 1;
-        else ac_manual_control_t.power_value = 0;
+        if (strstr(ac_manual_control_t.power, "On"))
+            ac_manual_control_t.power_value = 1;
+        else
+            ac_manual_control_t.power_value = 0;
     }
-    else {ac_manual_control_t.power_err = POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING; ac_manual_control_t.power_value=-1;}
+    else
+    {
+        ac_manual_control_t.power_err = POWER_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+        ac_manual_control_t.power_value = -1;
+    }
 
     if (strstr(description, "Mode"))
     {
@@ -661,14 +668,22 @@ bool isFetchControlInfoSuccessful(const char *description)
         else if (strstr(ac_manual_control_t.mode, FAN_MODE_STR))
             strcpy(ac_manual_control_t.mode, FAN_MODE_STR);
     }
-    else {ac_manual_control_t.mode_err = MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;strcpy(ac_manual_control_t.mode,"-1");}
+    else
+    {
+        ac_manual_control_t.mode_err = MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+        strcpy(ac_manual_control_t.mode, "-1");
+    }
 
     if (strstr(description, "Fan"))
     {
         snprintf(ac_manual_control_t.fan, sizeof(ac_manual_control_t.fan), (strstr(description, "Fan") + 5));
         ac_manual_control_t.fanspeed_value = atoi(ac_manual_control_t.fan);
     }
-    else {ac_manual_control_t.fanspeed_err = FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;ac_manual_control_t.fanspeed_value=-1;}
+    else
+    {
+        ac_manual_control_t.fanspeed_err = FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+        ac_manual_control_t.fanspeed_value = -1;
+    }
 
     if (strstr(description, "Temp"))
     {
@@ -676,12 +691,12 @@ bool isFetchControlInfoSuccessful(const char *description)
         ac_manual_control_t.temperature_value = atoi(ac_manual_control_t.temperature);
         return true;
     }
-    else {
+    else
+    {
         ac_manual_control_t.temperature_err = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
-        ac_manual_control_t.temperature_value=-1;
+        ac_manual_control_t.temperature_value = -1;
         return false;
     }
-
 }
 
 /**
@@ -689,16 +704,102 @@ bool isFetchControlInfoSuccessful(const char *description)
  */
 void locking_feature(const char *description)
 {
-    if(isFetchControlInfoSuccessful(description))
+    if (isFetchControlInfoSuccessful(description))
     {
         if (!(ac_manual_control_t.temperature_value >= last_command.lowerTemperatureLimit &&
-            ac_manual_control_t.temperature_value <= last_command.upperTemperatureLimit))
+              ac_manual_control_t.temperature_value <= last_command.upperTemperatureLimit))
         {
             ir_transmit();
         }
     }
 
     generate_ack(GWY_MANUAL_AC_CONTROL_ACK, NULL);
+}
+
+/**
+ * @brief Function that exits the device from teaching mode
+ * @param success - Flag indicating if its a successful exit or forced exit
+ * if successful exit, then teaching mode is completed and hence we can set
+ * the configured flag, if not, then don't
+ */
+void exit_teaching_mode(bool success)
+{
+    if(success) {
+        configured = true;
+    }
+    teaching_in_progress = false; update_led_status();
+    teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
+    update_led_status();
+    generate_ack(GWY_TEACHING_MODE, NULL);
+}
+
+/**
+ * @brief Function that performs the teaching process. 
+ * - 1) Detects IR Signal
+ * - 2) Decodes information from IR Signal = Temperature, Power
+ * - 3) Checks if the expected IR Signal
+ * - 4) If Yes, saves it to nvs flash
+ * - 5) Steps 1 to 4 is repeated until expected number of IR Signals have been received
+ * - 6) Quits device from Teaching mode
+ */
+void perform_teaching_process(const char *description)
+{
+    /*Let's pause the IR Reception until we process the recevied ir signal*/
+    irrecv.pause();
+    if (isFetchControlInfoSuccessful(description))
+    {
+        /*If this is the first IR Signal*/
+        if (teaching_mode_t.commandsReceived == 0)
+        {
+            /**
+             * @warning We're only comparing power here and not temperature, because, for some AC remotes
+             * like LG2, when sending power OFF command, the decoded string doesn't seem to contain temperature at all.
+             * 
+             */
+            if (ac_manual_control_t.power_value == 0)
+            {
+                /*We've received a valid first IR Signal*/
+                teaching_mode_t.commandsReceived++;
+                teaching_mode_t.commandIndex++;
+                teaching_mode_t.remainingCommands--;
+                teaching_mode_t.errorCode = SUCCESS;
+            }
+            else
+            {
+                led_set_state(LED_STATE_INVALID_OPERATION);
+                teaching_mode_t.errorCode = FAILURE;
+            }
+        }
+        else
+        {
+            if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
+            {
+                /*We've received a valid first IR Signal*/
+                teaching_mode_t.commandsReceived++;
+                teaching_mode_t.commandIndex++;
+                teaching_mode_t.remainingCommands--;
+                teaching_mode_t.errorCode = SUCCESS;
+            }
+            else
+            {
+                led_set_state(LED_STATE_INVALID_OPERATION);
+                teaching_mode_t.errorCode = FAILURE;
+            }
+        }
+    }
+    else
+    {
+        led_set_state(LED_STATE_INVALID_OPERATION);
+        teaching_mode_t.errorCode = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+    }
+    generate_ack(GWY_TEACHING_MODE, NULL);
+
+    /*Teaching mode has been successfully completed*/
+    if(teaching_mode_t.remainingCommands==0)
+    {
+        exit_teaching_mode(true);
+    }
+    irrecv.resume();
 }
 
 /**
@@ -715,19 +816,21 @@ void ir_recv_task(void *args)
         if (irrecv.decode(&results))
         {
             decode_type_t protocol = UNKNOWN;
-            if (results.overflow) ESP_LOGW(IR_TAG, "IR Buffer overflow");
+            if (results.overflow)
+                ESP_LOGW(IR_TAG, "IR Buffer overflow");
             ESP_LOGW(IR_TAG, "kTolerancePercentage : %d", kTolerancePercentage);
             ESP_LOGW(IR_TAG, "%s", resultToHumanReadableBasic(&results, &protocol).c_str());
             ESP_LOGW(IR_TAG, "Protocol Number : %d", protocol);
             String description = IRAcUtils::resultAcToString(&results);
-            if (description.length()) ESP_LOGW(IR_TAG, "%s\n", description.c_str());
+            if (description.length())
+                ESP_LOGW(IR_TAG, "%s\n", description.c_str());
 
             /**  @warning DO NOT CHANGE THE FOLLOWING ORDER
-            * 1) locking Feature 
-            * 2) Teaching Mode
-            * 3) AC Remote Configuration
-            * 4) Unsupported AC Remote Check
-            */
+             * 1) locking Feature
+             * 2) Teaching Mode
+             * 3) AC Remote Configuration
+             * 4) Unsupported AC Remote Check
+             */
 
             /*Locking Feature*/
             if (registered && configured && last_command.locking && !teaching_in_progress &&
@@ -741,17 +844,7 @@ void ir_recv_task(void *args)
             /*Teaching Mode*/
             if (teaching_in_progress)
             {
-                if(isFetchControlInfoSuccessful(description.c_str()))
-                {
-                    ;
-                }
-                
-                else 
-                {
-                    led_set_state(LED_STATE_INVALID_OPERATION);
-                    teaching_mode_t.errorCode = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
-                    generate_ack(GWY_TEACHING_MODE, NULL);
-                }
+                perform_teaching_process(description.c_str());
             }
 
             /*AC Remote Configuration Process*/

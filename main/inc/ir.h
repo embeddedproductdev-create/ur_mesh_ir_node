@@ -56,7 +56,7 @@ const char *get_protocol_string(int16_t protocol);
 bool is_supported_remote(int16_t protocol);
 void ir_transmit();
 void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
-
+void exit_teaching_mode(bool success);
 #ifdef __cplusplus
 }
 #endif

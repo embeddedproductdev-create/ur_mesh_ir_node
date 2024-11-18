@@ -218,58 +218,42 @@ void enqueue_for_publish(char *ack_json) {
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 {
     int size = 1024;
-    char buffer[5][size];
-    struct jWriteControl jwc[5];
-
+    char *buffer = (char *)malloc(size);
+    if(!buffer) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        return;
+    }
+    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    if(!jwc) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
+        free(buffer);
+        return;
+    }
     switch(packetid)
     {
         case GWY_TEACHING_MODE:
-            jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
-            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);
-            jwObj_int(&jwc[0], ERROR_CODE_KEY, teaching_mode_t.errorCode);
-            jwObj_string(&jwc[0], LAST_CMD_KEY, teaching_mode_t.lastCommand);
-            jwObj_string(&jwc[0], NEXT_CMD_KEY, teaching_mode_t.nextCommand);
-            jwEnd(&jwc[0]);
-            jwClose(&jwc[0]);
+            jwOpen(jwc, buffer, size, JW_OBJECT, 1);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);
+            jwObj_int(jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
+            jwObj_int(jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
+            jwObj_string(jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
+            jwObj_string(jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
             break;
         
         case NODE_TEACHING_MODE:
-            jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
-            
-            jwEnd(&jwc[0]);
-            jwClose(&jwc[0]);
             break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
-            jwOpen(&jwc[0], buffer[0], size, JW_OBJECT, 1);
-            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
-            jwObj_int(&jwc[0], POWER_KEY, ac_manual_control_t.power_value);
-            jwObj_int(&jwc[0], TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
-            jwObj_int(&jwc[0], FAN_SPEED_KEY, ac_manual_control_t.fanspeed_value);
-            jwObj_string(&jwc[0], MODE_KEY, ac_manual_control_t.mode);
-            jwObj_array(&jwc[0], ERROR_CODE_KEY);
-                jwOpen(&jwc[1], buffer[1], size, JW_OBJECT, 1);
-                jwOpen(&jwc[2], buffer[1], size, JW_OBJECT, 1);
-                jwOpen(&jwc[3], buffer[1], size, JW_OBJECT, 1);
-                jwOpen(&jwc[4], buffer[1], size, JW_OBJECT, 1);
-                jwObj_int(&jwc[1], POWER_ERROR_KEY, ac_manual_control_t.power_err);
-                jwObj_int(&jwc[2], TEMPERATURE_ERROR_KEY, ac_manual_control_t.temperature_err);
-                jwObj_int(&jwc[3], FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
-                jwObj_int(&jwc[4], MODE_ERROR_KEY, ac_manual_control_t.mode_err);
-                jwArr_object(&jwc[1]);
-                jwArr_object(&jwc[2]);
-                jwArr_object(&jwc[3]);
-                jwArr_object(&jwc[4]);
-                jwEnd(&jwc[1]);
-                jwClose(&jwc[1]);
-                jwEnd(&jwc[2]);
-                jwClose(&jwc[2]);
-                jwEnd(&jwc[3]);
-                jwClose(&jwc[3]);
-                jwEnd(&jwc[4]);
-                jwClose(&jwc[4]);
-            jwEnd(&jwc[0]);
-            jwClose(&jwc[0]);
+            jwOpen(jwc, buffer, size, JW_OBJECT, 1);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
+            jwObj_int(jwc, POWER_KEY, ac_manual_control_t.power_value);
+            jwObj_int(jwc, TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
+            jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_value);
+            jwObj_string(jwc, MODE_KEY, ac_manual_control_t.mode);
+            jwObj_int(jwc, POWER_ERROR_KEY, ac_manual_control_t.power_err);
+            jwObj_int(jwc, TEMPERATURE_ERROR_KEY, ac_manual_control_t.temperature_err);
+            jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
+            jwObj_int(jwc, MODE_ERROR_KEY, ac_manual_control_t.mode_err);
             break;
 
         case NODE_MANUAL_AC_CONTROL_ACK:
@@ -279,27 +263,27 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             char version[10], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
-            jwOpen(&jwc[0], buffer[0], 1024, JW_OBJECT, 1);
-            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, cmd_struct->packetid);
-            jwObj_int(&jwc[0], MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(&jwc[0], FIRMWARE_VERSION_KEY, version);
-            jwObj_int(&jwc[0], REGISTERED_KEY, registered);
-            jwObj_string(&jwc[0], PROTOCOL_SEL_NUM_KEY, ir_protocol);
-            jwObj_int(&jwc[0], PUBLISH_PERIOD_KEY, publishPeriod);
-            jwObj_string(&jwc[0], DEVICE_UPTIME_KEY, uptime);
-            jwObj_int(&jwc[0], ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwClose(&jwc[0]);
+            jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
+            jwObj_int(jwc, REGISTERED_KEY, registered);
+            jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
+            jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
+            jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             break;
 
         default:
-            jwOpen(&jwc[0], buffer[0], 1024, JW_OBJECT, 1);
-            jwObj_int(&jwc[0], JSON_PACKET_ID_KEY, cmd_struct->packetid);
-            jwObj_int(&jwc[0], MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_int(&jwc[0], ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwClose(&jwc[0]);
+            jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             break;
     }
-    enqueue_for_publish(buffer[0]);
+    jwEnd(jwc);
+    jwClose(jwc);
+    enqueue_for_publish(buffer);
 }
 
 /**
@@ -675,7 +659,6 @@ void parse_json()
                 break;
 
             case GWY_AC_CONTROL_PACKET:
-                
                 last_command.power = cmd_struct.power;
                 last_command.temperature = cmd_struct.temperature;
                 last_command.fanspeed = cmd_struct.fanspeed;
@@ -716,9 +699,11 @@ void parse_json()
                 teaching_mode_t.teachingStart = cmd_struct.teachingStart;
                 teaching_mode_t.startingTemperature = cmd_struct.startingTemperature;
                 teaching_mode_t.endingTemperature = cmd_struct.endingTemperature;
-                teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
-                generate_ack(GWY_TEACHING_MODE, NULL);
-                break;
+                if(teaching_mode_t.teachingStart) {
+                    teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
+                }
+                else exit_teaching_mode(false);
+                return;
 
             default:
                 break;

@@ -244,11 +244,12 @@ typedef struct
     uint8_t teachingStart;
     uint8_t startingTemperature;
     uint8_t endingTemperature;
-    char *lastCommand;
-    char *nextCommand;
-    uint8_t nextTemperature;
+    char lastCommand[35];
+    char nextCommand[35];
+    uint8_t expectedTemperature;
+    uint8_t commandsReceived;
     uint8_t commandIndex;
-    uint8_t remainingCommand;
+    uint8_t remainingCommands;
     error_codes errorCode;
 }teaching_mode;
 
