@@ -14,15 +14,12 @@
 
 #define NVS_TAG "NVS"
 
-#define BLE_NVS_PARTITION_NAME "ble"
 #define IR_NVS_PARTITION_NAME "ir"
 #define GENERAL_NVS_PARTITION_NAME "general"
 
-#define BLE_NVS_NAMESPACE "BLE"
 #define IR_NVS_NAMESPACE "IR"
 #define GENERAL_NVS_NAMESPACE "GENERAL"
 
-nvs_handle_t ble_nvs_handle;
 nvs_handle_t ir_nvs_handle;
 nvs_handle_t general_nvs_handle;
 
@@ -120,10 +117,6 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
             err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
             break;
-        case BLE_HANDLE:
-            err = nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &handle);
-            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
-            break;
         case GENERAL_HANDLE:
             err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
@@ -194,10 +187,6 @@ void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value)
             err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
             break;
-        case BLE_HANDLE:
-            err = nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &handle);
-            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
-            break;
         case GENERAL_HANDLE:
             err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
@@ -228,10 +217,6 @@ void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void 
         case IR_HANDLE:
             err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
-            break;
-        case BLE_HANDLE:
-            err = nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &handle);
-            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
             break;
         case GENERAL_HANDLE:
             err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
@@ -322,10 +307,6 @@ void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *out
             err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
             break;
-        case BLE_HANDLE:
-            err = nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &handle);
-            ESP_LOGW(NVS_TAG, "Opening %s parition : %s",BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
-            break;
         case GENERAL_HANDLE:
             err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
             ESP_LOGW(NVS_TAG, "Opening %s parition : %s",GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
@@ -346,8 +327,6 @@ void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *out
 esp_err_t init_data_in_nvs(void)
 {
     esp_err_t err;
-    err=nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &ble_nvs_handle);
-    ESP_LOGW(NVS_TAG,"Opening %s partition : %s" ,BLE_NVS_PARTITION_NAME,esp_err_to_name(err));
     err=nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
     ESP_LOGW(NVS_TAG,"Opening %s partition : %s" ,IR_NVS_PARTITION_NAME,esp_err_to_name(err));
     err=nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
@@ -396,14 +375,11 @@ esp_err_t init_data_in_nvs(void)
     err=nvs_set_u8(general_nvs_handle, NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
     ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit, esp_err_to_name(err));
 
-    err=nvs_commit(ble_nvs_handle);
-    ESP_LOGW(NVS_TAG, "Commiting %s handle : %s",BLE_NVS_NAMESPACE, esp_err_to_name(err));
     err=nvs_commit(ir_nvs_handle);
     ESP_LOGW(NVS_TAG, "Commiting %s handle : %s",IR_NVS_NAMESPACE, esp_err_to_name(err));
     err=nvs_commit(general_nvs_handle);
     ESP_LOGW(NVS_TAG, "Commiting %s handle : %s",GENERAL_NVS_NAMESPACE, esp_err_to_name(err));
 
-    nvs_close(ble_nvs_handle);
     nvs_close(ir_nvs_handle);
     nvs_close(general_nvs_handle);
     return ESP_OK;
@@ -447,7 +423,6 @@ void print_ir_cmds()
  */
 esp_err_t pull_data_from_nvs(void)
 {
-    nvs_open_from_partition(BLE_NVS_PARTITION_NAME, BLE_NVS_NAMESPACE, NVS_READWRITE, &ble_nvs_handle);
     nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
     ESP_LOGW(NVS_TAG, "ErrorCode for pulling from flash : %s", esp_err_to_name(nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle)));
     
@@ -474,7 +449,6 @@ esp_err_t pull_data_from_nvs(void)
     nvs_get_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, device_location_str, &locationReqSize);
     
     // Close
-    nvs_close(ble_nvs_handle);
     nvs_close(ir_nvs_handle);
     nvs_close(general_nvs_handle);
     return ESP_OK;
@@ -509,15 +483,6 @@ bool isNewDevice()
 void nvs_init()
 {
     esp_err_t err;
-    err = nvs_flash_init_partition(BLE_NVS_PARTITION_NAME);
-    ESP_LOGI(NVS_TAG, "nvs_flash_init_partition(BLE_NVS_PARTITION_NAME) Err : %s", esp_err_to_name(err));
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND || err == ESP_ERR_NVS_NOT_ENOUGH_SPACE) {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_LOGE(NVS_TAG, "Err in %s NVS partition. Erasing data", BLE_NVS_PARTITION_NAME);
-        ESP_ERROR_CHECK(nvs_flash_erase_partition(BLE_NVS_PARTITION_NAME));
-        err = nvs_flash_init_partition(BLE_NVS_PARTITION_NAME);
-    }
 
     err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
     ESP_LOGI(NVS_TAG, "nvs_flash_init_partition(IR_NVS_PARTITION_NAME) Err : %s", esp_err_to_name(err));
@@ -547,13 +512,6 @@ void nvs_init()
     
     nvs_get_stats(GENERAL_NVS_PARTITION_NAME, &nvs_stats);
     ESP_LOGI(NVS_TAG, "=-=-=-=-=-=-=-=-=-=- GENERAL_PARTITION_STATS -=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGI(NVS_TAG, "UsedEntries : (%d)", nvs_stats.used_entries); 
-    ESP_LOGI(NVS_TAG, "FreeEntries : (%d)", nvs_stats.free_entries);
-    // ESP_LOGI(NVS_TAG, "AvailableEntries : (%lu)", nvs_stats.available_entries);
-    ESP_LOGI(NVS_TAG, "AllEntries : (%d)", nvs_stats.total_entries);
-
-    nvs_get_stats(BLE_NVS_PARTITION_NAME, &nvs_stats);
-    ESP_LOGI(NVS_TAG, "=-=-=-=-=-=-=-=-=-=- BLE_PARTITION_STATS -=-=-=-=-=-=-=-=-=-=");
     ESP_LOGI(NVS_TAG, "UsedEntries : (%d)", nvs_stats.used_entries); 
     ESP_LOGI(NVS_TAG, "FreeEntries : (%d)", nvs_stats.free_entries);
     // ESP_LOGI(NVS_TAG, "AvailableEntries : (%lu)", nvs_stats.available_entries);

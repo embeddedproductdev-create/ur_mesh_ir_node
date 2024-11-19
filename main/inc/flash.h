@@ -2,7 +2,6 @@
 #include "nvs.h"
 
 /*Global Variables*/
-extern nvs_handle_t ble_nvs_handle;
 extern nvs_handle_t ir_nvs_handle;
 extern nvs_handle_t general_nvs_handle;
 extern const char *NVS_TEACHING_MODE_CMD_KEYS[];
@@ -33,7 +32,6 @@ extern const char *NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY;
 
 typedef enum
 {
-    BLE_HANDLE,
     IR_HANDLE,
     GENERAL_HANDLE,
 }handle_enum_t;

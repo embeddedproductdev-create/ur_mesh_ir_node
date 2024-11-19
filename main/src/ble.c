@@ -118,7 +118,7 @@ void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
         ESP_LOGE(BLE_TAG, "%s, Invalid device uuid", __func__);
         return;
     }
-
+    
     /* Copy device address to the device uuid with offset equals to 2 here.
      * The first two bytes is used for matching device uuid by Provisioner.
      * And using device address here is to avoid using the same device uuid
@@ -139,23 +139,28 @@ esp_err_t bluetooth_init(void)
         ESP_LOGE(BLE_TAG, "%s initialize controller failed", __func__);
         return ret;
     }
+    else ESP_LOGI(BLE_TAG, "esp_bt_controller_mem_release : %d",ret);
 
     ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
     if (ret) {
         ESP_LOGE(BLE_TAG, "%s enable controller failed", __func__);
         return ret;
     }
+    else ESP_LOGI(BLE_TAG, "esp_bt_controller_enable  : %d",ret);
+
     ret = esp_bluedroid_init();
     if (ret) {
         ESP_LOGE(BLE_TAG, "%s init bluetooth failed", __func__);
         return ret;
     }
+    else ESP_LOGI(BLE_TAG, "esp_bluedroid_init  : %d",ret);
+
     ret = esp_bluedroid_enable();
     if (ret) {
         ESP_LOGE(BLE_TAG, "%s enable bluetooth failed", __func__);
         return ret;
     }
-
+    else ESP_LOGI(BLE_TAG, "esp_bluedroid_enable  : %d",ret);
     return ret;
 }
 #endif /* CONFIG_BT_BLUEDROID_ENABLED */
@@ -760,13 +765,6 @@ void ble_init()
     esp_err_t err;
 
     ESP_LOGI(BLE_TAG, "Initializing...");
-
-    err = nvs_flash_init();
-    if (err == ESP_ERR_NVS_NO_FREE_PAGES) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        err = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(err);
 
     err = bluetooth_init();
     if (err) {
