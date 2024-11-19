@@ -733,8 +733,8 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     teaching_mode_t.remainingCommands = endingTemp - startingTemp + 2;
     strcpy(teaching_mode_t.lastCommand, "");
     strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[0]);
-    set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8);
-    set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8);
+    set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8_SIZE);
+    set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8_SIZE);
     generate_ack(GWY_TEACHING_MODE, NULL);
     ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
 }
@@ -751,7 +751,7 @@ void exit_teaching_mode(bool success)
         configured = true;
         ir_protocol_num = RAW;
         strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-        set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+        set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
         ESP_LOGI(IR_TAG, "Teaching mode completed successfully");
     }
     strcpy(teaching_mode_t.nextCommand, "");
@@ -789,7 +789,7 @@ void perform_teaching_process(const char *description)
              */
             if (ac_manual_control_t.power_value == 0)
             {
-                set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, results.rawlen, UINT16);
+                set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, results.rawlen, UINT16_SIZE);
 
                 /*Let's store raw values to nvs flash*/
                 set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen-1);
@@ -898,8 +898,8 @@ void ir_recv_task(void *args)
                 configured = true; update_led_status();
                 ir_protocol_num = protocol;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8);
+                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
                 generate_ack(GWY_CONF_ACK, NULL);
                 ESP_LOGI(IR_TAG, "AC Remote configuration successful");
             }

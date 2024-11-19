@@ -134,40 +134,40 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
     
     switch(size)
     {
-        case INT8:
+        case INT8_SIZE:
             err = nvs_set_i8(handle, key, (int8_t)value);
             ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s",key,value,esp_err_to_name(err));
             break;
 
-        case UINT8:
+        case UINT8_SIZE:
             err = nvs_set_u8(handle, key, (uint8_t)value);
             ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s",key,value,esp_err_to_name(err));
             break;
 
-        case INT16:
+        case INT16_SIZE:
             err = nvs_set_i16(handle, key, (int16_t)value);
             ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s",key,value,esp_err_to_name(err));
             break;
 
-        case UINT16:
+        case UINT16_SIZE:
             err = nvs_set_u16(handle, key, (uint16_t)value);
             ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s",key,value,esp_err_to_name(err));
             break;
 
-        case INT32:
+        case INT32_SIZE:
             err = nvs_set_i32(handle, key, (int32_t)value);
             ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s",key,value,esp_err_to_name(err));
             break;
 
-        case UINT32:
+        case UINT32_SIZE:
             err = nvs_set_u32(handle, key, (uint32_t)value);
             ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s",key,value,esp_err_to_name(err));
             break;
 
-        case INT64:
+        case INT64_SIZE:
             break;
 
-        case UINT64:
+        case UINT64_SIZE:
             break;
 
         default:
@@ -259,28 +259,28 @@ int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, size
     
     switch(size)
     {
-        case INT8:
+        case INT8_SIZE:
             break;
 
-        case UINT8:
+        case UINT8_SIZE:
             break;
 
-        case INT16:
+        case INT16_SIZE:
             break;
 
-        case UINT16:
+        case UINT16_SIZE:
             break;
 
-        case INT32:
+        case INT32_SIZE:
             break;
 
-        case UINT32:
+        case UINT32_SIZE:
             break;
 
-        case INT64:
+        case INT64_SIZE:
             break;
 
-        case UINT64:
+        case UINT64_SIZE:
             break;
 
         default:

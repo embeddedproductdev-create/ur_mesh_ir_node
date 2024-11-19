@@ -663,13 +663,13 @@ void parse_json()
             case GWY_REG_PACKET:
                 registered = 1; update_led_status();
                 set_str_in_nvs_flash(GENERAL_HANDLE, NVS_DEVICE_LOCATION_KEY, device_location_str);
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 1, UINT8);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 1, UINT8_SIZE);
                 hb_timer_start();
                 break;
 
             case GWY_UNREG_PACKET:
                 registered = 0; update_led_status();
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 0, UINT8);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 0, UINT8_SIZE);
                 hb_timer_stop();
                 break;
 
@@ -690,8 +690,8 @@ void parse_json()
             case GWY_RECONF_PACKET:
                 ir_protocol_num = -1;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8);
-                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16);
+                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8_SIZE);
+                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
                 configured = 0; update_led_status();
                 break;
 
@@ -699,7 +699,7 @@ void parse_json()
                 if(publishPeriod == cmd_struct.publishPeriodSec);
                 else {
                     publishPeriod = cmd_struct.publishPeriodSec;
-                    set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16);
+                    set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16_SIZE);
                     hb_timer_restart();
                     send_cmd_and_check_response(LOG_DATA, WILL_CMD, "WILL_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
                 }

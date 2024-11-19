@@ -1,4 +1,4 @@
-set( CUSTOM_SRCS
+set(CUSTOM_SRCS
     main.c
     src/general.c
     src/button.c
@@ -11,7 +11,10 @@ set( CUSTOM_SRCS
     src/ble.c
 )
 
+set(includeDirs inc)
+
 idf_component_register(
     SRCS ${CUSTOM_SRCS}
-    INCLUDE_DIRS "inc"
+    INCLUDE_DIRS ${includeDirs}
+    REQUIRES bt nvs_flash log custom_arduino esp_timer driver
 )

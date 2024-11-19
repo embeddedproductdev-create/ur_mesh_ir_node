@@ -82,14 +82,14 @@ extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 typedef enum
 {
-    INT8,
-    UINT8,
-    INT16,
-    UINT16,
-    INT32,
-    UINT32,
-    INT64,
-    UINT64
+    INT8_SIZE,
+    UINT8_SIZE,
+    INT16_SIZE,
+    UINT16_SIZE,
+    INT32_SIZE,
+    UINT32_SIZE,
+    INT64_SIZE,
+    UINT64_SIZE
 }sizes_t;
 
 typedef enum 
