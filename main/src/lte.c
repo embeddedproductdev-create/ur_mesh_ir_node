@@ -236,6 +236,22 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
     jwOpen(jwc, buffer, size, JW_OBJECT, 1);
     switch(packetid)
     {
+        case NODE_PROV_PACKET:
+            if(cmd_struct==NULL) //Case where prov request a was success
+            {
+                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, prov_req_msgseqno);
+                jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+                jwObj_int(jwc, ELEMENT_ADDR_KEY, prov_req_elemaddr);
+            }
+            else //Case where prov request was a failure
+            {
+                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+                jwObj_int(jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+            }
+            break;
+
         case GWY_TEACHING_MODE:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);
             jwObj_int(jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
@@ -281,7 +297,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_CONF_ACK);
             jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
             if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_string(jwc, ERROR_CODE_KEY, SUCCESS);
+            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
             break;
 
         default:
@@ -650,7 +666,7 @@ void parse_json()
 
     if(cmd_struct.errorcode == SUCCESS)
     {
-        cmd_struct.timestamp = xTaskGetTickCount();
+        cmd_struct.enqueue_time = xTaskGetTickCount();
 
         // Add only Node based packets into Queue
         if(cmd_struct.packetid>=NODE_PROV_PACKET && cmd_struct.packetid<MAX_NODE_PACKET_ID) {
@@ -658,7 +674,6 @@ void parse_json()
                 ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
                 return;
             }
-            return;
         }
 
         switch(cmd_struct.packetid)
@@ -730,7 +745,7 @@ void parse_json()
             case NODE_RECONF_PACKET:
             case NODE_HEARTBEAT_PUB_CONF_PACKET:
             case NODE_TEACHING_MODE:
-                handle_sending_out_node_packets(&cmd_struct);
+                handle_ble_outgoing(&cmd_struct);
                 return;
 
             default:
@@ -826,12 +841,52 @@ error_codes send_cmd_and_check_response(bool logging, const char *cmd,
 }
 
 /**
+ * @brief Function that removes an item from the queue based on msgseqno
+ * @param queue the queue from which the item needs to be removed from
+ * @param msgseqno the msgseq no of the item to be removed
+ * @retval true If item was removed
+ * @retval false If item was not removed
+ */
+bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno) {
+    CommandStruct temp_item;
+    bool item_found = false;
+    QueueHandle_t temp_queue = xQueueCreate(uxQueueMessagesWaiting(queue), sizeof(CommandStruct));
+
+    if (temp_queue == NULL) {
+        ESP_LOGE(LTE_TAG, "Temporary queue creation failed!");
+        return false;
+    }
+
+    // Transfer items to the temporary queue, skipping the matched one
+    while (uxQueueMessagesWaiting(queue) > 0) {
+        if (xQueueReceive(queue, &temp_item, 0) == pdPASS) {
+            if (temp_item.msgseqno == msgseqno) {
+                ESP_LOGI(LTE_TAG, "Removing item with msgseqno=%d", msgseqno);
+                item_found = true; // Mark as found
+            } else {
+                xQueueSend(temp_queue, &temp_item, portMAX_DELAY);
+            }
+        }
+    }
+
+    // Restore remaining items back to the original queue
+    while (uxQueueMessagesWaiting(temp_queue) > 0) {
+        if (xQueueReceive(temp_queue, &temp_item, 0) == pdPASS) {
+            xQueueSend(queue, &temp_item, portMAX_DELAY);
+        }
+    }
+
+    vQueueDelete(temp_queue);
+    return item_found;
+}
+
+/**
  * @brief Function that checks if any item has been sitting too long in the command queue
  * 
  */
 void maintainCommandQueue()
 {
-    cmd_struct_t cmd_item;
+    CommandStruct cmd_item;
     uint32_t current_time_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
     UBaseType_t queue_length = uxQueueMessagesWaiting(command_queue);
 
@@ -841,6 +896,7 @@ void maintainCommandQueue()
             if ((current_time_ms - cmd_item.enqueue_time) > BLE_NODE_COMM_TIMEOUT_MS) {
                 // Remove the stale item
                 if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
+                    generate_ack(NODE_PROV_PACKET, &cmd_item);
                     ESP_LOGW(LTE_TAG, "Removed stale command from queue: msgseqno=%d", cmd_item.msgseqno);
                 }
             } else {

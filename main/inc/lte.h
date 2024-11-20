@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/task.h"
 
 #define PUBLISH_QUEUE_SIZE 10
@@ -198,7 +199,7 @@ typedef enum
 
 typedef struct
 {
-    TickType_t timestamp;
+    TickType_t enqueue_time;
     error_codes errorcode;
     mqtt_packets packetid;
     uint16_t msgseqno;
@@ -290,6 +291,7 @@ error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *
 error_codes send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
 void powerUpLTE();
 void powerDownLTE();
+bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno);
 
 #ifdef __cplusplus
 extern "C" {

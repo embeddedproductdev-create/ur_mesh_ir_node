@@ -37,6 +37,9 @@
 #define APP_KEY_IDX         0x0000
 #define APP_KEY_OCTET       0x12
 
+uint16_t prov_req_msgseqno = 9999;
+uint16_t prov_req_elemaddr = 9999;
+
 static uint8_t dev_uuid[16];
 
 typedef struct {
@@ -164,92 +167,6 @@ esp_err_t bluetooth_init(void)
     return ret;
 }
 #endif /* CONFIG_BT_BLUEDROID_ENABLED */
-
-#ifdef CONFIG_BT_NIMBLE_ENABLED
-static SemaphoreHandle_t mesh_sem;
-static uint8_t own_addr_type;
-void ble_store_config_init(void);
-static uint8_t addr_val[6] = {0};
-
-void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
-{
-    if (dev_uuid == NULL) {
-        ESP_LOGE(BLE_TAG, "%s, Invalid device uuid", __func__);
-        return;
-    }
-
-    /* Copy device address to the device uuid with offset equals to 2 here.
-     * The first two bytes is used for matching device uuid by Provisioner.
-     * And using device address here is to avoid using the same device uuid
-     * by different unprovisioned devices.
-     */
-    memcpy(dev_uuid + 2, addr_val, BD_ADDR_LEN);
-}
-
-static void mesh_on_reset(int reason)
-{
-    ESP_LOGI(BLE_TAG, "Resetting state; reason=%d", reason);
-}
-
-static void mesh_on_sync(void)
-{
-    int rc;
-
-    rc = ble_hs_util_ensure_addr(0);
-    assert(rc == 0);
-
-    /* Figure out address to use while advertising (no privacy for now) */
-    rc = ble_hs_id_infer_auto(0, &own_addr_type);
-    if (rc != 0) {
-        ESP_LOGI(BLE_TAG, "error determining address type; rc=%d", rc);
-        return;
-    }
-
-    rc = ble_hs_id_copy_addr(own_addr_type, addr_val, NULL);
-
-    xSemaphoreGive(mesh_sem);
-}
-
-void mesh_host_task(void *param)
-{
-    ESP_LOGI(BLE_TAG, "BLE Host Task Started");
-    /* This function will return only when nimble_port_stop() is executed */
-    nimble_port_run();
-
-    nimble_port_freertos_deinit();
-}
-
-esp_err_t bluetooth_init(void)
-{
-    esp_err_t ret;
-
-    mesh_sem = xSemaphoreCreateBinary();
-    if (mesh_sem == NULL) {
-        ESP_LOGE(BLE_TAG, "Failed to create mesh semaphore");
-        return ESP_FAIL;
-    }
-
-    ret = nimble_port_init();
-    if (ret != ESP_OK) {
-        ESP_LOGE(BLE_TAG, "Failed to init nimble %d ", ret);
-        return ret;
-    }
-
-    /* Initialize the NimBLE host configuration. */
-    ble_hs_cfg.reset_cb = mesh_on_reset;
-    ble_hs_cfg.sync_cb = mesh_on_sync;
-    ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
-
-    /* XXX Need to have template for store */
-    ble_store_config_init();
-
-    nimble_port_freertos_init(mesh_host_task);
-
-    xSemaphoreTake(mesh_sem, portMAX_DELAY);
-
-    return ESP_OK;
-}
-#endif /* CONFIG_BT_NIMBLE_ENABLED */
 
 static esp_err_t example_ble_mesh_store_node_info(const uint8_t uuid[16], uint16_t unicast,
                                                   uint8_t elem_num, uint8_t onoff_state)
@@ -435,6 +352,9 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
                       param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
                       param->provisioner_prov_complete.netkey_idx);
+        prov_req_elemaddr = param->provisioner_prov_complete.unicast_addr;
+        removeQueueItemByMsgSeqNo(command_queue, prov_req_msgseqno);
+        generate_ack(NODE_PROV_PACKET, NULL);
         break;
     case ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT:
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);
@@ -788,26 +708,38 @@ void ble_init()
  */
 esp_err_t send_provision_request(char *macid)
 {
+    ESP_LOGI(BLE_TAG, "Sending provision request for macid : %s",macid);
     esp_err_t err;
-    uint8_t match[8] = {0xcd, 0xdc};
+    uint8_t match[8] = {0xdc, 0xdc};
     for (uint8_t i = 2; i < 8; i++)
     {
         match[i] = macid[i - 2];
     }
-    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
+    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, 0, 0x0, true);
     if(err != ESP_OK) ESP_LOGD(BLE_TAG, "Error in Provisioning %s : %s",macid, esp_err_to_name(err));
     return err;
 }
 
+
 /**
- * @brief Function that takes care of sending out Node packets to Node
+ * @brief Function that takes care of communication from Nodes to provisioner
+ * 
+ */
+void handle_ble_incoming()
+{
+    ;
+}
+
+/**
+ * @brief Function that takes care of communication from provisioner to Nodes
  * @param cmd_struct 
  */
-void handle_sending_out_node_packets(CommandStruct *cmd_struct)
+void handle_ble_outgoing(CommandStruct *cmd_struct)
 {
     switch(cmd_struct->packetid)
     {
         case NODE_PROV_PACKET:
+            prov_req_msgseqno = cmd_struct->msgseqno;
             send_provision_request(node_macid);
             break;
 
@@ -817,5 +749,8 @@ void handle_sending_out_node_packets(CommandStruct *cmd_struct)
         case NODE_RECONF_PACKET:
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
         case NODE_TEACHING_MODE:
+            break;
+        default:
+            break;
     }
 }
