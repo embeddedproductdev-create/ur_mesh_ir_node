@@ -55,7 +55,8 @@
         "ir.h": "c",
         "stdio.h": "c",
         "esp_ble_mesh_defs.h": "c",
-        "esp_ble_mesh_common_api.h": "c"
+        "esp_ble_mesh_common_api.h": "c",
+        "esp_bt.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",
