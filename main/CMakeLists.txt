@@ -16,5 +16,4 @@ set(includeDirs inc)
 idf_component_register(
     SRCS ${CUSTOM_SRCS}
     INCLUDE_DIRS ${includeDirs}
-    REQUIRES bt nvs_flash log custom_arduino esp_timer driver
 )

@@ -850,6 +850,7 @@ error_codes send_cmd_and_check_response(bool logging, const char *cmd,
 bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno) {
     CommandStruct temp_item;
     bool item_found = false;
+    if(uxQueueMessagesWaiting(queue) == 0) return false;
     QueueHandle_t temp_queue = xQueueCreate(uxQueueMessagesWaiting(queue), sizeof(CommandStruct));
 
     if (temp_queue == NULL) {

@@ -142,28 +142,24 @@ esp_err_t bluetooth_init(void)
         ESP_LOGE(BLE_TAG, "%s initialize controller failed", __func__);
         return ret;
     }
-    else ESP_LOGI(BLE_TAG, "esp_bt_controller_mem_release : %d",ret);
 
     ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
     if (ret) {
         ESP_LOGE(BLE_TAG, "%s enable controller failed", __func__);
         return ret;
     }
-    else ESP_LOGI(BLE_TAG, "esp_bt_controller_enable  : %d",ret);
 
     ret = esp_bluedroid_init();
     if (ret) {
         ESP_LOGE(BLE_TAG, "%s init bluetooth failed", __func__);
         return ret;
     }
-    else ESP_LOGI(BLE_TAG, "esp_bluedroid_init  : %d",ret);
 
     ret = esp_bluedroid_enable();
     if (ret) {
         ESP_LOGE(BLE_TAG, "%s enable bluetooth failed", __func__);
         return ret;
     }
-    else ESP_LOGI(BLE_TAG, "esp_bluedroid_enable  : %d",ret);
     return ret;
 }
 #endif /* CONFIG_BT_BLUEDROID_ENABLED */
@@ -336,12 +332,12 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     case ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT:
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT, err_code %d", param->provisioner_prov_disable_comp.err_code);
         break;
-    case ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT");
-        recv_unprov_adv_pkt(param->provisioner_recv_unprov_adv_pkt.dev_uuid, param->provisioner_recv_unprov_adv_pkt.addr,
-                            param->provisioner_recv_unprov_adv_pkt.addr_type, param->provisioner_recv_unprov_adv_pkt.oob_info,
-                            param->provisioner_recv_unprov_adv_pkt.adv_type, param->provisioner_recv_unprov_adv_pkt.bearer);
-        break;
+    // case ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT:
+        // ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT");
+        // recv_unprov_adv_pkt(param->provisioner_recv_unprov_adv_pkt.dev_uuid, param->provisioner_recv_unprov_adv_pkt.addr,
+        //                     param->provisioner_recv_unprov_adv_pkt.addr_type, param->provisioner_recv_unprov_adv_pkt.oob_info,
+        //                     param->provisioner_recv_unprov_adv_pkt.adv_type, param->provisioner_recv_unprov_adv_pkt.bearer);
+        // break;
     case ESP_BLE_MESH_PROVISIONER_PROV_LINK_OPEN_EVT:
         prov_link_open(param->provisioner_prov_link_open.bearer);
         break;
@@ -640,7 +636,6 @@ static void example_ble_mesh_generic_client_cb(esp_ble_mesh_generic_client_cb_ev
 
 static esp_err_t ble_mesh_init(void)
 {
-    uint8_t match[2] = {0xdd, 0xdd};
     esp_err_t err = ESP_OK;
 
     prov_key.net_idx = ESP_BLE_MESH_KEY_PRIMARY;
@@ -654,12 +649,6 @@ static esp_err_t ble_mesh_init(void)
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
         ESP_LOGE(BLE_TAG, "Failed to initialize mesh stack (err %d)", err);
-        return err;
-    }
-
-    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, false);
-    if (err != ESP_OK) {
-        ESP_LOGE(BLE_TAG, "Failed to set matching device uuid (err %d)", err);
         return err;
     }
 
