@@ -19,6 +19,7 @@
 #include <heartbeat.h>
 #include <flash.h>
 #include <ir.h>
+#include <ble.h>
 
 #define BAUD_RATE 115200
 
@@ -33,7 +34,6 @@
 #define UART_BUF_SIZE 800
 
 #define MIN_LTE_RESP_WAIT_MS 500
-
 
 #define MQTT_ACK_SIZE 1024
 #define RETRY_COUNT 5
@@ -157,6 +157,8 @@ char publish_topic[MQTT_TOPIC_CHAR_LEN];
 bool need_to_activate_pdp = false;
 bool LOG_DATA  = true;
 bool powerDownInProgress = false;
+
+char node_macid[18];
 
 TickType_t lastNetworkCheckedTime = 0;
 
@@ -584,6 +586,7 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             char macid[20];
             strcpy(macid, cJSON_GetObjectItem(json_obj, MAC_ID_KEY)->valuestring);
             if(!isValidMacId(macid)) cmd_struct->errorcode = INVALID_MACID;
+            else strcpy(node_macid, macid);
             return;
         }
     }
@@ -650,7 +653,7 @@ void parse_json()
         cmd_struct.timestamp = xTaskGetTickCount();
 
         // Add only Node based packets into Queue
-        if(cmd_struct.packetid>=100 && cmd_struct.packetid<MAX_NODE_PACKET_ID) {
+        if(cmd_struct.packetid>=NODE_PROV_PACKET && cmd_struct.packetid<MAX_NODE_PACKET_ID) {
             if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
                 ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
                 return;
@@ -718,6 +721,16 @@ void parse_json()
                     teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
                 }
                 else exit_teaching_mode(false);
+                return;
+            
+            case NODE_PROV_PACKET:
+            case NODE_UNPROV_PACKET:
+            case NODE_AC_CONTROL_PACKET:
+            case NODE_DEBUG_INFO_PACKET:
+            case NODE_RECONF_PACKET:
+            case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            case NODE_TEACHING_MODE:
+                handle_sending_out_node_packets(&cmd_struct);
                 return;
 
             default:
@@ -813,12 +826,38 @@ error_codes send_cmd_and_check_response(bool logging, const char *cmd,
 }
 
 /**
+ * @brief Function that checks if any item has been sitting too long in the command queue
+ * 
+ */
+void maintainCommandQueue()
+{
+    cmd_struct_t cmd_item;
+    uint32_t current_time_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
+    UBaseType_t queue_length = uxQueueMessagesWaiting(command_queue);
+
+    for (UBaseType_t i = 0; i < queue_length; i++) {
+        // Peek at the front item without removing it
+        if (xQueuePeek(command_queue, &cmd_item, 0) == pdPASS) {
+            if ((current_time_ms - cmd_item.enqueue_time) > BLE_NODE_COMM_TIMEOUT_MS) {
+                // Remove the stale item
+                if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
+                    ESP_LOGW(LTE_TAG, "Removed stale command from queue: msgseqno=%d", cmd_item.msgseqno);
+                }
+            } else {
+                // No more stale items, break early
+                break;
+            }
+        }
+    }
+}
+
+/**
  * Function that takes care of maintaining the MQTT communication with the broker
  * and also publishing ACK message from pubmessage queue to the Cloud
  * @param none
  * @retval none
  */
-void establishMQTTConnection()
+void maintainMQTTConnection()
 {
     error_codes rc;
 	static uint8_t ping_fail_counter = 0;	
@@ -888,6 +927,7 @@ void establishMQTTConnection()
 		}
         ping_fail_counter = 0;
         publish_from_queue();
+        maintainCommandQueue();
         vTaskDelay(pdMS_TO_TICKS(10));
 	}
 }
@@ -1032,7 +1072,7 @@ void lte_task(void *args)
             vTaskDelay(pdMS_TO_TICKS(30000));
             continue;
         }
-        establishMQTTConnection();
+        maintainMQTTConnection();
         if(powerDownInProgress) continue;
         powerUpLTE();
 	    MQTT_config();

@@ -780,3 +780,42 @@ void ble_init()
         ESP_LOGE(BLE_TAG, "Bluetooth mesh init failed (err %d)", err);
     }
 }
+
+/**
+ * @brief Function that provisions an unprovisioned node
+ * 
+ * @param macid 
+ */
+esp_err_t send_provision_request(char *macid)
+{
+    esp_err_t err;
+    uint8_t match[8] = {0xcd, 0xdc};
+    for (uint8_t i = 2; i < 8; i++)
+    {
+        match[i] = macid[i - 2];
+    }
+    err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, sizeof(match), 0x0, true);
+    if(err != ESP_OK) ESP_LOGD(BLE_TAG, "Error in Provisioning %s : %s",macid, esp_err_to_name(err));
+    return err;
+}
+
+/**
+ * @brief Function that takes care of sending out Node packets to Node
+ * @param cmd_struct 
+ */
+void handle_sending_out_node_packets(CommandStruct *cmd_struct)
+{
+    switch(cmd_struct->packetid)
+    {
+        case NODE_PROV_PACKET:
+            send_provision_request(node_macid);
+            break;
+
+        case NODE_UNPROV_PACKET:
+        case NODE_AC_CONTROL_PACKET:
+        case NODE_DEBUG_INFO_PACKET:
+        case NODE_RECONF_PACKET:
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+        case NODE_TEACHING_MODE:
+    }
+}

@@ -222,6 +222,8 @@ typedef struct
     uint8_t teachingStart;
     uint8_t startingTemperature;
     uint8_t endingTemperature;
+    bool requestSentToNode;
+
 } CommandStruct;
 
 typedef struct 
@@ -258,6 +260,8 @@ typedef struct
 extern CommandStruct last_command;
 extern manual_control ac_manual_control_t;
 extern teaching_mode teaching_mode_t;
+extern QueueHandle_t command_queue;
+extern char node_macid[18];
 
 /*Global Variables*/
 extern TaskHandle_t lte_task_handle;
