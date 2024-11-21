@@ -1,3 +1,6 @@
+// #ifndef MAIN_H
+// #define MAIN_H
+
 /**
  * ===================================================================
  * @warning VERY IMPORTANT MACROS !!!
@@ -35,3 +38,6 @@
 #define MQTT_BROKER_USERNAME "unimaqtt"
 #define MQTT_BROKER_PASSWORD "T5DRIIJEBgfhjsrFkaDERkgJhswMwk4"
 #endif
+
+
+// #endif

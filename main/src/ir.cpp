@@ -959,3 +959,38 @@ void ir_recv_task(void *args)
         vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
+
+/**
+ * @brief Function that takes are of setting the configured to false,
+ * and updating the flash. Common function to both provisioner and node
+ * 
+ */
+void handle_reconfiguration(CommandStruct *cmd_struct)
+{
+    ir_protocol_num = -1;
+    strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
+    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8_SIZE);
+    set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
+    configured = 0; update_led_status();
+    #if(!IS_GWY)
+    send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
+    #endif
+}
+
+/**
+ * @brief Function that takes care of configuring teaching mode.
+ * Common function for both provisioner and node.
+ * 
+ * @param cmd_struct 
+ */
+void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
+{
+    teaching_mode_t.errorCode = cmd_struct->errorcode;
+    teaching_mode_t.teachingStart = cmd_struct->teachingStart;
+    teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
+    teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;
+    if(teaching_mode_t.teachingStart) {
+        teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
+    }
+    else exit_teaching_mode(false);
+}

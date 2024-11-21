@@ -6,6 +6,7 @@
 #include <lte.h>
 #include <ble.h>
 #include <cJSON.h>
+#include <flash.h>
 #include <json_maker.h>
 
 #define HB_TAG "HEARTBEAT"
@@ -48,7 +49,7 @@ static void hb_callback(void *arg)
     free(jwc);
 #endif
 
-#if(!IS_GWY)
+#if (!IS_GWY)
     send_ack_to_provisioner(NODE_HEARTBEAT_ACK, NULL);
 #endif
 }
@@ -97,4 +98,24 @@ void hb_init()
 {
     ESP_ERROR_CHECK(esp_timer_create(&hb_timer_args, &hb_timer_handle));
     ESP_LOGI(HB_TAG, "HB Timer configuration successful");
+}
+
+/**
+ * @brief Function that modifies the HB Publish Configuration frequency
+ * Common function to both provisioner and node.
+ *
+ */
+void handle_setting_hb_publish_configuration(CommandStruct *cmd_struct)
+{
+    if (publishPeriod == cmd_struct->publishPeriodSec)
+        ;
+    else
+    {
+        publishPeriod = cmd_struct->publishPeriodSec;
+        set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16_SIZE);
+        hb_timer_restart();
+    }
+#if (!IS_GWY)
+    send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
+#endif
 }

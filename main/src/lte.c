@@ -1,8 +1,3 @@
-#include <main.h>
-#include <lte.h>
-
-#if(IS_GWY)
-
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -19,10 +14,14 @@
 #include <json_maker.h>
 
 #include <led.h>
+#include <main.h>
+#include <lte.h>
 #include <heartbeat.h>
 #include <flash.h>
 #include <ir.h>
 #include <ble.h>
+
+#if(IS_GWY)
 
 #define BAUD_RATE 115200
 
@@ -410,6 +409,7 @@ const char* get_error_code_name(error_codes code) {
         "TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
         "IR_CMD_NOT_AVAILABLE_IN_FLASH",
         "NODE_NOT_FOUND_IN_PROVISIONER_DATABASE",
+        "NODE_NOT_PROVISIONED",
     };
     
     int index = code + 1; // Adjust index for negative `FAILURE` as -1
@@ -722,35 +722,15 @@ void parse_json()
                 break;
 
             case GWY_AC_CONTROL_PACKET:
-                last_command.power = cmd_struct.power;
-                last_command.temperature = cmd_struct.temperature;
-                last_command.fanspeed = cmd_struct.fanspeed;
-                strcpy(last_command.mode_str, cmd_struct.mode_str);
-                last_command.swingh = cmd_struct.swingh;
-                last_command.swingv = cmd_struct.swingv;
-                last_command.locking = cmd_struct.locking;
-                last_command.upperTemperatureLimit = cmd_struct.upperTemperatureLimit;
-                last_command.lowerTemperatureLimit = cmd_struct.lowerTemperatureLimit;
-                ir_transmit();
-                set_last_ac_cmd_in_nvs_flash();
+                handle_ac_control(&cmd_struct);
                 break;
 
             case GWY_RECONF_PACKET:
-                ir_protocol_num = -1;
-                strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8_SIZE);
-                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
-                configured = 0; update_led_status();
+                handle_reconfiguration(&cmd_struct);
                 break;
 
             case GWY_HEARTBEAT_PUB_CONF_PACKET:
-                if(publishPeriod == cmd_struct.publishPeriodSec);
-                else {
-                    publishPeriod = cmd_struct.publishPeriodSec;
-                    set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16_SIZE);
-                    hb_timer_restart();
-                    send_cmd_and_check_response(LOG_DATA, WILL_CMD, "WILL_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
-                }
+                handle_setting_hb_publish_configuration(cmd_struct);
                 break;
 
             case GWY_DEBUG_INFO_PACKET:
@@ -758,14 +738,7 @@ void parse_json()
                 return;
 
             case GWY_TEACHING_MODE:
-                teaching_mode_t.errorCode = cmd_struct.errorcode;
-                teaching_mode_t.teachingStart = cmd_struct.teachingStart;
-                teaching_mode_t.startingTemperature = cmd_struct.startingTemperature;
-                teaching_mode_t.endingTemperature = cmd_struct.endingTemperature;
-                if(teaching_mode_t.teachingStart) {
-                    teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
-                }
-                else exit_teaching_mode(false);
+                handle_configuring_teaching_mode(&cmd_struct);
                 return;
             
             case NODE_PROV_PACKET:
@@ -1172,3 +1145,27 @@ void lte_task(void *args)
 }
 
 #endif
+
+/**
+ * @brief Function that takes care of handling the sending of AC commands and
+ * storing the sent command to flash. Common function for both provisioner and node
+ * 
+ * @param cmd_struct 
+ */
+void handle_ac_control(CommandStruct *cmd_struct)
+{
+    last_command.power = cmd_struct->power;
+    last_command.temperature = cmd_struct->temperature;
+    last_command.fanspeed = cmd_struct->fanspeed;
+    strcpy(last_command.mode_str, cmd_struct->mode_str);
+    last_command.swingh = cmd_struct->swingh;
+    last_command.swingv = cmd_struct->swingv;
+    last_command.locking = cmd_struct->locking;
+    last_command.upperTemperatureLimit = cmd_struct->upperTemperatureLimit;
+    last_command.lowerTemperatureLimit = cmd_struct->lowerTemperatureLimit;
+    ir_transmit();
+    set_last_ac_cmd_in_nvs_flash();
+    #if(!IS_GWY)
+    send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
+    #endif
+}

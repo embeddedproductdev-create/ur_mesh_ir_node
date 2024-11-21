@@ -1,3 +1,6 @@
+// #ifndef IR_H
+// #define IR_H
+
 #include <stdbool.h>
 
 #define IR_TAG "IR"
@@ -65,7 +68,11 @@ bool is_supported_remote(int16_t protocol);
 void ir_transmit();
 void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
 void exit_teaching_mode(bool success);
+void handle_reconfiguration();
+void handle_configuring_teaching_mode();
 
 #ifdef __cplusplus
 }
 #endif
+
+// #endif

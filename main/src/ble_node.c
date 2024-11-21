@@ -24,6 +24,7 @@
 #include <flash.h>
 #include <led.h>
 #include <ir.h>
+#include <heartbeat.h>
 
 #define BLE_TAG "BLE"
 
@@ -181,12 +182,10 @@ static esp_ble_mesh_comp_t composition = {
     .element_count = ARRAY_SIZE(elements),
 };
 
-
-
 static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *state, uint8_t *data)
 {
-    uint8_t mpid_len = 0, data_len = 0;
-    uint32_t mpid = 0;
+    uint8_t mpid_len, data_len = 0;
+    uint32_t mpid;
 
     if (state == NULL || data == NULL)
     {
@@ -216,13 +215,8 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
         /* Use "state->sensor_data.length + 1" because the length of sensor data is zero-based. */
         data_len = state->sensor_data.length + 1;
     }
-    // mpid=0xe00e;
     mpid_len = 29;
-    // net_buf_simple_add_u8(&sensor_data_0, 11);
-    // mpid=0xe00e;
-
     data_len = 125;
-    // memcpy(data, &mpid, mpid_len);
     memcpy(data, state->sensor_data.raw_value->data, data_len);
 
     return (data_len);
@@ -233,8 +227,6 @@ static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_serve
     uint8_t *status = NULL;
     uint16_t buf_size = 0;
     uint16_t length = 0;
-    uint32_t mpid = 0;
-    esp_err_t err;
     int i;
 
     for (i = 0; i < ARRAY_SIZE(sensor_states); i++)
@@ -280,7 +272,7 @@ send:
     sensor_server.model->pub->publish_addr = 0x01;
     sensor_server.model->pub->app_idx = prov_key.app_idx;
     sensor_server.model->pub->ttl = 2;
-    err = esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
+    esp_ble_mesh_model_publish(sensor_server.model, ESP_BLE_MESH_MODEL_OP_SENSOR_STATUS, length, status, ROLE_NODE);
 
     free(status);
 }
@@ -395,43 +387,139 @@ void ble_init(void)
  */
 void send_ack_to_provisioner(uint16_t packetid, CommandStruct *cmd_struct)
 {
-    CommandStruct data;
     switch(packetid)
     {
         case NODE_CONF_PACKET:
             ESP_LOGI(BLE_TAG, "Sending AC Remote Configuration ACK");
-            data.packetid = NODE_CONF_PACKET;
-            if(ac_remote_unsupported_flag) data.errorcode = AC_REMOTE_UNSUPPORTED;
-            else data.errorcode = SUCCESS;
-            data.irProtocolNum = ir_protocol_num;
+            cmd_struct->packetid = NODE_CONF_PACKET;
+            if(ac_remote_unsupported_flag) cmd_struct->errorcode = AC_REMOTE_UNSUPPORTED;
+            else cmd_struct->errorcode = SUCCESS;
+            cmd_struct->irProtocolNum = ir_protocol_num;
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)cmd_struct;
             break;
 
         case NODE_AC_CONTROL_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Control ACK");
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)cmd_struct;
             break;
         
         case NODE_MANUAL_AC_CONTROL_ACK:
+            ESP_LOGI(BLE_TAG, "Sending Node Manual AC Control ACK");
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)&ac_manual_control_t;
             break;
         
         case NODE_RECONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Reconf ACK");
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)cmd_struct;
             break;
         
         case NODE_HEARTBEAT_ACK:
+            ESP_LOGI(BLE_TAG, "Sending Node HB ACK");
+            last_command.packetid = NODE_HEARTBEAT_ACK;
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)&last_command;
             break;
         
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node HB PubConf ACK");
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)cmd_struct;
             break;
         
         case NODE_TEACHING_MODE:
+            ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode ACK");
+            teaching_mode_t.packetid = NODE_TEACHING_MODE;
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)&teaching_mode_t;
             break;
         
         case NODE_DEBUG_INFO_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Debug Info ACK");
+            cmd_struct->provisioned = provisioned;
+            cmd_struct->majversion = MAJ_VERSION;
+            cmd_struct->minversion = MIN_VERSION;
+            cmd_struct->patchversion = PATCH_VERSION;
+            cmd_struct->deviceUpTimeMs = (xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00;
+            cmd_struct->irProtocolNum = ir_protocol_num;
+            cmd_struct->configured = configured;
+            sensor_states[0].sensor_data.raw_value->data = (uint8_t *)cmd_struct;
             break;
         
         default:
             break;
     }
-    sensor_states[0].sensor_data.raw_value->data = &data;
+    
     example_ble_mesh_send_sensor_status();
+}
+
+/**
+ * @brief Function that errorchecks the command that was recevied from provisioner
+ * @param cmd_struct The command strucutre that was received
+ */
+void error_check_cmd_recvd_from_provisioner(CommandStruct *cmd_struct)
+{
+    if(!provisioned) {cmd_struct->errorcode = NODE_NOT_PROVISIONED; return;}
+
+    switch (cmd_struct->packetid)
+    {
+    case NODE_RECONF_PACKET:
+        if(teaching_in_progress) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+        break; 
+    
+    case NODE_AC_CONTROL_PACKET:
+        if(!configured) {cmd_struct->errorcode = NODE_NOT_CONFIGURED; return;}
+        break;
+    
+    case NODE_TEACHING_MODE:
+        if(cmd_struct->teachingStart && teaching_in_progress) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+        if(!cmd_struct->teachingStart && !teaching_in_progress) {cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
+        break;
+
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Function that handles the commands received from Provisioner
+ * @note Provision/Unprovision requests are handled separately
+ */
+void handle_cmds_from_provisioner(CommandStruct *cmd_struct)
+{
+    error_check_cmd_recvd_from_provisioner(cmd_struct);
+    ESP_LOGI(BLE_TAG, "ErrorCode : %d - %s", cmd_struct->errorcode, get_error_code_name(cmd_struct->errorcode));
+    
+    if(cmd_struct->errorcode == SUCCESS)
+    {
+        switch(cmd_struct->packetid)
+        {
+            case NODE_RECONF_PACKET:
+                handle_reconfiguration(cmd_struct);
+                break;
+            
+            case NODE_AC_CONTROL_PACKET:
+                handle_ac_control(cmd_struct);
+                break;
+            
+            case NODE_HEARTBEAT_PUB_CONF_PACKET:
+                handle_setting_hb_publish_configuration(cmd_struct);
+                break;
+            
+            case NODE_DEBUG_INFO_PACKET:
+                send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
+                break;
+            
+            case NODE_TEACHING_MODE:
+                handle_configuring_teaching_mode(cmd_struct);
+                break;
+            
+            default:
+                ESP_LOGE(BLE_TAG, "Unknown command received from Provisioner : %d",cmd_struct->packetid);
+                break;
+        }
+    }
+    else
+    {
+        led_set_state(LED_STATE_INVALID_OPERATION);
+        send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
+    }
 }
 
 /**

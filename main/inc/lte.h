@@ -167,6 +167,7 @@ typedef enum
     TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
     IR_CMD_NOT_AVAILABLE_IN_FLASH,
     NODE_NOT_FOUND_IN_PROVISIONER_DATABASE,
+    NODE_NOT_PROVISIONED,
 }error_codes;
 
 typedef enum
@@ -229,7 +230,12 @@ typedef struct
     uint8_t endingTemperature;
     bool requestSentToNode;
     uint16_t irProtocolNum;
-
+    float deviceUpTimeMs;
+    uint8_t majversion;
+    uint8_t minversion;
+    uint8_t patchversion;
+    uint8_t provisioned;
+    bool configured;
 } CommandStruct;
 
 typedef struct 
@@ -251,6 +257,7 @@ typedef struct
 
 typedef struct
 {
+    uint16_t packetid;
     uint8_t teachingStart;
     uint8_t startingTemperature;
     uint8_t endingTemperature;
@@ -297,12 +304,16 @@ error_codes send_cmd_and_check_response(bool logging, const char *cmd, const cha
 void powerUpLTE();
 void powerDownLTE();
 bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno);
+const char* get_error_code_name(error_codes code);
+void handle_ac_control(CommandStruct *cmd_struct);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct);
 void enqueue_for_publish(char *ack_json);
+
 #ifdef __cplusplus
 }
 #endif
