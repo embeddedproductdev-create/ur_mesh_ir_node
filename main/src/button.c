@@ -10,6 +10,7 @@
 
 #include <button.h>
 #include <main.h>
+#include <ble.h>
 #include <led.h>
 #include <lte.h>
 #include <ir.h>
@@ -98,6 +99,9 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         case 2:
+#if (!IS_GWY)
+            unprovision_success_cb();
+#endif
             break;
 
         case 3:

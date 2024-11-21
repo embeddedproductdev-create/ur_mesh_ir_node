@@ -22,10 +22,11 @@ void handle_ble_incoming();
 
 #if(IS_GWY)
 void provision_success_cb(uint16_t elemaddr);
+void reset_prov_match();
 #endif
 #if(!IS_GWY)
 void provision_success_cb();
-void unprovision_node();
+void unprovision_success_cb();
 #endif
 
 #ifdef __cplusplus

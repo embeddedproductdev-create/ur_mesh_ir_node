@@ -62,10 +62,14 @@
         "esp_bt_device.h": "c",
         "esp_bt_main.h": "c",
         "esp_ble_mesh_provisioning_api.h": "c",
-        "esp_ble_mesh_networking_api.h": "c"
+        "esp_ble_mesh_networking_api.h": "c",
+        "sdkconfig.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",
     "idf.adapterTargetName": "esp32s3",
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "idf.openOcdConfigs": [
+        "board/esp32s3-builtin.cfg"
+    ]
 }

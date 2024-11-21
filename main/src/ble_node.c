@@ -112,109 +112,23 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     ESP_LOGI(BLE_TAG, "flags: 0x%02x, iv_index: 0x%08" PRIx32, flags, iv_index);
 }
 
-static void example_handle_gen_onoff_msg(esp_ble_mesh_model_t *model,
-                                         esp_ble_mesh_msg_ctx_t *ctx,
-                                         esp_ble_mesh_server_recv_gen_onoff_set_t *set)
-{
-    esp_ble_mesh_gen_onoff_srv_t *srv = model->user_data;
-
-    switch (ctx->recv_op) {
-    case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET:
-        esp_ble_mesh_server_model_send_msg(model, ctx,
-            ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_STATUS, sizeof(srv->state.onoff), &srv->state.onoff);
-        break;
-    case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET:
-    case ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK:
-        if (set->op_en == false) {
-            srv->state.onoff = set->onoff;
-        } else {
-            /* TODO: Delay and state transition */
-            srv->state.onoff = set->onoff;
-        }
-        if (ctx->recv_op == ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET) {
-            esp_ble_mesh_server_model_send_msg(model, ctx,
-                ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_STATUS, sizeof(srv->state.onoff), &srv->state.onoff);
-        }
-        esp_ble_mesh_model_publish(model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_STATUS,
-            sizeof(srv->state.onoff), &srv->state.onoff, ROLE_NODE);
-        break;
-    default:
-        break;
-    }
-}
-
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
                                              esp_ble_mesh_prov_cb_param_t *param)
 {
     switch (event) {
-    case ESP_BLE_MESH_PROV_REGISTER_COMP_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROV_REGISTER_COMP_EVT, err_code %d", param->prov_register_comp.err_code);
-        break;
-    case ESP_BLE_MESH_NODE_PROV_ENABLE_COMP_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_ENABLE_COMP_EVT, err_code %d", param->node_prov_enable_comp.err_code);
-        break;
-    case ESP_BLE_MESH_NODE_PROV_LINK_OPEN_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_LINK_OPEN_EVT, bearer %s",
-            param->node_prov_link_open.bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT");
-        break;
-    case ESP_BLE_MESH_NODE_PROV_LINK_CLOSE_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_LINK_CLOSE_EVT, bearer %s",
-            param->node_prov_link_close.bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT");
-        break;
     case ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT:
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT");
         prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
             param->node_prov_complete.flags, param->node_prov_complete.iv_index);
         provision_success_cb();
         break;
+
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
+        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT : %s", __func__);
+        unprovision_success_cb();
         break;
-    case ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_SET_UNPROV_DEV_NAME_COMP_EVT, err_code %d", param->node_set_unprov_dev_name_comp.err_code);
-        break;
-    default:
-        break;
-    }
-}
 
-static void example_ble_mesh_generic_server_cb(esp_ble_mesh_generic_server_cb_event_t event,
-                                               esp_ble_mesh_generic_server_cb_param_t *param)
-{
-    esp_ble_mesh_gen_onoff_srv_t *srv;
-    ESP_LOGI(BLE_TAG, "event 0x%02x, opcode 0x%04" PRIx32 ", src 0x%04x, dst 0x%04x",
-        event, param->ctx.recv_op, param->ctx.addr, param->ctx.recv_dst);
-
-    switch (event) {
-    case ESP_BLE_MESH_GENERIC_SERVER_STATE_CHANGE_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_GENERIC_SERVER_STATE_CHANGE_EVT");
-        if (param->ctx.recv_op == ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET ||
-            param->ctx.recv_op == ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK) {
-            ESP_LOGI(BLE_TAG, "onoff 0x%02x", param->value.state_change.onoff_set.onoff);
-        }
-        break;
-    case ESP_BLE_MESH_GENERIC_SERVER_RECV_GET_MSG_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_GENERIC_SERVER_RECV_GET_MSG_EVT");
-        if (param->ctx.recv_op == ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET) {
-            srv = param->model->user_data;
-            ESP_LOGI(BLE_TAG, "onoff 0x%02x", srv->state.onoff);
-            example_handle_gen_onoff_msg(param->model, &param->ctx, NULL);
-        }
-        break;
-    case ESP_BLE_MESH_GENERIC_SERVER_RECV_SET_MSG_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_GENERIC_SERVER_RECV_SET_MSG_EVT");
-        if (param->ctx.recv_op == ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET ||
-            param->ctx.recv_op == ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_SET_UNACK) {
-            ESP_LOGI(BLE_TAG, "onoff 0x%02x, tid 0x%02x", param->value.set.onoff.onoff, param->value.set.onoff.tid);
-            if (param->value.set.onoff.op_en) {
-                ESP_LOGI(BLE_TAG, "trans_time 0x%02x, delay 0x%02x",
-                    param->value.set.onoff.trans_time, param->value.set.onoff.delay);
-            }
-            example_handle_gen_onoff_msg(param->model, &param->ctx, &param->value.set.onoff);
-        }
-        break;
     default:
-        ESP_LOGE(BLE_TAG, "Unknown Generic Server event 0x%02x", event);
         break;
     }
 }
@@ -251,8 +165,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
             break;
 
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
-            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET - from config callback");
-            unprovision_node();
+            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET : %s",__func__);
             break;
 
         default:
@@ -300,7 +213,6 @@ static esp_err_t ble_mesh_init(void)
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_server_callback(example_ble_mesh_config_server_cb);
-    esp_ble_mesh_register_generic_server_callback(example_ble_mesh_generic_server_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
@@ -412,7 +324,7 @@ void provision_success_cb()
 /**
  * @brief Function that unprovisions the node
  */
-void unprovision_node()
+void unprovision_success_cb()
 {
     ESP_LOGW(BLE_TAG, "Unprovisioning Node ...");
     esp_ble_mesh_node_local_reset();

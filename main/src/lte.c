@@ -927,7 +927,11 @@ void maintainCommandQueue()
             if ((current_time_ms - cmd_item.enqueue_time) > BLE_NODE_COMM_TIMEOUT_MS) {
                 // Remove the stale item
                 if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
-                    generate_ack(NODE_PROV_PACKET, &cmd_item);
+                    generate_ack(cmd_item.packetid, &cmd_item);
+                    if(cmd_item.packetid == NODE_PROV_PACKET)
+                    {
+                        reset_prov_match(); //Let's do this here to avoid automatic provisioning 
+                    }
                     ESP_LOGW(LTE_TAG, "Removed stale command from queue: msgseqno=%d", cmd_item.msgseqno);
                 }
             } else {
