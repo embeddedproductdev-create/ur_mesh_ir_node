@@ -228,6 +228,7 @@ typedef struct
     uint8_t startingTemperature;
     uint8_t endingTemperature;
     bool requestSentToNode;
+    uint16_t irProtocolNum;
 
 } CommandStruct;
 

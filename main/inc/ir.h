@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #define IR_TAG "IR"
 #define IR_RECV_GPIO 38
 #define IR_TRAN_GPIO 7
@@ -16,6 +18,7 @@
 extern TaskHandle_t ir_recv_task_handle;
 extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
 extern const char *TEACHING_MODE_SEQUENCE[];
+extern bool ac_remote_unsupported_flag;
 
 extern const char *RAW_IR_PROTOCOL;
 extern const char *DAIKIN_IR_PROTOCOL;

@@ -5,7 +5,7 @@
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY 1
+#define IS_GWY 0
 #define CLIENT_RELEASE 0
 /*====================================================================*/
 

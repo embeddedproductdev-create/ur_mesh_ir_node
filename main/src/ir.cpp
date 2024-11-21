@@ -77,6 +77,8 @@ const uint8_t kTolerancePercentage = 25;
 manual_control ac_manual_control_t;
 teaching_mode teaching_mode_t;
 
+bool ac_remote_unsupported_flag = false;
+
 /*IR Transmitter Initializations*/
 
 /*AC Class Objects*/
@@ -940,6 +942,7 @@ void ir_recv_task(void *args)
             /*Unsupported AC Remote*/
             else if (!configured && protocol == UNKNOWN)
             {
+                ac_remote_unsupported_flag = true;
                 led_set_state(LED_STATE_INVALID_OPERATION);
                 ESP_LOGD(IR_TAG, "AC Remote Unsupported");
 #if (IS_GWY)
@@ -948,6 +951,7 @@ void ir_recv_task(void *args)
 #if (!IS_GWY)
                 send_ack_to_provisioner(NODE_CONF_PACKET, NULL);
 #endif
+                ac_remote_unsupported_flag = false;
             }
 
             yield();
