@@ -1,3 +1,6 @@
+#ifndef FLASH_H
+#define FLASH_H
+
 #include "nvs_flash.h"
 #include "nvs.h"
 
@@ -52,4 +55,6 @@ void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void 
 void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *value, size_t *length);
 #ifdef __cplusplus
 }
+#endif
+
 #endif

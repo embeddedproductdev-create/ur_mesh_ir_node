@@ -1,6 +1,6 @@
 #include <main.h>
 
-#if (!IS_GWY)
+#if(!IS_GWY)
 
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +21,8 @@
 #include "esp_ble_mesh_local_data_operation_api.h"
 
 #include <ble.h>
+#include <flash.h>
+#include <led.h>
 
 #define BLE_TAG "BLE"
 
@@ -163,6 +165,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT");
         prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
             param->node_prov_complete.flags, param->node_prov_complete.iv_index);
+        provision_success_cb();
         break;
     case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT");
@@ -228,6 +231,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.appkey_add.app_idx);
             ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
             break;
+
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
             ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND");
             ESP_LOGI(BLE_TAG, "elem_addr 0x%04x, app_idx 0x%04x, cid 0x%04x, mod_id 0x%04x",
@@ -236,6 +240,7 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.mod_app_bind.company_id,
                 param->value.state_change.mod_app_bind.model_id);
             break;
+
         case ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD:
             ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD");
             ESP_LOGI(BLE_TAG, "elem_addr 0x%04x, sub_addr 0x%04x, cid 0x%04x, mod_id 0x%04x",
@@ -244,6 +249,12 @@ static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t
                 param->value.state_change.mod_sub_add.company_id,
                 param->value.state_change.mod_sub_add.model_id);
             break;
+
+        case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
+            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET - from config callback");
+            unprovision_node();
+            break;
+
         default:
             break;
         }
@@ -352,6 +363,9 @@ void ble_init(void)
     }
 }
 
+
+/*FUNCTIONS BELOW THIS ARE DEFINED BY QMAX - FOR PROJECT'S PURPOSE*/
+
 /**
  * @brief Function that sends ack to provisioner
  */
@@ -383,6 +397,29 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *cmd_struct)
         default:
             break;
     }
+}
+
+/**
+ * @brief Callback function that gets called when provisioning of node is successful
+ */
+void provision_success_cb()
+{
+    provisioned = true;
+    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
+    update_led_status();
+}
+
+/**
+ * @brief Function that unprovisions the node
+ */
+void unprovision_node()
+{
+    ESP_LOGW(BLE_TAG, "Unprovisioning Node ...");
+    esp_ble_mesh_node_local_reset();
+    esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+    provisioned = false;
+    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 0, UINT8_SIZE);
+    update_led_status();
 }
 
 #endif

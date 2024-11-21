@@ -4,6 +4,8 @@
 #include "IRac.h"
 #include <IRutils.h>
 #include <IRremoteESP8266.h>
+
+#include <main.h>
 #include <ir.h>
 #include <lte.h>
 #include <flash.h>

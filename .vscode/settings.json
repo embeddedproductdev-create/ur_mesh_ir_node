@@ -60,10 +60,12 @@
         "ble.h": "c",
         "esp_ble_mesh_local_data_operation_api.h": "c",
         "esp_bt_device.h": "c",
-        "esp_bt_main.h": "c"
+        "esp_bt_main.h": "c",
+        "esp_ble_mesh_provisioning_api.h": "c",
+        "esp_ble_mesh_networking_api.h": "c"
     },
     "idf.flashType": "UART",
-    "idf.portWin": "COM3",
+    "idf.portWin": "COM23",
     "idf.adapterTargetName": "esp32s3",
     "C_Cpp.errorSquiggles": "disabled"
 }

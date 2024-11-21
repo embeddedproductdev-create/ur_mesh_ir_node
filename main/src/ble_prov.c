@@ -15,6 +15,7 @@
 #include "esp_ble_mesh_networking_api.h"
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_generic_model_api.h"
+#include "esp_ble_mesh_sensor_model_api.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 
@@ -45,6 +46,8 @@ static uint8_t dev_uuid[16];
 
 uint16_t prov_success_elemAddr = 9999;
 uint16_t prov_req_msgseqno = 9999;
+uint16_t unprov_success_elemAddr = 9999;
+uint16_t unprov_req_msgseqno = 9999;
 
 typedef struct {
     uint8_t  uuid[16];
@@ -365,7 +368,7 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             set_state.model_app_bind.element_addr = node->unicast;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
             set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
-            set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
+            set_state.model_app_bind.company_id = CID_ESP;//ESP_BLE_MESH_CID_NVAL;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err) {
                 ESP_LOGE(BLE_TAG, "%s: Config Model App Bind failed", __func__);
@@ -439,6 +442,19 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             }
             break;
         }
+
+        case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
+            esp_ble_mesh_sensor_client_cb_param_t params;
+            struct net_buf_simple marshmell;
+            uint8_t data[130];
+            unprov_success_elemAddr = param->params->ctx.addr;
+            data[0] = NODE_UNPROV_PACKET;
+            params.status_cb.sensor_status.marshalled_sensor_data = &marshmell;
+            params.status_cb.sensor_status.marshalled_sensor_data->data = data;
+            vTaskDelay(20);
+            generate_ack(NODE_UNPROV_PACKET, NULL);
+            removeQueueItemByMsgSeqNo(command_queue, unprov_req_msgseqno);
+        
         default:
             break;
         }
@@ -562,39 +578,6 @@ void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
      * by different unprovisioned devices.
      */
     memcpy(dev_uuid + 2, esp_bt_dev_get_address(), BD_ADDR_LEN);
-}
-
-esp_err_t bluetooth_init(void)
-{
-    esp_err_t ret;
-
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
-
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s initialize controller failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s enable controller failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bluedroid_init();
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s init bluetooth failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bluedroid_enable();
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s enable bluetooth failed", __func__);
-        return ret;
-    }
-    return ret;
 }
 
 static esp_err_t ble_mesh_init(void)
@@ -729,12 +712,7 @@ void send_provision_request(char *macid, CommandStruct *cmd_struct)
  */
 void provision_success_cb(uint16_t elemaddr)
 {
-    esp_err_t err;
     prov_success_elemAddr = elemaddr;
-    if((err = esp_ble_mesh_provisioner_store_node_info()) != ESP_OK)
-    {
-        ESP_LOGD(BLE_TAG, "Saving provisioner data to nvs failed : %s",esp_err_to_name(err));
-    }
     removeQueueItemByMsgSeqNo(command_queue, prov_req_msgseqno);
     generate_ack(NODE_PROV_PACKET, NULL);
 }
@@ -744,30 +722,24 @@ void provision_success_cb(uint16_t elemaddr)
  * @param cmd_struct 
  * @return esp_err_t 
  */
-esp_err_t send_unprovision_request(CommandStruct *cmd_struct)
+void send_unprovision_request(CommandStruct *cmd_struct)
 {
     ESP_LOGI(BLE_TAG, "Sending Unprovision request for elemAddr : %d", cmd_struct->elemaddr);
-
-    esp_ble_mesh_node_t *node = esp_ble_mesh_provisioner_get_node_with_addr(cmd_struct->elemaddr);
-    if (node == NULL) {
-        ESP_LOGE(BLE_TAG,  "Node not found in the database");
-        cmd_struct->errorcode = NODE_NOT_FOUND_IN_PROVISIONER_DATABASE;
-        return;
-    }
-
-    esp_err_t err = esp_ble_mesh_provisioner_delete_node(node);
-    if (err == ESP_OK) 
-    {
-        ESP_LOGI(BLE_TAG,  "Node with ElemAddr %d removed successfully",cmd_struct->elemaddr);
-        cmd_struct->errorcode = SUCCESS;
-    } 
-    else 
-    {
-        ESP_LOGE(BLE_TAG,  "Failed to remove Node with ElemAddr %d : %s", cmd_struct->elemaddr, esp_err_to_name(err));
+    esp_ble_mesh_cfg_client_set_state_t set_rst = {0};
+    esp_ble_mesh_client_common_param_t common = {0};
+    esp_ble_mesh_node_t node;
+    node.unicast_addr = cmd_struct->elemaddr;
+    example_ble_mesh_set_msg_common(&common, &node, config_client.model, ESP_BLE_MESH_MODEL_OP_NODE_RESET);
+    set_rst.model_app_bind.element_addr = cmd_struct->elemaddr;
+    set_rst.model_app_bind.model_app_idx = prov_key.app_idx;
+    set_rst.model_app_bind.company_id = 0XFFFF;//CID_ESP;
+    esp_err_t err = esp_ble_mesh_config_client_set_state(&common, &set_rst);
+    if(err!=ESP_OK) {
+        ESP_LOGD(BLE_TAG, "Unable to send Unprovision request to Node : %s", esp_err_to_name(err));
         cmd_struct->errorcode = FAILURE;
+        generate_ack(NODE_UNPROV_PACKET, cmd_struct);
+        removeQueueItemByMsgSeqNo(command_queue, cmd_struct->msgseqno);
     }
-    generate_ack(NODE_UNPROV_PACKET, cmd_struct);
-    removeQueueItemByMsgSeqNo(cmd_struct->msgseqno);
 }
 
 void send_ac_control_request(CommandStruct *cmd_struct)

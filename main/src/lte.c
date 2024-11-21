@@ -261,6 +261,21 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
                 jwObj_int(jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
             }
             break;
+        
+        case NODE_UNPROV_PACKET:
+            if(cmd_struct==NULL) //Case where unprov request a was success
+            {
+                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, unprov_req_msgseqno);
+                jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+            }
+            else //Case where prov request was a failure
+            {
+                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+                jwObj_int(jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+            }
+            break;
 
         case GWY_TEACHING_MODE:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);

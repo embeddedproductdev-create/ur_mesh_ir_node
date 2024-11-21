@@ -1,12 +1,12 @@
 /**
  * ===================================================================
- * @brief VERY IMPORTANT MACROS !!!
+ * @warning VERY IMPORTANT MACROS !!!
  * DO NOT CHANGE THE THINGS BELOW WITHOUT KNOWING WHAT YOU ARE DOING
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY false
-#define CLIENT_RELEASE false
+#define IS_GWY 1
+#define CLIENT_RELEASE 0
 /*====================================================================*/
 
 #if(IS_GWY)

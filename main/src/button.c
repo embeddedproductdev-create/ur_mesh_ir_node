@@ -9,6 +9,7 @@
 #include "inttypes.h"
 
 #include <button.h>
+#include <main.h>
 #include <led.h>
 #include <lte.h>
 #include <ir.h>
