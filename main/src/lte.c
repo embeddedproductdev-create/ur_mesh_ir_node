@@ -1,3 +1,7 @@
+#include <main.h>
+#include <lte.h>
+
+#if(IS_GWY)
 
 #include <stdio.h>
 #include <string.h>
@@ -13,9 +17,8 @@
 
 #include <cJSON.h>
 #include <json_maker.h>
-#include <lte.h>
+
 #include <led.h>
-#include <main.h>
 #include <heartbeat.h>
 #include <flash.h>
 #include <ir.h>
@@ -97,6 +100,8 @@ const char *QMTSTAT_1_ERROR = "+QMTSTAT: 2,1";
 const char *QMTOPEN_2_ERROR = "+QMTOPEN: 2,2";
 const char *QMTOPEN_3_ERROR = "+QMTOPEN: 2,3";
 
+#endif
+
 /*MQTT Packet JSON Keys*/
 const char *JSON_PACKET_ID_KEY = "JsonPacketID";
 const char *JSON_ACK_NAME_KEY = "JsonAckName";
@@ -151,12 +156,17 @@ const char *NEXT_CMD_KEY = "NextCommand";
 const char *REMAINING_CMD_KEY = "RemainingCommands";
 const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
 
+
+bool powerDownInProgress = false;
+
+#if(IS_GWY)
+
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
 
 bool need_to_activate_pdp = false;
 bool LOG_DATA  = true;
-bool powerDownInProgress = false;
+
 
 char node_macid[18];
 
@@ -242,7 +252,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
                 jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
                 jwObj_int(jwc, MSG_SEQ_NO_KEY, prov_req_msgseqno);
                 jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-                jwObj_int(jwc, ELEMENT_ADDR_KEY, prov_req_elemaddr);
+                jwObj_int(jwc, ELEMENT_ADDR_KEY, prov_success_elemAddr);
             }
             else //Case where prov request was a failure
             {
@@ -310,6 +320,8 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
     jwClose(jwc);
     enqueue_for_publish(buffer);
 }
+
+#endif
 
 /**
  * @brief Get the error code name
@@ -382,6 +394,7 @@ const char* get_error_code_name(error_codes code) {
         "FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
         "TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING",
         "IR_CMD_NOT_AVAILABLE_IN_FLASH",
+        "NODE_NOT_FOUND_IN_PROVISIONER_DATABASE",
     };
     
     int index = code + 1; // Adjust index for negative `FAILURE` as -1
@@ -391,6 +404,8 @@ const char* get_error_code_name(error_codes code) {
     }
     return "UNKNOWN_ERROR";
 }
+
+#if(IS_GWY)
 
 /**
  * @brief Function that validates the MacID
@@ -1136,3 +1151,5 @@ void lte_task(void *args)
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 }
+
+#endif

@@ -72,7 +72,7 @@ void jwArr_null(struct jWriteControl *jwc);
 void jwArr_object(struct jWriteControl *jwc);
 void jwArr_array(struct jWriteControl *jwc);
 int jwEnd(struct jWriteControl *jwc);
-void jwObj_raw(struct jWriteControl *jwc, char *key, char *rawtext);
+void jwObj_raw(struct jWriteControl *jwc, const char *key, char *rawtext);
 void jwArr_raw(struct jWriteControl *jwc, char *rawtext);
 
 #ifdef __cplusplus

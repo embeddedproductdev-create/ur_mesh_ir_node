@@ -21,7 +21,8 @@
 
 #define BUTTON_GPIO 12
 
-typedef enum {
+typedef enum
+{
     MULTI_PRESS,
     SINGLE_PRESS,
     DOUBLE_PRESS,
@@ -31,11 +32,12 @@ typedef enum {
     UNKNOWN_PRESS
 } press_type_t;
 
-typedef struct button_press_event {
+typedef struct button_press_event
+{
     TickType_t pressedTicks;
     TickType_t releasedTicks;
     uint32_t pressedDuration_ms;
-}button_press_t;
+} button_press_t;
 
 press_type_t detected_press = UNKNOWN_PRESS;
 
@@ -47,9 +49,10 @@ press_type_t detected_press = UNKNOWN_PRESS;
 static void IRAM_ATTR button_task_handler(void *args)
 {
     gpio_isr_handler_remove(BUTTON_GPIO);
-    if (xTaskCreate(button_task, "button_task", 4096, NULL, 10, &button_task_handle) != pdPASS) {
+    if (xTaskCreate(button_task, "button_task", 4096, NULL, 10, &button_task_handle) != pdPASS)
+    {
         ESP_LOGE(BUTTON_TAG, "Failed to create button task");
-       gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
+        gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
     }
 }
 
@@ -60,46 +63,59 @@ static void IRAM_ATTR button_task_handler(void *args)
  */
 void process_press_type(button_press_t *button_press_array, uint8_t *press_count)
 {
-    if(powerDownInProgress) return;
-    if (button_press_array[0].pressedDuration_ms >= LONG_PRESS_3S_MS) {
+    if (powerDownInProgress)
+        return;
+    if (button_press_array[0].pressedDuration_ms >= LONG_PRESS_3S_MS)
+    {
         detected_press = LONG_PRESS_3S;
     }
-    else if (button_press_array[0].pressedDuration_ms >= LONG_PRESS_1S_MS) {
+    else if (button_press_array[0].pressedDuration_ms >= LONG_PRESS_1S_MS)
+    {
         detected_press = LONG_PRESS_1S;
     }
-    else {
+    else
+    {
         detected_press = MULTI_PRESS;
     }
 
-    switch (detected_press) {
-        case MULTI_PRESS:
-            switch(*press_count)
+    switch (detected_press)
+    {
+    case MULTI_PRESS:
+        switch (*press_count)
+        {
+        case 1:
+#if (IS_GWY)
+            if (!powerDownInProgress)
             {
-                case 1:
-                    if(!powerDownInProgress) {
-                        powerDownLTE();
-                        esp_restart();
-                    }
-                    break;
-
-                case 2:
-                    break;
-
-                case 3:
-                    break;
+                powerDownLTE();
+                esp_restart();
             }
+#endif
+#if (!IS_GWY)
+            esp_restart();
+#endif
             break;
 
-        case LONG_PRESS_3S:
+        case 2:
             break;
 
-        case LONG_PRESS_1S:
-            if(!teaching_in_progress) teaching_mode_init(MAX_LOW_TEMP, MAX_HIGH_TEMP);
-            else exit_teaching_mode(false);
+        case 3:
             break;
-        
-        default:
-            break;
+        }
+        break;
+
+    case LONG_PRESS_3S:
+        break;
+
+    case LONG_PRESS_1S:
+        if (!teaching_in_progress)
+            teaching_mode_init(MAX_LOW_TEMP, MAX_HIGH_TEMP);
+        else
+            exit_teaching_mode(false);
+        break;
+
+    default:
+        break;
     }
 
     gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
@@ -113,18 +129,22 @@ void button_task(void *args)
 {
     uint8_t press_count = 0;
     button_press_t button_press_array[MAX_BUTTON_PRESSES];
-    for(int i=0;i<MAX_BUTTON_PRESSES;i++)
+    for (int i = 0; i < MAX_BUTTON_PRESSES; i++)
     {
         // If button is not being pressed, then we can go ahead into processing
-        if(gpio_get_level(BUTTON_GPIO)) break;
+        if (gpio_get_level(BUTTON_GPIO))
+            break;
         // Calculate the button press duration
         button_press_array[i].pressedTicks = xTaskGetTickCount();
-        while (!gpio_get_level(BUTTON_GPIO)) vTaskDelay(pdMS_TO_TICKS(1));  // Wait here until button is released
+        while (!gpio_get_level(BUTTON_GPIO))
+            vTaskDelay(pdMS_TO_TICKS(1)); // Wait here until button is released
         button_press_array[i].releasedTicks = xTaskGetTickCount();
         button_press_array[i].pressedDuration_ms = (button_press_array[i].releasedTicks - button_press_array[i].pressedTicks) * portTICK_PERIOD_MS;
-        if(button_press_array[i].pressedDuration_ms > DEBOUNCE_TIME_MS) press_count++;
+        if (button_press_array[i].pressedDuration_ms > DEBOUNCE_TIME_MS)
+            press_count++;
         // After a button release, let's wait for 500ms before starting to register the next button press
-        while(((xTaskGetTickCount()-button_press_array[i].releasedTicks)* portTICK_PERIOD_MS) < DOUBLE_PRESS_TIME_MS && gpio_get_level(BUTTON_GPIO));
+        while (((xTaskGetTickCount() - button_press_array[i].releasedTicks) * portTICK_PERIOD_MS) < DOUBLE_PRESS_TIME_MS && gpio_get_level(BUTTON_GPIO))
+            ;
     }
     process_press_type(button_press_array, &press_count);
 }

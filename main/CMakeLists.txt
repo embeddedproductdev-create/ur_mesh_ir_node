@@ -8,7 +8,8 @@ set(CUSTOM_SRCS
     src/heartbeat.c
     src/flash.c
     src/ir.cpp
-    src/ble.c
+    src/ble_prov.c
+    src/ble_node.c
 )
 
 set(includeDirs inc)

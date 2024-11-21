@@ -57,7 +57,10 @@
         "esp_ble_mesh_defs.h": "c",
         "esp_ble_mesh_common_api.h": "c",
         "esp_bt.h": "c",
-        "ble.h": "c"
+        "ble.h": "c",
+        "esp_ble_mesh_local_data_operation_api.h": "c",
+        "esp_bt_device.h": "c",
+        "esp_bt_main.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

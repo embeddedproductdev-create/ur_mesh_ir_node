@@ -1,3 +1,6 @@
+#ifndef LTE_H
+#define LTE_H
+
 #include <stdint.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -163,6 +166,7 @@ typedef enum
     FANSPEED_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
     TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING,
     IR_CMD_NOT_AVAILABLE_IN_FLASH,
+    NODE_NOT_FOUND_IN_PROVISIONER_DATABASE,
 }error_codes;
 
 typedef enum
@@ -301,3 +305,5 @@ void enqueue_for_publish(char *ack_json);
 #ifdef __cplusplus
 }
 #endif
+
+#endif //LTE_H

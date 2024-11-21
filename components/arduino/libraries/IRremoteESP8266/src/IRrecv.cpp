@@ -216,7 +216,11 @@ static void USE_IRAM_ATTR gpio_intr() {
     else
       params.rawbuf[rawlen] = (now - start) / kRawTick;
   }
+
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wvolatile"
   params.rawlen++;
+  #pragma GCC diagnostic pop
 
   start = now;
 
@@ -504,9 +508,13 @@ void IRrecv::crudeNoiseFilter(decode_results *results, const uint16_t floor) {
       // Note: `memcpy()` can't be used as rawbuf is `volatile`.
       for (uint16_t i = offset + 2; i <= results->rawlen && i < kBufSize; i++)
         results->rawbuf[i - 2] = results->rawbuf[i];
+
       if (offset > 1) {  // There is a previous pair we can add to.
         // Merge this pair into into the previous space.
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wvolatile"
         results->rawbuf[offset - 1] += addition;
+        #pragma GCC diagnostic pop
       }
       results->rawlen -= 2;  // Adjust the length.
     } else {

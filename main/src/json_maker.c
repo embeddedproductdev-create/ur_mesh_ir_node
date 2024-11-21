@@ -40,7 +40,7 @@ struct jWriteControl g_jWriteControl;			// global control struct
 // Internal functions
 //
 void jwPutch( JWC_DECL char c );
-void jwPutstr( JWC_DECL char *str );
+void jwPutstr( JWC_DECL const char *str );
 void jwPutraw( JWC_DECL char *str );
 
 void modp_itoa10(int value, char* str);
@@ -127,11 +127,11 @@ int jwErrorPos( JWC_DECL0 )
 //------------------------------------------
 // Object insert functions
 //
-int _jwObj( JWC_DECL char *key );
+int _jwObj( JWC_DECL const char *key );
 
 // put raw string to object (i.e. contents of rawtext without quotes)
 //
-void jwObj_raw( JWC_DECL char *key, char *rawtext )
+void jwObj_raw( JWC_DECL const char *key, char *rawtext )
 {
 	if(_jwObj( JWC_PARAM key ) == JWRITE_OK)
 		jwPutraw( JWC_PARAM rawtext);
@@ -326,7 +326,7 @@ void jwPutch( JWC_DECL char c )
 
 // put string enclosed in quotes
 //
-void jwPutstr( JWC_DECL char *str )
+void jwPutstr( JWC_DECL const char *str )
 {
 	jwPutch( JWC_PARAM '\"' );
 	while( *str != '\0' )
@@ -349,7 +349,7 @@ void jwPutraw( JWC_DECL char *str )
 // - adds comma if reqd
 // - adds "key" :
 //
-int _jwObj( JWC_DECL char *key )
+int _jwObj( JWC_DECL const char *key )
 {
 	if(JWC(error) == JWRITE_OK)
 	{

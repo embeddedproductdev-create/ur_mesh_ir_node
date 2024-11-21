@@ -1,3 +1,7 @@
+#include <main.h>
+
+#if(IS_GWY)
+
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -12,9 +16,9 @@
 #include "esp_ble_mesh_config_model_api.h"
 #include "esp_ble_mesh_generic_model_api.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
 
 #include <lte.h>
-#include <flash.h>
 #include <ble.h>
 
 #define BLE_TAG "BLE"
@@ -37,10 +41,10 @@
 #define APP_KEY_IDX         0x0000
 #define APP_KEY_OCTET       0x12
 
-uint16_t prov_req_msgseqno = 9999;
-uint16_t prov_req_elemaddr = 9999;
-
 static uint8_t dev_uuid[16];
+
+uint16_t prov_success_elemAddr = 9999;
+uint16_t prov_req_msgseqno = 9999;
 
 typedef struct {
     uint8_t  uuid[16];
@@ -113,56 +117,6 @@ static esp_ble_mesh_prov_t provision = {
     .flags               = 0x00,
     .iv_index            = 0x00,
 };
-
-#ifdef CONFIG_BT_BLUEDROID_ENABLED
-void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
-{
-    if (dev_uuid == NULL) {
-        ESP_LOGE(BLE_TAG, "%s, Invalid device uuid", __func__);
-        return;
-    }
-    
-    /* Copy device address to the device uuid with offset equals to 2 here.
-     * The first two bytes is used for matching device uuid by Provisioner.
-     * And using device address here is to avoid using the same device uuid
-     * by different unprovisioned devices.
-     */
-    memcpy(dev_uuid + 2, esp_bt_dev_get_address(), BD_ADDR_LEN);
-}
-
-esp_err_t bluetooth_init(void)
-{
-    esp_err_t ret;
-
-    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
-
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s initialize controller failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s enable controller failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bluedroid_init();
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s init bluetooth failed", __func__);
-        return ret;
-    }
-
-    ret = esp_bluedroid_enable();
-    if (ret) {
-        ESP_LOGE(BLE_TAG, "%s enable bluetooth failed", __func__);
-        return ret;
-    }
-    return ret;
-}
-#endif /* CONFIG_BT_BLUEDROID_ENABLED */
 
 static esp_err_t example_ble_mesh_store_node_info(const uint8_t uuid[16], uint16_t unicast,
                                                   uint8_t elem_num, uint8_t onoff_state)
@@ -290,38 +244,6 @@ static void prov_link_close(esp_ble_mesh_prov_bearer_t bearer, uint8_t reason)
              bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT", reason);
 }
 
-static void recv_unprov_adv_pkt(uint8_t dev_uuid[16], uint8_t addr[BD_ADDR_LEN],
-                                esp_ble_mesh_addr_type_t addr_type, uint16_t oob_info,
-                                uint8_t adv_type, esp_ble_mesh_prov_bearer_t bearer)
-{
-    esp_ble_mesh_unprov_dev_add_t add_dev = {0};
-    int err;
-
-    /* Due to the API esp_ble_mesh_provisioner_set_dev_uuid_match, Provisioner will only
-     * use this callback to report the devices, whose device UUID starts with 0xdd & 0xdd,
-     * to the application layer.
-     */
-
-    ESP_LOGI(BLE_TAG, "address: %s, address type: %d, adv type: %d", bt_hex(addr, BD_ADDR_LEN), addr_type, adv_type);
-    ESP_LOGI(BLE_TAG, "device uuid: %s", bt_hex(dev_uuid, 16));
-    ESP_LOGI(BLE_TAG, "oob info: %d, bearer: %s", oob_info, (bearer & ESP_BLE_MESH_PROV_ADV) ? "PB-ADV" : "PB-GATT");
-
-    memcpy(add_dev.addr, addr, BD_ADDR_LEN);
-    add_dev.addr_type = (uint8_t)addr_type;
-    memcpy(add_dev.uuid, dev_uuid, 16);
-    add_dev.oob_info = oob_info;
-    add_dev.bearer = (uint8_t)bearer;
-    /* Note: If unprovisioned device adv packets have not been received, we should not add
-             device with ADD_DEV_START_PROV_NOW_FLAG set. */
-    err = esp_ble_mesh_provisioner_add_unprov_dev(&add_dev,
-            ADD_DEV_RM_AFTER_PROV_FLAG | ADD_DEV_START_PROV_NOW_FLAG | ADD_DEV_FLUSHABLE_DEV_FLAG);
-    if (err) {
-        ESP_LOGE(BLE_TAG, "%s: Add unprovisioned device into queue failed", __func__);
-    }
-
-    return;
-}
-
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
                                              esp_ble_mesh_prov_cb_param_t *param)
 {
@@ -332,12 +254,6 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
     case ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT:
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_PROV_DISABLE_COMP_EVT, err_code %d", param->provisioner_prov_disable_comp.err_code);
         break;
-    // case ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT:
-        // ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_RECV_UNPROV_ADV_PKT_EVT");
-        // recv_unprov_adv_pkt(param->provisioner_recv_unprov_adv_pkt.dev_uuid, param->provisioner_recv_unprov_adv_pkt.addr,
-        //                     param->provisioner_recv_unprov_adv_pkt.addr_type, param->provisioner_recv_unprov_adv_pkt.oob_info,
-        //                     param->provisioner_recv_unprov_adv_pkt.adv_type, param->provisioner_recv_unprov_adv_pkt.bearer);
-        // break;
     case ESP_BLE_MESH_PROVISIONER_PROV_LINK_OPEN_EVT:
         prov_link_open(param->provisioner_prov_link_open.bearer);
         break;
@@ -348,9 +264,7 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
         prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
                       param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
                       param->provisioner_prov_complete.netkey_idx);
-        prov_req_elemaddr = param->provisioner_prov_complete.unicast_addr;
-        removeQueueItemByMsgSeqNo(command_queue, prov_req_msgseqno);
-        generate_ack(NODE_PROV_PACKET, NULL);
+        provision_success_cb(param->provisioner_prov_complete.unicast_addr);
         break;
     case ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT:
         ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_PROVISIONER_ADD_UNPROV_DEV_COMP_EVT, err_code %d", param->provisioner_add_unprov_dev_comp.err_code);
@@ -634,6 +548,55 @@ static void example_ble_mesh_generic_client_cb(esp_ble_mesh_generic_client_cb_ev
     }
 }
 
+
+void ble_mesh_get_dev_uuid(uint8_t *dev_uuid)
+{
+    if (dev_uuid == NULL) {
+        ESP_LOGE(BLE_TAG, "%s, Invalid device uuid", __func__);
+        return;
+    }
+    
+    /* Copy device address to the device uuid with offset equals to 2 here.
+     * The first two bytes is used for matching device uuid by Provisioner.
+     * And using device address here is to avoid using the same device uuid
+     * by different unprovisioned devices.
+     */
+    memcpy(dev_uuid + 2, esp_bt_dev_get_address(), BD_ADDR_LEN);
+}
+
+esp_err_t bluetooth_init(void)
+{
+    esp_err_t ret;
+
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    ret = esp_bt_controller_init(&bt_cfg);
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s initialize controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s enable controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bluedroid_init();
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s init bluetooth failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bluedroid_enable();
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s enable bluetooth failed", __func__);
+        return ret;
+    }
+    return ret;
+}
+
 static esp_err_t ble_mesh_init(void)
 {
     esp_err_t err = ESP_OK;
@@ -669,11 +632,53 @@ static esp_err_t ble_mesh_init(void)
     return err;
 }
 
+esp_err_t bluetooth_init(void)
+{
+    esp_err_t ret;
+
+    ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+
+    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
+    ret = esp_bt_controller_init(&bt_cfg);
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s initialize controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s enable controller failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bluedroid_init();
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s init bluetooth failed", __func__);
+        return ret;
+    }
+
+    ret = esp_bluedroid_enable();
+    if (ret) {
+        ESP_LOGE(BLE_TAG, "%s enable bluetooth failed", __func__);
+        return ret;
+    }
+    return ret;
+}
+
+/**
+ * @brief Function that initializes the BLE Mesh for Provisioner
+ * 
+ */
 void ble_init()
 {
     esp_err_t err;
 
-    ESP_LOGI(BLE_TAG, "Initializing...");
+    err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
 
     err = bluetooth_init();
     if (err) {
@@ -690,12 +695,14 @@ void ble_init()
     }
 }
 
+
+/*FUNCTIONS BELOW THIS ARE DEFINED BY QMXA - FOR PROJECT'S PURPOSE*/
+
 /**
  * @brief Function that provisions an unprovisioned node
- * 
- * @param macid 
+ * @param macid The MacID of the node to be provisioned
  */
-esp_err_t send_provision_request(char *macid)
+void send_provision_request(char *macid, CommandStruct *cmd_struct)
 {
     ESP_LOGI(BLE_TAG, "Sending provision request for macid : %s",macid);
     esp_err_t err;
@@ -705,8 +712,87 @@ esp_err_t send_provision_request(char *macid)
         match[i] = macid[i - 2];
     }
     err = esp_ble_mesh_provisioner_set_dev_uuid_match(match, 0, 0x0, true);
-    if(err != ESP_OK) ESP_LOGD(BLE_TAG, "Error in Provisioning %s : %s",macid, esp_err_to_name(err));
-    return err;
+
+    if(err != ESP_OK) {
+        ESP_LOGD(BLE_TAG, "Error in Provisioning %s : %s",macid, esp_err_to_name(err));
+        generate_ack(NODE_PROV_PACKET, cmd_struct);
+        removeQueueItemByMsgSeqNo(command_queue, cmd_struct->msgseqno);
+    }
+    else {
+        prov_req_msgseqno = cmd_struct->msgseqno;
+    }
+}
+
+/**
+ * @brief Callback function that gets called when Provisioning is successful
+ * @param elemaddr The element address that was assigned after successful provisioning
+ */
+void provision_success_cb(uint16_t elemaddr)
+{
+    esp_err_t err;
+    prov_success_elemAddr = elemaddr;
+    if((err = esp_ble_mesh_provisioner_store_node_info()) != ESP_OK)
+    {
+        ESP_LOGD(BLE_TAG, "Saving provisioner data to nvs failed : %s",esp_err_to_name(err));
+    }
+    removeQueueItemByMsgSeqNo(command_queue, prov_req_msgseqno);
+    generate_ack(NODE_PROV_PACKET, NULL);
+}
+
+/**
+ * @brief Function that sends unprovision request to Node and sends back ack to cloud based on success/failure
+ * @param cmd_struct 
+ * @return esp_err_t 
+ */
+esp_err_t send_unprovision_request(CommandStruct *cmd_struct)
+{
+    ESP_LOGI(BLE_TAG, "Sending Unprovision request for elemAddr : %d", cmd_struct->elemaddr);
+
+    esp_ble_mesh_node_t *node = esp_ble_mesh_provisioner_get_node_with_addr(cmd_struct->elemaddr);
+    if (node == NULL) {
+        ESP_LOGE(BLE_TAG,  "Node not found in the database");
+        cmd_struct->errorcode = NODE_NOT_FOUND_IN_PROVISIONER_DATABASE;
+        return;
+    }
+
+    esp_err_t err = esp_ble_mesh_provisioner_delete_node(node);
+    if (err == ESP_OK) 
+    {
+        ESP_LOGI(BLE_TAG,  "Node with ElemAddr %d removed successfully",cmd_struct->elemaddr);
+        cmd_struct->errorcode = SUCCESS;
+    } 
+    else 
+    {
+        ESP_LOGE(BLE_TAG,  "Failed to remove Node with ElemAddr %d : %s", cmd_struct->elemaddr, esp_err_to_name(err));
+        cmd_struct->errorcode = FAILURE;
+    }
+    generate_ack(NODE_UNPROV_PACKET, cmd_struct);
+    removeQueueItemByMsgSeqNo(cmd_struct->msgseqno);
+}
+
+void send_ac_control_request(CommandStruct *cmd_struct)
+{
+    ;
+}
+
+void send_node_debug_info_request(CommandStruct *cmd_struct)
+{
+    ;
+}
+
+void send_node_reconf_request(CommandStruct *cmd_struct)
+{
+    ;
+}
+
+void send_node_hb_pub_conf_request(CommandStruct *cmd_struct)
+{
+    ;
+}
+
+void send_node_teaching_mode_request(CommandStruct *cmd_struct)
+{
+    ;
 }
 
 
@@ -728,18 +814,37 @@ void handle_ble_outgoing(CommandStruct *cmd_struct)
     switch(cmd_struct->packetid)
     {
         case NODE_PROV_PACKET:
-            prov_req_msgseqno = cmd_struct->msgseqno;
-            send_provision_request(node_macid);
+            send_provision_request(node_macid, cmd_struct);
             break;
 
         case NODE_UNPROV_PACKET:
-        case NODE_AC_CONTROL_PACKET:
-        case NODE_DEBUG_INFO_PACKET:
-        case NODE_RECONF_PACKET:
-        case NODE_HEARTBEAT_PUB_CONF_PACKET:
-        case NODE_TEACHING_MODE:
+            send_unprovision_request(cmd_struct);
             break;
+
+        case NODE_AC_CONTROL_PACKET:
+            send_ac_control_request(cmd_struct);
+            break;
+
+        case NODE_DEBUG_INFO_PACKET:
+            send_node_debug_info_request(cmd_struct);
+            break;
+
+        case NODE_RECONF_PACKET:
+            send_node_reconf_request(cmd_struct);
+            break;
+
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            send_node_hb_pub_conf_request(cmd_struct);
+            break;
+
+        case NODE_TEACHING_MODE:
+            send_node_teaching_mode_request(cmd_struct);
+            break;
+
         default:
+            ESP_LOGE(BLE_TAG, "Unknown Request to Node");
             break;
     }
 }
+
+#endif

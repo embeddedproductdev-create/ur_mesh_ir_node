@@ -7,6 +7,7 @@
 #include <ir.h>
 #include <lte.h>
 #include <flash.h>
+#include <ble.h>
 #include <led.h>
 #include <json_maker.h>
 #include <cJSON.h>
@@ -48,22 +49,22 @@ const char *UNUSED_IR_PROTOCOL = "UNUSED";
 const char *INVALID_IR_PROTOCOL = "INVALID";
 
 const char *TEACHING_MODE_SEQUENCE[] = {
-    "Power - Off", // 0
-    "Temperature - 18 | Power - On",  // 1
-    "Temperature - 19 | Power - On",  // 2
-    "Temperature - 20 | Power - On",  // 3
-    "Temperature - 21 | Power - On",  // 4
-    "Temperature - 22 | Power - On",  // 5
-    "Temperature - 23 | Power - On",  // 6
-    "Temperature - 24 | Power - On",  // 7
-    "Temperature - 25 | Power - On",  // 8
-    "Temperature - 26 | Power - On",  // 9
-    "Temperature - 27 | Power - On",  // 10
-    "Temperature - 28 | Power - On",  // 11
-    "Temperature - 29 | Power - On",  // 12
-    "Temperature - 30 | Power - On",  // 13
-    "Temperature - 31 | Power - On",  // 14
-    "Temperature - 32 | Power - On"   // 15
+    "Power - Off",                   // 0
+    "Temperature - 18 | Power - On", // 1
+    "Temperature - 19 | Power - On", // 2
+    "Temperature - 20 | Power - On", // 3
+    "Temperature - 21 | Power - On", // 4
+    "Temperature - 22 | Power - On", // 5
+    "Temperature - 23 | Power - On", // 6
+    "Temperature - 24 | Power - On", // 7
+    "Temperature - 25 | Power - On", // 8
+    "Temperature - 26 | Power - On", // 9
+    "Temperature - 27 | Power - On", // 10
+    "Temperature - 28 | Power - On", // 11
+    "Temperature - 29 | Power - On", // 12
+    "Temperature - 30 | Power - On", // 13
+    "Temperature - 31 | Power - On", // 14
+    "Temperature - 32 | Power - On"  // 15
 };
 
 /*IR Receiver Initializations*/
@@ -156,9 +157,11 @@ void ir_transmit()
     switch (ir_protocol_num)
     {
     case RAW:
-        if(!last_command.power) ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_41);
-        else {
-            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature-teaching_mode_t.startingTemperature+1], teaching_mode_raw_len, KHZ_41);
+        if (!last_command.power)
+            ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_41);
+        else
+        {
+            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - teaching_mode_t.startingTemperature + 1], teaching_mode_raw_len, KHZ_41);
         }
         break;
 
@@ -696,16 +699,16 @@ void locking_feature(const char *description)
     if (isFetchControlInfoSuccessful(description))
     {
         if (last_command.locking && !(ac_manual_control_t.temperature_value >= last_command.lowerTemperatureLimit &&
-              ac_manual_control_t.temperature_value <= last_command.upperTemperatureLimit))
+                                      ac_manual_control_t.temperature_value <= last_command.upperTemperatureLimit))
         {
             ESP_LOGW(IR_TAG, "AC temperature limit exceeded  (Current set Temperature : %d) | (Limits %d - %d)",
-            ac_manual_control_t.temperature_value,
-            last_command.lowerTemperatureLimit,
-            last_command.upperTemperatureLimit);
+                     ac_manual_control_t.temperature_value,
+                     last_command.lowerTemperatureLimit,
+                     last_command.upperTemperatureLimit);
             ESP_LOGW(IR_TAG, "Setting AC Temperature to : %d", last_command.temperature);
             ir_transmit();
         }
-        else 
+        else
         {
             last_command.power = ac_manual_control_t.power_value;
             last_command.temperature = ac_manual_control_t.temperature_value;
@@ -714,10 +717,14 @@ void locking_feature(const char *description)
             set_blob_in_nvs_flash(IR_HANDLE, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
         }
     }
-
+#if (IS_GWY)
     generate_ack(GWY_MANUAL_AC_CONTROL_ACK, NULL);
-}
+#endif
 
+#if (!IS_GWY)
+    send_ack_to_provisioner(NODE_MANUAL_AC_CONTROL_ACK, NULL);
+#endif
+}
 
 /**
  * @brief Function that initializes the value for teaching mode process
@@ -726,7 +733,8 @@ void locking_feature(const char *description)
  */
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
-    teaching_in_progress = true; update_led_status();
+    teaching_in_progress = true;
+    update_led_status();
     teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
     teaching_mode_t.expectedTemperature = startingTemp;
     teaching_mode_t.commandIndex = startingTemp - MAX_LOW_TEMP;
@@ -735,7 +743,12 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[0]);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8_SIZE);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8_SIZE);
+#if (IS_GWY)
     generate_ack(GWY_TEACHING_MODE, NULL);
+#endif
+#if (!IS_GWY)
+    send_ack_to_provisioner(NODE_TEACHING_MODE, NULL);
+#endif
     ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
 }
 
@@ -747,7 +760,8 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
  */
 void exit_teaching_mode(bool success)
 {
-    if(success) {
+    if (success)
+    {
         configured = true;
         ir_protocol_num = RAW;
         strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
@@ -755,14 +769,20 @@ void exit_teaching_mode(bool success)
         ESP_LOGI(IR_TAG, "Teaching mode completed successfully");
     }
     strcpy(teaching_mode_t.nextCommand, "");
-    teaching_in_progress = false; update_led_status();
+    teaching_in_progress = false;
+    update_led_status();
     teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
+#if (IS_GWY)
     generate_ack(GWY_TEACHING_MODE, NULL);
+#endif
+#if (!IS_GWY)
+    send_ack_to_provisioner(NODE_TEACHING_MODE, NULL);
+#endif
     ESP_LOGW(IR_TAG, "Quitting Teaching mode without completion");
 }
 
 /**
- * @brief Function that performs the teaching process. 
+ * @brief Function that performs the teaching process.
  * - 1) Detects IR Signal
  * - 2) Decodes information from IR Signal = Temperature, Power
  * - 3) Checks if the expected IR Signal
@@ -778,21 +798,21 @@ void perform_teaching_process(const char *description)
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
         ESP_LOGE(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
+                 ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
         /*If this is the first IR Signal*/
         if (teaching_mode_t.commandsReceived == 0)
         {
             /**
              * @warning We're only comparing power here and not temperature, because, for some AC remotes
              * like LG2, when sending power OFF command, the decoded string doesn't seem to contain temperature at all.
-             * 
+             *
              */
             if (ac_manual_control_t.power_value == 0)
             {
                 set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, results.rawlen, UINT16_SIZE);
 
                 /*Let's store raw values to nvs flash*/
-                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen-1);
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen - 1);
 
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
@@ -801,8 +821,6 @@ void perform_teaching_process(const char *description)
                 teaching_mode_t.errorCode = SUCCESS;
                 strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[0]);
                 strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
-
-                
             }
             else
             {
@@ -815,7 +833,7 @@ void perform_teaching_process(const char *description)
             if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
             {
                 /*Let's store raw values to nvs flash*/
-                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, results.rawlen-1);
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, results.rawlen - 1);
 
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
@@ -838,11 +856,18 @@ void perform_teaching_process(const char *description)
         led_set_state(LED_STATE_INVALID_OPERATION);
         teaching_mode_t.errorCode = TEMPERATURE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
     }
-    if(teaching_mode_t.remainingCommands!=0) generate_ack(GWY_TEACHING_MODE, NULL);
+    if (teaching_mode_t.remainingCommands != 0)
+#if (IS_GWY)
+        generate_ack(GWY_TEACHING_MODE, NULL);
+#endif
+#if (!IS_GWY)
+        send_ack_to_provisioner(NODE_TEACHING_MODE, NULL);
+#endif
 
     /*Teaching mode has been successfully completed*/
-    else exit_teaching_mode(true);
-    
+    else
+        exit_teaching_mode(true);
+
     irrecv.resume();
 }
 
@@ -877,7 +902,7 @@ void ir_recv_task(void *args)
              */
 
             /*Locking Feature*/
-            if (registered && configured && !teaching_in_progress &&
+            if ((registered || provisioned) && configured && !teaching_in_progress &&
                 ((protocol == ir_protocol_num) || (ir_protocol_num == RAW && results.rawlen == teaching_mode_raw_len)) &&
                 description.length())
             {
@@ -893,14 +918,20 @@ void ir_recv_task(void *args)
             }
 
             /*AC Remote Configuration Process*/
-            else if (registered && !configured && protocol != UNKNOWN && !teaching_in_progress)
+            else if ((registered || provisioned) && !configured && protocol != UNKNOWN && !teaching_in_progress)
             {
-                configured = true; update_led_status();
+                configured = true;
+                update_led_status();
                 ir_protocol_num = protocol;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
                 set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
+#if (IS_GWY)
                 generate_ack(GWY_CONF_ACK, NULL);
+#endif
+#if (!IS_GWY)
+                send_ack_to_provisioner(NODE_CONF_PACKET, NULL);
+#endif
                 ESP_LOGI(IR_TAG, "AC Remote configuration successful");
             }
 
@@ -909,7 +940,12 @@ void ir_recv_task(void *args)
             {
                 led_set_state(LED_STATE_INVALID_OPERATION);
                 ESP_LOGD(IR_TAG, "AC Remote Unsupported");
+#if (IS_GWY)
                 generate_ack(GWY_CONF_ACK, NULL);
+#endif
+#if (!IS_GWY)
+                send_ack_to_provisioner(NODE_CONF_PACKET, NULL);
+#endif
             }
 
             yield();

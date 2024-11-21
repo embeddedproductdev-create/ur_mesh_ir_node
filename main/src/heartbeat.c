@@ -4,28 +4,31 @@
 
 #include <main.h>
 #include <lte.h>
+#include <ble.h>
 #include <cJSON.h>
 #include <json_maker.h>
-
 
 #define HB_TAG "HEARTBEAT"
 
 static esp_timer_handle_t hb_timer_handle;
 
-static void hb_callback(void *arg) 
+static void hb_callback(void *arg)
 {
+#if (IS_GWY)
     char *buffer = (char *)malloc(1024);
-    if(!buffer) {
+    if (!buffer)
+    {
         ESP_LOGE(HB_TAG, "Memory Allocation failed for buffer | Can't send HB");
         return;
     }
     struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
+    if (!jwc)
+    {
         ESP_LOGE(HB_TAG, "Memory Allocation failed for jwc | Can't send HB");
         free(buffer);
         return;
     }
-    
+
     jwOpen(jwc, buffer, 1024, JW_OBJECT, 1);
     jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_HEARTBEAT_ACK);
     jwObj_int(jwc, POWER_KEY, last_command.power);
@@ -43,11 +46,16 @@ static void hb_callback(void *arg)
     jwClose(jwc);
     enqueue_for_publish(buffer);
     free(jwc);
+#endif
+
+#if(!IS_GWY)
+    send_ack_to_provisioner(NODE_HEARTBEAT_ACK, NULL);
+#endif
 }
 
 /**
  * @brief Function that stops the hb timer
- * 
+ *
  */
 void hb_timer_stop()
 {
@@ -57,34 +65,33 @@ void hb_timer_stop()
 
 /**
  * @brief Function that starts the hb timer
- * 
+ *
  */
 void hb_timer_start()
 {
     ESP_LOGI(HB_TAG, "Starting HB Publishing");
-    ESP_ERROR_CHECK(esp_timer_start_periodic(hb_timer_handle, publishPeriod*1000000));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(hb_timer_handle, publishPeriod * 1000000));
 }
 
 /**
  * @brief Function that restarts the hb timer
- * 
+ *
  */
 void hb_timer_restart()
 {
     ESP_LOGI(HB_TAG, "Restarting HB Publishing");
-    ESP_ERROR_CHECK(esp_timer_restart(hb_timer_handle, publishPeriod*1000000));
+    ESP_ERROR_CHECK(esp_timer_restart(hb_timer_handle, publishPeriod * 1000000));
 }
 
 esp_timer_create_args_t hb_timer_args = {
     .callback = hb_callback,
     .arg = NULL,
     .dispatch_method = ESP_TIMER_TASK,
-    .name = "LED Blink Timer"
-};
+    .name = "LED Blink Timer"};
 
 /**
  * @brief Function that initializes the heartbeat timer (but doesn't start)
- * 
+ *
  */
 void hb_init()
 {
