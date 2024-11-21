@@ -345,6 +345,8 @@ esp_err_t init_data_in_nvs(void)
     ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO, esp_err_to_name(err));
     err=nvs_set_u8(general_nvs_handle, NVS_REGISTERED_KEY, registered);
     ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
+    err=nvs_set_u8(general_nvs_handle, NVS_PROVISIONED_KEY, provisioned);
+    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
     err=nvs_set_u8(general_nvs_handle, NVS_CONFIGURED_KEY, configured);
     ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_CONFIGURED_KEY, configured, esp_err_to_name(err));
     err=nvs_set_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR);
@@ -441,6 +443,7 @@ esp_err_t pull_data_from_nvs(void)
     size_t serialNoReqSize = 10;
     nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &serialNoReqSize);
     nvs_get_u8(general_nvs_handle, NVS_REGISTERED_KEY, &registered);
+    nvs_get_u8(general_nvs_handle, NVS_PROVISIONED_KEY, &provisioned);
     nvs_get_u8(general_nvs_handle, NVS_CONFIGURED_KEY, &configured);
 
     if(configured) get_last_ac_cmd_in_nvs_flash();

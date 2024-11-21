@@ -56,17 +56,22 @@ void print_basic_info()
     ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=- BOOT SUCCESSFUL - %d.%d.%d -=-=-=-=-=-=-=-=-=-=", MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
     ESP_LOGI(TAG, "%s : %d", NVS_NEW_DEVICE_KEY, newDevice);
     ESP_LOGI(TAG, "%s : %s", NVS_DEVICE_LOCATION_KEY, device_location_str);
-    #if(IS_GWY)
+    ESP_LOGI(TAG, "%s : %s", NVS_SERIAL_NO_KEY, serialNoStr);
+#if (IS_GWY)
     ESP_LOGI(TAG, "%s : %d", NVS_REGISTERED_KEY, registered);
     ESP_LOGI(TAG, "%s : %s", "MQTT Publish Topic", publish_topic);
     ESP_LOGI(TAG, "%s : %s", "MQTT Subscribe Topic", subscribe_topic);
-    #endif
-    ESP_LOGI(TAG, "%s : %s", NVS_SERIAL_NO_KEY, serialNoStr);
+#endif
+    #if (!IS_GWY)
+    ESP_LOGI(TAG, "%s : %d", NVS_PROVISIONED_KEY, provisioned);
+#endif
     ESP_LOGI(TAG, "%s : %d", NVS_CONFIGURED_KEY, configured);
     ESP_LOGI(TAG, "%s : %ds", "Heartbeat Interval", publishPeriod);
     ESP_LOGI(TAG, "%s : %s", NVS_IR_PROTOCOL_KEY, ir_protocol);
     if (strcmp(ir_protocol, RAW_IR_PROTOCOL) == 0)
+    {
         ESP_LOGI(TAG, "%s : %d", NVS_RAWLEN_KEY, teaching_mode_raw_len);
+    }
     ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
     ESP_LOGW(TAG, "LAST AC-SETTINGS:");
     ESP_LOGI(TAG, "%s : %d", NVS_POWER_KEY, last_command.power);
@@ -110,15 +115,15 @@ void app_main(void)
     init_global_variables();
     nvs_init();
 
-#if(IS_GWY)
+#if (IS_GWY)
     strcpy(serialNoStr, "GWY00002");
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
 #endif
-#if(!IS_GWY)
+#if (!IS_GWY)
     strcpy(serialNoStr, "N00004");
 #endif
-    
+
     print_basic_info();
 
     ble_init();
@@ -129,7 +134,7 @@ void app_main(void)
     button_intr_init();
     ir_tran_setup();
 
-#if(IS_GWY)
+#if (IS_GWY)
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 #endif
     xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle);
