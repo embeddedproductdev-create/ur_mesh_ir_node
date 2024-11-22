@@ -224,6 +224,67 @@ void enqueue_for_publish(char *ack_json) {
 }
 
 /**
+ * @brief Function that takes care of generating node manual ac contro ack
+ * 
+ */
+void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_t)
+{
+    int size = 1024;
+    char *buffer = (char *)malloc(size);
+    if(!buffer) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        return;
+    }
+    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    if(!jwc) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
+        free(buffer);
+        return;
+    }
+    jwOpen(jwc, buffer, size, JW_OBJECT, 1);
+    jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK);
+    jwObj_int(jwc, POWER_KEY, node_ac_manual_control_t->power_value);
+    jwObj_int(jwc, DETECTED_TEMPERATURE_KEY, node_ac_manual_control_t->temperature_value);
+    jwObj_int(jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_value);
+    jwObj_string(jwc, MODE_KEY, node_ac_manual_control_t->mode);
+    jwObj_int(jwc, POWER_ERROR_KEY, node_ac_manual_control_t->power_err);
+    jwObj_int(jwc, TEMPERATURE_ERROR_KEY, node_ac_manual_control_t->temperature_err);
+    jwObj_int(jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_err);
+    jwObj_int(jwc, MODE_ERROR_KEY, node_ac_manual_control_t->mode_err);           
+    jwEnd(jwc);
+    jwClose(jwc);
+    enqueue_for_publish(buffer);
+}
+
+/**
+ * @brief Function that takes care of generating node teaching mode ack
+ * 
+ */
+void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
+{
+    int size = 1024;
+    char *buffer = (char *)malloc(size);
+    if(!buffer) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        return;
+    }
+    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    if(!jwc) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
+        free(buffer);
+        return;
+    }
+    jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE);
+    jwObj_int(jwc, ERROR_CODE_KEY, node_teaching_mode_t->errorCode);
+    jwObj_int(jwc, REMAINING_CMD_KEY, node_teaching_mode_t->remainingCommands);
+    jwObj_string(jwc, LAST_CMD_KEY, node_teaching_mode_t->lastCommand);
+    jwObj_string(jwc, NEXT_CMD_KEY, node_teaching_mode_t->nextCommand);       
+    jwEnd(jwc);
+    jwClose(jwc);
+    enqueue_for_publish(buffer);
+}
+
+/**
  * @brief Function that generates the ack to be sent to cloud
  * @param cmd_struct 
  */
@@ -285,6 +346,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             break;
         
         case NODE_TEACHING_MODE:
+            //Need to be taken care separately due to different structure type
             break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
@@ -299,12 +361,13 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
             jwObj_int(jwc, MODE_ERROR_KEY, ac_manual_control_t.mode_err);
             break;
-
+        
         case NODE_MANUAL_AC_CONTROL_ACK:
+            //Need to be taken care separately due to different structure type
             break;
 
         case GWY_DEBUG_INFO_PACKET:
-            char version[10], uptime[10];
+            char version[20], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
@@ -317,12 +380,33 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             break;
         
+        case NODE_DEBUG_INFO_PACKET:
+            sprintf(version, "%d.%d.%d",cmd_struct->majversion, cmd_struct->minversion, cmd_struct->patchversion);
+            sprintf(uptime, "%0.2f", cmd_struct->deviceUpTimeMs);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
+            jwObj_int(jwc, NVS_PROVISIONED_KEY, cmd_struct->provisioned);
+            jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
+            jwObj_int(jwc, PUBLISH_PERIOD_KEY, cmd_struct->publishPeriodSec);
+            jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            break;
+        
         case GWY_CONF_ACK:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_CONF_ACK);
             jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
             if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
             else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
             break;
+        
+        case NODE_CONF_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_CONF_ACK);
+            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
+            if(cmd_struct->irProtocolNum == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+            break;
+
 
         default:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
@@ -696,8 +780,6 @@ void parse_json()
 
     if(cmd_struct.errorcode == SUCCESS)
     {
-        cmd_struct.enqueue_time = xTaskGetTickCount();
-
         // Add only Node based packets into Queue
         if(cmd_struct.packetid>=NODE_PROV_PACKET && cmd_struct.packetid<MAX_NODE_PACKET_ID) {
             if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
@@ -730,7 +812,7 @@ void parse_json()
                 break;
 
             case GWY_HEARTBEAT_PUB_CONF_PACKET:
-                handle_setting_hb_publish_configuration(cmd_struct);
+                handle_setting_hb_publish_configuration(&cmd_struct);
                 break;
 
             case GWY_DEBUG_INFO_PACKET:
@@ -897,7 +979,7 @@ void maintainCommandQueue()
     for (UBaseType_t i = 0; i < queue_length; i++) {
         // Peek at the front item without removing it
         if (xQueuePeek(command_queue, &cmd_item, 0) == pdPASS) {
-            if ((current_time_ms - cmd_item.enqueue_time) > BLE_NODE_COMM_TIMEOUT_MS) {
+            if ((current_time_ms - cmd_item.reqSentToNodeTimeMs) > BLE_NODE_COMM_TIMEOUT_MS) {
                 // Remove the stale item
                 if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
                     generate_ack(cmd_item.packetid, &cmd_item);

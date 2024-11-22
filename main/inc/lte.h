@@ -187,7 +187,7 @@ typedef enum
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
-	NODE_CONF_PACKET,
+	NODE_CONF_ACK,
 	NODE_UNPROV_PACKET,
 	NODE_AC_CONTROL_PACKET,
 	NODE_MANUAL_AC_CONTROL_ACK,
@@ -204,7 +204,7 @@ typedef enum
 
 typedef struct
 {
-    TickType_t enqueue_time;
+    TickType_t reqSentToNodeTimeMs;
     error_codes errorcode;
     mqtt_packets packetid;
     uint16_t msgseqno;
@@ -229,7 +229,7 @@ typedef struct
     uint8_t startingTemperature;
     uint8_t endingTemperature;
     bool requestSentToNode;
-    uint16_t irProtocolNum;
+    int16_t irProtocolNum;
     float deviceUpTimeMs;
     uint8_t majversion;
     uint8_t minversion;
@@ -312,6 +312,8 @@ extern "C" {
 #endif
 
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct);
+void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t);
+void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_t);
 void enqueue_for_publish(char *ack_json);
 
 #ifdef __cplusplus

@@ -42,6 +42,23 @@
 #define APP_KEY_IDX 0x0000
 #define APP_KEY_OCTET 0x12
 
+#define ESP_BLE_MESH_VND_MODEL_ID_CLIENT 0x0000
+#define ESP_BLE_MESH_VND_MODEL_ID_SERVER 0x0001
+
+#define ESP_BLE_MESH_VND_MODEL_OP_SEND ESP_BLE_MESH_MODEL_OP_3(0x00, CID_ESP)
+#define ESP_BLE_MESH_VND_MODEL_OP_STATUS ESP_BLE_MESH_MODEL_OP_3(0x01, CID_ESP)
+
+static struct example_info_store
+{
+    uint16_t server_addr; /* Vendor server unicast address */
+    uint16_t vnd_tid;
+    CommandStruct cmd_struct;
+} store = {
+    .server_addr = ESP_BLE_MESH_ADDR_UNASSIGNED,
+    .vnd_tid = 0,
+};
+
+
 static uint8_t dev_uuid[16];
 
 uint16_t prov_success_elemAddr = 9999;
@@ -91,6 +108,15 @@ static esp_ble_mesh_cfg_srv_t config_server = {
     /* 3 transmissions with 20ms interval */
     .net_transmit = ESP_BLE_MESH_TRANSMIT(2, 20),
     .relay_retransmit = ESP_BLE_MESH_TRANSMIT(2, 20),
+};
+
+static const esp_ble_mesh_client_op_pair_t vnd_op_pair[] = {
+    {ESP_BLE_MESH_VND_MODEL_OP_SEND, ESP_BLE_MESH_VND_MODEL_OP_STATUS},
+};
+
+static esp_ble_mesh_client_t vendor_client = {
+    .op_pair_size = ARRAY_SIZE(vnd_op_pair),
+    .op_pair = vnd_op_pair,
 };
 
 static esp_ble_mesh_model_t root_models[] = {
@@ -250,15 +276,24 @@ static esp_err_t prov_complete(int node_idx, const esp_ble_mesh_octet16_t uuid,
     return ESP_OK;
 }
 
-static void prov_link_open(esp_ble_mesh_prov_bearer_t bearer)
-{
-    ESP_LOGI(BLE_TAG, "%s link open", bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT");
-}
 
-static void prov_link_close(esp_ble_mesh_prov_bearer_t bearer, uint8_t reason)
+/**
+ * @brief Callback function which receives the ack from Nodes
+ * @param event 
+ * @param param 
+ */
+static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
+                                              esp_ble_mesh_sensor_client_cb_param_t *param)
 {
-    ESP_LOGI(BLE_TAG, "%s link close, reason 0x%02x",
-             bearer == ESP_BLE_MESH_PROV_ADV ? "PB-ADV" : "PB-GATT", reason);
+    // ESP_LOGI(BLE_TAG, "Sensor client data, event %u, addr 0x%04x", event, param->params->ctx.addr);
+    handle_ble_incoming(param);
+    // if (param->error_code)
+    // {
+    //     ESP_LOGE(BLE_TAG, "Send sensor client message failed (err %d)", param->error_code);
+    //     return;
+    // }
+    //     ESP_LOG_BUFFER_HEX("Sensor Data", param->status_cb.sensor_status.marshalled_sensor_data->data,
+    //                        param->status_cb.sensor_status.marshalled_sensor_data->len);
 }
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
@@ -266,14 +301,6 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
 {
     switch (event)
     {
-    case ESP_BLE_MESH_PROVISIONER_PROV_LINK_OPEN_EVT:
-        prov_link_open(param->provisioner_prov_link_open.bearer);
-        break;
-
-    case ESP_BLE_MESH_PROVISIONER_PROV_LINK_CLOSE_EVT:
-        prov_link_close(param->provisioner_prov_link_close.bearer, param->provisioner_prov_link_close.reason);
-        break;
-
     case ESP_BLE_MESH_PROVISIONER_PROV_COMPLETE_EVT:
         prov_complete(param->provisioner_prov_complete.node_idx, param->provisioner_prov_complete.device_uuid,
                       param->provisioner_prov_complete.unicast_addr, param->provisioner_prov_complete.element_num,
@@ -531,6 +558,7 @@ static esp_err_t ble_mesh_init(void)
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_client_callback(example_ble_mesh_config_client_cb);
+    esp_ble_mesh_register_sensor_client_callback(example_ble_mesh_sensor_client_cb);
 
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK)
@@ -711,38 +739,61 @@ void send_unprovision_request(CommandStruct *cmd_struct)
     }
 }
 
-void send_ac_control_request(CommandStruct *cmd_struct)
+void send_cmd_to_node(CommandStruct *cmd_struct)
 {
-    ;
-}
-
-void send_node_debug_info_request(CommandStruct *cmd_struct)
-{
-    ;
-}
-
-void send_node_reconf_request(CommandStruct *cmd_struct)
-{
-    ;
-}
-
-void send_node_hb_pub_conf_request(CommandStruct *cmd_struct)
-{
-    ;
-}
-
-void send_node_teaching_mode_request(CommandStruct *cmd_struct)
-{
-    ;
+    uint32_t opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
+    esp_ble_mesh_msg_ctx_t ctx = {0};
+    ctx.net_idx = prov_key.net_idx;
+    ctx.app_idx = prov_key.app_idx;
+    ctx.send_ttl = MSG_SEND_TTL;
+    ctx.send_rel = MSG_SEND_REL;
+    store.cmd_struct = *cmd_struct;
+    store.server_addr = cmd_struct->elemaddr;
+    ctx.addr = store.server_addr;
+    esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                                             sizeof(store.cmd_struct), (uint8_t *)&store.cmd_struct, MSG_TIMEOUT, true, MSG_ROLE);
+    // ble_mesh_nvs_store(NVS_HANDLE, NVS_KEY, &store, sizeof(store));
 }
 
 /**
- * @brief Function that takes care of communication from Nodes to provisioner
+ * @brief Function that takes care of receiving ACK from nodes
  *
  */
-void handle_ble_incoming()
+void handle_ble_incoming(esp_ble_mesh_sensor_client_cb_param_t *param)
 {
-    ;
+    uint16_t packetid = param->status_cb.sensor_status.marshalled_sensor_data->data[0];
+    CommandStruct *cmd_struct = (CommandStruct *)param->status_cb.sensor_status.marshalled_sensor_data->data;
+    switch(packetid)
+    {
+        case NODE_RECONF_PACKET:
+        case NODE_AC_CONTROL_PACKET:
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+        case NODE_DEBUG_INFO_PACKET:
+            
+            generate_ack(cmd_struct->packetid, cmd_struct);
+            removeQueueItemByMsgSeqNo(command_queue, cmd_struct->msgseqno);
+            break;
+
+        case NODE_TEACHING_MODE:
+            teaching_mode *node_teaching_mode_t = (teaching_mode *)param->status_cb.sensor_status.marshalled_sensor_data->data;
+            generate_node_teaching_mode_ack(node_teaching_mode_t);
+            break;
+        
+        case NODE_MANUAL_AC_CONTROL_ACK:
+            manual_control *node_ac_manual_control_t = (manual_control *)param->status_cb.sensor_status.marshalled_sensor_data->data;
+            generate_node_manual_ac_control_ack(node_ac_manual_control_t);
+            break;
+        
+        case NODE_CONF_ACK:
+            // CommandStruct *cmd_struct = (CommandStruct *)param->status_cb.sensor_status.marshalled_sensor_data->data;
+            generate_ack(cmd_struct->packetid, cmd_struct);
+            break;
+        
+        case NODE_HEARTBEAT_ACK:
+            // CommandStruct *cmd_struct = (CommandStruct *)param->status_cb.sensor_status.marshalled_sensor_data->data;
+            generate_ack(cmd_struct->packetid, cmd_struct);
+            break;
+    }
 }
 
 /**
@@ -762,25 +813,14 @@ void handle_ble_outgoing(CommandStruct *cmd_struct)
         break;
 
     case NODE_AC_CONTROL_PACKET:
-        send_ac_control_request(cmd_struct);
-        break;
-
     case NODE_DEBUG_INFO_PACKET:
-        send_node_debug_info_request(cmd_struct);
-        break;
-
     case NODE_RECONF_PACKET:
-        send_node_reconf_request(cmd_struct);
-        break;
-
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
-        send_node_hb_pub_conf_request(cmd_struct);
-        break;
-
     case NODE_TEACHING_MODE:
-        send_node_teaching_mode_request(cmd_struct);
+        cmd_struct->reqSentToNodeTimeMs = (xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00;
+        send_cmd_to_node(cmd_struct);
         break;
-
+        
     default:
         ESP_LOGE(BLE_TAG, "Unknown Request to Node");
         break;

@@ -465,9 +465,9 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *cmd_struct)
 {
     switch(packetid)
     {
-        case NODE_CONF_PACKET:
+        case NODE_CONF_ACK:
             ESP_LOGI(BLE_TAG, "Sending AC Remote Configuration ACK");
-            cmd_struct->packetid = NODE_CONF_PACKET;
+            cmd_struct->packetid = NODE_CONF_ACK;
             if(ac_remote_unsupported_flag) cmd_struct->errorcode = AC_REMOTE_UNSUPPORTED;
             else cmd_struct->errorcode = SUCCESS;
             cmd_struct->irProtocolNum = ir_protocol_num;

@@ -934,7 +934,7 @@ void ir_recv_task(void *args)
                 generate_ack(GWY_CONF_ACK, NULL);
 #endif
 #if (!IS_GWY)
-                send_ack_to_provisioner(NODE_CONF_PACKET, NULL);
+                send_ack_to_provisioner(NODE_CONF_ACK, NULL);
 #endif
                 ESP_LOGI(IR_TAG, "AC Remote configuration successful");
             }
