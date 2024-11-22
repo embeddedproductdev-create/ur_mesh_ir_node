@@ -980,7 +980,6 @@ void handle_reconfiguration(CommandStruct *cmd_struct)
 /**
  * @brief Function that takes care of configuring teaching mode.
  * Common function for both provisioner and node.
- * 
  * @param cmd_struct 
  */
 void handle_configuring_teaching_mode(CommandStruct *cmd_struct)

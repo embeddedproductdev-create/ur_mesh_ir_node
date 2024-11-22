@@ -72,74 +72,11 @@ static esp_ble_mesh_prov_t provision = {
 #endif
 };
 
-static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
-{
-    ESP_LOGI(BLE_TAG, "net_idx: 0x%04x, addr: 0x%04x", net_idx, addr);
-    ESP_LOGI(BLE_TAG, "flags: 0x%02x, iv_index: 0x%08" PRIx32, flags, iv_index);
-}
+#define ESP_BLE_MESH_VND_MODEL_ID_CLIENT 0x0000
+#define ESP_BLE_MESH_VND_MODEL_ID_SERVER 0x0001
 
-static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
-                                             esp_ble_mesh_prov_cb_param_t *param)
-{
-    switch (event) {
-    case ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT");
-        prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
-            param->node_prov_complete.flags, param->node_prov_complete.iv_index);
-        provision_success_cb();
-        break;
-
-    case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
-        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT : %s", __func__);
-        unprovision_success_cb();
-        break;
-
-    default:
-        break;
-    }
-}
-
-static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t event,
-                                              esp_ble_mesh_cfg_server_cb_param_t *param)
-{
-    if (event == ESP_BLE_MESH_CFG_SERVER_STATE_CHANGE_EVT) {
-        switch (param->ctx.recv_op) {
-        case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
-            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD");
-            ESP_LOGI(BLE_TAG, "net_idx 0x%04x, app_idx 0x%04x",
-                param->value.state_change.appkey_add.net_idx,
-                param->value.state_change.appkey_add.app_idx);
-            ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
-            break;
-
-        case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
-            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND");
-            ESP_LOGI(BLE_TAG, "elem_addr 0x%04x, app_idx 0x%04x, cid 0x%04x, mod_id 0x%04x",
-                param->value.state_change.mod_app_bind.element_addr,
-                param->value.state_change.mod_app_bind.app_idx,
-                param->value.state_change.mod_app_bind.company_id,
-                param->value.state_change.mod_app_bind.model_id);
-            break;
-
-        case ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD:
-            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD");
-            ESP_LOGI(BLE_TAG, "elem_addr 0x%04x, sub_addr 0x%04x, cid 0x%04x, mod_id 0x%04x",
-                param->value.state_change.mod_sub_add.element_addr,
-                param->value.state_change.mod_sub_add.sub_addr,
-                param->value.state_change.mod_sub_add.company_id,
-                param->value.state_change.mod_sub_add.model_id);
-            break;
-
-        case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
-            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET : %s",__func__);
-            break;
-
-        default:
-            break;
-        }
-    }
-}
-
+#define ESP_BLE_MESH_VND_MODEL_OP_SEND ESP_BLE_MESH_MODEL_OP_3(0x00, CID_ESP)
+#define ESP_BLE_MESH_VND_MODEL_OP_STATUS ESP_BLE_MESH_MODEL_OP_3(0x01, CID_ESP)
 
 NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, 100);
 
@@ -172,8 +109,19 @@ static esp_ble_mesh_model_t root_models[] = {
     ESP_BLE_MESH_MODEL_SENSOR_SRV(&sensor_pub, &sensor_server),
     ESP_BLE_MESH_MODEL_SENSOR_SETUP_SRV(&sensor_setup_pub, &sensor_setup_server),
 };
+
+static esp_ble_mesh_model_op_t vnd_op[] = {
+    ESP_BLE_MESH_MODEL_OP(ESP_BLE_MESH_VND_MODEL_OP_SEND, 2),
+    ESP_BLE_MESH_MODEL_OP_END,
+};
+
+static esp_ble_mesh_model_t vnd_models[] = {
+    ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_SERVER,
+                              vnd_op, NULL, NULL),
+};
+
 static esp_ble_mesh_elem_t elements[] = {
-    ESP_BLE_MESH_ELEMENT(0, root_models, ESP_BLE_MESH_MODEL_NONE),
+    ESP_BLE_MESH_ELEMENT(0, root_models, vnd_models),
 };
 
 static esp_ble_mesh_comp_t composition = {
@@ -182,6 +130,114 @@ static esp_ble_mesh_comp_t composition = {
     .element_count = ARRAY_SIZE(elements),
 };
 
+/**
+ * @brief Function that receives commands from provisioner
+ * 
+ * @param event 
+ * @param param 
+ */
+static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event,
+                                             esp_ble_mesh_model_cb_param_t *param)
+{
+    switch (event)
+    {
+    case ESP_BLE_MESH_MODEL_OPERATION_EVT:
+        if (param->model_operation.opcode == ESP_BLE_MESH_VND_MODEL_OP_SEND)
+        {
+            uint16_t tid = *(uint16_t *)param->model_operation.msg;
+            CommandStruct *cmd_struct = (CommandStruct *)param->model_operation.msg;
+            handle_cmds_from_provisioner(cmd_struct);
+            esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0],
+                                                               param->model_operation.ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS,
+                                                               sizeof(tid), (uint8_t *)&tid);
+            if (err) ESP_LOGE(BLE_TAG, "%s - %s",__func__, esp_err_to_name(err));
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Provisioning and Unprovisioning BLE layer callback function
+ * @param event 
+ * @param param 
+ */
+static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
+                                             esp_ble_mesh_prov_cb_param_t *param)
+{
+    switch (event) {
+    case ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT:
+        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_COMPLETE_EVT");
+        // prov_complete(param->node_prov_complete.net_idx, param->node_prov_complete.addr,
+        //     param->node_prov_complete.flags, param->node_prov_complete.iv_index);
+        provision_success_cb();
+        break;
+
+    case ESP_BLE_MESH_NODE_PROV_RESET_EVT:
+        ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_NODE_PROV_RESET_EVT : %s", __func__);
+        unprovision_success_cb();
+        break;
+
+    default:
+        break;
+    }
+}
+
+/**
+ * @brief Callback function that is used for Model App key add / bind during
+ * provisioning process
+ * @param event 
+ * @param param 
+ */
+static void example_ble_mesh_config_server_cb(esp_ble_mesh_cfg_server_cb_event_t event,
+                                              esp_ble_mesh_cfg_server_cb_param_t *param)
+{
+    if (event == ESP_BLE_MESH_CFG_SERVER_STATE_CHANGE_EVT) {
+        switch (param->ctx.recv_op) {
+        case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
+            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD - %s",__func__);
+            // ESP_LOGI(BLE_TAG, "net_idx 0x%04x, app_idx 0x%04x",
+            //     param->value.state_change.appkey_add.net_idx,
+            //     param->value.state_change.appkey_add.app_idx);
+            // ESP_LOG_BUFFER_HEX("AppKey", param->value.state_change.appkey_add.app_key, 16);
+            break;
+
+        case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
+            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND - %s",__func__);
+            // ESP_LOGI(BLE_TAG, "elem_addr 0x%04x, app_idx 0x%04x, cid 0x%04x, mod_id 0x%04x",
+            //     param->value.state_change.mod_app_bind.element_addr,
+            //     param->value.state_change.mod_app_bind.app_idx,
+            //     param->value.state_change.mod_app_bind.company_id,
+            //     param->value.state_change.mod_app_bind.model_id);
+            break;
+
+        case ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD:
+            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_MODEL_SUB_ADD - %s",__func__);
+            // ESP_LOGI(BLE_TAG, "elem_addr 0x%04x, sub_addr 0x%04x, cid 0x%04x, mod_id 0x%04x",
+            //     param->value.state_change.mod_sub_add.element_addr,
+            //     param->value.state_change.mod_sub_add.sub_addr,
+            //     param->value.state_change.mod_sub_add.company_id,
+            //     param->value.state_change.mod_sub_add.model_id);
+            break;
+
+        case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
+            ESP_LOGI(BLE_TAG, "ESP_BLE_MESH_MODEL_OP_NODE_RESET : %s",__func__);
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
+/**
+ * @brief Function that will be used while sending ack back to provisioner
+ * @param state 
+ * @param data 
+ * @return uint16_t 
+ */
 static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *state, uint8_t *data)
 {
     uint8_t mpid_len, data_len = 0;
@@ -222,6 +278,9 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
     return (data_len);
 }
 
+/**
+ * @brief Function that will be used to send ack back to provisioner
+ */
 static void example_ble_mesh_send_sensor_status(/*int aesp_ble_mesh_sensor_server_cb_param_t *param*/)
 {
     uint8_t *status = NULL;
@@ -278,6 +337,21 @@ send:
 }
 
 
+/**
+ * @brief Sensor server callback function
+ * 
+ * @param event 
+ * @param param 
+ */
+static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_event_t event,
+                                              esp_ble_mesh_sensor_server_cb_param_t *param)
+{
+    ESP_LOGI(BLE_TAG, "Sensor server, event %d, src 0x%04x, dst 0x%04x, model_id 0x%04x",
+             event, param->ctx.addr, param->ctx.recv_dst, param->model->model_id);
+    ESP_LOGI(BLE_TAG, "Sensor server, event %d, src 0x%04x, dst 0x%04x, model_id 0x%04x",
+             event, param->ctx.addr, param->ctx.recv_dst, param->model->model_id);
+}
+
 esp_err_t bluetooth_init(void)
 {
     esp_err_t ret;
@@ -317,6 +391,8 @@ static esp_err_t ble_mesh_init(void)
 
     esp_ble_mesh_register_prov_callback(example_ble_mesh_provisioning_cb);
     esp_ble_mesh_register_config_server_callback(example_ble_mesh_config_server_cb);
+    esp_ble_mesh_register_custom_model_callback(example_ble_mesh_custom_model_cb);
+    esp_ble_mesh_register_sensor_server_callback(example_ble_mesh_sensor_server_cb);
     
     err = esp_ble_mesh_init(&provision, &composition);
     if (err != ESP_OK) {
@@ -383,7 +459,7 @@ void ble_init(void)
 /*FUNCTIONS BELOW THIS ARE DEFINED BY QMAX - FOR PROJECT'S PURPOSE*/
 
 /**
- * @brief Function that sends ack to provisioner
+ * @brief Function that sends ack to provisioner using sensor server model
  */
 void send_ack_to_provisioner(uint16_t packetid, CommandStruct *cmd_struct)
 {

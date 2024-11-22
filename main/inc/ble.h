@@ -25,6 +25,7 @@ void provision_success_cb(uint16_t elemaddr);
 void reset_prov_match();
 #endif
 #if(!IS_GWY)
+void handle_cmds_from_provisioner(CommandStruct *cmd_struct);
 void provision_success_cb();
 void unprovision_success_cb();
 #endif
