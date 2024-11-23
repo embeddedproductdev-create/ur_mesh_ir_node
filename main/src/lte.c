@@ -327,7 +327,22 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 
     switch(packetid)
     {
+        case GWY_AC_CONTROL_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            break;
+        
+        case NODE_AC_CONTROL_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            break;
+        
         case NODE_HEARTBEAT_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
             jwObj_int(jwc, POWER_KEY, cmd_struct->power);
             jwObj_string(jwc, MODE_KEY, cmd_struct->mode_str);
@@ -344,6 +359,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             break;
         
         case GWY_HEARTBEAT_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_int(jwc, POWER_KEY, last_command.power);
             jwObj_string(jwc, MODE_KEY, last_command.mode_str);
             jwObj_int(jwc, FAN_SPEED_KEY, last_command.fanspeed);
@@ -768,8 +784,10 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             if(teaching_start!=0 && teaching_start!=1)  {cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE; return;}
             else cmd_struct->teachingStart = teaching_start;
             
-            if(teaching_start && teaching_in_progress) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
-            if(!teaching_start && !teaching_in_progress) {cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
+            if(teaching_start && teaching_in_progress && cmd_struct->packetid == GWY_TEACHING_MODE) 
+                {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+            if(!teaching_start && !teaching_in_progress && cmd_struct->packetid == GWY_TEACHING_MODE) 
+                {cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
             
             if(!(startingTemp>=MAX_LOW_TEMP && startingTemp<=MAX_HIGH_TEMP)) {cmd_struct->errorcode = STARTING_TEMPERATURE_EXCEEDING_RANGE; return;}
             else cmd_struct->startingTemperature = startingTemp;

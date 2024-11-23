@@ -726,7 +726,7 @@ void locking_feature(const char *description)
 #endif
 
 #if (!IS_GWY)
-    send_ack_to_provisioner(NODE_MANUAL_AC_CONTROL_ACK, NULL);
+    send_manual_control_ack_to_provisioner(&ac_manual_control_t);
 #endif
 }
 
@@ -865,7 +865,7 @@ void perform_teaching_process(const char *description)
         generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
-        send_ack_to_provisioner(NODE_TEACHING_MODE, NULL);
+        send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
 #endif
 
     /*Teaching mode has been successfully completed*/

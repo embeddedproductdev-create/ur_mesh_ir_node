@@ -630,6 +630,8 @@ void handle_ble_incoming(CommandStruct *ack)
         case NODE_HEARTBEAT_ACK:
             generate_ack(NODE_HEARTBEAT_ACK, ack);
             break;
+        
+        case NODE_
 
         default:
             ESP_LOGE(BLE_TAG, "Unknown ACK received from %s : %d", ack->nodename, ack->packetid);
