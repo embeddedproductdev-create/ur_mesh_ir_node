@@ -3,6 +3,7 @@
 
 #include "nvs_flash.h"
 #include "nvs.h"
+#include <lte.h>
 
 /*Global Variables*/
 extern nvs_handle_t ir_nvs_handle;

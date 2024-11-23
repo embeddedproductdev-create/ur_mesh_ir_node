@@ -30,6 +30,10 @@
 #include "ble_mesh_fast_prov_client_model.h"
 #include "ble_mesh_fast_prov_server_model.h"
 
+#include <flash.h>
+#include <led.h>
+#include <ble_new.h>
+
 #define BLE_TAG "BLE"
 
 extern struct k_delayed_work send_self_prov_node_addr_timer;
@@ -162,6 +166,7 @@ static void node_prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, u
      * be updated if the Fast Prov Info Set message contains a valid one.
      */
     fast_prov_server.net_idx = net_idx;
+    provision_success_cb();
 }
 
 static void provisioner_prov_link_open(esp_ble_mesh_prov_bearer_t bearer)
@@ -811,7 +816,9 @@ void send_ack_to_provisioner(uint16_t packetid, void *ptr)
  */
 void provision_success_cb()
 {
-
+    provisioned = true;
+    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
+    update_led_status();
 }
 
 /**
@@ -821,7 +828,11 @@ void provision_success_cb()
  */
 void unprovision_success_cb()
 {
-
+    esp_ble_mesh_node_local_reset();
+    esp_ble_mesh_node_prov_enable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
+    provisioned = false;
+    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 0, UINT8_SIZE);
+    update_led_status();
 }
 
 #endif
