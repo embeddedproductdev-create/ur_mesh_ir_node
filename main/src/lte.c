@@ -307,19 +307,9 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
     switch(packetid)
     {
         case NODE_PROV_PACKET:
-            if(cmd_struct==NULL) //Case where prov request a was success
-            {
-                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, 0);
-                jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-                jwObj_int(jwc, ELEMENT_ADDR_KEY, 0);
-            }
-            else //Case where prov request was a failure
-            {
-                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-                jwObj_int(jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
-            }
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             break;
         
         case NODE_UNPROV_PACKET:

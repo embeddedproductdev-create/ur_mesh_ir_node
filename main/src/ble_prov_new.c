@@ -31,6 +31,7 @@
 #include "ble_mesh_fast_prov_client_model.h"
 
 #include <ble_new.h>
+#include <lte.h>
 
 #define BLE_TAG "BLE"
 
@@ -148,6 +149,7 @@ static void provisioner_prov_complete(int node_index, const uint8_t uuid[16], ui
              node_index, unicast_addr, elem_num, net_idx);
     ESP_LOGI(BLE_TAG, "Node uuid:  %s", bt_hex(uuid, 16));
 
+
     sprintf(name, "%s%d", "NODE-", node_index);
     if (esp_ble_mesh_provisioner_set_node_name(node_index, name)) {
         ESP_LOGE(BLE_TAG, "%s: Failed to set node name", __func__);
@@ -187,6 +189,7 @@ static void provisioner_prov_complete(int node_index, const uint8_t uuid[16], ui
         ESP_LOGE(BLE_TAG, "%s: Failed to send Config AppKey Add message", __func__);
         return;
     }
+    send_prov_ack_to_cloud(unicast_addr, name);
 }
 
 static void example_recv_unprov_adv_pkt(uint8_t dev_uuid[16], uint8_t addr[BLE_MESH_ADDR_LEN],
@@ -636,6 +639,25 @@ void ble_init(void)
     if (err) {
         ESP_LOGE(BLE_TAG, "Failed to initialize BLE Mesh (err %d)", err);
     }
+}
+
+/**
+ * =========================================================================
+ * @brief FUNCTIONS BELOW THIS ARE CUSTOM MADE - NOT THE PART OF BLE EXAMPLE
+ * =========================================================================
+ */
+
+/**
+ * @brief Function that sends prov ack to cloud
+ * @param elem_addr 
+ * @param node_name 
+ */
+void send_prov_ack_to_cloud(uint16_t elemaddr, char *node_name)
+{
+    CommandStruct data;
+    data.errorcode = SUCCESS;
+    data.elemaddr = elemaddr;
+    generate_ack(NODE_PROV_PACKET, &data);
 }
 
 #endif

@@ -72,7 +72,7 @@
         "string.h": "c"
     },
     "idf.flashType": "UART",
-    "idf.portWin": "COM23",
+    "idf.portWin": "COM3",
     "idf.adapterTargetName": "esp32s3",
     "C_Cpp.errorSquiggles": "disabled",
     "idf.openOcdConfigs": [
