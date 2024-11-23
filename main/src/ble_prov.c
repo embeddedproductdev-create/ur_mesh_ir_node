@@ -20,7 +20,7 @@
 #include "nvs_flash.h"
 
 #include <lte.h>
-#include <ble.h>
+#include <ble_new.h>
 
 #define BLE_TAG "BLE"
 
@@ -119,6 +119,16 @@ static esp_ble_mesh_client_t vendor_client = {
     .op_pair = vnd_op_pair,
 };
 
+static esp_ble_mesh_model_op_t vnd_op[] = {
+    ESP_BLE_MESH_MODEL_OP(ESP_BLE_MESH_VND_MODEL_OP_STATUS, 2),
+    ESP_BLE_MESH_MODEL_OP_END,
+};
+
+static esp_ble_mesh_model_t vnd_models[] = {
+    ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_CLIENT,
+                              vnd_op, NULL, &vendor_client),
+};
+
 static esp_ble_mesh_model_t root_models[] = {
     ESP_BLE_MESH_MODEL_CFG_SRV(&config_server),
     ESP_BLE_MESH_MODEL_CFG_CLI(&config_client),
@@ -126,7 +136,7 @@ static esp_ble_mesh_model_t root_models[] = {
 };
 
 static esp_ble_mesh_elem_t elements[] = {
-    ESP_BLE_MESH_ELEMENT(0, root_models, ESP_BLE_MESH_MODEL_NONE),
+    ESP_BLE_MESH_ELEMENT(0, root_models, vnd_models),
 };
 
 static esp_ble_mesh_comp_t composition = {
@@ -337,7 +347,9 @@ static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
             esp_err_t err = 0;
             prov_key.app_idx = param->provisioner_add_app_key_comp.app_idx;
             err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, prov_key.app_idx,
-                                                                       ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_CLI, ESP_BLE_MESH_CID_NVAL);
+                                                                                 ESP_BLE_MESH_VND_MODEL_ID_CLIENT, CID_ESP); // CID_ESP
+            err = esp_ble_mesh_provisioner_bind_app_key_to_local_model(PROV_OWN_ADDR, prov_key.app_idx,
+                                                                       ESP_BLE_MESH_MODEL_ID_SENSOR_CLI, ESP_BLE_MESH_CID_NVAL);
             if (err != ESP_OK)
             {
                 ESP_LOGE(BLE_TAG, "Provisioner bind local model appkey failed");
@@ -413,16 +425,16 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
         break;
 
     case ESP_BLE_MESH_CFG_CLIENT_SET_STATE_EVT:
+        esp_ble_mesh_cfg_client_set_state_t set_state = {0};
         switch (opcode)
         {
         case ESP_BLE_MESH_MODEL_OP_APP_KEY_ADD:
         {
-            esp_ble_mesh_cfg_client_set_state_t set_state = {0};
             example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
             set_state.model_app_bind.element_addr = node->unicast;
             set_state.model_app_bind.model_app_idx = prov_key.app_idx;
-            set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_GEN_ONOFF_SRV;
-            set_state.model_app_bind.company_id = ESP_BLE_MESH_CID_NVAL;
+            set_state.model_app_bind.model_id = ESP_BLE_MESH_VND_MODEL_ID_SERVER;
+            set_state.model_app_bind.company_id = CID_ESP;
             err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             if (err)
             {
@@ -432,17 +444,18 @@ static void example_ble_mesh_config_client_cb(esp_ble_mesh_cfg_client_cb_event_t
             break;
         }
         case ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND:
-        {
-            esp_ble_mesh_generic_client_get_state_t get_state = {0};
-            example_ble_mesh_set_msg_common(&common, node, onoff_client.model, ESP_BLE_MESH_MODEL_OP_GEN_ONOFF_GET);
-            err = esp_ble_mesh_generic_client_get_state(&common, &get_state);
-            if (err)
-            {
-                ESP_LOGE(BLE_TAG, "%s: Generic OnOff Get failed", __func__);
-                return;
+            uint8_t set_conf = 1;
+            if(set_conf) { //To prevent recursive binding
+                example_ble_mesh_set_msg_common(&common, node, config_client.model, ESP_BLE_MESH_MODEL_OP_MODEL_APP_BIND);
+                set_state.model_app_bind.element_addr = node->unicast;
+                set_state.model_app_bind.model_app_idx = prov_key.app_idx;
+                set_state.model_app_bind.model_id = ESP_BLE_MESH_MODEL_ID_SENSOR_SRV;
+                set_state.model_app_bind.company_id = BLE_MESH_CID_NVAL;
+                err = esp_ble_mesh_config_client_set_state(&common, &set_state);
             }
+            set_conf = 0;
             break;
-        }
+
         case ESP_BLE_MESH_MODEL_OP_NODE_RESET:
             esp_ble_mesh_sensor_client_cb_param_t params;
             struct net_buf_simple marshmell;
@@ -739,6 +752,10 @@ void send_unprovision_request(CommandStruct *cmd_struct)
     }
 }
 
+/**
+ * @brief Function that sends commands to Node
+ * @param cmd_struct 
+ */
 void send_cmd_to_node(CommandStruct *cmd_struct)
 {
     uint32_t opcode = ESP_BLE_MESH_VND_MODEL_OP_SEND;
@@ -750,9 +767,31 @@ void send_cmd_to_node(CommandStruct *cmd_struct)
     store.cmd_struct = *cmd_struct;
     store.server_addr = cmd_struct->elemaddr;
     ctx.addr = store.server_addr;
-    esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
-                                             sizeof(store.cmd_struct), (uint8_t *)&store.cmd_struct, MSG_TIMEOUT, true, MSG_ROLE);
-    // ble_mesh_nvs_store(NVS_HANDLE, NVS_KEY, &store, sizeof(store));
+    switch(cmd_struct->packetid)
+    {
+        case NODE_AC_CONTROL_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Control Packet to Node(elemAddr = %d)",cmd_struct->elemaddr);
+            break;
+        case NODE_DEBUG_INFO_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Debug Info Packet to Node(elemAddr = %d)",cmd_struct->elemaddr);
+            break;
+        case NODE_RECONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Reconf Packet to Node(elemAddr = %d)",cmd_struct->elemaddr);
+            break;
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Heartbeat Pub Conf Packet to Node(elemAddr = %d)",cmd_struct->elemaddr);
+            break;
+        case NODE_TEACHING_MODE:
+            ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode Packet to Node(elemAddr = %d)",cmd_struct->elemaddr);
+            break;
+        default:
+            break;
+    }
+    cmd_struct->requestSentToNode = true;
+    cmd_struct->reqSentToNodeTicks = xTaskGetTickCount();
+    esp_err_t err = esp_ble_mesh_client_model_send_msg(vendor_client.model, &ctx, opcode,
+                                             sizeof(store.cmd_struct), (uint8_t *)&store.cmd_struct, MSG_TIMEOUT, true, MSG_ROLE); 
+    if(err != ESP_OK) ESP_LOGE(BLE_TAG, "Sending command to Node failed : %s", esp_err_to_name(err));
 }
 
 /**
@@ -769,7 +808,6 @@ void handle_ble_incoming(esp_ble_mesh_sensor_client_cb_param_t *param)
         case NODE_AC_CONTROL_PACKET:
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
         case NODE_DEBUG_INFO_PACKET:
-            
             generate_ack(cmd_struct->packetid, cmd_struct);
             removeQueueItemByMsgSeqNo(command_queue, cmd_struct->msgseqno);
             break;
@@ -805,10 +843,14 @@ void handle_ble_outgoing(CommandStruct *cmd_struct)
     switch (cmd_struct->packetid)
     {
     case NODE_PROV_PACKET:
+        cmd_struct->requestSentToNode = true;
+        cmd_struct->reqSentToNodeTicks = xTaskGetTickCount();
         send_provision_request(node_macid, cmd_struct);
         break;
 
     case NODE_UNPROV_PACKET:
+        cmd_struct->requestSentToNode = true;
+        cmd_struct->reqSentToNodeTicks = xTaskGetTickCount();
         send_unprovision_request(cmd_struct);
         break;
 
@@ -817,7 +859,6 @@ void handle_ble_outgoing(CommandStruct *cmd_struct)
     case NODE_RECONF_PACKET:
     case NODE_HEARTBEAT_PUB_CONF_PACKET:
     case NODE_TEACHING_MODE:
-        cmd_struct->reqSentToNodeTimeMs = (xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00;
         send_cmd_to_node(cmd_struct);
         break;
         

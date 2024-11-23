@@ -19,7 +19,7 @@
 #include <heartbeat.h>
 #include <flash.h>
 #include <ir.h>
-#include <ble.h>
+#include <ble_new.h>
 
 #if(IS_GWY)
 
@@ -310,9 +310,9 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             if(cmd_struct==NULL) //Case where prov request a was success
             {
                 jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, prov_req_msgseqno);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, 0);
                 jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-                jwObj_int(jwc, ELEMENT_ADDR_KEY, prov_success_elemAddr);
+                jwObj_int(jwc, ELEMENT_ADDR_KEY, 0);
             }
             else //Case where prov request was a failure
             {
@@ -326,14 +326,14 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             if(cmd_struct==NULL) //Case where unprov request a was success
             {
                 jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, unprov_req_msgseqno);
+                jwObj_int(jwc, MSG_SEQ_NO_KEY, 0);
                 jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
             }
             else //Case where prov request was a failure
             {
                 jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
                 jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-                jwObj_int(jwc, ERROR_CODE_KEY, NODE_COMM_TIMEOUT);
+                jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             }
             break;
 
@@ -382,7 +382,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         
         case NODE_DEBUG_INFO_PACKET:
             sprintf(version, "%d.%d.%d",cmd_struct->majversion, cmd_struct->minversion, cmd_struct->patchversion);
-            sprintf(uptime, "%0.2f", cmd_struct->deviceUpTimeMs);
+            sprintf(uptime, "%0.2f", cmd_struct->deviceUpTimeHrs);
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
@@ -780,14 +780,6 @@ void parse_json()
 
     if(cmd_struct.errorcode == SUCCESS)
     {
-        // Add only Node based packets into Queue
-        if(cmd_struct.packetid>=NODE_PROV_PACKET && cmd_struct.packetid<MAX_NODE_PACKET_ID) {
-            if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
-                ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
-                return;
-            }
-        }
-
         switch(cmd_struct.packetid)
         {
             case GWY_REG_PACKET:
@@ -830,12 +822,17 @@ void parse_json()
             case NODE_RECONF_PACKET:
             case NODE_HEARTBEAT_PUB_CONF_PACKET:
             case NODE_TEACHING_MODE:
-                handle_ble_outgoing(&cmd_struct);
+                // handle_ble_outgoing(&cmd_struct);
+                if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
+                    ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
+                    return;
+                }
                 return;
 
             default:
                 break;
         }
+
         generate_ack(cmd_struct.packetid, &cmd_struct);
     }
     else
@@ -973,24 +970,26 @@ bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno) {
 void maintainCommandQueue()
 {
     CommandStruct cmd_item;
-    uint32_t current_time_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
     UBaseType_t queue_length = uxQueueMessagesWaiting(command_queue);
 
     for (UBaseType_t i = 0; i < queue_length; i++) {
         // Peek at the front item without removing it
         if (xQueuePeek(command_queue, &cmd_item, 0) == pdPASS) {
-            if ((current_time_ms - cmd_item.reqSentToNodeTimeMs) > BLE_NODE_COMM_TIMEOUT_MS) {
+            if (cmd_item.requestSentToNode && (((xTaskGetTickCount() - cmd_item.reqSentToNodeTicks)*portTICK_PERIOD_MS) > BLE_NODE_COMM_TIMEOUT_MS)) {
+                ESP_LOGE(LTE_TAG, "MsgSeqNo : %d\n\tcurrentTime : %ld | ReqSentTime : %ld", cmd_item.msgseqno, xTaskGetTickCount(), cmd_item.reqSentToNodeTicks);
                 // Remove the stale item
                 if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
+                    cmd_item.errorcode = NODE_COMM_TIMEOUT;
                     generate_ack(cmd_item.packetid, &cmd_item);
                     if(cmd_item.packetid == NODE_PROV_PACKET)
                     {
-                        reset_prov_match(); //Let's do this here to avoid automatic provisioning 
+                        // reset_prov_match(); //Let's do this here to avoid automatic provisioning 
                     }
                     ESP_LOGW(LTE_TAG, "Removed stale command from queue: msgseqno=%d", cmd_item.msgseqno);
                 }
             } else {
                 // No more stale items, break early
+                // ESP_LOGW(LTE_TAG, "Elapsed seconds since request was sent to node : %ld", (xTaskGetTickCount() - cmd_item.reqSentToNodeTicks)*portTICK_PERIOD_MS/1000);
                 break;
             }
         }
@@ -1040,7 +1039,7 @@ void maintainMQTTConnection()
     if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS) return ;
 	ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
     need_to_activate_pdp = false; mqtt_connected = true; update_led_status(); LOG_DATA = false;
-    if(registered) hb_timer_start();
+    if(registered) hb_timer_restart();
 	while(!powerDownInProgress)
 	{
 		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)==SUCCESS){;}

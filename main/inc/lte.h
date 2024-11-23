@@ -204,7 +204,7 @@ typedef enum
 
 typedef struct
 {
-    TickType_t reqSentToNodeTimeMs;
+    TickType_t reqSentToNodeTicks;
     error_codes errorcode;
     mqtt_packets packetid;
     uint16_t msgseqno;
@@ -230,7 +230,7 @@ typedef struct
     uint8_t endingTemperature;
     bool requestSentToNode;
     int16_t irProtocolNum;
-    float deviceUpTimeMs;
+    float deviceUpTimeHrs;
     uint8_t majversion;
     uint8_t minversion;
     uint8_t patchversion;

@@ -105,7 +105,7 @@ void init_global_variables()
     teaching_in_progress = false;
     ir_protocol_num = -1;
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-    publishPeriod = MIN_PUBLISH_PERIOD_SEC;
+    publishPeriod = 10;//MIN_PUBLISH_PERIOD_SEC;
     strcpy(device_location_str, DEFAULT_DEVICE_LOCATION_STR);
     teaching_mode_raw_len = 0;
 }
@@ -126,9 +126,9 @@ void app_main(void)
 
     print_basic_info();
 
-    ble_init();
-    led_init();
     hb_init();
+    led_init();
+    ble_init();
 
     gpio_install_isr_service(0);
     button_intr_init();

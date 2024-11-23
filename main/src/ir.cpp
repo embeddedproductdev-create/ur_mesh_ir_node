@@ -9,7 +9,7 @@
 #include <ir.h>
 #include <lte.h>
 #include <flash.h>
-#include <ble.h>
+#include <ble_new.h>
 #include <led.h>
 #include <json_maker.h>
 #include <cJSON.h>

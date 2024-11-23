@@ -4,12 +4,14 @@
 
 #include <main.h>
 #include <lte.h>
-#include <ble.h>
+#include <ble_new.h>
 #include <cJSON.h>
 #include <flash.h>
 #include <json_maker.h>
 
 #define HB_TAG "HEARTBEAT"
+
+#define ONE_SEC_IN_MU_SEC 1000000
 
 static esp_timer_handle_t hb_timer_handle;
 
@@ -60,6 +62,10 @@ static void hb_callback(void *arg)
  */
 void hb_timer_stop()
 {
+    if(!esp_timer_is_active(hb_timer_handle)){
+        ESP_LOGE(HB_TAG, "Can't stop timer that is not running");
+        return;
+    }
     ESP_LOGI(HB_TAG, "Stopping HB Publishing");
     ESP_ERROR_CHECK(esp_timer_stop(hb_timer_handle));
 }
@@ -70,8 +76,12 @@ void hb_timer_stop()
  */
 void hb_timer_start()
 {
+    if(esp_timer_is_active(hb_timer_handle)) {
+        ESP_LOGE(HB_TAG, "Can't start already running timer");
+        return;
+    }
     ESP_LOGI(HB_TAG, "Starting HB Publishing");
-    ESP_ERROR_CHECK(esp_timer_start_periodic(hb_timer_handle, publishPeriod * 1000000));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(hb_timer_handle, publishPeriod * ONE_SEC_IN_MU_SEC));
 }
 
 /**
@@ -80,8 +90,14 @@ void hb_timer_start()
  */
 void hb_timer_restart()
 {
+    if(esp_timer_is_active(hb_timer_handle));
+    else {
+        ESP_LOGE(HB_TAG, "HB Timer is not active. Can't restart. Starting instead ... ");
+        hb_timer_start();
+        return;
+    }
     ESP_LOGI(HB_TAG, "Restarting HB Publishing");
-    ESP_ERROR_CHECK(esp_timer_restart(hb_timer_handle, publishPeriod * 1000000));
+    ESP_ERROR_CHECK(esp_timer_restart(hb_timer_handle, publishPeriod * ONE_SEC_IN_MU_SEC));
 }
 
 esp_timer_create_args_t hb_timer_args = {
@@ -98,6 +114,7 @@ void hb_init()
 {
     ESP_ERROR_CHECK(esp_timer_create(&hb_timer_args, &hb_timer_handle));
     ESP_LOGI(HB_TAG, "HB Timer configuration successful");
+    if(registered || provisioned) hb_timer_start();
 }
 
 /**

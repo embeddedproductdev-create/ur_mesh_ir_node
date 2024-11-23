@@ -20,13 +20,16 @@
 #include "esp_ble_mesh_sensor_model_api.h"
 #include "esp_ble_mesh_local_data_operation_api.h"
 
-#include <ble.h>
+#include <ble_new.h>
 #include <flash.h>
 #include <led.h>
 #include <ir.h>
 #include <heartbeat.h>
 
 #define BLE_TAG "BLE"
+
+#define PAYLOAD_BUFFER_SIZE 80
+#define TOTAL_BUFFER_CAPACITY 100
 
 #define CID_ESP 0x02E5
 
@@ -78,7 +81,7 @@ static esp_ble_mesh_prov_t provision = {
 #define ESP_BLE_MESH_VND_MODEL_OP_SEND ESP_BLE_MESH_MODEL_OP_3(0x00, CID_ESP)
 #define ESP_BLE_MESH_VND_MODEL_OP_STATUS ESP_BLE_MESH_MODEL_OP_3(0x01, CID_ESP)
 
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, 100);
+NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, TOTAL_BUFFER_CAPACITY);
 
 static esp_ble_mesh_sensor_state_t sensor_states[1] = {
     [0] = {
@@ -87,8 +90,7 @@ static esp_ble_mesh_sensor_state_t sensor_states[1] = {
     },
 };
 
-/* 20 octets is large enough to hold two Sensor Descriptor state values. */
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, 20, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_pub, TOTAL_BUFFER_CAPACITY, ROLE_NODE);
 static esp_ble_mesh_sensor_srv_t sensor_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -96,7 +98,7 @@ static esp_ble_mesh_sensor_srv_t sensor_server = {
     .states = sensor_states,
 };
 
-ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, 20, ROLE_NODE);
+ESP_BLE_MESH_MODEL_PUB_DEFINE(sensor_setup_pub, TOTAL_BUFFER_CAPACITY, ROLE_NODE);
 static esp_ble_mesh_sensor_setup_srv_t sensor_setup_server = {
     .rsp_ctrl.get_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
     .rsp_ctrl.set_auto_rsp = ESP_BLE_MESH_SERVER_RSP_BY_APP,
@@ -139,9 +141,11 @@ static esp_ble_mesh_comp_t composition = {
 static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event,
                                              esp_ble_mesh_model_cb_param_t *param)
 {
+    ESP_LOGI(BLE_TAG, "%s got triggered %d",__func__,event);
     switch (event)
     {
     case ESP_BLE_MESH_MODEL_OPERATION_EVT:
+        
         if (param->model_operation.opcode == ESP_BLE_MESH_VND_MODEL_OP_SEND)
         {
             uint16_t tid = *(uint16_t *)param->model_operation.msg;
@@ -271,11 +275,12 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
         /* Use "state->sensor_data.length + 1" because the length of sensor data is zero-based. */
         data_len = state->sensor_data.length + 1;
     }
+
     mpid_len = 29;
-    data_len = 125;
+    data_len = PAYLOAD_BUFFER_SIZE;
     memcpy(data, state->sensor_data.raw_value->data, data_len);
 
-    return (data_len);
+    return data_len;
 }
 
 /**
@@ -512,7 +517,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *cmd_struct)
             cmd_struct->majversion = MAJ_VERSION;
             cmd_struct->minversion = MIN_VERSION;
             cmd_struct->patchversion = PATCH_VERSION;
-            cmd_struct->deviceUpTimeMs = (xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00;
+            cmd_struct->deviceUpTimeHrs = (xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00;
             cmd_struct->irProtocolNum = ir_protocol_num;
             cmd_struct->configured = configured;
             sensor_states[0].sensor_data.raw_value->data = (uint8_t *)cmd_struct;
@@ -606,6 +611,7 @@ void provision_success_cb()
     provisioned = true;
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
     update_led_status();
+    hb_timer_restart();
 }
 
 /**
@@ -619,6 +625,7 @@ void unprovision_success_cb()
     provisioned = false;
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 0, UINT8_SIZE);
     update_led_status();
+    hb_timer_stop();
 }
 
 #endif

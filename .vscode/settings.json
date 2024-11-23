@@ -66,10 +66,13 @@
         "sdkconfig.h": "c",
         "esp_ble_mesh_generic_model_api.h": "c",
         "esp_ble_mesh_sensor_model_api.h": "c",
-        "btc_manage.h": "c"
+        "btc_manage.h": "c",
+        "heartbeat.h": "c",
+        "esp_ble_mesh_config_model_api.h": "c",
+        "string.h": "c"
     },
     "idf.flashType": "UART",
-    "idf.portWin": "COM3",
+    "idf.portWin": "COM23",
     "idf.adapterTargetName": "esp32s3",
     "C_Cpp.errorSquiggles": "disabled",
     "idf.openOcdConfigs": [
