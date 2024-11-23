@@ -654,11 +654,27 @@ void send_cmd_to_node(CommandStruct *cmd)
     switch(cmd->packetid)
     {
         case NODE_UNPROV_PACKET:
-            ESP_LOGI(BLE_TAG, "Sending Node Unprov packet to Provisioner");
+            ESP_LOGI(BLE_TAG, "Sending Node Unprov packet");
             break;
 
         case NODE_AC_CONTROL_PACKET:
-            ESP_LOGI(BLE_TAG, "Sending Node AC Control packet to Provisioner");
+            ESP_LOGI(BLE_TAG, "Sending Node AC Control packet");
+            break;
+        
+        case NODE_RECONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Reconf packet");
+            break;
+        
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node HeartBeat Publish Configuration packet");
+            break;
+
+        case NODE_TEACHING_MODE:
+            ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode packet");
+            break;
+        
+        case NODE_DEBUG_INFO_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Debug Info packet");
             break;
 
         default:
@@ -666,7 +682,14 @@ void send_cmd_to_node(CommandStruct *cmd)
             return;
     }
     err = esp_ble_mesh_client_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(CommandStruct), (uint8_t *)cmd, 10, true, ROLE_PROVISIONER);
-    if(err) ESP_LOGE(BLE_TAG, "Failed to send cmd : %s", esp_err_to_name(err));
+
+    if(err) {
+        ESP_LOGE(BLE_TAG, "Failed to send cmd : %s", esp_err_to_name(err));
+        cmd->errorcode = FAILURE;
+        cmd->bleErrorCode = err;
+        generate_ack(cmd->packetid, cmd);
+        removeQueueItemByMsgSeqNo(command_queue, cmd->msgseqno);
+    }
 }
 
 #endif

@@ -738,6 +738,7 @@ void locking_feature(const char *description)
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
     teaching_in_progress = true;
+    ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
     update_led_status();
     teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
     teaching_mode_t.expectedTemperature = startingTemp;
@@ -751,9 +752,8 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
-    send_ack_to_provisioner(NODE_TEACHING_MODE, NULL);
+    send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
 #endif
-    ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
 }
 
 /**
@@ -772,6 +772,7 @@ void exit_teaching_mode(bool success)
         set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
         ESP_LOGI(IR_TAG, "Teaching mode completed successfully");
     }
+    else ESP_LOGW(IR_TAG, "Quitting teaching mode without completion");
     strcpy(teaching_mode_t.nextCommand, "");
     teaching_in_progress = false;
     update_led_status();
@@ -780,9 +781,8 @@ void exit_teaching_mode(bool success)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
-    send_ack_to_provisioner(NODE_TEACHING_MODE, NULL);
+    send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
 #endif
-    ESP_LOGW(IR_TAG, "Quitting Teaching mode without completion");
 }
 
 /**
@@ -965,16 +965,13 @@ void ir_recv_task(void *args)
  * and updating the flash. Common function to both provisioner and node
  * 
  */
-void handle_reconfiguration(CommandStruct *cmd_struct)
+void handle_reconfiguration()
 {
     ir_protocol_num = -1;
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8_SIZE);
     set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
     configured = 0; update_led_status();
-    #if(!IS_GWY)
-    send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
-    #endif
 }
 
 /**

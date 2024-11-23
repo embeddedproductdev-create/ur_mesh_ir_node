@@ -69,7 +69,7 @@ bool is_supported_remote(int16_t protocol);
 void ir_transmit();
 void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
 void exit_teaching_mode(bool success);
-void handle_reconfiguration(CommandStruct *cmd_struct);
+void handle_reconfiguration();
 void handle_configuring_teaching_mode(CommandStruct *cmd_struct);
 
 #ifdef __cplusplus

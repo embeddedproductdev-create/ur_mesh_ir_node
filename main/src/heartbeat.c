@@ -92,17 +92,13 @@ void hb_init()
  * Common function to both provisioner and node.
  *
  */
-void handle_setting_hb_publish_configuration(CommandStruct *cmd_struct)
+void handle_setting_hb_publish_configuration(uint16_t newPublishPeriodSec)
 {
-    if (publishPeriod == cmd_struct->publishPeriodSec)
-        ;
+    if (publishPeriod == newPublishPeriodSec); //If we receive the same publishperiod, do nothing.
     else
     {
-        publishPeriod = cmd_struct->publishPeriodSec;
+        publishPeriod = newPublishPeriodSec;
         set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16_SIZE);
         hb_timer_restart();
     }
-#if (!IS_GWY)
-    send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
-#endif
 }

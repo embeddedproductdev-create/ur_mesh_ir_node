@@ -6,13 +6,11 @@
 #include "driver/uart.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/semphr.h"
 #include "esp_log.h"
 #include "esp_system.h"
 
 #include <cJSON.h>
 #include <json_maker.h>
-
 #include <led.h>
 #include <main.h>
 #include <lte.h>
@@ -150,6 +148,8 @@ const char *LAST_CMD_KEY = "LastCommand";
 const char *NEXT_CMD_KEY = "NextCommand";
 const char *REMAINING_CMD_KEY = "RemainingCommands";
 const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
+const char *BLE_ERROR_CODE_KEY = "BleErrorCode";
+const char *MESSAGE_KEY = "Message";
 
 
 bool powerDownInProgress = false;
@@ -279,6 +279,32 @@ void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
 }
 
 /**
+ * @brief General purpose ack generator function
+ * 
+ */
+void generate_general_ack(uint16_t packetid, char *msg)
+{
+    int size = 1024;
+    char *buffer = (char *)malloc(size);
+    if(!buffer) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        return;
+    }
+    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
+    if(!jwc) {
+        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
+        free(buffer);
+        return;
+    }
+    jwOpen(jwc, buffer, size, JW_OBJECT, 1);
+    jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+    jwObj_string(jwc, MESSAGE_KEY, msg);
+    jwEnd(jwc);
+    jwClose(jwc);
+    enqueue_for_publish(buffer);
+}
+
+/**
  * @brief Function that generates the ack to be sent to cloud
  * @param cmd_struct 
  */
@@ -298,12 +324,11 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
     }
     
     jwOpen(jwc, buffer, size, JW_OBJECT, 1);
+
     switch(packetid)
     {
         case NODE_HEARTBEAT_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->elemaddr);
             jwObj_int(jwc, POWER_KEY, cmd_struct->power);
             jwObj_string(jwc, MODE_KEY, cmd_struct->mode_str);
             jwObj_int(jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
@@ -319,7 +344,6 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             break;
         
         case GWY_HEARTBEAT_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_HEARTBEAT_ACK);
             jwObj_int(jwc, POWER_KEY, last_command.power);
             jwObj_string(jwc, MODE_KEY, last_command.mode_str);
             jwObj_int(jwc, FAN_SPEED_KEY, last_command.fanspeed);
@@ -335,41 +359,29 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             break;
 
         case NODE_PROV_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
             jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             break;
         
         case NODE_UNPROV_PACKET:
-            if(cmd_struct==NULL) //Case where unprov request a was success
-            {
-                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, 0);
-                jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-            }
-            else //Case where prov request was a failure
-            {
-                jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_UNPROV_PACKET);
-                jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-                jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            }
             break;
 
         case GWY_TEACHING_MODE:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_TEACHING_MODE);
-            jwObj_int(jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_int(jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
             jwObj_string(jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
             jwObj_string(jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
             break;
         
         case NODE_TEACHING_MODE:
-            //Need to be taken care separately due to different structure type
+            //Need to handle it elsewhere due to different strucutre type
             break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_MANUAL_AC_CONTROL_ACK);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_int(jwc, POWER_KEY, ac_manual_control_t.power_value);
             jwObj_int(jwc, DETECTED_TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
             jwObj_int(jwc, TEMPERATURE_KEY, last_command.temperature);
@@ -382,34 +394,38 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             break;
         
         case NODE_MANUAL_AC_CONTROL_ACK:
-            //Need to be taken care separately due to different structure type
+            //Need to handle it elsewhere due to different strucutre type
             break;
 
         case GWY_DEBUG_INFO_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             char version[20], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
             jwObj_int(jwc, REGISTERED_KEY, registered);
             jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
             jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
             jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             break;
         
         case NODE_DEBUG_INFO_PACKET:
-            sprintf(version, "%d.%d.%d",cmd_struct->majversion, cmd_struct->minversion, cmd_struct->patchversion);
-            sprintf(uptime, "%0.2f", cmd_struct->deviceUpTimeHrs);
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
-            jwObj_int(jwc, NVS_PROVISIONED_KEY, cmd_struct->provisioned);
-            jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
-            jwObj_int(jwc, PUBLISH_PERIOD_KEY, cmd_struct->publishPeriodSec);
-            jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            if(cmd_struct->errorcode==SUCCESS && cmd_struct->bleErrorCode == ESP_OK)
+            {
+                sprintf(version, "%d.%d.%d",cmd_struct->majversion, cmd_struct->minversion, cmd_struct->patchversion);
+                sprintf(uptime, "%0.2f", cmd_struct->deviceUpTimeHrs);
+                jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
+                jwObj_int(jwc, NVS_PROVISIONED_KEY, cmd_struct->provisioned);
+                jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
+                jwObj_int(jwc, PUBLISH_PERIOD_KEY, cmd_struct->publishPeriodSec);
+                jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+            }
             break;
         
         case GWY_CONF_ACK:
@@ -421,6 +437,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         
         case NODE_CONF_ACK:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_CONF_ACK);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
             jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
             if(cmd_struct->irProtocolNum == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
             else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
@@ -428,10 +445,10 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 
 
         default:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            break;
+            ESP_LOGE(LTE_TAG, "Unknown Packet - %d in %s", cmd_struct->packetid, __func__);
+            jwEnd(jwc);
+            jwClose(jwc);
+            return;
     }
     jwEnd(jwc);
     jwClose(jwc);
@@ -461,8 +478,7 @@ const char* get_error_code_name(error_codes code) {
         "INVALID_MACID",
         "MISSING_ELEMENT_ADDR",
         "ELEMENT_ADDR_EXCEEDING_RANGE",
-        "GWY_NOT_CONFIGURED",
-        "NODE_NOT_CONFIGURED",
+        "DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE",
         "MISSING_POWER",
         "POWER_EXCEEDING_RANGE",
         "MISSING_MODE",
@@ -511,6 +527,7 @@ const char* get_error_code_name(error_codes code) {
         "IR_CMD_NOT_AVAILABLE_IN_FLASH",
         "NODE_NOT_FOUND_IN_PROVISIONER_DATABASE",
         "NODE_NOT_PROVISIONED",
+        "IR_TASK_CREATION_FAILED",
     };
     
     int index = code + 1; // Adjust index for negative `FAILURE` as -1
@@ -631,14 +648,14 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 
     if(cmd_struct->packetid == GWY_RECONF_PACKET && !configured) {
-        cmd_struct->errorcode = GWY_NOT_CONFIGURED;
+        cmd_struct->errorcode = DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE;
         return;
     }
 
     if(cmd_struct->packetid == GWY_AC_CONTROL_PACKET || cmd_struct->packetid == NODE_AC_CONTROL_PACKET)
     {
         if(cmd_struct->packetid == GWY_AC_CONTROL_PACKET && !configured) {
-            cmd_struct->errorcode = GWY_NOT_CONFIGURED;
+            cmd_struct->errorcode = DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE;
             return;
         }
 
@@ -803,6 +820,13 @@ void parse_json()
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 1, UINT8_SIZE);
                 hb_timer_start();
                 ble_init();
+                if(xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle) != pdPASS)
+                {
+                    ESP_LOGE(LTE_TAG, "IR Recv Task Creation Failed. Device will be restarted in 30s");
+                    generate_general_ack(GWY_GENERAL_PACKET, "IR Recv Task Creation Failed. Device will be restarted in 30s");
+                    led_set_state(LED_STATE_POWERING_DOWN);
+                    powerDownLTE();
+                }
                 break;
 
             case GWY_UNREG_PACKET:
@@ -821,7 +845,7 @@ void parse_json()
                 break;
 
             case GWY_HEARTBEAT_PUB_CONF_PACKET:
-                handle_setting_hb_publish_configuration(&cmd_struct);
+                handle_setting_hb_publish_configuration(cmd_struct.publishPeriodSec);
                 break;
 
             case GWY_DEBUG_INFO_PACKET:
@@ -1161,7 +1185,6 @@ void lte_gpio_configuration()
  */
 void powerDownLTE()
 {
-    powerDownInProgress = true;
     led_set_state(LED_STATE_POWERING_DOWN);
     while(send_cmd_and_check_response(true, POWER_DOWN_CMD, "POWER_DOWN_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -1228,12 +1251,8 @@ void lte_task(void *args)
     MQTT_config();
     while(1)
 	{
-        if(powerDownInProgress) {
-            vTaskDelay(pdMS_TO_TICKS(30000));
-            continue;
-        }
         maintainMQTTConnection();
-        if(powerDownInProgress) continue;
+        if(powerDownInProgress) powerDownLTE();
         powerUpLTE();
 	    MQTT_config();
 		vTaskDelay(pdMS_TO_TICKS(50));
@@ -1243,23 +1262,11 @@ void lte_task(void *args)
 /**
  * @brief Function that takes care of handling the sending of AC commands and
  * storing the sent command to flash. Common function for both provisioner and node
- * 
  * @param cmd_struct 
  */
-void handle_ac_control(CommandStruct *cmd_struct)
+void handle_ac_control(CommandStruct *cmd)
 {
-    last_command.power = cmd_struct->power;
-    last_command.temperature = cmd_struct->temperature;
-    last_command.fanspeed = cmd_struct->fanspeed;
-    strcpy(last_command.mode_str, cmd_struct->mode_str);
-    last_command.swingh = cmd_struct->swingh;
-    last_command.swingv = cmd_struct->swingv;
-    last_command.locking = cmd_struct->locking;
-    last_command.upperTemperatureLimit = cmd_struct->upperTemperatureLimit;
-    last_command.lowerTemperatureLimit = cmd_struct->lowerTemperatureLimit;
+    last_command = *cmd;
     ir_transmit();
     set_last_ac_cmd_in_nvs_flash();
-    #if(!IS_GWY)
-    send_ack_to_provisioner(cmd_struct->packetid, cmd_struct);
-    #endif
 }

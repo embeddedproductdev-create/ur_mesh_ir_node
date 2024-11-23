@@ -1,6 +1,5 @@
 /*
  * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
- *
  * SPDX-License-Identifier: CC0-1.0
  */
 
@@ -19,12 +18,9 @@
 #include <heartbeat.h>
 #include <flash.h>
 #include <ir.h>
-#include <ble.h>
+#include <ble_new.h>
 
 #define TAG "MAIN"
-
-#define LTE_THREAD_STACK_SIZE 4096
-#define IR_THREAD_STACK_SIZE 4096
 
 TaskHandle_t button_task_handle = NULL;
 TaskHandle_t lte_task_handle = NULL;
@@ -104,7 +100,7 @@ void init_global_variables()
     teaching_in_progress = false;
     ir_protocol_num = -1;
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-    publishPeriod = 10;//MIN_PUBLISH_PERIOD_SEC;
+    publishPeriod = 10; //MIN_PUBLISH_PERIOD_SEC;
     strcpy(device_location_str, DEFAULT_DEVICE_LOCATION_STR);
     teaching_mode_raw_len = 0;
 }
@@ -128,7 +124,6 @@ void app_main(void)
 
     hb_init();
     led_init();
-
     gpio_install_isr_service(0);
     button_intr_init();
     ir_tran_setup();
@@ -136,5 +131,5 @@ void app_main(void)
 #if (IS_GWY)
     xTaskCreate(lte_task, "LTE Task", LTE_THREAD_STACK_SIZE, NULL, 2, &lte_task_handle);
 #endif
-    xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle);
+    if(registered || provisioned) xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle);
 }

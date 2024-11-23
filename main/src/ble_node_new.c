@@ -29,6 +29,7 @@
 #include <flash.h>
 #include <led.h>
 #include <lte.h>
+#include <ir.h>
 #include <heartbeat.h>
 
 #define BLE_TAG "BLE"
@@ -263,12 +264,47 @@ void ble_init(void)
  */
 
 /**
+ * @brief Function that sends the Teaching mode ACK to provisioner
+ */
+void send_teaching_mode_ack_to_provisioner(teaching_mode *data)
+{
+    esp_ble_mesh_msg_ctx_t ctx = {
+        .addr = 0X0001,
+        .app_idx = 0X0000,
+        .net_idx = 0,
+        .send_ttl = 3,
+        .send_rel = false,
+    };
+    ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode ACK to Provisioner");
+    esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(teaching_mode), (uint8_t *)data);
+    if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+}
+
+/**
+ * @brief Function that sends the AC Manual Control ACK to provisioner
+ */
+void send_manual_control_ack_to_provisioner(manual_control *data)
+{
+    esp_ble_mesh_msg_ctx_t ctx = {
+        .addr = 0X0001,
+        .app_idx = 0X0000,
+        .net_idx = 0,
+        .send_ttl = 3,
+        .send_rel = false,
+    };
+    ESP_LOGI(BLE_TAG, "Sending Node Manual AC Control ACK to Provisioner");
+    esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(manual_control), (uint8_t *)data);
+    if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+}
+
+/**
  * @brief Function that sends acks to provisioner
  * @param packetid Type of ack
  * @param ptr Pointer to the ack contents
  */
 void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
 {
+    esp_err_t err;
     esp_ble_mesh_msg_ctx_t ctx = {
         .addr = 0X0001,
         .app_idx = 0X0000,
@@ -280,19 +316,69 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
     {
         case NODE_UNPROV_PACKET:
             ESP_LOGI(BLE_TAG, "Sending Node Unprov ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+        
+        case NODE_CONF_ACK:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Remote Configuration ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+        
+        case NODE_AC_CONTROL_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Control ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+        
+        case NODE_RECONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Remote Reconfiguration ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+        
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Heartbeat Publish Configuration ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
 
         case NODE_HEARTBEAT_ACK:
             ESP_LOGI(BLE_TAG, "Sending HB ACK to Provisioner");
-            esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&last_command);
+            last_command.packetid = NODE_HEARTBEAT_ACK; //We need to set this each time here, since we update the last command when we receive AC control packet.
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&last_command);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
 
         default:
-            ESP_LOGE(BLE_TAG, "Unknown ACK type : %d", packetid);
+            ESP_LOGE(BLE_TAG, "Unknown ACK type %d in %s", packetid, __func__);
             return;
     }
-    
+}
+
+/**
+ * @brief Function that error checks the cmd that was received from Provisioner
+ * @param cmd The command to be error checked
+ * @retval true command received is valid 
+ * @retval false command received is invalid
+ */
+void error_check_cmd(CommandStruct *cmd)
+{
+    switch(cmd->packetid)
+    {
+        case NODE_TEACHING_MODE:
+            if(teaching_in_progress && cmd->teachingStart) {cmd->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+            if(!teaching_in_progress && cmd->errorcode) {cmd->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
+            break;
+        
+        case NODE_AC_CONTROL_PACKET:
+        case NODE_RECONF_PACKET:
+            if(!configured) {cmd->errorcode = DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE; return;}
+            break;
+        default:
+            break;
+    }
 }
 
 /**
@@ -300,16 +386,59 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
  */
 void handle_cmds_from_provisioner(CommandStruct *cmd)
 {
-    led_set_state(LED_STATE_CMD_RECVD);
-    switch(cmd->packetid)
+    error_check_cmd(cmd);
+    if(cmd->errorcode == SUCCESS)
     {
-        case NODE_AC_CONTROL_PACKET:
-            ESP_LOGI(BLE_TAG, "Received Node AC Control Packet from Provisioner");
-            break;
+        led_set_state(LED_STATE_CMD_RECVD);
+        switch(cmd->packetid)
+        {
+            case NODE_UNPROV_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Node Unprovision Packet from Provisioner");
+                break;
 
-        default:
-            ESP_LOGE(BLE_TAG, "Received Unknown CMD from Provisioner : %d", cmd->packetid);
-            break;
+            case NODE_RECONF_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Node AC Remote Reconfguration Packet from Provisioner");
+                handle_reconfiguration();
+                send_ack_to_provisioner(cmd->packetid, cmd);
+                break;
+            
+            case NODE_HEARTBEAT_PUB_CONF_PACKET:
+                ESP_LOGI(BLE_TAG, "Recieved Node HeartBeat Publish Configuration Packet from Provisioner");
+                handle_setting_hb_publish_configuration(cmd->publishPeriodSec);
+                send_ack_to_provisioner(cmd->packetid, cmd);
+                break;
+            
+            case NODE_TEACHING_MODE:
+                ESP_LOGI(BLE_TAG, "Received Node Teaching Mode Packet from Provisioner");
+                handle_configuring_teaching_mode(cmd);
+                break;
+
+            case NODE_AC_CONTROL_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Node AC Control Packet from Provisioner");
+                handle_ac_control(cmd);
+                send_ack_to_provisioner(cmd->packetid, cmd);
+                break;
+            
+            case NODE_DEBUG_INFO_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Node Debug Info Packet from Provisioner");
+                break;
+
+            default:
+                ESP_LOGE(BLE_TAG, "Received Unknown CMD from Provisioner : %d", cmd->packetid);
+                break;
+        }
+    }
+    else
+    {
+        led_set_state(LED_STATE_INVALID_OPERATION);
+
+        if(cmd->packetid == NODE_TEACHING_MODE) {
+            teaching_mode_t.errorCode = cmd->errorcode;
+            send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
+            return;
+        }
+        
+        send_ack_to_provisioner(cmd->packetid, cmd);
     }
 }
 
@@ -326,6 +455,18 @@ void provision_success_cb(uint16_t elemAddr)
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
     update_led_status();
     hb_timer_restart();
+    if(xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle) != pdPASS)
+    {
+        ESP_LOGE(BLE_TAG, "IR Recv Task Creation Failed. Device will be restarted in 30s");
+        CommandStruct ack;
+        ack.errorcode = IR_TASK_CREATION_FAILED;
+        ack.elemaddr = elemAddr;
+        strcpy(ack.nodename, serialNoStr);
+        send_ack_to_provisioner(NODE_GENERAL_PACKET, &ack);
+        led_set_state(LED_STATE_POWERING_DOWN);
+        vTaskDelay(pdMS_TO_TICKS(5000));
+        esp_restart();
+    }
 }
 
 /**

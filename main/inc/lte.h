@@ -2,6 +2,7 @@
 #define LTE_H
 
 #include <stdint.h>
+#include <esp_err.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/task.h"
@@ -80,6 +81,8 @@ extern const char *LAST_CMD_KEY;
 extern const char *NEXT_CMD_KEY;
 extern const char *REMAINING_CMD_KEY; 
 extern const char *DETECTED_TEMPERATURE_KEY;
+extern const char *BLE_ERROR_CODE_KEY;
+extern const char *MESSAGE_KEY;
 
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
@@ -118,8 +121,7 @@ typedef enum
     INVALID_MACID,
     MISSING_ELEMENT_ADDR,
     ELEMENT_ADDR_EXCEEDING_RANGE,
-    GWY_NOT_CONFIGURED,
-    NODE_NOT_CONFIGURED,
+    DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE,
     MISSING_POWER,
     POWER_EXCEEDING_RANGE,
     MISSING_MODE,
@@ -168,6 +170,7 @@ typedef enum
     IR_CMD_NOT_AVAILABLE_IN_FLASH,
     NODE_NOT_FOUND_IN_PROVISIONER_DATABASE,
     NODE_NOT_PROVISIONED,
+    IR_TASK_CREATION_FAILED,
 }error_codes;
 
 typedef enum
@@ -184,6 +187,7 @@ typedef enum
 	GWY_TEACHING_MODE,
 	GWY_DEBUG_INFO_PACKET,
 	MAX_GWY_PACKET_ID,
+    GWY_GENERAL_PACKET, 
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
@@ -197,7 +201,8 @@ typedef enum
 	NODE_TEACHING_MODE,
 	NODE_DEBUG_INFO_PACKET,
 	MAX_NODE_PACKET_ID,
-
+    NODE_GENERAL_PACKET,
+    
     /*MISC*/
     TEST_PACKET = 999
 }mqtt_packets;
@@ -206,6 +211,7 @@ typedef struct
 {
     TickType_t reqSentToNodeTicks;
     error_codes errorcode;
+    esp_err_t bleErrorCode;
     mqtt_packets packetid;
     uint16_t msgseqno;
     uint16_t elemaddr;
@@ -271,6 +277,11 @@ typedef struct
     error_codes errorCode;
 }teaching_mode;
 
+typedef struct {
+    uint16_t packetid;
+    char *msg;
+}general_purpose_t;
+
 extern CommandStruct last_command;
 extern manual_control ac_manual_control_t;
 extern teaching_mode teaching_mode_t;
@@ -313,6 +324,7 @@ extern "C" {
 #endif
 
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct);
+void generate_general_ack(uint16_t packetid, char *msg);
 void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t);
 void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_t);
 void enqueue_for_publish(char *ack_json);

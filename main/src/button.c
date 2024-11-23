@@ -88,13 +88,8 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
         {
         case 1:
 #if (IS_GWY)
-            if (!powerDownInProgress)
-            {
-                powerDownLTE();
-                esp_restart();
-            }
-#endif
-#if (!IS_GWY)
+            if (!powerDownInProgress) powerDownInProgress = true;
+#else
             esp_restart();
 #endif
             break;

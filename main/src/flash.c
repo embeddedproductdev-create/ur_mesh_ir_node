@@ -94,7 +94,7 @@ void factory_reset_device()
     if(!err) {
         #if(IS_GWY)
         ESP_LOGW(NVS_TAG, "NVS Flash erased successfully. Device will restart in 30s");
-        powerDownLTE();
+        powerDownInProgress = true;
         #else
         ESP_LOGW(NVS_TAG, "NVS Flash erased successfully. Device will restart in 5s");
         led_set_state(LED_STATE_POWERING_DOWN);
