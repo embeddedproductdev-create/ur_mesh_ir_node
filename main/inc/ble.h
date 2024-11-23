@@ -2,6 +2,7 @@
 #define BLE_H
 
 #include <lte.h>
+#include <main.h>
 
 #define BLE_NODE_COMM_TIMEOUT_MS 20000
 
@@ -23,8 +24,8 @@ void handle_ble_incoming();
 #if(IS_GWY)
 void provision_success_cb(uint16_t elemaddr);
 void reset_prov_match();
-#endif
-#if(!IS_GWY)
+void handle_ble_incoming(CommandStruct *ack);
+#else
 void handle_cmds_from_provisioner(CommandStruct *cmd_struct);
 void provision_success_cb();
 void unprovision_success_cb();

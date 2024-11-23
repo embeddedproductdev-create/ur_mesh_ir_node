@@ -70,7 +70,8 @@
         "heartbeat.h": "c",
         "esp_ble_mesh_config_model_api.h": "c",
         "string.h": "c",
-        "set": "cpp"
+        "set": "cpp",
+        "ble_new.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM3",

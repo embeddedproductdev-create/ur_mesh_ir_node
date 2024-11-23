@@ -118,6 +118,7 @@ void app_main(void)
     strcpy(serialNoStr, "GWY00002");
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
+    if(registered) ble_init();
 #else
     strcpy(serialNoStr, "N00004");
     ble_init();

@@ -1,6 +1,9 @@
 #ifndef BLE_NEW_H
 #define BLE_NEW_H
 
+#include <main.h>
+#include <lte.h>
+
 #define BLE_NODE_COMM_TIMEOUT_MS 20000
 
 /*Global Variables*/
@@ -16,11 +19,15 @@ void send_prov_ack_to_cloud(uint16_t elemaddr, char *node_name);
 extern "C" {
 #endif
 
+#if(IS_GWY)
+void handle_ble_incoming(CommandStruct *ack);
+#else
 void send_ack_to_provisioner(uint16_t packetid, void *ptr);
+#endif
 
 #ifdef __cplusplus
 }
 #endif
-void provision_success_cb();
+void provision_success_cb(uint16_t elemAddr);
 void unprovision_success_cb();
 #endif

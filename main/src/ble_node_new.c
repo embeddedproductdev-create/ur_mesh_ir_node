@@ -66,29 +66,29 @@ static esp_ble_mesh_model_t root_models[] = {
     ESP_BLE_MESH_MODEL_CFG_SRV(&config_server),
 };
 
-static const esp_ble_mesh_client_op_pair_t vnd_op_pair[] = {
-    {ESP_BLE_MESH_VND_MODEL_OP_SEND, ESP_BLE_MESH_VND_MODEL_OP_STATUS},
-};
+// static const esp_ble_mesh_client_op_pair_t vnd_op_pair[] = {
+//     {ESP_BLE_MESH_VND_MODEL_OP_SEND, ESP_BLE_MESH_VND_MODEL_OP_STATUS},
+// };
 
-static esp_ble_mesh_client_t vendor_client = {
-    .op_pair_size = ARRAY_SIZE(vnd_op_pair),
-    .op_pair = vnd_op_pair,
-};
+// static esp_ble_mesh_client_t vendor_client = {
+//     .op_pair_size = ARRAY_SIZE(vnd_op_pair),
+//     .op_pair = vnd_op_pair,
+// };
 
 static esp_ble_mesh_model_op_t vnd_op[] = {
     ESP_BLE_MESH_MODEL_OP(ESP_BLE_MESH_VND_MODEL_OP_SEND, 2),
     ESP_BLE_MESH_MODEL_OP_END,
 };
 
-// static esp_ble_mesh_model_t vnd_models[] = {
-//     ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_SERVER,
-//     vnd_op, NULL, NULL),
-// };
-
 static esp_ble_mesh_model_t vnd_models[] = {
-    ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_CLIENT,
-                              vnd_op, NULL, &vendor_client),
+    ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_SERVER,
+    vnd_op, NULL, NULL),
 };
+
+// static esp_ble_mesh_model_t vnd_models[] = {
+//     ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_CLIENT,
+//                               vnd_op, NULL, &vendor_client),
+// };
 
 static esp_ble_mesh_elem_t elements[] = {
     ESP_BLE_MESH_ELEMENT(0, root_models, vnd_models),
@@ -108,7 +108,7 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
 {
     ESP_LOGI(BLE_TAG, "net_idx 0x%03x, addr 0x%04x", net_idx, addr);
     ESP_LOGI(BLE_TAG, "flags 0x%02x, iv_index 0x%08" PRIx32, flags, iv_index);
-    provision_success_cb();
+    provision_success_cb(addr);
 }
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
@@ -268,7 +268,7 @@ void send_ack_to_provisioner(uint16_t packetid, void *ptr)
                 .addr = 0X0001,       // Destination address (Provisioner's unicast address)
                 .app_idx = 0X0000,   // AppKey index
                 .net_idx = 0,         // Network Key index
-                .send_ttl = 7,        // TTL value
+                .send_ttl = 3,        // TTL value
                 .send_rel = false,    // Reliable or not
             };
 
@@ -286,10 +286,12 @@ void send_ack_to_provisioner(uint16_t packetid, void *ptr)
  * is successful
  * 
  */
-void provision_success_cb()
+void provision_success_cb(uint16_t elemAddr)
 {
     ESP_LOGW(BLE_TAG, "Provisioning successfull callback !!! ");
     provisioned = true;
+    last_command.packetid = NODE_HEARTBEAT_ACK;
+    last_command.elemaddr = elemAddr;
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
     update_led_status();
     hb_timer_restart();

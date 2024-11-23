@@ -507,6 +507,13 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+        for(uint8_t i=0;i<param->model_operation.length;i++)
+        {
+            printf("%d ", param->model_operation.msg[i]);
+        }
+        printf("\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+        handle_ble_incoming((CommandStruct *)param->model_operation.msg);
         break;
 
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
@@ -616,6 +623,24 @@ void send_prov_ack_to_cloud(uint16_t elemaddr, char *nodename)
     data.elemaddr = elemaddr;
     strcpy(data.nodename, nodename);
     generate_ack(NODE_PROV_PACKET, &data);
+}
+
+/**
+ * @brief Handle acks from Node
+ * @param ack 
+ */
+void handle_ble_incoming(CommandStruct *ack)
+{
+    switch(ack->packetid)
+    {
+        case NODE_HEARTBEAT_ACK:
+            generate_ack(NODE_HEARTBEAT_ACK, ack);
+            break;
+
+        default:
+            ESP_LOGE(BLE_TAG, "Unknown ACK received from %s : %d", ack->nodename, ack->packetid);
+            break;
+    }
 }
 
 /**
