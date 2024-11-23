@@ -69,10 +69,11 @@
         "btc_manage.h": "c",
         "heartbeat.h": "c",
         "esp_ble_mesh_config_model_api.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "set": "cpp"
     },
     "idf.flashType": "UART",
-    "idf.portWin": "COM3",
+    "idf.portWin": "COM23",
     "idf.adapterTargetName": "esp32s3",
     "C_Cpp.errorSquiggles": "disabled",
     "idf.openOcdConfigs": [
