@@ -507,12 +507,6 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
-        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-        for(uint8_t i=0;i<param->model_operation.length;i++)
-        {
-            printf("%d ", param->model_operation.msg[i]);
-        }
-        printf("\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
         handle_ble_incoming((CommandStruct *)param->model_operation.msg);
         break;
 
@@ -647,9 +641,32 @@ void handle_ble_incoming(CommandStruct *ack)
  * @brief Function that takes are of sending commands to Nodes
  * @param cmd 
  */
-void send_cmd_to_node(CommandStruct *cmd, bool resend)
+void send_cmd_to_node(CommandStruct *cmd)
 {
-    ;
+    esp_err_t err;
+    esp_ble_mesh_msg_ctx_t ctx = {
+        .addr = cmd->elemaddr,
+        .app_idx = prov_key.app_idx,
+        .net_idx = prov_key.net_idx,
+        .send_ttl = 3,
+        .send_rel = false,
+    };
+    switch(cmd->packetid)
+    {
+        case NODE_UNPROV_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Unprov packet to Provisioner");
+            break;
+
+        case NODE_AC_CONTROL_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Control packet to Provisioner");
+            break;
+
+        default:
+            ESP_LOGE(BLE_TAG, "Unknown ACK type : %d", cmd->packetid);
+            return;
+    }
+    err = esp_ble_mesh_client_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(CommandStruct), (uint8_t *)cmd, 10, true, ROLE_PROVISIONER);
+    if(err) ESP_LOGE(BLE_TAG, "Failed to send cmd : %s", esp_err_to_name(err));
 }
 
 #endif

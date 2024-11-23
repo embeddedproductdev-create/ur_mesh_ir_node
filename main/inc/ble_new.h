@@ -18,11 +18,13 @@ void send_prov_ack_to_cloud(uint16_t elemaddr, char *node_name);
 #ifdef __cplusplus
 extern "C" {
 #endif
+void send_cmd_to_node(CommandStruct *cmd); //Since this is in lte.c and is common, we just have to keep it here
 
 #if(IS_GWY)
 void handle_ble_incoming(CommandStruct *ack);
 #else
-void send_ack_to_provisioner(uint16_t packetid, void *ptr);
+void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack);
+void handle_cmds_from_provisioner(CommandStruct *cmd);
 #endif
 
 #ifdef __cplusplus

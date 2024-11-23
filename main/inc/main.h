@@ -1,5 +1,5 @@
-// #ifndef MAIN_H
-// #define MAIN_H
+#ifndef MAIN_H
+#define MAIN_H
 
 /**
  * ===================================================================
@@ -8,7 +8,7 @@
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY 0
+#define IS_GWY 1
 #define CLIENT_RELEASE 0
 /*====================================================================*/
 
@@ -40,4 +40,4 @@
 #endif
 
 
-// #endif
+#endif

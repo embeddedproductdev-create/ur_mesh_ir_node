@@ -179,6 +179,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         if (param->model_operation.opcode == ESP_BLE_MESH_VND_MODEL_OP_SEND) {
             uint16_t tid = *(uint16_t *)param->model_operation.msg;
             ESP_LOGI(BLE_TAG, "Recv 0x%06" PRIx32 ", tid 0x%04x", param->model_operation.opcode, tid);
+            handle_cmds_from_provisioner((CommandStruct *)param->model_operation.msg);
             esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0],
                     param->model_operation.ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS,
                     sizeof(tid), (uint8_t *)&tid);
@@ -194,6 +195,11 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         }
         ESP_LOGI(BLE_TAG, "Send 0x%06" PRIx32, param->model_send_comp.opcode);
         break;
+    
+    case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
+        ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
+        break;
+
     default:
         break;
     }
@@ -256,27 +262,53 @@ void ble_init(void)
  * =============================================================================
  */
 
-void send_ack_to_provisioner(uint16_t packetid, void *ptr)
+/**
+ * @brief Function that sends acks to provisioner
+ * @param packetid Type of ack
+ * @param ptr Pointer to the ack contents
+ */
+void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
 {
+    esp_ble_mesh_msg_ctx_t ctx = {
+        .addr = 0X0001,
+        .app_idx = 0X0000,
+        .net_idx = 0,
+        .send_ttl = 3,
+        .send_rel = false,
+    };
     switch(packetid)
     {
-        case NODE_HEARTBEAT_ACK:
-            esp_err_t err;
-            // esp_err_t err = esp_ble_mesh_model_publish(&vnd_models[0], ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(last_command), (uint8_t *)&last_command, ROLE_NODE);
-            // esp_err_t send_vendor_status_message(uint16_t addr, uint16_t app_idx, const uint8_t *data, uint16_t len) {
-            esp_ble_mesh_msg_ctx_t ctx = {
-                .addr = 0X0001,       // Destination address (Provisioner's unicast address)
-                .app_idx = 0X0000,   // AppKey index
-                .net_idx = 0,         // Network Key index
-                .send_ttl = 3,        // TTL value
-                .send_rel = false,    // Reliable or not
-            };
+        case NODE_UNPROV_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Unprov ACK to Provisioner");
+            break;
 
-            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&last_command);
-            if(err) ESP_LOGE(BLE_TAG, "Failed to send HB Msg : %s", esp_err_to_name(err));
+        case NODE_HEARTBEAT_ACK:
+            ESP_LOGI(BLE_TAG, "Sending HB ACK to Provisioner");
+            esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&last_command);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
 
         default:
+            ESP_LOGE(BLE_TAG, "Unknown ACK type : %d", packetid);
+            return;
+    }
+    
+}
+
+/**
+ * @brief Function that handles cmds from provisioner
+ */
+void handle_cmds_from_provisioner(CommandStruct *cmd)
+{
+    led_set_state(LED_STATE_CMD_RECVD);
+    switch(cmd->packetid)
+    {
+        case NODE_AC_CONTROL_PACKET:
+            ESP_LOGI(BLE_TAG, "Received Node AC Control Packet from Provisioner");
+            break;
+
+        default:
+            ESP_LOGE(BLE_TAG, "Received Unknown CMD from Provisioner : %d", cmd->packetid);
             break;
     }
 }
@@ -288,7 +320,6 @@ void send_ack_to_provisioner(uint16_t packetid, void *ptr)
  */
 void provision_success_cb(uint16_t elemAddr)
 {
-    ESP_LOGW(BLE_TAG, "Provisioning successfull callback !!! ");
     provisioned = true;
     last_command.packetid = NODE_HEARTBEAT_ACK;
     last_command.elemaddr = elemAddr;

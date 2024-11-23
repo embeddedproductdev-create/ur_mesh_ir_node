@@ -69,8 +69,8 @@ const char *get_led_state_string(led_state_t state)
         return "LED_STATE_SENDING_IR_COMMAND";
     case LED_STATE_TEACHING_MODE:
         return "LED_STATE_TEACHING_MODE";
-    case LED_STATE_MQTT_CMD_RECVD:
-        return "LED_STATE_MQTT_CMD_RECVD";
+    case LED_STATE_CMD_RECVD:
+        return "LED_STATE_CMD_RECVD";
     case LED_STATE_OFF:
         return "LED_STATE_OFF";
     default:
@@ -124,7 +124,7 @@ void led_set_state(led_state_t state)
         esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
         break;
 
-    case LED_STATE_MQTT_CMD_RECVD:
+    case LED_STATE_CMD_RECVD:
         led_set_color(colors.ORANGE);
         vTaskDelay(pdMS_TO_TICKS(1000));
         update_led_status();

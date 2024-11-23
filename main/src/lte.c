@@ -205,7 +205,7 @@ void publish_from_queue() {
             ESP_LOGE(LTE_TAG, "Failed to publish ACK message to MQTT broker.\n");
         }
         else {
-            ESP_LOGI(LTE_TAG, "Published \n%s",ack_message);
+            // ESP_LOGI(LTE_TAG, "Published \n%s",ack_message);
             free(ack_message);
         }
     }
@@ -303,6 +303,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         case NODE_HEARTBEAT_ACK:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_HEARTBEAT_ACK);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->elemaddr);
             jwObj_int(jwc, POWER_KEY, cmd_struct->power);
             jwObj_string(jwc, MODE_KEY, cmd_struct->mode_str);
             jwObj_int(jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
@@ -780,7 +781,7 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
 void parse_json()
 {
-    led_set_state(LED_STATE_MQTT_CMD_RECVD);
+    led_set_state(LED_STATE_CMD_RECVD);
     CommandStruct cmd_struct;
 
     cJSON *json_obj = cJSON_Parse(LTE_UART_data);
@@ -838,7 +839,9 @@ void parse_json()
             case NODE_RECONF_PACKET:
             case NODE_HEARTBEAT_PUB_CONF_PACKET:
             case NODE_TEACHING_MODE:
-                // handle_ble_outgoing(&cmd_struct);
+                send_cmd_to_node(&cmd_struct);
+                cmd_struct.reqSentToNodeTicks = xTaskGetTickCount();
+                cmd_struct.requestSentToNode = true;
                 if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
                     ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
                     return;
@@ -997,10 +1000,6 @@ void maintainCommandQueue()
                 if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
                     cmd_item.errorcode = NODE_COMM_TIMEOUT;
                     generate_ack(cmd_item.packetid, &cmd_item);
-                    if(cmd_item.packetid == NODE_PROV_PACKET)
-                    {
-                        // reset_prov_match(); //Let's do this here to avoid automatic provisioning 
-                    }
                     ESP_LOGW(LTE_TAG, "Removed stale command from queue: msgseqno=%d", cmd_item.msgseqno);
                 }
             } else {
