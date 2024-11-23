@@ -201,6 +201,7 @@ static esp_err_t prov_complete(uint16_t node_index, const esp_ble_mesh_octet16_t
         return ESP_FAIL;
     }
 
+    send_prov_ack_to_cloud(primary_addr, name);
     return ESP_OK;
 }
 
@@ -494,6 +495,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
                 param->model_operation.opcode, store.vnd_tid, end_time - start_time);
         }
         break;
+
     case ESP_BLE_MESH_MODEL_SEND_COMP_EVT:
         if (param->model_send_comp.err_code) {
             ESP_LOGE(BLE_TAG, "Failed to send message 0x%06" PRIx32, param->model_send_comp.opcode);
@@ -502,9 +504,11 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         start_time = esp_timer_get_time();
         ESP_LOGI(BLE_TAG, "Send 0x%06" PRIx32, param->model_send_comp.opcode);
         break;
+
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
         break;
+
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
         ESP_LOGW(BLE_TAG, "Client message 0x%06" PRIx32 " timeout", param->client_send_timeout.opcode);
         example_ble_mesh_send_vendor_message(true);
@@ -605,11 +609,12 @@ void ble_init(void)
  * @param elem_addr 
  * @param node_name 
  */
-void send_prov_ack_to_cloud(uint16_t elemaddr, char *node_name)
+void send_prov_ack_to_cloud(uint16_t elemaddr, char *nodename)
 {
     CommandStruct data;
     data.errorcode = SUCCESS;
     data.elemaddr = elemaddr;
+    strcpy(data.nodename, nodename);
     generate_ack(NODE_PROV_PACKET, &data);
 }
 

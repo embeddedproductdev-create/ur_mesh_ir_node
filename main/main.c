@@ -61,8 +61,7 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d", NVS_REGISTERED_KEY, registered);
     ESP_LOGI(TAG, "%s : %s", "MQTT Publish Topic", publish_topic);
     ESP_LOGI(TAG, "%s : %s", "MQTT Subscribe Topic", subscribe_topic);
-#endif
-    #if (!IS_GWY)
+#else
     ESP_LOGI(TAG, "%s : %d", NVS_PROVISIONED_KEY, provisioned);
 #endif
     ESP_LOGI(TAG, "%s : %d", NVS_CONFIGURED_KEY, configured);
@@ -119,16 +118,15 @@ void app_main(void)
     strcpy(serialNoStr, "GWY00002");
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
-#endif
-#if (!IS_GWY)
+#else
     strcpy(serialNoStr, "N00004");
+    ble_init();
 #endif
 
     print_basic_info();
 
     hb_init();
     led_init();
-    ble_init();
 
     gpio_install_isr_service(0);
     button_intr_init();

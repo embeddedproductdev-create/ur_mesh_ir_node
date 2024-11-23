@@ -29,6 +29,7 @@
 #include <flash.h>
 #include <led.h>
 #include <lte.h>
+#include <heartbeat.h>
 
 #define BLE_TAG "BLE"
 
@@ -65,14 +66,28 @@ static esp_ble_mesh_model_t root_models[] = {
     ESP_BLE_MESH_MODEL_CFG_SRV(&config_server),
 };
 
+static const esp_ble_mesh_client_op_pair_t vnd_op_pair[] = {
+    {ESP_BLE_MESH_VND_MODEL_OP_SEND, ESP_BLE_MESH_VND_MODEL_OP_STATUS},
+};
+
+static esp_ble_mesh_client_t vendor_client = {
+    .op_pair_size = ARRAY_SIZE(vnd_op_pair),
+    .op_pair = vnd_op_pair,
+};
+
 static esp_ble_mesh_model_op_t vnd_op[] = {
     ESP_BLE_MESH_MODEL_OP(ESP_BLE_MESH_VND_MODEL_OP_SEND, 2),
     ESP_BLE_MESH_MODEL_OP_END,
 };
 
+// static esp_ble_mesh_model_t vnd_models[] = {
+//     ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_SERVER,
+//     vnd_op, NULL, NULL),
+// };
+
 static esp_ble_mesh_model_t vnd_models[] = {
-    ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_SERVER,
-    vnd_op, NULL, NULL),
+    ESP_BLE_MESH_VENDOR_MODEL(CID_ESP, ESP_BLE_MESH_VND_MODEL_ID_CLIENT,
+                              vnd_op, NULL, &vendor_client),
 };
 
 static esp_ble_mesh_elem_t elements[] = {
@@ -93,6 +108,7 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
 {
     ESP_LOGI(BLE_TAG, "net_idx 0x%03x, addr 0x%04x", net_idx, addr);
     ESP_LOGI(BLE_TAG, "flags 0x%02x, iv_index 0x%08" PRIx32, flags, iv_index);
+    provision_success_cb();
 }
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
@@ -242,7 +258,27 @@ void ble_init(void)
 
 void send_ack_to_provisioner(uint16_t packetid, void *ptr)
 {
+    switch(packetid)
+    {
+        case NODE_HEARTBEAT_ACK:
+            esp_err_t err;
+            // esp_err_t err = esp_ble_mesh_model_publish(&vnd_models[0], ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(last_command), (uint8_t *)&last_command, ROLE_NODE);
+            // esp_err_t send_vendor_status_message(uint16_t addr, uint16_t app_idx, const uint8_t *data, uint16_t len) {
+            esp_ble_mesh_msg_ctx_t ctx = {
+                .addr = 0X0001,       // Destination address (Provisioner's unicast address)
+                .app_idx = 0X0000,   // AppKey index
+                .net_idx = 0,         // Network Key index
+                .send_ttl = 7,        // TTL value
+                .send_rel = false,    // Reliable or not
+            };
 
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&last_command);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to send HB Msg : %s", esp_err_to_name(err));
+            break;
+
+        default:
+            break;
+    }
 }
 
 /**
@@ -252,9 +288,11 @@ void send_ack_to_provisioner(uint16_t packetid, void *ptr)
  */
 void provision_success_cb()
 {
+    ESP_LOGW(BLE_TAG, "Provisioning successfull callback !!! ");
     provisioned = true;
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
     update_led_status();
+    hb_timer_restart();
 }
 
 /**

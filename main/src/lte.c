@@ -21,8 +21,6 @@
 #include <ir.h>
 #include <ble_new.h>
 
-#if(IS_GWY)
-
 #define BAUD_RATE 115200
 
 #define LTE_TAG "LTE"
@@ -99,8 +97,6 @@ const char *QMTSTAT_1_ERROR = "+QMTSTAT: 2,1";
 const char *QMTOPEN_2_ERROR = "+QMTOPEN: 2,2";
 const char *QMTOPEN_3_ERROR = "+QMTOPEN: 2,3";
 
-#endif
-
 /*MQTT Packet JSON Keys*/
 const char *JSON_PACKET_ID_KEY = "JsonPacketID";
 const char *JSON_ACK_NAME_KEY = "JsonAckName";
@@ -157,8 +153,6 @@ const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
 
 
 bool powerDownInProgress = false;
-
-#if(IS_GWY)
 
 char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 char publish_topic[MQTT_TOPIC_CHAR_LEN];
@@ -309,6 +303,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         case NODE_PROV_PACKET:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_PROV_PACKET);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
             jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             break;
         
@@ -409,8 +404,6 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
     enqueue_for_publish(buffer);
 }
 
-#endif
-
 /**
  * @brief Get the error code name
  * @param code 
@@ -493,8 +486,6 @@ const char* get_error_code_name(error_codes code) {
     }
     return "UNKNOWN_ERROR";
 }
-
-#if(IS_GWY)
 
 /**
  * @brief Function that validates the MacID
@@ -777,12 +768,14 @@ void parse_json()
                 set_str_in_nvs_flash(GENERAL_HANDLE, NVS_DEVICE_LOCATION_KEY, device_location_str);
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 1, UINT8_SIZE);
                 hb_timer_start();
+                ble_init();
                 break;
 
             case GWY_UNREG_PACKET:
                 registered = 0; update_led_status();
                 set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 0, UINT8_SIZE);
                 hb_timer_stop();
+                factory_reset_device();
                 break;
 
             case GWY_AC_CONTROL_PACKET:
@@ -1137,8 +1130,8 @@ void lte_gpio_configuration()
 void powerDownLTE()
 {
     powerDownInProgress = true;
-    led_set_state(LED_STATE_LTE_POWERING_DOWN);
-    while(send_cmd_and_check_response(LOG_DATA, POWER_DOWN_CMD, "POWER_DOWN_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
+    led_set_state(LED_STATE_POWERING_DOWN);
+    while(send_cmd_and_check_response(true, POWER_DOWN_CMD, "POWER_DOWN_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
         vTaskDelay(pdMS_TO_TICKS(500));
     ESP_LOGI(LTE_TAG, "LTE Power-down Sequence done");
     for(int i=30;i>0;i--)
@@ -1214,8 +1207,6 @@ void lte_task(void *args)
 		vTaskDelay(pdMS_TO_TICKS(50));
 	}
 }
-
-#endif
 
 /**
  * @brief Function that takes care of handling the sending of AC commands and

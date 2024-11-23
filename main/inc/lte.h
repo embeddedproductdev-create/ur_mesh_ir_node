@@ -236,6 +236,7 @@ typedef struct
     uint8_t patchversion;
     uint8_t provisioned;
     bool configured;
+    char nodename[15];
 } CommandStruct;
 
 typedef struct 

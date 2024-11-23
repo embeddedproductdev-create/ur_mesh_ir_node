@@ -130,7 +130,7 @@ void led_set_state(led_state_t state)
         update_led_status();
         break;
 
-    case LED_STATE_LTE_POWERING_DOWN:
+    case LED_STATE_POWERING_DOWN:
         led_set_color(colors.RED);
         esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
         break;
@@ -218,7 +218,7 @@ static void led_blink_callback(void *arg)
             led_set_color(colors.BLUE);
         break;
 
-    case LED_STATE_LTE_POWERING_DOWN:
+    case LED_STATE_POWERING_DOWN:
         if (current_color.green && current_color.red)
             led_set_color(colors.OFF);
         else

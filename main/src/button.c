@@ -14,6 +14,7 @@
 #include <led.h>
 #include <lte.h>
 #include <ir.h>
+#include <flash.h>
 
 #define DEBOUNCE_TIME_MS 10
 #define DOUBLE_PRESS_TIME_MS 450
@@ -99,9 +100,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         case 2:
-#if (!IS_GWY)
-            unprovision_success_cb();
-#endif
+            factory_reset_device();
             break;
 
         case 3:

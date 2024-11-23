@@ -11,6 +11,7 @@
 #include <lte.h>
 #include <flash.h>
 #include <ir.h>
+#include <led.h>
 
 #define NVS_TAG "NVS"
 
@@ -68,6 +69,41 @@ const char *NVS_TEACHING_MODE_CMD_KEYS[] = {
     "CMD15",
     "CMD16"
 };
+
+/**
+ * @brief Function that resets the device as a new device
+ */
+void factory_reset_device()
+{
+    esp_err_t err;
+    err=nvs_flash_erase_partition(GENERAL_NVS_PARTITION_NAME);
+    if(err) {
+        ESP_LOGE(NVS_TAG, "Erasing General NVS partition failed : %s", esp_err_to_name(err));
+        return;
+    }
+    err=nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
+    if(err) {
+        ESP_LOGE(NVS_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
+        return;
+    }
+    err=nvs_flash_erase(); //Clears off the BLE Partition
+    if(err) {
+        ESP_LOGE(NVS_TAG, "Erasing BLE NVS partition failed : %s", esp_err_to_name(err));
+        return;
+    }
+    if(!err) {
+        #if(IS_GWY)
+        ESP_LOGW(NVS_TAG, "NVS Flash erased successfully. Device will restart in 30s");
+        powerDownLTE();
+        #else
+        ESP_LOGW(NVS_TAG, "NVS Flash erased successfully. Device will restart in 5s");
+        led_set_state(LED_STATE_POWERING_DOWN);
+        vTaskDelay(pdMS_TO_TICKS(5000));
+        esp_restart();
+        #endif
+
+    }
+}
 
 /**
  * @brief Get the last ac cmd from nvs flash
