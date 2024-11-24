@@ -658,7 +658,7 @@ void send_cmd_to_node(CommandStruct *cmd)
             break;
 
         default:
-            ESP_LOGE(BLE_TAG, "Unknown ACK type : %d", cmd->packetid);
+            ESP_LOGE(BLE_TAG, "Unknown cmd type : %d in %s", cmd->packetid, __func__);
             return;
     }
 

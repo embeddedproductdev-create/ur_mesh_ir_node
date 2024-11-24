@@ -50,6 +50,7 @@ uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
 void print_basic_info()
 {
     ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=- BOOT SUCCESSFUL - %d.%d.%d -=-=-=-=-=-=-=-=-=-=", MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
+    ESP_LOGI(TAG, "%s : %s - %s", "Compiled Date and Time", __DATE__, __TIME__);
     ESP_LOGI(TAG, "%s : %d", NVS_NEW_DEVICE_KEY, newDevice);
     ESP_LOGI(TAG, "%s : %s", NVS_DEVICE_LOCATION_KEY, device_location_str);
     ESP_LOGI(TAG, "%s : %s", NVS_SERIAL_NO_KEY, serialNoStr);

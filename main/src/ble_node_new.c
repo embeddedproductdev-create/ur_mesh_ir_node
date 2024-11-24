@@ -317,9 +317,11 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
         .send_rel = false,
     };
 
-    ack->bleErrorCode = SUCCESS; //We need to set this here, so that when ack is received at provisioner end, it won't be junk data
-    strcpy(ack->deviceName, serialNoStr);
-    
+    if(ack!=NULL) { //This check is needed in some cases like HEARTBEAT ACK, CONF ACK, where ack will be NULL
+        ack->bleErrorCode = SUCCESS; //We need to set this here, so that when ack is received at provisioner end, it won't be junk data
+        strcpy(ack->deviceName, serialNoStr);
+    }
+
     switch(packetid)
     {
         case NODE_PROV_PACKET:
@@ -347,8 +349,11 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             break;
         
         case NODE_CONF_ACK:
-            ESP_LOGI(BLE_TAG, "Sending Node AC Remote Configuration ACK to Provisioner");
-            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            CommandStruct confack;
+            confack.packetid = NODE_CONF_ACK;
+            confack.elemaddr = last_command.elemaddr;
+            strcpy(confack.deviceName, serialNoStr);
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&confack);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
         
