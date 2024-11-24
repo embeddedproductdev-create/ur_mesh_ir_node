@@ -247,34 +247,37 @@ typedef struct
 
 typedef struct 
 {
-    char temperature[3];
-    char power[4];
-    char fan[2];
-    char mode[5];
-
+    uint16_t packetid;
+    uint16_t elemAddr;
     int8_t power_value;
     int8_t fanspeed_value;
     int8_t temperature_value;
-
     error_codes power_err;
     error_codes fanspeed_err;
     error_codes mode_err;
     error_codes temperature_err;
+    char nodename[16];
+    char temperature[4];
+    char power[4];
+    char fan[2];
+    char mode[8];
 }manual_control;
 
 typedef struct
 {
     uint16_t packetid;
+    uint16_t elemAddr;
     uint8_t teachingStart;
     uint8_t startingTemperature;
     uint8_t endingTemperature;
-    char lastCommand[35];
-    char nextCommand[35];
     uint8_t expectedTemperature;
     uint8_t commandsReceived;
     uint8_t commandIndex;
     uint8_t remainingCommands;
     error_codes errorCode;
+    char lastCommand[36];
+    char nextCommand[36];
+    char nodename[16];
 }teaching_mode;
 
 typedef struct {

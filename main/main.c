@@ -81,7 +81,9 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d", NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
     ESP_LOGI(TAG, "%s : %d", NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
     ESP_LOGW(TAG, "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
-    ESP_LOGW(TAG, "%s : %d", "CommandStruct Size", sizeof(CommandStruct));
+    ESP_LOGW(TAG, "%s : %d", "Command Struct size", sizeof(CommandStruct));
+    ESP_LOGW(TAG, "%s : %d", "Teaching Mode Struct size", sizeof(teaching_mode));
+    ESP_LOGW(TAG, "%s : %d", "Manual Control Struct size", sizeof(manual_control));
 }
 
 /**
@@ -117,6 +119,9 @@ void app_main(void)
     if(registered) ble_init();
 #else
     strcpy(serialNoStr, "N00004");
+    strcpy(last_command.nodename, serialNoStr);
+    strcpy(teaching_mode_t.nodename, serialNoStr);
+    strcpy(ac_manual_control_t.nodename, serialNoStr);
     ble_init();
 #endif
 

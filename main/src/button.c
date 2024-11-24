@@ -87,7 +87,8 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
         switch (*press_count)
         {
         case 1:
-#if (IS_GWY)
+            ESP_LOGW(BUTTON_TAG, "Single press detected");
+#if(IS_GWY)
             if (!powerDownInProgress) powerDownInProgress = true;
 #else
             esp_restart();
@@ -95,25 +96,34 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             break;
 
         case 2:
-            factory_reset_device();
+            ESP_LOGW(BUTTON_TAG, "Double press detected");
             break;
 
         case 3:
+            ESP_LOGW(BUTTON_TAG, "Triple press detected");
+#if(!IS_GWY)
+            send_ack_to_provisioner(NODE_UNPROV_PACKET, NULL);
+            unprovision_success_cb();
+#endif
             break;
         }
         break;
-
-    case LONG_PRESS_3S:
-        break;
-
+        
     case LONG_PRESS_1S:
+        ESP_LOGW(BUTTON_TAG, "Long press 1-3s detected");
         if (!teaching_in_progress)
             teaching_mode_init(MAX_LOW_TEMP, MAX_HIGH_TEMP);
         else
             exit_teaching_mode(false);
         break;
 
+    case LONG_PRESS_3S:
+        ESP_LOGW(BUTTON_TAG, "Long press >3s detected");
+        factory_reset_device();
+        break;
+
     default:
+        ESP_LOGE(BUTTON_TAG, "Unknown button press detected");
         break;
     }
 

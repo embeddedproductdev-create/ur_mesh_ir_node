@@ -327,6 +327,44 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 
     switch(packetid)
     {
+        case GWY_REG_PACKET:
+            break;
+        
+        case NODE_PROV_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+            break;
+
+        case GWY_CONF_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_CONF_ACK);
+            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
+            if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+            break;
+        
+        case NODE_CONF_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_CONF_ACK);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
+            if(cmd_struct->irProtocolNum == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+            break;
+        
+        case GWY_UNREG_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            break;
+        
+        case NODE_UNPROV_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            break;
+
         case GWY_AC_CONTROL_PACKET:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
@@ -336,9 +374,25 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         case NODE_AC_CONTROL_PACKET:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            break;
+        
+        case GWY_HEARTBEAT_ACK:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, POWER_KEY, last_command.power);
+            jwObj_string(jwc, MODE_KEY, last_command.mode_str);
+            jwObj_int(jwc, FAN_SPEED_KEY, last_command.fanspeed);
+            jwObj_int(jwc, TEMPERATURE_KEY, last_command.temperature);
+            jwObj_int(jwc, AMBIENT_TEMPERATURE_DATA_KEY, last_command.ambientTemperature);
+            jwObj_int(jwc, SWING_H_KEY, last_command.swingh);
+            jwObj_int(jwc, SWING_V_KEY, last_command.swingv);
+            jwObj_int(jwc, ONTIMER_KEY, last_command.ontimer);
+            jwObj_int(jwc, OFFTIMER_KEY, last_command.offtimer);
+            jwObj_int(jwc, AC_LOCKING_KEY, last_command.locking);
+            jwObj_int(jwc, UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
+            jwObj_int(jwc, LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
             break;
         
         case NODE_HEARTBEAT_ACK:
@@ -358,29 +412,18 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, LOWER_TEMPERATURE_LIMIT_KEY, cmd_struct->lowerTemperatureLimit);
             break;
         
-        case GWY_HEARTBEAT_ACK:
+        case GWY_HEARTBEAT_PUB_CONF_PACKET:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, POWER_KEY, last_command.power);
-            jwObj_string(jwc, MODE_KEY, last_command.mode_str);
-            jwObj_int(jwc, FAN_SPEED_KEY, last_command.fanspeed);
-            jwObj_int(jwc, TEMPERATURE_KEY, last_command.temperature);
-            jwObj_int(jwc, AMBIENT_TEMPERATURE_DATA_KEY, last_command.ambientTemperature);
-            jwObj_int(jwc, SWING_H_KEY, last_command.swingh);
-            jwObj_int(jwc, SWING_V_KEY, last_command.swingv);
-            jwObj_int(jwc, ONTIMER_KEY, last_command.ontimer);
-            jwObj_int(jwc, OFFTIMER_KEY, last_command.offtimer);
-            jwObj_int(jwc, AC_LOCKING_KEY, last_command.locking);
-            jwObj_int(jwc, UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
-            jwObj_int(jwc, LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
-            break;
-
-        case NODE_PROV_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
-            jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             break;
         
-        case NODE_UNPROV_PACKET:
+        case NODE_HEARTBEAT_PUB_CONF_PACKET:
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
         case GWY_TEACHING_MODE:
@@ -390,10 +433,6 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
             jwObj_string(jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
             jwObj_string(jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
-            break;
-        
-        case NODE_TEACHING_MODE:
-            //Need to handle it elsewhere due to different strucutre type
             break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
@@ -407,10 +446,6 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, TEMPERATURE_ERROR_KEY, ac_manual_control_t.temperature_err);
             jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
             jwObj_int(jwc, MODE_ERROR_KEY, ac_manual_control_t.mode_err);
-            break;
-        
-        case NODE_MANUAL_AC_CONTROL_ACK:
-            //Need to handle it elsewhere due to different strucutre type
             break;
 
         case GWY_DEBUG_INFO_PACKET:
@@ -430,6 +465,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         case NODE_DEBUG_INFO_PACKET:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             if(cmd_struct->errorcode==SUCCESS && cmd_struct->bleErrorCode == ESP_OK)
@@ -444,22 +480,6 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             }
             break;
         
-        case GWY_CONF_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, GWY_CONF_ACK);
-            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
-            if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-            break;
-        
-        case NODE_CONF_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_CONF_ACK);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->nodename);
-            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
-            if(cmd_struct->irProtocolNum == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-            break;
-
-
         default:
             ESP_LOGE(LTE_TAG, "Unknown Packet - %d in %s", cmd_struct->packetid, __func__);
             jwEnd(jwc);
@@ -882,8 +902,6 @@ void parse_json()
             case NODE_HEARTBEAT_PUB_CONF_PACKET:
             case NODE_TEACHING_MODE:
                 send_cmd_to_node(&cmd_struct);
-                cmd_struct.reqSentToNodeTicks = xTaskGetTickCount();
-                cmd_struct.requestSentToNode = true;
                 if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
                     ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
                     return;

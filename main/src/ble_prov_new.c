@@ -201,7 +201,6 @@ static esp_err_t prov_complete(uint16_t node_index, const esp_ble_mesh_octet16_t
         return ESP_FAIL;
     }
 
-    send_prov_ack_to_cloud(primary_addr, name);
     return ESP_OK;
 }
 
@@ -492,7 +491,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
         if (param->model_operation.opcode == ESP_BLE_MESH_VND_MODEL_OP_STATUS) {
             int64_t end_time = esp_timer_get_time();
             ESP_LOGI(BLE_TAG, "Recv 0x06%" PRIx32 ", tid 0x%04x, time %lldus",
-                param->model_operation.opcode, store.vnd_tid, end_time - start_time);
+            param->model_operation.opcode, store.vnd_tid, end_time - start_time);
         }
         break;
 
@@ -507,7 +506,20 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
-        handle_ble_incoming((CommandStruct *)param->model_operation.msg);
+        teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
+        if(teach_ack->packetid == NODE_TEACHING_MODE) {
+            generate_node_teaching_mode_ack(teach_ack);
+            return;
+        }
+
+        manual_control *manual_control_ack = (manual_control *)param->model_operation.msg;
+        if(manual_control_ack->packetid == NODE_MANUAL_AC_CONTROL_ACK) {
+            generate_node_manual_ac_control_ack(manual_control_ack);
+            return;
+        }
+
+        CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
+        generate_ack(ack->packetid, ack);
         break;
 
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
@@ -606,40 +618,6 @@ void ble_init(void)
  */
 
 /**
- * @brief Function that sends prov ack to cloud
- * @param elem_addr 
- * @param node_name 
- */
-void send_prov_ack_to_cloud(uint16_t elemaddr, char *nodename)
-{
-    CommandStruct data;
-    data.errorcode = SUCCESS;
-    data.elemaddr = elemaddr;
-    strcpy(data.nodename, nodename);
-    generate_ack(NODE_PROV_PACKET, &data);
-}
-
-/**
- * @brief Handle acks from Node
- * @param ack 
- */
-void handle_ble_incoming(CommandStruct *ack)
-{
-    switch(ack->packetid)
-    {
-        case NODE_HEARTBEAT_ACK:
-            generate_ack(NODE_HEARTBEAT_ACK, ack);
-            break;
-        
-        case NODE_
-
-        default:
-            ESP_LOGE(BLE_TAG, "Unknown ACK received from %s : %d", ack->nodename, ack->packetid);
-            break;
-    }
-}
-
-/**
  * @brief Function that takes are of sending commands to Nodes
  * @param cmd 
  */
@@ -683,6 +661,9 @@ void send_cmd_to_node(CommandStruct *cmd)
             ESP_LOGE(BLE_TAG, "Unknown ACK type : %d", cmd->packetid);
             return;
     }
+
+    cmd->reqSentToNodeTicks = xTaskGetTickCount();
+    cmd->requestSentToNode = true;
     err = esp_ble_mesh_client_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(CommandStruct), (uint8_t *)cmd, 10, true, ROLE_PROVISIONER);
 
     if(err) {

@@ -726,7 +726,7 @@ void locking_feature(const char *description)
 #endif
 
 #if (!IS_GWY)
-    send_manual_control_ack_to_provisioner(&ac_manual_control_t);
+    send_manual_control_ack_to_provisioner();
 #endif
 }
 
@@ -752,7 +752,7 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
-    send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
+    send_teaching_mode_ack_to_provisioner();
 #endif
 }
 
@@ -781,7 +781,7 @@ void exit_teaching_mode(bool success)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
-    send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
+    send_teaching_mode_ack_to_provisioner();
 #endif
 }
 
@@ -865,7 +865,7 @@ void perform_teaching_process(const char *description)
         generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
-        send_teaching_mode_ack_to_provisioner(&teaching_mode_t);
+        send_teaching_mode_ack_to_provisioner();
 #endif
 
     /*Teaching mode has been successfully completed*/
