@@ -520,12 +520,27 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
+        teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
+        if(teach_ack->packetid == NODE_TEACHING_MODE) {
+            generate_node_teaching_mode_ack(teach_ack);
+            return;
+        }
+
+        manual_control *manual_control_ack = (manual_control *)param->model_operation.msg;
+        if(manual_control_ack->packetid == NODE_MANUAL_AC_CONTROL_ACK) {
+            generate_node_manual_ac_control_ack(manual_control_ack);
+            return;
+        }
+
+        CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
+        generate_ack(ack->packetid, ack);
         break;
 
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
         ESP_LOGW(BLE_TAG, "Client message 0x%06" PRIx32 " timeout", param->client_send_timeout.opcode);
         example_ble_mesh_send_vendor_message(true);
         break;
+
     default:
         break;
     }

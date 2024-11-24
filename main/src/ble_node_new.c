@@ -182,12 +182,12 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
             uint16_t tid = *(uint16_t *)param->model_operation.msg;
             ESP_LOGI(BLE_TAG, "Recv 0x%06" PRIx32 ", tid 0x%04x", param->model_operation.opcode, tid);
             handle_cmds_from_provisioner((CommandStruct *)param->model_operation.msg);
-            esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0],
-                    param->model_operation.ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS,
-                    sizeof(tid), (uint8_t *)&tid);
-            if (err) {
-                ESP_LOGE(BLE_TAG, "Failed to send message 0x%06x", ESP_BLE_MESH_VND_MODEL_OP_STATUS);
-            }
+            // esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0],
+            //         param->model_operation.ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS,
+            //         sizeof(tid), (uint8_t *)&tid);
+            // if (err) {
+            //     ESP_LOGE(BLE_TAG, "Failed to send message 0x%06x", ESP_BLE_MESH_VND_MODEL_OP_STATUS);
+            // }
         }
         break;
     case ESP_BLE_MESH_MODEL_SEND_COMP_EVT:
@@ -195,7 +195,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
             ESP_LOGE(BLE_TAG, "Failed to send message 0x%06" PRIx32, param->model_send_comp.opcode);
             break;
         }
-        ESP_LOGI(BLE_TAG, "Send 0x%06" PRIx32, param->model_send_comp.opcode);
+        // ESP_LOGI(BLE_TAG, "Send 0x%06" PRIx32, param->model_send_comp.opcode);
         break;
     
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
