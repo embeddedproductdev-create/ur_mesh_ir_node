@@ -981,7 +981,9 @@ void handle_reconfiguration()
  */
 void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
 {
+    teaching_mode_t.packetid = cmd_struct->packetid;
     teaching_mode_t.errorCode = cmd_struct->errorcode;
+    teaching_mode_t.msgseqno = cmd_struct->msgseqno;
     teaching_mode_t.teachingStart = cmd_struct->teachingStart;
     teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
     teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;

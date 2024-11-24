@@ -14,7 +14,7 @@ void ble_mesh_get_dev_uuid(uint8_t *dev_uuid);
 esp_err_t bluetooth_init(void);
 void send_cmd_to_node(CommandStruct *cmd);
 void handle_cmds_from_provisioner(CommandStruct *cmd);
-void provision_success_cb(uint16_t elemAddr);
+void provision_success_cb();
 void unprovision_success_cb();
 void attach_elemAddr_to_structures(uint16_t elemAddr);
 #ifdef __cplusplus

@@ -104,6 +104,7 @@ void led_set_state(led_state_t state)
         led_set_color(colors.BLUE);
         break;
 
+    case LED_STATE_NODE_UNPROV_UNADV:
     case LED_STATE_MQTT_NOT_CONNECTED:
         led_set_color(colors.RED);
         break;

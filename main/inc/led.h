@@ -29,6 +29,7 @@ typedef enum {
     LED_STATE_CMD_RECVD,
     LED_STATE_POWERING_DOWN,
     LED_STATE_INVALID_OPERATION,
+    LED_STATE_NODE_UNPROV_UNADV,
 } led_state_t;
 
 // Structure for RGB color

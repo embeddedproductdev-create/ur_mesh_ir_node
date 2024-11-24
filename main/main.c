@@ -57,6 +57,8 @@ void print_basic_info()
     ESP_LOGI(TAG, "%s : %d", NVS_REGISTERED_KEY, registered);
     ESP_LOGI(TAG, "%s : %s", "MQTT Publish Topic", publish_topic);
     ESP_LOGI(TAG, "%s : %s", "MQTT Subscribe Topic", subscribe_topic);
+    ESP_LOGI(TAG, "%s : %s", "MQTT Alive Topic", alive_topic);
+    ESP_LOGI(TAG, "%s : %s", "MQTT Will Topic", will_topic);
 #else
     ESP_LOGI(TAG, "%s : %d", NVS_PROVISIONED_KEY, provisioned);
 #endif
@@ -102,7 +104,7 @@ void init_global_variables()
     teaching_in_progress = false;
     ir_protocol_num = -1;
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-    publishPeriod = 10; //MIN_PUBLISH_PERIOD_SEC;
+    publishPeriod = MIN_PUBLISH_PERIOD_SEC;
     strcpy(device_location_str, DEFAULT_DEVICE_LOCATION_STR);
     teaching_mode_raw_len = 0;
 }
@@ -116,12 +118,11 @@ void app_main(void)
     strcpy(serialNoStr, "GWY00002");
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
+    sprintf(alive_topic, "%s/alive", serialNoStr);
+    sprintf(will_topic, "GWYS/will");
     if(registered) ble_init();
 #else
     strcpy(serialNoStr, "N00004");
-    strcpy(last_command.nodename, serialNoStr);
-    strcpy(teaching_mode_t.nodename, serialNoStr);
-    strcpy(ac_manual_control_t.nodename, serialNoStr);
     ble_init();
 #endif
 

@@ -17,7 +17,7 @@
 #define IR_PROTOCOL_NAME_LEN 20
 #define LOCATION_STR_LEN 20
 #define MAX_MODE_STR_LEN 7
-#define MQTT_TOPIC_CHAR_LEN 100
+#define MQTT_TOPIC_CHAR_LEN 50
 #define MQTT_CMD_RESP_LEN 200
 
 #define DEFAULT_DEVICE_SER_NO "DEV99999"
@@ -28,6 +28,8 @@
 #define HEAT_MODE_STR "Heat"
 #define FAN_MODE_STR "Fan"
 #define AUTO_MODE_STR "Auto"
+
+#define BUTTON_PRESS_MSGSEQNO 9999
 
 extern const char *JSON_PACKET_ID_KEY;
 extern const char *JSON_ACK_NAME_KEY;
@@ -86,6 +88,8 @@ extern const char *MESSAGE_KEY;
 
 extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
 extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
+extern char alive_topic[MQTT_TOPIC_CHAR_LEN];
+extern char will_topic[MQTT_TOPIC_CHAR_LEN];
 
 typedef enum
 {
@@ -171,6 +175,9 @@ typedef enum
     NODE_NOT_FOUND_IN_PROVISIONER_DATABASE,
     NODE_NOT_PROVISIONED,
     IR_TASK_CREATION_FAILED,
+    ENQUEUING_INTO_COMMAND_QUEUE_FAILED,
+    DEVICE_DATA_ERASURE_SUCCESSFUL,
+    DEVICE_DATA_ERASURE_FAILED,
 }error_codes;
 
 typedef enum
@@ -242,7 +249,7 @@ typedef struct
     uint8_t patchversion;
     uint8_t provisioned;
     bool configured;
-    char nodename[15];
+    char deviceName[15];
 } CommandStruct;
 
 typedef struct 
@@ -256,7 +263,7 @@ typedef struct
     error_codes fanspeed_err;
     error_codes mode_err;
     error_codes temperature_err;
-    char nodename[16];
+    char deviceName[16];
     char temperature[4];
     char power[4];
     char fan[2];
@@ -267,6 +274,7 @@ typedef struct
 {
     uint16_t packetid;
     uint16_t elemAddr;
+    uint16_t msgseqno;
     uint8_t teachingStart;
     uint8_t startingTemperature;
     uint8_t endingTemperature;
@@ -275,9 +283,10 @@ typedef struct
     uint8_t commandIndex;
     uint8_t remainingCommands;
     error_codes errorCode;
+    esp_err_t bleErrorCode;
     char lastCommand[36];
     char nextCommand[36];
-    char nodename[16];
+    char deviceName[16];
 }teaching_mode;
 
 typedef struct {
@@ -317,17 +326,19 @@ error_codes check_response(char *uart_data, const char *check_string);
 error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name);
 error_codes send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
 void powerUpLTE();
-void powerDownLTE();
+void powerCycleDevice();
 bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno);
 const char* get_error_code_name(error_codes code);
 void handle_ac_control(CommandStruct *cmd_struct);
+void register_gwy();
+void unregister(CommandStruct *ack);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct);
-void generate_general_ack(uint16_t packetid, char *msg);
+void generate_general_ack(uint16_t packetid, error_codes err);
 void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t);
 void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_t);
 void enqueue_for_publish(char *ack_json);
