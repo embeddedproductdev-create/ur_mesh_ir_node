@@ -799,8 +799,6 @@ void perform_teaching_process(const char *description)
 
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
-        ESP_LOGE(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
         /*If this is the first IR Signal*/
         if (teaching_mode_t.commandsReceived == 0)
         {
@@ -809,6 +807,8 @@ void perform_teaching_process(const char *description)
              * like LG2, when sending power OFF command, the decoded string doesn't seem to contain temperature at all.
              *
              */
+            ESP_LOGW(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
             if (ac_manual_control_t.power_value == 0)
             {
                 set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, results.rawlen, UINT16_SIZE);
@@ -832,6 +832,8 @@ void perform_teaching_process(const char *description)
         }
         else
         {
+            ESP_LOGW(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
             if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
             {
                 /*Let's store raw values to nvs flash*/
@@ -979,8 +981,10 @@ void handle_reconfiguration()
  */
 void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
 {
+    memset(&teaching_mode_t, 0, sizeof(teaching_mode)); //Let's clear off the previously stored contents
     teaching_mode_t.packetid = cmd_struct->packetid;
     teaching_mode_t.errorCode = cmd_struct->errorcode;
+    strcpy(teaching_mode_t.deviceName, serialNoStr);
     teaching_mode_t.msgseqno = cmd_struct->msgseqno;
     teaching_mode_t.teachingStart = cmd_struct->teachingStart;
     teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
