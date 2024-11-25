@@ -31,7 +31,7 @@
 #define RTS_PIN 10
 #define UART_BUF_SIZE 800
 
-#define MIN_LTE_RESP_WAIT_MS 500
+#define MIN_LTE_RESP_WAIT_MS 100
 
 #define MQTT_ACK_SIZE 1024
 #define RETRY_COUNT 5
@@ -205,7 +205,7 @@ void publish_from_queue() {
     while (xQueueReceive(publish_queue, &ack_message, 0) == pdPASS) {
         if (mqtt_publish(ack_message, publish_topic) != SUCCESS) {
             ESP_LOGE(LTE_TAG, "Failed to publish ACK message to MQTT broker.\n");
-            if(xQueueSendToFront(publish_queue, &ack_message, portMAX_DELAY) != pdPASS)
+            if(xQueueSendToFront(publish_queue, ack_message, portMAX_DELAY) != pdPASS)
             {
                 ESP_LOGE(LTE_TAG, "Pushing failed publish message to front of Queue failed");
             }
@@ -323,7 +323,7 @@ void generate_and_publish_debug_info_ack(CommandStruct *ack)
 	sprintf(MQTT_PUBLISH_MESG_CMD, "AT+QMTPUBEX=2,2,2,0,\"%s\",%d\r\n", publish_topic, strlen(buffer));
 	if (send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", ">", 1000) == SUCCESS)
 	{
-		if (uart_write_bytes(UART_NUM_1, ack, strlen(ack)) != FAILURE)
+		if (uart_write_bytes(UART_NUM_1, ack, strlen(buffer)) != FAILURE)
         {
             ESP_LOGE(LTE_TAG, "Failed to write publish message to LTE UART");
             led_set_state(LED_STATE_INVALID_OPERATION);
@@ -525,6 +525,15 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
             jwObj_string(jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
             break;
+        
+        case NODE_TEACHING_MODE: //Case where Node Teaching Mode got timed out or was not sent at all
+            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(jwc, NODE_SER_NO_KEY, "");
+            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
             jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
@@ -581,6 +590,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
     }
     jwEnd(jwc);
     jwClose(jwc);
+    free(jwc);
     enqueue_for_publish(buffer);
 }
 
@@ -1012,11 +1022,11 @@ void parse_json()
                 if(!cmd_struct.resetDevice && !cmd_struct.restartDevice) generate_ack(cmd_struct.packetid, &cmd_struct);
                 if(cmd_struct.resetDevice) {
                     cmd_struct.errorcode = factory_reset_device(DUE_TO_MQTT_CMD);
-                    generate_and_publish_debug_info_ack(cmd_struct);
+                    generate_and_publish_debug_info_ack(&cmd_struct);
                     powerCycleDevice(DUE_TO_MQTT_CMD);
                 }
                 if(cmd_struct.restartDevice){
-                    generate_and_publish_debug_info_ack(cmd_struct);
+                    generate_and_publish_debug_info_ack(&cmd_struct);
                     powerCycleDevice(DUE_TO_MQTT_CMD);
                 }
                 return;
@@ -1031,13 +1041,7 @@ void parse_json()
             case NODE_RECONF_PACKET:
             case NODE_HEARTBEAT_PUB_CONF_PACKET:
             case NODE_TEACHING_MODE:
-                if (xQueueSend(command_queue, &cmd_struct, portMAX_DELAY) != pdPASS) {
-                    ESP_LOGE(LTE_TAG, "Enqueing into Command Queue failed");
-                    cmd_struct.errorcode = ENQUEUING_INTO_COMMAND_QUEUE_FAILED;
-                    led_set_state(LED_STATE_INVALID_OPERATION);
-                    generate_ack(cmd_struct.packetid, &cmd_struct);
-                }
-                else send_cmd_to_node(&cmd_struct);
+                send_cmd_to_node(&cmd_struct);
                 ESP_LOGW(LTE_TAG, "Currnet command queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(command_queue), esp_get_minimum_free_heap_size());
                 return;
 
@@ -1188,22 +1192,24 @@ void maintainCommandQueue()
 {
     CommandStruct cmd_item;
     UBaseType_t queue_length = uxQueueMessagesWaiting(command_queue);
-
+    esp_err_t err;
     for (UBaseType_t i = 0; i < queue_length; i++) {
         // Peek at the front item without removing it
         if (xQueuePeek(command_queue, &cmd_item, 0) == pdPASS) {
             if (cmd_item.requestSentToNode && (((xTaskGetTickCount() - cmd_item.reqSentToNodeTicks)*portTICK_PERIOD_MS) > BLE_NODE_COMM_TIMEOUT_MS)) {
-                ESP_LOGE(LTE_TAG, "MsgSeqNo : %d\n\tcurrentTime : %ld | ReqSentTime : %ld", cmd_item.msgseqno, xTaskGetTickCount(), cmd_item.reqSentToNodeTicks);
+                ESP_LOGE(LTE_TAG, "MsgSeqNo : %d | currentTickCount : %ld | ReqSentTickCount : %ld", cmd_item.msgseqno, xTaskGetTickCount(), cmd_item.reqSentToNodeTicks);
                 // Remove the stale item
-                if (xQueueReceive(command_queue, &cmd_item, 0) == pdPASS) {
+                if ((err = xQueueReceive(command_queue, &cmd_item, 0)) == pdPASS) {
                     cmd_item.errorcode = NODE_COMM_TIMEOUT;
+                    strcpy(cmd_item.deviceName, "");
+                    cmd_item.bleErrorCode = SUCCESS;
                     generate_ack(cmd_item.packetid, &cmd_item);
                     ESP_LOGW(LTE_TAG, "Removed stale command from queue: msgseqno=%d", cmd_item.msgseqno);
                     ESP_LOGW(LTE_TAG, "Current command queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(command_queue), esp_get_minimum_free_heap_size());
                 }
+                else ESP_LOGE(LTE_TAG, "Failed to remove stale element : %s", esp_err_to_name(err));
             } else {
                 // No more stale items, break early
-                // ESP_LOGW(LTE_TAG, "Elapsed seconds since request was sent to node : %ld", (xTaskGetTickCount() - cmd_item.reqSentToNodeTicks)*portTICK_PERIOD_MS/1000);
                 break;
             }
         }
@@ -1226,13 +1232,13 @@ void maintainMQTTConnection()
 		if(send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 5000)!=SUCCESS)
             return;
 	}
-	if((rc=send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, MIN_LTE_RESP_WAIT_MS))==SUCCESS);
+	if((rc=send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, MIN_LTE_RESP_WAIT_MS*5))==SUCCESS);
     else {
         switch(rc)
         {
             case QMTOPEN_2_ERRORCODE:
                 ESP_LOGE(LTE_TAG, "QMTOPEN_2_ERRORCODE");
-                send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, MIN_LTE_RESP_WAIT_MS);
+                send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CLOSE_CMD, "MQTT_NETWORK_CLOSE_CMD", MQTT_NETWORK_CLOSE_RESP, MIN_LTE_RESP_WAIT_MS*5);
                 return;
 
             case QMTOPEN_3_ERRORCODE:
@@ -1245,22 +1251,22 @@ void maintainMQTTConnection()
         }
     }
 	
-    if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, MIN_LTE_RESP_WAIT_MS)==SUCCESS);
+    if(send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, MIN_LTE_RESP_WAIT_MS*5)==SUCCESS);
     else {
         ;
     }
 	
-    if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS) return ;
+    if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS*5)!=SUCCESS) return ;
 	ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
     need_to_activate_pdp = false; mqtt_connected = true; update_led_status(); LOG_DATA = false;
     if(registered) hb_timer_restart();
 	while(!powerDownInProgress)
 	{
-		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)==SUCCESS){;}
+		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*2)==SUCCESS){;}
         if(xTaskGetTickCount()-lastNetworkCheckedTime > NETWORK_CHECK_INTERVAL_TICKS){
             
             lastNetworkCheckedTime = xTaskGetTickCount();
-            if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CHECK_CMD, "MQTT_NETWORK_CHECK_CMD", MQTT_NETWORK_CHECK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
+            if(send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CHECK_CMD, "MQTT_NETWORK_CHECK_CMD", MQTT_NETWORK_CHECK_RESP, MIN_LTE_RESP_WAIT_MS*3)!=SUCCESS)
             {
                 ESP_LOGE(LTE_TAG, "Lost MQTT connection");
                 return;
@@ -1301,7 +1307,7 @@ void MQTT_config()
 {
 	send_cmd_and_check_response(LOG_DATA, CLEAN_SESSION_CMD, "CLEAN_SESSION_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
 	send_cmd_and_check_response(LOG_DATA, KEEP_ALIVE_CMD, "KEEP_ALIVE_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
-    send_cmd_and_check_response(LOG_DATA, WILL_CMD, "WILL_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+    send_cmd_and_check_response(LOG_DATA, WILL_CMD, "WILL_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*5);
 }
 
 /**

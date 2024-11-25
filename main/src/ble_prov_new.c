@@ -29,6 +29,7 @@
 #include <flash.h>
 #include <ble_new.h>
 #include <lte.h>
+#include <led.h>
 
 #define BLE_TAG "BLE"
 
@@ -492,26 +493,14 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
             int64_t end_time = esp_timer_get_time();
             ESP_LOGI(BLE_TAG, "Recv 0x06%" PRIx32 ", tid 0x%04x, time %lldus",
             param->model_operation.opcode, store.vnd_tid, end_time - start_time);
-            teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
-            if(teach_ack->packetid == NODE_TEACHING_MODE) {
-                generate_node_teaching_mode_ack(teach_ack);
-                return;
-            }
-
-            manual_control *manual_control_ack = (manual_control *)param->model_operation.msg;
-            if(manual_control_ack->packetid == NODE_MANUAL_AC_CONTROL_ACK) {
-                generate_node_manual_ac_control_ack(manual_control_ack);
-                return;
-            }
-
-            CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
-            generate_ack(ack->packetid, ack);
+            handle_ble_incoming(param);
         }
         break;
 
     case ESP_BLE_MESH_MODEL_SEND_COMP_EVT:
         if (param->model_send_comp.err_code) {
             ESP_LOGE(BLE_TAG, "Failed to send message 0x%06" PRIx32, param->model_send_comp.opcode);
+
             break;
         }
         start_time = esp_timer_get_time();
@@ -520,20 +509,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         // ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
-        teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
-        if(teach_ack->packetid == NODE_TEACHING_MODE) {
-            generate_node_teaching_mode_ack(teach_ack);
-            return;
-        }
-
-        manual_control *manual_control_ack = (manual_control *)param->model_operation.msg;
-        if(manual_control_ack->packetid == NODE_MANUAL_AC_CONTROL_ACK) {
-            generate_node_manual_ac_control_ack(manual_control_ack);
-            return;
-        }
-
-        CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
-        generate_ack(ack->packetid, ack);
+        handle_ble_incoming(param);
         break;
 
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
@@ -633,12 +609,33 @@ void ble_init(void)
  */
 
 /**
+ * @brief Function that handles the incoming ble messages from Nodes
+ * @param param 
+ */
+void handle_ble_incoming(esp_ble_mesh_model_cb_param_t *param)
+{
+    teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
+    if(teach_ack->packetid == NODE_TEACHING_MODE) {
+        generate_node_teaching_mode_ack(teach_ack);
+        return;
+    }
+
+    manual_control *manual_control_ack = (manual_control *)param->model_operation.msg;
+    if(manual_control_ack->packetid == NODE_MANUAL_AC_CONTROL_ACK) {
+        generate_node_manual_ac_control_ack(manual_control_ack);
+        return;
+    }
+
+    CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
+    generate_ack(ack->packetid, ack);
+}
+
+/**
  * @brief Function that takes are of sending commands to Nodes
  * @param cmd 
  */
 void send_cmd_to_node(CommandStruct *cmd)
 {
-    esp_err_t err;
     esp_ble_mesh_msg_ctx_t ctx = {
         .addr = cmd->elemaddr,
         .app_idx = prov_key.app_idx,
@@ -679,15 +676,14 @@ void send_cmd_to_node(CommandStruct *cmd)
 
     cmd->reqSentToNodeTicks = xTaskGetTickCount();
     cmd->requestSentToNode = true;
-    err = esp_ble_mesh_client_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(CommandStruct), (uint8_t *)cmd, 10, true, ROLE_PROVISIONER);
-
-    if(err) {
-        ESP_LOGE(BLE_TAG, "Failed to send cmd : %s", esp_err_to_name(err));
-        cmd->errorcode = FAILURE;
-        cmd->bleErrorCode = err;
+    if (xQueueSend(command_queue, cmd, portMAX_DELAY) != pdPASS) {
+        ESP_LOGE(BLE_TAG, "Enqueing into Command Queue failed");
+        cmd->errorcode = ENQUEUING_INTO_COMMAND_QUEUE_FAILED;
+        led_set_state(LED_STATE_INVALID_OPERATION);
         generate_ack(cmd->packetid, cmd);
-        removeQueueItemByMsgSeqNo(command_queue, cmd->msgseqno);
+        return;
     }
+    esp_ble_mesh_client_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(CommandStruct), (uint8_t *)cmd, 10, true, ROLE_PROVISIONER);
 }
 
 #endif

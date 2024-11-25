@@ -352,6 +352,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             CommandStruct confack;
             confack.packetid = NODE_CONF_ACK;
             confack.elemaddr = last_command.elemaddr;
+            confack.irProtocolNum = ir_protocol_num;
             strcpy(confack.deviceName, serialNoStr);
             err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&confack);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));

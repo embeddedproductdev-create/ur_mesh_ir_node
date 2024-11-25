@@ -650,19 +650,17 @@ bool isFetchControlInfoSuccessful(const char *description)
         ac_manual_control_t.power_value = -1;
     }
 
-    if (strstr(description, "Mode"))
+    if (strstr(description, "Mode:"))
     {
-        snprintf(ac_manual_control_t.mode, sizeof(ac_manual_control_t.mode), (strstr(description, "Mode") + 9));
-        if (strstr(ac_manual_control_t.mode, COOL_MODE_STR))
-            strcpy(ac_manual_control_t.mode, COOL_MODE_STR);
-        else if (strstr(ac_manual_control_t.mode, HEAT_MODE_STR))
-            strcpy(ac_manual_control_t.mode, HEAT_MODE_STR);
-        else if (strstr(ac_manual_control_t.mode, DRY_MODE_STR))
-            strcpy(ac_manual_control_t.mode, DRY_MODE_STR);
-        else if (strstr(ac_manual_control_t.mode, AUTO_MODE_STR))
-            strcpy(ac_manual_control_t.mode, AUTO_MODE_STR);
-        else if (strstr(ac_manual_control_t.mode, FAN_MODE_STR))
-            strcpy(ac_manual_control_t.mode, FAN_MODE_STR);
+        if (strstr(description, "(Cool)")) strcpy(ac_manual_control_t.mode, COOL_MODE_STR);
+        else if(strstr(description, "(Heat)")) strcpy(ac_manual_control_t.mode, HEAT_MODE_STR);
+        else if(strstr(description, "(Auto)")) strcpy(ac_manual_control_t.mode, AUTO_MODE_STR);
+        else if(strstr(description, "(Fan)")) strcpy(ac_manual_control_t.mode, FAN_MODE_STR);
+        else if(strstr(description, "(Dry)")) strcpy(ac_manual_control_t.mode, DRY_MODE_STR);
+        else {
+            ac_manual_control_t.mode_err = MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
+            strcpy(ac_manual_control_t.mode, "-1");
+        }
     }
     else
     {
