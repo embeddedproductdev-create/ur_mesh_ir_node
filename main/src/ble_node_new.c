@@ -394,6 +394,12 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
+        
+        case NODE_GENERAL_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node General ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
 
         default:
             ESP_LOGE(BLE_TAG, "Unknown ACK type %d in %s", packetid, __func__);
@@ -430,6 +436,7 @@ void error_check_cmd(CommandStruct *cmd)
  */
 void handle_cmds_from_provisioner(CommandStruct *cmd)
 {
+    cmd->errorcode = SUCCESS;
     error_check_cmd(cmd);
     ESP_LOGE(BLE_TAG, "ErrorCode : %s - %d", get_error_code_name(cmd->errorcode), cmd->errorcode);
     if(cmd->errorcode == SUCCESS)
@@ -468,6 +475,17 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
             
             case NODE_DEBUG_INFO_PACKET:
                 ESP_LOGI(BLE_TAG, "Received Node Debug Info Packet from Provisioner");
+                if(cmd->resetDevice) {
+                    cmd->errorcode = factory_reset_device(DUE_TO_MQTT_CMD);
+                    send_ack_to_provisioner(cmd->packetid, cmd);
+                    powerCycleDevice(DUE_TO_MQTT_CMD);
+                    break;
+                }
+                if(cmd->restartDevice) {
+                    send_ack_to_provisioner(cmd->packetid, cmd);
+                    powerCycleDevice(DUE_TO_MQTT_CMD);
+                    break;
+                }
                 send_ack_to_provisioner(cmd->packetid, cmd);
                 break;
 

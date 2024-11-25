@@ -66,8 +66,11 @@ static void IRAM_ATTR button_task_handler(void *args)
  */
 void process_press_type(button_press_t *button_press_array, uint8_t *press_count)
 {
-    if (powerDownInProgress)
-        return;
+    if (powerDownInProgress) {
+        gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
+        vTaskDelete(NULL);
+    }
+
     if (button_press_array[0].pressedDuration_ms >= LONG_PRESS_3S_MS)
     {
         detected_press = LONG_PRESS_3S;
@@ -91,7 +94,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 #if (IS_GWY)
             powerDownInProgress = true;
 #else
-            powerCycleDevice();
+            powerCycleDevice(DUE_TO_BUTTON_PRESS);
 #endif
             break;
 
@@ -105,7 +108,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             send_ack_to_provisioner(NODE_UNPROV_PACKET, NULL);
             unprovision_success_cb();
 #else
-            unregister(NULL);
+            unregister(DUE_TO_BUTTON_PRESS);
 #endif
             break;
         }
@@ -122,7 +125,8 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 
     case LONG_PRESS_3S:
         ESP_LOGW(BUTTON_TAG, "Long press >3s detected");
-        factory_reset_device();
+        factory_reset_device(DUE_TO_BUTTON_PRESS);
+        powerCycleDevice(DUE_TO_BUTTON_PRESS);
         break;
 
     default:

@@ -12,6 +12,7 @@
 #include <flash.h>
 #include <ir.h>
 #include <led.h>
+#include <ble_new.h>
 
 #define NVS_TAG "NVS"
 
@@ -72,32 +73,49 @@ const char *NVS_TEACHING_MODE_CMD_KEYS[] = {
 /**
  * @brief Function that resets the device as a new device
  */
-void factory_reset_device()
+error_codes factory_reset_device(action_type_t type)
 {
-    esp_err_t err;
+    esp_err_t err = ESP_OK;
     err = nvs_flash_erase_partition(GENERAL_NVS_PARTITION_NAME);
     if (err)
     {
         ESP_LOGE(NVS_TAG, "Erasing General NVS partition failed : %s", esp_err_to_name(err));
-        return;
+        goto here;
     }
     err = nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
     if (err)
     {
         ESP_LOGE(NVS_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
-        return;
+        goto here;
     }
     err = nvs_flash_erase(); // Clears off the BLE Partition
     if (err)
     {
         ESP_LOGE(NVS_TAG, "Erasing BLE NVS partition failed : %s", esp_err_to_name(err));
-        return;
+        goto here;
     }
+    else ESP_LOGW(NVS_TAG, "Flash data erased succuessfully");
+
+    here:
+    if(err) err = DEVICE_DATA_ERASURE_FAILED;
+
+    if(type == DUE_TO_BUTTON_PRESS)
+    {
 #if (IS_GWY)
     if(!err) generate_general_ack(GWY_GENERAL_PACKET, DEVICE_DATA_ERASURE_SUCCESSFUL);
     else generate_general_ack(GWY_GENERAL_PACKET, DEVICE_DATA_ERASURE_FAILED);
 #else
+    CommandStruct ack;
+    ack.packetid = NODE_GENERAL_PACKET;
+    ack.errorcode = err;
+    ack.elemaddr = last_command.elemaddr;
+    ack.msgseqno = BUTTON_PRESS_MSGSEQNO;
+    strcpy(ack.deviceName, serialNoStr);
+    send_ack_to_provisioner(NODE_GENERAL_PACKET, &ack);
 #endif
+    }
+    if(err) led_set_state(LED_STATE_INVALID_OPERATION);
+    return err; 
 }
 
 /**

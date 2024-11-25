@@ -45,7 +45,7 @@ void nvs_init();
 int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, sizes_t size);
 char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key);
 void set_last_ac_cmd_in_nvs_flash();
-void factory_reset_device();
+error_codes factory_reset_device(action_type_t type);
 
 #ifdef __cplusplus
 extern "C" {

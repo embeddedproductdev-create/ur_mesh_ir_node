@@ -98,7 +98,7 @@ void handle_setting_hb_publish_configuration(uint16_t newPublishPeriodSec)
     else
     {
         publishPeriod = newPublishPeriodSec;
-        set_number_in_nvs_flash(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod, UINT16_SIZE);
+        set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PUBPERIOD_KEY, publishPeriod, UINT16_SIZE);
         hb_timer_restart();
     }
 }

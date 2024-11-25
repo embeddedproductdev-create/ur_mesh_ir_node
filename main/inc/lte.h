@@ -16,7 +16,7 @@
 #define SERIAL_NO_LEN 10
 #define IR_PROTOCOL_NAME_LEN 20
 #define LOCATION_STR_LEN 20
-#define MAX_MODE_STR_LEN 7
+#define MAX_MODE_STR_LEN 8
 #define MQTT_TOPIC_CHAR_LEN 50
 #define MQTT_CMD_RESP_LEN 200
 
@@ -214,80 +214,89 @@ typedef enum
     TEST_PACKET = 999
 }mqtt_packets;
 
+typedef enum
+{
+    DUE_TO_BUTTON_PRESS,
+    DUE_TO_MQTT_CMD,
+}action_type_t;
+
 typedef struct
 {
-    TickType_t reqSentToNodeTicks;
-    error_codes errorcode;
-    esp_err_t bleErrorCode;
-    mqtt_packets packetid;
-    uint16_t msgseqno;
-    uint16_t elemaddr;
-    uint8_t power;
-    uint8_t temperature;
-    uint8_t ambientTemperature;
-    uint8_t fanspeed;
-    uint8_t mode_num;
-    char mode_str[MAX_MODE_STR_LEN];
-    uint8_t swingh;
-    uint8_t swingv;
-    uint8_t locking;
-    uint16_t ontimer;
-    uint16_t offtimer;
-    uint8_t upperTemperatureLimit;
-    uint8_t lowerTemperatureLimit;
-    uint16_t publishPeriodSec;
-    uint8_t resetDevice;
-    uint8_t logging;
-    uint8_t teachingStart;
-    uint8_t startingTemperature;
-    uint8_t endingTemperature;
-    bool requestSentToNode;
-    int16_t irProtocolNum;
-    float deviceUpTimeHrs;
-    uint8_t majversion;
-    uint8_t minversion;
-    uint8_t patchversion;
-    uint8_t provisioned;
-    bool configured;
-    char deviceName[15];
+    TickType_t reqSentToNodeTicks;     // 4 bytes
+    esp_err_t bleErrorCode;            // 4 bytes
+    float deviceUpTimeHrs;             // 4 bytes
+    uint16_t packetid;                 // 2 bytes
+    int16_t irProtocolNum;             // 2 bytes
+    uint16_t msgseqno;                 // 2 bytes
+    uint16_t elemaddr;                 // 2 bytes
+    uint16_t ontimer;                  // 2 bytes
+    uint16_t offtimer;                 // 2 bytes
+    uint16_t publishPeriodSec;         // 2 bytes
+    error_codes errorcode;             // 1 byte
+    uint8_t power;                     // 1 byte
+    uint8_t temperature;               // 1 byte
+    uint8_t ambientTemperature;        // 1 byte
+    uint8_t fanspeed;                  // 1 byte
+    uint8_t mode_num;                  // 1 byte
+    uint8_t swingh;                    // 1 byte
+    uint8_t swingv;                    // 1 byte
+    uint8_t locking;                   // 1 byte
+    uint8_t upperTemperatureLimit;     // 1 byte
+    uint8_t lowerTemperatureLimit;     // 1 byte
+    uint8_t resetDevice;               // 1 byte
+    uint8_t restartDevice;             // 1 byte
+    uint8_t logging;                   // 1 byte
+    uint8_t teachingStart;             // 1 byte
+    uint8_t startingTemperature;       // 1 byte
+    uint8_t endingTemperature;         // 1 byte
+    uint8_t majversion;                // 1 byte
+    uint8_t minversion;                // 1 byte
+    uint8_t patchversion;              // 1 byte
+    uint8_t provisioned;               // 1 byte
+    bool requestSentToNode;            // 1 byte
+    bool configured;                   // 1 byte
+    char mode_str[MAX_MODE_STR_LEN];   // Variable size, but align at the end
+    char deviceName[16];                 // 16 bytes
 } CommandStruct;
 
-typedef struct 
-{
-    uint16_t packetid;
-    uint16_t elemAddr;
-    int8_t power_value;
-    int8_t fanspeed_value;
-    int8_t temperature_value;
-    error_codes power_err;
-    error_codes fanspeed_err;
-    error_codes mode_err;
-    error_codes temperature_err;
-    char deviceName[16];
-    char temperature[4];
-    char power[4];
-    char fan[2];
-    char mode[8];
-}manual_control;
 
 typedef struct
 {
-    uint16_t packetid;
-    uint16_t elemAddr;
-    uint16_t msgseqno;
-    uint8_t teachingStart;
-    uint8_t startingTemperature;
-    uint8_t endingTemperature;
-    uint8_t expectedTemperature;
-    uint8_t commandsReceived;
-    uint8_t commandIndex;
-    uint8_t remainingCommands;
-    error_codes errorCode;
-    esp_err_t bleErrorCode;
-    char lastCommand[36];
-    char nextCommand[36];
-    char deviceName[16];
-}teaching_mode;
+    uint16_t packetid;                // 2 bytes
+    uint16_t elemAddr;                // 2 bytes
+    error_codes power_err;            // 1 byte
+    error_codes fanspeed_err;         // 1 byte
+    error_codes mode_err;             // 1 byte
+    error_codes temperature_err;      // 1 byte
+    int8_t power_value;               // 1 byte
+    int8_t fanspeed_value;            // 1 byte
+    int8_t temperature_value;         // 1 byte
+    char deviceName[16];                // 16 bytes
+    char mode[8];                     // 8 bytes
+    char temperature[4];              // 4 bytes
+    char power[4];                    // 4 bytes
+    char fan[2];                      // 2 bytes
+} manual_control;
+
+
+typedef struct
+{
+    uint16_t packetid;              // 2 bytes
+    uint16_t elemAddr;              // 2 bytes
+    uint16_t msgseqno;              // 2 bytes
+    esp_err_t bleErrorCode;         // 4 bytes
+    char lastCommand[36];           // 36 bytes
+    char nextCommand[36];           // 36 bytes
+    char deviceName[16];              // 16 bytes
+    error_codes errorCode;          // 1 byte
+    uint8_t teachingStart;          // 1 byte
+    uint8_t startingTemperature;    // 1 byte
+    uint8_t endingTemperature;      // 1 byte
+    uint8_t expectedTemperature;    // 1 byte
+    uint8_t commandsReceived;       // 1 byte
+    uint8_t commandIndex;           // 1 byte
+    uint8_t remainingCommands;      // 1 byte
+} teaching_mode;
 
 typedef struct {
     uint16_t packetid;
@@ -326,12 +335,13 @@ error_codes check_response(char *uart_data, const char *check_string);
 error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name);
 error_codes send_cmd_and_check_response(bool logging, const char *cmd, const char *cmdName, const char *check_string, uint32_t timeout_ms);
 void powerUpLTE();
-void powerCycleDevice();
+void powerCycleDevice(action_type_t type);
 bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno);
 const char* get_error_code_name(error_codes code);
 void handle_ac_control(CommandStruct *cmd_struct);
 void register_gwy();
-void unregister(CommandStruct *ack);
+void unregister(action_type_t type);
+void generate_and_publish_debug_info_ack(CommandStruct *ack);
 
 #ifdef __cplusplus
 extern "C" {
