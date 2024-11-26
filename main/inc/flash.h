@@ -46,7 +46,6 @@ int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, size
 char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key);
 void set_last_ac_cmd_in_nvs_flash();
 error_codes factory_reset_device(action_type_t type);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -55,6 +54,8 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
 void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value);
 void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void *value, size_t length);
 void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *value, size_t *length);
+void pull_ir_cmd_data();
+
 #ifdef __cplusplus
 }
 #endif

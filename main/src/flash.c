@@ -438,13 +438,21 @@ esp_err_t init_data_in_nvs(void)
  * @brief Function that pulls the IR command data from flash and fills it in ram for access
  *
  */
-void pull_ir_cmd_data(nvs_handle_t handle)
+void pull_ir_cmd_data()
 {
+    esp_err_t err;
     ESP_LOGW(NVS_TAG, "Pulling IR Cmd data from flash ... ");
-    size_t size = TEACHING_MODE_CMD_SIZE;
+
+    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
+    if(err) {
+        ESP_LOGE(NVS_TAG, "Failed to open IR NVS : %s",esp_err_to_name(err));
+        return;
+    }
+
+    size_t size = teaching_mode_raw_len*sizeof(uint16_t);
     for (uint8_t i = 0; i < MAX_CMDS_IN_TEACHING_MODE; i++)
     {
-        nvs_get_blob(handle, NVS_TEACHING_MODE_CMD_KEYS[i], teachingModeIrCmds[i], &size);
+        nvs_get_blob(ir_nvs_handle, NVS_TEACHING_MODE_CMD_KEYS[i], &teachingModeIrCmds[i][1], &size);
     }
 }
 
@@ -485,7 +493,7 @@ esp_err_t pull_data_from_nvs(void)
     if (strcmp(ir_protocol, RAW_IR_PROTOCOL) == 0)
     {
         nvs_get_u16(ir_nvs_handle, NVS_RAWLEN_KEY, &teaching_mode_raw_len);
-        pull_ir_cmd_data(ir_nvs_handle);
+        pull_ir_cmd_data();
         print_ir_cmds();
     }
 

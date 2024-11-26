@@ -298,7 +298,6 @@ const uint8_t kDaikin2SwingVOff =         0xE;
 const uint8_t kDaikin2SwingVAuto =        0xF;  // A.k.a "Swing"
 const uint8_t kDaikin2SwingVSwing =  kDaikin2SwingVAuto;
 
-
 const uint8_t kDaikin2SwingHWide =     0xA3;
 const uint8_t kDaikin2SwingHLeftMax =  0xA8;
 const uint8_t kDaikin2SwingHLeft =     0xA9;

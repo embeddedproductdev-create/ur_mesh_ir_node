@@ -14,7 +14,7 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
-#define KHZ_41 41
+#define KHZ_41 38
 
 const char *RAW_IR_PROTOCOL = "RAW";
 const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
@@ -162,10 +162,23 @@ void ir_transmit()
     {
     case RAW:
         if (!last_command.power)
+        {
+            for(int i=0;i<teaching_mode_raw_len;i++)
+            {
+                printf("%d ",teachingModeIrCmds[0][i]);
+            }
+            printf("\n");
             ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_41);
+        }
         else
         {
-            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - teaching_mode_t.startingTemperature + 1], teaching_mode_raw_len, KHZ_41);
+            uint8_t index = last_command.temperature - MAX_LOW_TEMP + 1;
+            for(int i=0;i<teaching_mode_raw_len;i++)
+            {
+                printf("%d ",teachingModeIrCmds[index][i]);
+            }
+            printf("\n");
+            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, KHZ_41);
         }
         break;
 
@@ -764,7 +777,8 @@ void exit_teaching_mode(bool success)
 {
     if (success)
     {
-        configured = true;
+        pull_ir_cmd_data(); //Pull the data from nvs flash to RAM for immediate usage
+        configured = true; set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
         ir_protocol_num = RAW;
         strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
         set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
@@ -799,23 +813,30 @@ void perform_teaching_process(const char *description)
 
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
+        /*I'm not sure why we have to do this, but we're having to multiply the received signal values with 2*/
+        for(int i=0;i<results.rawlen;i++)
+        {
+            results.rawbuf[i]*=2;
+        }
+
         /*If this is the first IR Signal*/
         if (teaching_mode_t.commandsReceived == 0)
         {
+            teaching_mode_raw_len = results.rawlen;
+            set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, teaching_mode_raw_len, UINT16_SIZE);
+
+            /*Let's store raw values to nvs flash*/
+            set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen*sizeof(uint16_t));
+
             /**
              * @warning We're only comparing power here and not temperature, because, for some AC remotes
              * like LG2, when sending power OFF command, the decoded string doesn't seem to contain temperature at all.
              *
              */
-            ESP_LOGW(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
+            ESP_LOGW(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
             if (ac_manual_control_t.power_value == 0)
             {
-                set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, results.rawlen, UINT16_SIZE);
-
-                /*Let's store raw values to nvs flash*/
-                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen - 1);
-
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
                 teaching_mode_t.commandIndex++;
@@ -832,14 +853,14 @@ void perform_teaching_process(const char *description)
         }
         else
         {
-            ESP_LOGW(IR_TAG, "Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
+            ESP_LOGW(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
             if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
             {
                 /*Let's store raw values to nvs flash*/
-                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, results.rawlen - 1);
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, (results.rawlen)*sizeof(uint16_t));
 
-                /*We've received a valid first IR Signal*/
+                /*We've received a valid IR Signal*/
                 teaching_mode_t.commandsReceived++;
                 teaching_mode_t.commandIndex++;
                 teaching_mode_t.remainingCommands--;
@@ -893,11 +914,20 @@ void ir_recv_task(void *args)
                 ESP_LOGW(IR_TAG, "IR Buffer overflow");
             ESP_LOGW(IR_TAG, "kTolerancePercentage : %d", kTolerancePercentage);
             ESP_LOGW(IR_TAG, "%s", resultToHumanReadableBasic(&results, &protocol).c_str());
-            ESP_LOGW(IR_TAG, "Protocol Number : %d", protocol);
+            ESP_LOGW(IR_TAG, "Protocol Number : %d | Rawlen : %d", protocol, results.rawlen);
             String description = IRAcUtils::resultAcToString(&results);
             if (description.length())
                 ESP_LOGW(IR_TAG, "%s\n", description.c_str());
 
+            if(results.rawlen > 20)
+            {
+                ESP_LOGE(IR_TAG, "Detected IR Signal values : ");
+                for(int i=0; i<results.rawlen; i++)
+                {
+                    printf("%d ",results.rawbuf[i]);
+                }
+                printf("\n");
+            }
             /**  @warning DO NOT CHANGE THE FOLLOWING ORDER
              * 1) locking Feature
              * 2) Teaching Mode
