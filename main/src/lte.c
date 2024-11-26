@@ -120,6 +120,7 @@ const char *AC_LOCKING_KEY = "Locking";
 const char *UPPER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
 const char *LOWER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
 const char *ERROR_CODE_KEY = "ErrorCode";
+const char *ERROR_MSG_KEY = "ErrorMsg";
 const char *AMBIENT_TEMPERATURE_DATA_KEY = "AmbientTemperature";
 const char *PUBLISH_PERIOD_KEY = "PublishPeriodSec";
 const char *FIRMWARE_VERSION_KEY = "FirmwareVersion";
@@ -391,6 +392,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case GWY_UNREG_PACKET:
@@ -398,6 +400,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_PROV_PACKET:
@@ -405,6 +408,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
 
         case NODE_UNPROV_PACKET:
@@ -413,6 +417,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
@@ -422,6 +427,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
             if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
             else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_CONF_ACK:
@@ -431,6 +437,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
             if(cmd_struct->irProtocolNum == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
             else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
 
         case GWY_RECONF_PACKET:
@@ -438,6 +445,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_RECONF_PACKET:
@@ -446,6 +454,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
@@ -454,6 +463,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_AC_CONTROL_PACKET:
@@ -462,6 +472,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
         
@@ -505,6 +516,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
@@ -513,6 +525,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
@@ -521,6 +534,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, teaching_mode_t.msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(teaching_mode_t->errorcode));
             jwObj_int(jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
             jwObj_string(jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
             jwObj_string(jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
@@ -532,6 +546,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, "");
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
@@ -554,6 +569,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             char version[20], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
@@ -570,6 +586,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             if(cmd_struct->errorcode==SUCCESS && cmd_struct->bleErrorCode == ESP_OK)
             {

@@ -55,6 +55,7 @@ extern const char *AC_LOCKING_KEY;
 extern const char *UPPER_TEMPERATURE_LIMIT_KEY;
 extern const char *LOWER_TEMPERATURE_LIMIT_KEY;
 extern const char *ERROR_CODE_KEY;
+extern const char *ERROR_MSG_KEY;
 extern const char *AMBIENT_TEMPERATURE_DATA_KEY;
 extern const char *PUBLISH_PERIOD_KEY;
 extern const char *FIRMWARE_VERSION_KEY;

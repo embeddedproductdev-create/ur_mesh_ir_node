@@ -453,6 +453,7 @@ void pull_ir_cmd_data()
     for (uint8_t i = 0; i < MAX_CMDS_IN_TEACHING_MODE; i++)
     {
         nvs_get_blob(ir_nvs_handle, NVS_TEACHING_MODE_CMD_KEYS[i], &teachingModeIrCmds[i][1], &size);
+        teachingModeIrCmds[i][1] = 0;
     }
 }
 
