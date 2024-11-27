@@ -28,7 +28,8 @@ TaskHandle_t ir_recv_task_handle = NULL;
 
 /*Global Flags/Variables Initialization*/
 uint8_t newDevice;
-char serialNoStr[10];
+char serialNoStr[SERIAL_NO_LEN];
+char alive_msg[ALIVE_MSG_LEN];
 bool mqtt_connected;
 uint8_t registered;
 uint8_t provisioned;
@@ -36,13 +37,13 @@ uint8_t configured;
 bool sending_ir_command;
 bool teaching_in_progress;
 int16_t ir_protocol_num;
-char ir_protocol[20];
+char ir_protocol[IR_PROTOCOL_NAME_LEN];
 uint16_t publishPeriod;
 CommandStruct last_command;
 char device_location_str[LOCATION_STR_LEN];
 uint16_t teaching_mode_raw_len;
 
-uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
+uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CDM_LEN];
 
 /**
  * @brief Function that prints basic information about the device after fetching info from nvs flash
@@ -117,11 +118,11 @@ void app_main(void)
 
 #if (IS_GWY)
     strcpy(serialNoStr, "GWY00002");
+    sprintf(alive_msg, "%s is alive", serialNoStr);
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
     sprintf(alive_topic, "%s/alive", serialNoStr);
     sprintf(will_topic, "GWYS/will");
-    if(registered) ble_init();
 #else
     strcpy(serialNoStr, "N00004");
     ble_init();

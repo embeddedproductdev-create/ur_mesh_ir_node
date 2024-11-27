@@ -22,10 +22,10 @@
 ## Gateway Registration Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 0             | Number     | 0           |
-| MsgSeqNo       | 12345         | Number     | 0-65535     |
-| Location       | "1st Floor"   | String     | 20 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       0       |   Number   |      0      |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    Location    |  "1st Floor"  |   String   |  20 chars   |
 
 ```json
 {
@@ -38,26 +38,31 @@
 ## Gateway Registration Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 0             | Number     | 0           |
-| MsgSeqNo       | 12345         | Number     | 0-65535     |
-| ErrorCode      | 0             | Number     | -1 to 67    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       0       |   Number   |      0      |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 0,
   "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
   "ErrorCode": 0,
-  "ErrorMessage": "SUCCESS"
+  "ErrorMsg": "SUCCESS"
 }
 ```
 
 ## Gateway AC Remote Configuration Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 1             | Number     | 1           |
-| Status         | "Success"     | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       1       |   Number   |      1      |
+|   IrProtocol   |     "LG2"     |   String   |     N/A     |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
@@ -70,10 +75,10 @@
 ## Gateway Unregistration Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 1             | Number     | 1           |
-| MsgSeqNo       | 54321         | Number     | 0-65535     |
-| Location       | "2nd Floor"   | String     | 20 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       1       |   Number   |      1      |
+|    MsgSeqNo    |     54321     |   Number   |   0-65535   |
+|    Location    |  "2nd Floor"  |   String   |  20 chars   |
 
 ```json
 {
@@ -86,10 +91,10 @@
 ## Gateway Unregistration Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 1             | Number     | 1           |
-| MsgSeqNo       | 54321         | Number     | 0-65535     |
-| ErrorCode      | 0             | Number     | -1 to 67    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       1       |   Number   |      1      |
+|    MsgSeqNo    |     54321     |   Number   |   0-65535   |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
 
 ```json
 {
@@ -103,10 +108,10 @@
 ## Gateway AC Control Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 3             | Number     | 3           |
-| MsgSeqNo       | 98765         | Number     | 0-65535     |
-| Command        | "Power On"    | String     | 20 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       3       |   Number   |      3      |
+|    MsgSeqNo    |     98765     |   Number   |   0-65535   |
+|    Command     |  "Power On"   |   String   |  20 chars   |
 
 ```json
 {
@@ -119,10 +124,10 @@
 ## Gateway AC Control Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 3             | Number     | 3           |
-| MsgSeqNo       | 98765         | Number     | 0-65535     |
-| ErrorCode      | 0             | Number     | -1 to 67    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       3       |   Number   |      3      |
+|    MsgSeqNo    |     98765     |   Number   |   0-65535   |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
 
 ```json
 {
@@ -136,10 +141,10 @@
 ## Gateway Manual AC Control Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 4             | Number     | 4           |
-| MsgSeqNo       | 112233        | Number     | 0-65535     |
-| Command        | "Cooling"     | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       4       |   Number   |      4      |
+|    MsgSeqNo    |    112233     |   Number   |   0-65535   |
+|    Command     |   "Cooling"   |   String   |  10 chars   |
 
 ```json
 {
@@ -152,10 +157,10 @@
 ## Gateway AC Remote Reconfiguration Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 5             | Number     | 5           |
-| MsgSeqNo       | 334455        | Number     | 0-65535     |
-| NewConfig      | "Config X"    | String     | 20 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       5       |   Number   |      5      |
+|    MsgSeqNo    |    334455     |   Number   |   0-65535   |
+|   NewConfig    |  "Config X"   |   String   |  20 chars   |
 
 ```json
 {
@@ -168,10 +173,10 @@
 ## Gateway AC Remote Reconfiguration Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 5             | Number     | 5           |
-| MsgSeqNo       | 334455        | Number     | 0-65535     |
-| Status         | "Success"     | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       5       |   Number   |      5      |
+|    MsgSeqNo    |    334455     |   Number   |   0-65535   |
+|     Status     |   "Success"   |   String   |  10 chars   |
 
 ```json
 {
@@ -184,10 +189,10 @@
 ## Gateway Heartbeat Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 6             | Number     | 6           |
-| MsgSeqNo       | 445566        | Number     | 0-65535     |
-| Status         | "Alive"       | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       6       |   Number   |      6      |
+|    MsgSeqNo    |    445566     |   Number   |   0-65535   |
+|     Status     |    "Alive"    |   String   |  10 chars   |
 
 ```json
 {
@@ -200,10 +205,10 @@
 ## Gateway Heartbeat Publish Configuration Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 7             | Number     | 7           |
-| MsgSeqNo       | 667788        | Number     | 0-65535     |
-| Interval       | "30s"         | String     | 5 chars     |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       7       |   Number   |      7      |
+|    MsgSeqNo    |    667788     |   Number   |   0-65535   |
+|    Interval    |     "30s"     |   String   |   5 chars   |
 
 ```json
 {
@@ -216,10 +221,10 @@
 ## Gateway Heartbeat Publish Configuration Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 7             | Number     | 7           |
-| MsgSeqNo       | 667788        | Number     | 0-65535     |
-| Status         | "Success"     | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       7       |   Number   |      7      |
+|    MsgSeqNo    |    667788     |   Number   |   0-65535   |
+|     Status     |   "Success"   |   String   |  10 chars   |
 
 ```json
 {
@@ -232,12 +237,12 @@
 ## Gateway Teaching Mode Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 8             | Number     | 8           |
-| MsgSeqNo       | 778899        | Number     | 0-65535     |
-| Mode           | "Teach"       | String     |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       8       |   Number   |      8      |
+|    MsgSeqNo    |    778899     |   Number   |   0-65535   |
+|      Mode      |    "Teach"    |   String   |
 
- 10 chars    |
+10 chars |
 
 ```json
 {
@@ -250,10 +255,10 @@
 ## Gateway Teaching Mode Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 8             | Number     | 8           |
-| MsgSeqNo       | 778899        | Number     | 0-65535     |
-| Status         | "Success"     | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       8       |   Number   |      8      |
+|    MsgSeqNo    |    778899     |   Number   |   0-65535   |
+|     Status     |   "Success"   |   String   |  10 chars   |
 
 ```json
 {
@@ -266,10 +271,10 @@
 ## Gateway Debug Info Packet
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 9             | Number     | 9           |
-| MsgSeqNo       | 889900        | Number     | 0-65535     |
-| InfoType       | "Error"       | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       9       |   Number   |      9      |
+|    MsgSeqNo    |    889900     |   Number   |   0-65535   |
+|    InfoType    |    "Error"    |   String   |  10 chars   |
 
 ```json
 {
@@ -282,10 +287,10 @@
 ## Gateway Debug Info Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 9             | Number     | 9           |
-| MsgSeqNo       | 889900        | Number     | 0-65535     |
-| Status         | "Success"     | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       9       |   Number   |      9      |
+|    MsgSeqNo    |    889900     |   Number   |   0-65535   |
+|     Status     |   "Success"   |   String   |  10 chars   |
 
 ```json
 {
@@ -298,10 +303,10 @@
 ## Gateway General Ack
 
 | Parameter Name | Example Value | Value Type | Value Range |
-|:--------------:|:-------------:|:----------:|:-----------:|
-| PacketId       | 10            | Number     | 10          |
-| MsgSeqNo       | 1000000       | Number     | 0-65535     |
-| Status         | "Ack"         | String     | 10 chars    |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |      10       |   Number   |     10      |
+|    MsgSeqNo    |    1000000    |   Number   |   0-65535   |
+|     Status     |     "Ack"     |   String   |  10 chars   |
 
 ```json
 {

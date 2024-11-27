@@ -14,7 +14,7 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
-#define KHZ_41 38
+#define KHZ_41 41
 
 const char *RAW_IR_PROTOCOL = "RAW";
 const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
@@ -70,7 +70,7 @@ const char *TEACHING_MODE_SEQUENCE[] = {
 };
 
 /*IR Receiver Initializations*/
-IRrecv irrecv(IR_RECV_GPIO, RECV_BUFFER_SIZE, KTIMEOUT, SAVE_BUFFER_FLAG);
+IRrecv irrecv(IR_RECV_GPIO, IR_RECV_BUFFER_LEN, KTIMEOUT, SAVE_BUFFER_FLAG);
 decode_results results;
 const uint8_t kTolerancePercentage = 25;
 
@@ -749,6 +749,8 @@ void locking_feature(const char *description)
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
     teaching_in_progress = true;
+    esp_err_t err = nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
+    if (err) ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
     ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
     update_led_status();
     teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
@@ -954,8 +956,7 @@ void ir_recv_task(void *args)
             /*AC Remote Configuration Process*/
             else if ((registered || provisioned) && !configured && protocol != UNKNOWN && !teaching_in_progress)
             {
-                configured = true;
-                update_led_status();
+                configured = true; update_led_status();
                 ir_protocol_num = protocol;
                 strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
                 set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);

@@ -16,12 +16,6 @@
 
 #define NVS_TAG "NVS"
 
-#define IR_NVS_PARTITION_NAME "ir"
-#define GENERAL_NVS_PARTITION_NAME "general"
-
-#define IR_NVS_NAMESPACE "IR"
-#define GENERAL_NVS_NAMESPACE "GENERAL"
-
 nvs_handle_t ir_nvs_handle;
 nvs_handle_t general_nvs_handle;
 

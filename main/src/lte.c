@@ -19,36 +19,7 @@
 #include <ir.h>
 #include <ble_new.h>
 
-#define BAUD_RATE 115200
-
-#define LTE_TAG "LTE"
-
-#define LTE_RESET_PIN 46
-#define LTE_POWER_PIN 9
-#define TXD_PIN 17
-#define RXD_PIN 18
-#define CTS_PIN 11
-#define RTS_PIN 10
-#define UART_BUF_SIZE 800
-
-#define MIN_LTE_RESP_WAIT_MS 100
-
-#define MQTT_ACK_SIZE 1024
-#define RETRY_COUNT 5
-#define NETWORK_CHECK_INTERVAL_TICKS pdMS_TO_TICKS(60000) //60s once
-
-/*MQTT Configuration parameters*/
-#define MQTT_CLIENT_INDEX 2
-#define WILL_MSG "Device disconnected unexpectedly"
-#define WILL_MSG_LEN strlen(WILL_MSG)
-#define MQTT_MSG_ID 2
-#define MQTT_QOS 2
-#define MQTT_WILL_QOS 2
-#define MQTT_WILL_RETAIN 1
-#define MQTT_WILL_FLAG 1
-#define MQTT_KEEP_ALIVE_S 10
-
-char LTE_UART_data[UART_BUF_SIZE];
+char LTE_UART_data[UART_BUFFER_LEN];
 
 /*Basic AT commands*/
 const char *AT_CMD = "AT\r";
@@ -152,17 +123,15 @@ const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
 const char *BLE_ERROR_CODE_KEY = "BleErrorCode";
 const char *MESSAGE_KEY = "Message";
 
+bool powerDownFlag = false;
 
-bool powerDownInProgress = false;
-
-char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
-char publish_topic[MQTT_TOPIC_CHAR_LEN];
-char alive_topic[MQTT_TOPIC_CHAR_LEN];
-char will_topic[MQTT_TOPIC_CHAR_LEN];
+char subscribe_topic[MQTT_TOPIC_NAME_LEN];
+char publish_topic[MQTT_TOPIC_NAME_LEN];
+char alive_topic[MQTT_TOPIC_NAME_LEN];
+char will_topic[MQTT_TOPIC_NAME_LEN];
 
 bool need_to_activate_pdp = false;
 bool LOG_DATA  = true;
-
 
 char node_macid[18];
 
@@ -219,11 +188,15 @@ void publish_from_queue() {
     }
 }
 
-void enqueue_for_publish(char *ack_json) {
-    if (xQueueSend(publish_queue, &ack_json, portMAX_DELAY) != pdPASS) {
-        ESP_LOGE(LTE_TAG, "Publish Queue Full. Failed to enqueue ACK.\n");
+/**
+ * @brief Function that adds acks into publish queue
+ * @param ack 
+ */
+void enqueue_for_publish(char *ack) {
+    if (xQueueSend(publish_queue, &ack, portMAX_DELAY) != pdPASS) {
+        ESP_LOGE(LTE_TAG, "Publish Queue Full. Failed to enqueue ACK");
     }
-    ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
+    // ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
 }
 
 /**
@@ -232,30 +205,24 @@ void enqueue_for_publish(char *ack_json) {
  */
 void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_t)
 {
-    int size = 1024;
-    char *buffer = (char *)malloc(size);
+    char *buffer = (char *)malloc(sizeof(char)*MQTT_ACK_BUFFER_LEN);
     if(!buffer) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        ESP_LOGE(LTE_TAG, "%s() - Memory allocation failed",__func__);
         return;
     }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
-    jwOpen(jwc, buffer, size, JW_OBJECT, 1);
-    jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK);
-    jwObj_int(jwc, POWER_KEY, node_ac_manual_control_t->power_value);
-    jwObj_int(jwc, DETECTED_TEMPERATURE_KEY, node_ac_manual_control_t->temperature_value);
-    jwObj_int(jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_value);
-    jwObj_string(jwc, MODE_KEY, node_ac_manual_control_t->mode);
-    jwObj_int(jwc, POWER_ERROR_KEY, node_ac_manual_control_t->power_err);
-    jwObj_int(jwc, TEMPERATURE_ERROR_KEY, node_ac_manual_control_t->temperature_err);
-    jwObj_int(jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_err);
-    jwObj_int(jwc, MODE_ERROR_KEY, node_ac_manual_control_t->mode_err);           
-    jwEnd(jwc);
-    jwClose(jwc);
+    jWriteControl_t jwc;
+    jwOpen(&jwc, buffer, MQTT_ACK_BUFFER_LEN, JW_OBJECT, 1);
+    jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_MANUAL_AC_CONTROL_ACK);
+    jwObj_int(&jwc, POWER_KEY, node_ac_manual_control_t->power_value);
+    jwObj_int(&jwc, DETECTED_TEMPERATURE_KEY, node_ac_manual_control_t->temperature_value);
+    jwObj_int(&jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_value);
+    jwObj_string(&jwc, MODE_KEY, node_ac_manual_control_t->mode);
+    jwObj_int(&jwc, POWER_ERROR_KEY, node_ac_manual_control_t->power_err);
+    jwObj_int(&jwc, TEMPERATURE_ERROR_KEY, node_ac_manual_control_t->temperature_err);
+    jwObj_int(&jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_err);
+    jwObj_int(&jwc, MODE_ERROR_KEY, node_ac_manual_control_t->mode_err);           
+    jwEnd(&jwc);
+    jwClose(&jwc);
     enqueue_for_publish(buffer);
 }
 
@@ -265,25 +232,19 @@ void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_
  */
 void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
 {
-    int size = 1024;
-    char *buffer = (char *)malloc(size);
+    char *buffer = (char *)malloc(sizeof(char)*MQTT_ACK_BUFFER_LEN);
     if(!buffer) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        ESP_LOGE(LTE_TAG, "%s() - Memory allocation failed",__func__);
         return;
     }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
-    jwObj_int(jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE);
-    jwObj_int(jwc, ERROR_CODE_KEY, node_teaching_mode_t->errorCode);
-    jwObj_int(jwc, REMAINING_CMD_KEY, node_teaching_mode_t->remainingCommands);
-    jwObj_string(jwc, LAST_CMD_KEY, node_teaching_mode_t->lastCommand);
-    jwObj_string(jwc, NEXT_CMD_KEY, node_teaching_mode_t->nextCommand);       
-    jwEnd(jwc);
-    jwClose(jwc);
+    jWriteControl_t jwc;
+    jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE);
+    jwObj_int(&jwc, ERROR_CODE_KEY, node_teaching_mode_t->errorCode);
+    jwObj_int(&jwc, REMAINING_CMD_KEY, node_teaching_mode_t->remainingCommands);
+    jwObj_string(&jwc, LAST_CMD_KEY, node_teaching_mode_t->lastCommand);
+    jwObj_string(&jwc, NEXT_CMD_KEY, node_teaching_mode_t->nextCommand);       
+    jwEnd(&jwc);
+    jwClose(&jwc);
     enqueue_for_publish(buffer);
 }
 
@@ -293,46 +254,43 @@ void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
  */
 void generate_and_publish_debug_info_ack(CommandStruct *ack)
 {
-    int size = 1024;
-    char *buffer = (char *)malloc(size);
+    char *buffer = (char *)malloc(sizeof(char)*MQTT_ACK_BUFFER_LEN);
     if(!buffer) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        ESP_LOGE(LTE_TAG, "%s() - Memory allocation failed",__func__);
         return;
     }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
-    jwObj_int(jwc, JSON_PACKET_ID_KEY, ack->packetid);
-    jwObj_int(jwc, MSG_SEQ_NO_KEY, ack->msgseqno);
-    jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-    jwObj_int(jwc, ERROR_CODE_KEY, ack->errorcode);
+    jWriteControl_t jwc;
+    jwObj_int(&jwc, JSON_PACKET_ID_KEY, ack->packetid);
+    jwObj_int(&jwc, MSG_SEQ_NO_KEY, ack->msgseqno);
+    jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+    jwObj_int(&jwc, ERROR_CODE_KEY, ack->errorcode);
     char version[20], uptime[10];
     sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
     sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
-    jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
-    jwObj_int(jwc, REGISTERED_KEY, registered);
-    jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
-    jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
-    jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
-    jwEnd(jwc);
-    jwClose(jwc);
+    jwObj_string(&jwc, FIRMWARE_VERSION_KEY, version);
+    jwObj_int(&jwc, REGISTERED_KEY, registered);
+    jwObj_string(&jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
+    jwObj_int(&jwc, PUBLISH_PERIOD_KEY, publishPeriod);
+    jwObj_string(&jwc, DEVICE_UPTIME_KEY, uptime);
+    jwEnd(&jwc);
+    jwClose(&jwc);
 
-    char MQTT_PUBLISH_MESG_CMD[1024];
+    char MQTT_PUBLISH_MESG_CMD[MQTT_CMD_RESP_LEN];
 	sprintf(MQTT_PUBLISH_MESG_CMD, "AT+QMTPUBEX=2,2,2,0,\"%s\",%d\r\n", publish_topic, strlen(buffer));
 	if (send_cmd_and_check_response(LOG_DATA, MQTT_PUBLISH_MESG_CMD, "PUBLISH_TO_MQTT", ">", 1000) == SUCCESS)
 	{
-		if (uart_write_bytes(UART_NUM_1, ack, strlen(buffer)) != FAILURE)
+		if (uart_write_bytes(UART_NUM_1, ack, strlen(buffer)) == SUCCESS);
+        else
         {
             ESP_LOGE(LTE_TAG, "Failed to write publish message to LTE UART");
             led_set_state(LED_STATE_INVALID_OPERATION);
         }
+        free(buffer);
 	}
 	else {
         ESP_LOGE(LTE_TAG, "Publish Prompt not received");
         led_set_state(LED_STATE_INVALID_OPERATION);
+        free(buffer);
     }
     
 }
@@ -349,18 +307,13 @@ void generate_general_ack(uint16_t packetid, error_codes err)
         ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
         return;
     }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
-    jwOpen(jwc, buffer, size, JW_OBJECT, 1);
-    jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-    jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-    jwObj_int(jwc, ERROR_CODE_KEY, err);
-    jwEnd(jwc);
-    jwClose(jwc);
+    jWriteControl_t jwc;
+    jwOpen(&jwc, buffer, size, JW_OBJECT, 1);
+    jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+    jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+    jwObj_int(&jwc, ERROR_CODE_KEY, err);
+    jwEnd(&jwc);
+    jwClose(&jwc);
     enqueue_for_publish(buffer);
 }
 
@@ -370,244 +323,237 @@ void generate_general_ack(uint16_t packetid, error_codes err)
  */
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 {
-    int size = 1024;
-    char *buffer = (char *)malloc(size);
+    char *buffer = (char *)malloc(sizeof(char)*MQTT_ACK_BUFFER_LEN);
     if(!buffer) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
+        ESP_LOGE(LTE_TAG, "%s() - Memory allocation failed",__func__);
         return;
     }
-    struct jWriteControl *jwc = (struct jWriteControl *)malloc(sizeof(struct jWriteControl));
-    if(!jwc) {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for jwc | Can't generate ack");
-        free(buffer);
-        return;
-    }
+    jWriteControl_t jwc;
     
-    jwOpen(jwc, buffer, size, JW_OBJECT, 1);
+    jwOpen(&jwc, buffer, MQTT_ACK_BUFFER_LEN, JW_OBJECT, 1);
 
     switch(packetid)
     {
         case GWY_REG_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case GWY_UNREG_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_PROV_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
 
         case NODE_UNPROV_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
-            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
         case GWY_CONF_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
-            if(ir_protocol_num == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
+            if(ir_protocol_num == -1) jwObj_int(&jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+            else jwObj_int(&jwc, ERROR_CODE_KEY, SUCCESS);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(SUCCESS));
             break;
         
         case NODE_CONF_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_string(jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
-            if(cmd_struct->irProtocolNum == -1) jwObj_int(jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_int(jwc, ERROR_CODE_KEY, SUCCESS);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_string(&jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
+            if(cmd_struct->irProtocolNum == -1) jwObj_int(&jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
+            else jwObj_int(&jwc, ERROR_CODE_KEY, SUCCESS);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
 
         case GWY_RECONF_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_RECONF_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
-            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
         case GWY_AC_CONTROL_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_AC_CONTROL_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
-            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
         
         case GWY_HEARTBEAT_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, POWER_KEY, last_command.power);
-            jwObj_string(jwc, MODE_KEY, last_command.mode_str);
-            jwObj_int(jwc, FAN_SPEED_KEY, last_command.fanspeed);
-            jwObj_int(jwc, TEMPERATURE_KEY, last_command.temperature);
-            jwObj_int(jwc, AMBIENT_TEMPERATURE_DATA_KEY, last_command.ambientTemperature);
-            jwObj_int(jwc, SWING_H_KEY, last_command.swingh);
-            jwObj_int(jwc, SWING_V_KEY, last_command.swingv);
-            jwObj_int(jwc, ONTIMER_KEY, last_command.ontimer);
-            jwObj_int(jwc, OFFTIMER_KEY, last_command.offtimer);
-            jwObj_int(jwc, AC_LOCKING_KEY, last_command.locking);
-            jwObj_int(jwc, UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
-            jwObj_int(jwc, LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, POWER_KEY, last_command.power);
+            jwObj_string(&jwc, MODE_KEY, last_command.mode_str);
+            jwObj_int(&jwc, FAN_SPEED_KEY, last_command.fanspeed);
+            jwObj_int(&jwc, TEMPERATURE_KEY, last_command.temperature);
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DATA_KEY, last_command.ambientTemperature);
+            jwObj_int(&jwc, SWING_H_KEY, last_command.swingh);
+            jwObj_int(&jwc, SWING_V_KEY, last_command.swingv);
+            jwObj_int(&jwc, ONTIMER_KEY, last_command.ontimer);
+            jwObj_int(&jwc, OFFTIMER_KEY, last_command.offtimer);
+            jwObj_int(&jwc, AC_LOCKING_KEY, last_command.locking);
+            jwObj_int(&jwc, UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
+            jwObj_int(&jwc, LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
             break;
         
         case NODE_HEARTBEAT_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, POWER_KEY, cmd_struct->power);
-            jwObj_string(jwc, MODE_KEY, cmd_struct->mode_str);
-            jwObj_int(jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
-            jwObj_int(jwc, TEMPERATURE_KEY, cmd_struct->temperature);
-            jwObj_int(jwc, AMBIENT_TEMPERATURE_DATA_KEY, cmd_struct->ambientTemperature);
-            jwObj_int(jwc, SWING_H_KEY, cmd_struct->swingh);
-            jwObj_int(jwc, SWING_V_KEY, cmd_struct->swingv);
-            jwObj_int(jwc, ONTIMER_KEY, cmd_struct->ontimer);
-            jwObj_int(jwc, OFFTIMER_KEY, cmd_struct->offtimer);
-            jwObj_int(jwc, AC_LOCKING_KEY, cmd_struct->locking);
-            jwObj_int(jwc, UPPER_TEMPERATURE_LIMIT_KEY, cmd_struct->upperTemperatureLimit);
-            jwObj_int(jwc, LOWER_TEMPERATURE_LIMIT_KEY, cmd_struct->lowerTemperatureLimit);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, POWER_KEY, cmd_struct->power);
+            jwObj_string(&jwc, MODE_KEY, cmd_struct->mode_str);
+            jwObj_int(&jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
+            jwObj_int(&jwc, TEMPERATURE_KEY, cmd_struct->temperature);
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DATA_KEY, cmd_struct->ambientTemperature);
+            jwObj_int(&jwc, SWING_H_KEY, cmd_struct->swingh);
+            jwObj_int(&jwc, SWING_V_KEY, cmd_struct->swingv);
+            jwObj_int(&jwc, ONTIMER_KEY, cmd_struct->ontimer);
+            jwObj_int(&jwc, OFFTIMER_KEY, cmd_struct->offtimer);
+            jwObj_int(&jwc, AC_LOCKING_KEY, cmd_struct->locking);
+            jwObj_int(&jwc, UPPER_TEMPERATURE_LIMIT_KEY, cmd_struct->upperTemperatureLimit);
+            jwObj_int(&jwc, LOWER_TEMPERATURE_LIMIT_KEY, cmd_struct->lowerTemperatureLimit);
             break;
         
         case GWY_HEARTBEAT_PUB_CONF_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_HEARTBEAT_PUB_CONF_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
-            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
         case GWY_TEACHING_MODE:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, teaching_mode_t.msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(teaching_mode_t->errorcode));
-            jwObj_int(jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
-            jwObj_string(jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
-            jwObj_string(jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, teaching_mode_t.msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, teaching_mode_t.errorCode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(teaching_mode_t.errorCode));
+            jwObj_int(&jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
+            jwObj_string(&jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
+            jwObj_string(&jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
             break;
         
         case NODE_TEACHING_MODE: //Case where Node Teaching Mode got timed out or was not sent at all
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, "");
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
-            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, "");
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             break;
 
         case GWY_MANUAL_AC_CONTROL_ACK:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, POWER_KEY, ac_manual_control_t.power_value);
-            jwObj_int(jwc, DETECTED_TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
-            jwObj_int(jwc, TEMPERATURE_KEY, last_command.temperature);
-            jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_value);
-            jwObj_string(jwc, MODE_KEY, ac_manual_control_t.mode);
-            jwObj_int(jwc, POWER_ERROR_KEY, ac_manual_control_t.power_err);
-            jwObj_int(jwc, TEMPERATURE_ERROR_KEY, ac_manual_control_t.temperature_err);
-            jwObj_int(jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
-            jwObj_int(jwc, MODE_ERROR_KEY, ac_manual_control_t.mode_err);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, POWER_KEY, ac_manual_control_t.power_value);
+            jwObj_int(&jwc, DETECTED_TEMPERATURE_KEY, ac_manual_control_t.temperature_value);
+            jwObj_int(&jwc, TEMPERATURE_KEY, last_command.temperature);
+            jwObj_int(&jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_value);
+            jwObj_string(&jwc, MODE_KEY, ac_manual_control_t.mode);
+            jwObj_int(&jwc, POWER_ERROR_KEY, ac_manual_control_t.power_err);
+            jwObj_int(&jwc, TEMPERATURE_ERROR_KEY, ac_manual_control_t.temperature_err);
+            jwObj_int(&jwc, FAN_SPEED_KEY, ac_manual_control_t.fanspeed_err);
+            jwObj_int(&jwc, MODE_ERROR_KEY, ac_manual_control_t.mode_err);
             break;
 
         case GWY_DEBUG_INFO_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             char version[20], uptime[10];
             sprintf(version, "%d.%d.%d",MAJ_VERSION, MIN_VERSION, PATCH_VERSION);
             sprintf(uptime, "%0.2f", ((xTaskGetTickCount()*portTICK_PERIOD_MS)/3600000.00));
-            jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
-            jwObj_int(jwc, REGISTERED_KEY, registered);
-            jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
-            jwObj_int(jwc, PUBLISH_PERIOD_KEY, publishPeriod);
-            jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+            jwObj_string(&jwc, FIRMWARE_VERSION_KEY, version);
+            jwObj_int(&jwc, REGISTERED_KEY, registered);
+            jwObj_string(&jwc, PROTOCOL_SEL_NUM_KEY, ir_protocol);
+            jwObj_int(&jwc, PUBLISH_PERIOD_KEY, publishPeriod);
+            jwObj_string(&jwc, DEVICE_UPTIME_KEY, uptime);
             break;
         
         case NODE_DEBUG_INFO_PACKET:
-            jwObj_int(jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
-            jwObj_int(jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
-            jwObj_string(jwc, GWY_SER_NO_KEY, serialNoStr);
-            jwObj_string(jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
-            jwObj_int(jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
-            jwObj_string(jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
-            jwObj_int(jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
+            jwObj_int(&jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+            jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+            jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+            jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+            jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
             if(cmd_struct->errorcode==SUCCESS && cmd_struct->bleErrorCode == ESP_OK)
             {
                 sprintf(version, "%d.%d.%d",cmd_struct->majversion, cmd_struct->minversion, cmd_struct->patchversion);
                 sprintf(uptime, "%0.2f", cmd_struct->deviceUpTimeHrs);
-                jwObj_string(jwc, FIRMWARE_VERSION_KEY, version);
-                jwObj_string(jwc, PROTOCOL_SEL_NUM_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
-                jwObj_int(jwc, PUBLISH_PERIOD_KEY, cmd_struct->publishPeriodSec);
-                jwObj_string(jwc, DEVICE_UPTIME_KEY, uptime);
+                jwObj_string(&jwc, FIRMWARE_VERSION_KEY, version);
+                jwObj_string(&jwc, PROTOCOL_SEL_NUM_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
+                jwObj_int(&jwc, PUBLISH_PERIOD_KEY, cmd_struct->publishPeriodSec);
+                jwObj_string(&jwc, DEVICE_UPTIME_KEY, uptime);
             }
             break;
         
         default:
             ESP_LOGE(LTE_TAG, "Unknown Packet - %d in %s", cmd_struct->packetid, __func__);
-            jwEnd(jwc);
-            jwClose(jwc);
+            jwEnd(&jwc);
+            jwClose(&jwc);
             return;
     }
-    jwEnd(jwc);
-    jwClose(jwc);
-    free(jwc);
+    jwEnd(&jwc);
+    jwClose(&jwc);
     enqueue_for_publish(buffer);
 }
 
@@ -616,8 +562,8 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
  * @param code 
  * @return const char* 
  */
-const char* get_error_code_name(error_codes code) {
-    static const char* error_code_names[] = {
+char* get_error_code_name(error_codes code) {
+    static char* error_code_names[] = {
         "FAILURE",
         "SUCCESS",
         "JSON_PACKET_INVALID",
@@ -994,7 +940,7 @@ void unregister(action_type_t type)
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 0, UINT8_SIZE);
     hb_timer_stop();
 
-    powerDownInProgress = true;
+    powerDownFlag = true;
 }
 
 void parse_json()
@@ -1109,9 +1055,9 @@ error_codes check_response(char *uart_data, const char *check_string)
 error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name)
 {
     error_codes rc = FAILURE;
-    bzero(LTE_UART_data, UART_BUF_SIZE);
+    bzero(LTE_UART_data, UART_BUFFER_LEN);
     uart_flush(UART_NUM_1);
-    int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUF_SIZE, pdMS_TO_TICKS(timeout_ms));
+    int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUFFER_LEN, pdMS_TO_TICKS(timeout_ms));
     if (length > 0)
     {
         if(logging) ESP_LOGI(LTE_TAG, "Received : %s", LTE_UART_data);
@@ -1149,8 +1095,11 @@ error_codes send_cmd_and_check_response(bool logging, const char *cmd,
 	uart_flush_input(UART_NUM_1);
 	if (uart_write_bytes(UART_NUM_1, cmd, strlen(cmd)) != FAILURE)
 	{
-		if(logging) ESP_LOGI(LTE_TAG, "Command sent : %s", cmd);
-		rc = fetch_and_check_data(logging, timeout_ms, check_string, cmdName);
+		if(logging) {
+            ESP_LOGI(LTE_TAG, "Command sent : %s", cmd);
+            ESP_LOGI(LTE_TAG, "WaitTime : %ldms",timeout_ms);
+        }
+        rc = fetch_and_check_data(logging, timeout_ms, check_string, cmdName);
 	}
 	else
 	{
@@ -1202,8 +1151,9 @@ bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno) {
 }
 
 /**
- * @brief Function that checks if any item has been sitting too long in the command queue
- * 
+ * @brief Function which removes stale items from the command queue
+ * items in the command queue are considered stale if they have been in the queue
+ * for more than the BLE_NODE_COMM_TIMEOUT duration
  */
 void maintainCommandQueue()
 {
@@ -1275,9 +1225,10 @@ void maintainMQTTConnection()
 	
     if(send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS*5)!=SUCCESS) return ;
 	ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
+    if(registered) ble_init();
     need_to_activate_pdp = false; mqtt_connected = true; update_led_status(); LOG_DATA = false;
     if(registered) hb_timer_restart();
-	while(!powerDownInProgress)
+	while(!powerDownFlag)
 	{
 		if(send_cmd_and_check_response(LOG_DATA, MQTT_READ_MSG_CMD, "MQTT_READ_MSG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*2)==SUCCESS){;}
         if(xTaskGetTickCount()-lastNetworkCheckedTime > NETWORK_CHECK_INTERVAL_TICKS){
@@ -1290,9 +1241,7 @@ void maintainMQTTConnection()
             }
             else
             {
-                char msg[20];
-                sprintf(msg, "%s is alive", serialNoStr);
-                if(mqtt_publish(msg, alive_topic)==SUCCESS){;}
+                if(mqtt_publish(alive_msg, alive_topic)==SUCCESS){;}
                 else ESP_LOGE(LTE_TAG, "Alive message publish failed");
             }
         }
@@ -1308,11 +1257,10 @@ void maintainMQTTConnection()
 			continue;
 		}
         ping_fail_counter = 0;
-        publish_from_queue();
         maintainCommandQueue();
+        publish_from_queue();
         vTaskDelay(pdMS_TO_TICKS(10));
 	}
-    powerCycleDevice(DUE_TO_BUTTON_PRESS);
 }
 
 /**
@@ -1385,7 +1333,7 @@ void lte_gpio_configuration()
 void powerCycleDevice(action_type_t type)
 {
     led_set_state(LED_STATE_POWERING_DOWN);
-    powerDownInProgress = true;
+    powerDownFlag = true;
 #if(IS_GWY)
     while(send_cmd_and_check_response(true, POWER_DOWN_CMD, "POWER_DOWN_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS)!=SUCCESS)
         vTaskDelay(pdMS_TO_TICKS(500));
@@ -1435,8 +1383,8 @@ void lte_uart_init(void)
 		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
 		.source_clk = UART_SCLK_APB,
 	};
-	// uart_driver_install(UART_NUM_1, UART_BUF_SIZE, UART_BUF_SIZE, 10, &uart_event_queue, 0);
-    uart_driver_install(UART_NUM_1, UART_BUF_SIZE, 0, 0, NULL, 0);
+	// uart_driver_install(UART_NUM_1, UART_BUFFER_LEN, UART_BUFFER_LEN, 10, &uart_event_queue, 0);
+    uart_driver_install(UART_NUM_1, UART_BUFFER_LEN, 0, 0, NULL, 0);
 	uart_param_config(UART_NUM_1, &uart_config);
 	uart_set_pin(UART_NUM_1, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
 }
@@ -1459,6 +1407,7 @@ void lte_task(void *args)
     while(1)
 	{
         maintainMQTTConnection();
+        if(powerDownFlag) powerCycleDevice(DUE_TO_BUTTON_PRESS);
         powerUpLTE();
 	    MQTT_config();
 		vTaskDelay(pdMS_TO_TICKS(50));

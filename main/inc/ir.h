@@ -8,19 +8,25 @@
 #define IR_RECV_GPIO 38
 #define IR_TRAN_GPIO 7
 
-#define RECV_BUFFER_SIZE 1024
+#define IR_RECV_BUFFER_LEN 1024
 #define KTIMEOUT 50
 #define SAVE_BUFFER_FLAG true
 
 #define MAX_CMDS_IN_TEACHING_MODE 16
-#define TEACHING_MODE_CMD_SIZE 800
+#define TEACHING_MODE_CDM_LEN 800
 
 #define MAX_LOW_TEMP 18
 #define MAX_HIGH_TEMP 32
 
+#define COOL_MODE_STR "Cool"
+#define DRY_MODE_STR "Dry"
+#define HEAT_MODE_STR "Heat"
+#define FAN_MODE_STR "Fan"
+#define AUTO_MODE_STR "Auto"
+
 /*Global Variables*/
 extern TaskHandle_t ir_recv_task_handle;
-extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CMD_SIZE];
+extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CDM_LEN];
 extern const char *TEACHING_MODE_SEQUENCE[];
 extern bool ac_remote_unsupported_flag;
 

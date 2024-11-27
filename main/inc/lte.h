@@ -9,25 +9,50 @@
 
 #define PUBLISH_QUEUE_SIZE 10
 #define COMMAND_QUEUE_SIZE 10
-#define UART_EVENT_QUEUE_SIZE 10
+#define BLE_RESP_QUEUE_SIZE 50
+
+#define BAUD_RATE 115200
+
+#define LTE_TAG "LTE"
+
+#define LTE_RESET_PIN 46
+#define LTE_POWER_PIN 9
+#define TXD_PIN 17
+#define RXD_PIN 18
+#define CTS_PIN 11
+#define RTS_PIN 10
+
+#define MIN_LTE_RESP_WAIT_MS 100
+
+#define RETRY_COUNT 5
+#define NETWORK_CHECK_INTERVAL_TICKS pdMS_TO_TICKS(60000) //60s once
+
+/*MQTT Configuration parameters*/
+#define MQTT_CLIENT_INDEX 2
+#define WILL_MSG "Device disconnected unexpectedly"
+#define WILL_MSG_LEN strlen(WILL_MSG)
+#define MQTT_MSG_ID 2
+#define MQTT_QOS 2
+#define MQTT_WILL_QOS 2
+#define MQTT_WILL_RETAIN 1
+#define MQTT_WILL_FLAG 1
+#define MQTT_KEEP_ALIVE_S 10
 
 #define MIN_PUBLISH_PERIOD_SEC 300
 
-#define SERIAL_NO_LEN 10
-#define IR_PROTOCOL_NAME_LEN 20
+/*Sizes and Lengths*/
+#define SERIAL_NO_LEN 16
+#define ALIVE_MSG_LEN 30
+#define IR_PROTOCOL_NAME_LEN 16
 #define LOCATION_STR_LEN 20
-#define MAX_MODE_STR_LEN 8
-#define MQTT_TOPIC_CHAR_LEN 50
+#define MODE_STR_LEN 8
+#define MQTT_TOPIC_NAME_LEN 50
 #define MQTT_CMD_RESP_LEN 200
+#define UART_BUFFER_LEN 800
+#define MQTT_ACK_BUFFER_LEN 1024
 
 #define DEFAULT_DEVICE_SER_NO "DEV99999"
 #define DEFAULT_DEVICE_LOCATION_STR "EARTH :)"
-
-#define COOL_MODE_STR "Cool"
-#define DRY_MODE_STR "Dry"
-#define HEAT_MODE_STR "Heat"
-#define FAN_MODE_STR "Fan"
-#define AUTO_MODE_STR "Auto"
 
 #define BUTTON_PRESS_MSGSEQNO 9999
 
@@ -87,10 +112,10 @@ extern const char *DETECTED_TEMPERATURE_KEY;
 extern const char *BLE_ERROR_CODE_KEY;
 extern const char *MESSAGE_KEY;
 
-extern char subscribe_topic[MQTT_TOPIC_CHAR_LEN];
-extern char publish_topic[MQTT_TOPIC_CHAR_LEN];
-extern char alive_topic[MQTT_TOPIC_CHAR_LEN];
-extern char will_topic[MQTT_TOPIC_CHAR_LEN];
+extern char subscribe_topic[MQTT_TOPIC_NAME_LEN];
+extern char publish_topic[MQTT_TOPIC_NAME_LEN];
+extern char alive_topic[MQTT_TOPIC_NAME_LEN];
+extern char will_topic[MQTT_TOPIC_NAME_LEN];
 
 typedef enum
 {
@@ -256,7 +281,7 @@ typedef struct
     uint8_t provisioned;               // 1 byte
     bool requestSentToNode;            // 1 byte
     bool configured;                   // 1 byte
-    char mode_str[MAX_MODE_STR_LEN];   // Variable size, but align at the end
+    char mode_str[MODE_STR_LEN];   // Variable size, but align at the end
     char deviceName[16];                 // 16 bytes
 } CommandStruct;
 
@@ -312,9 +337,11 @@ extern char node_macid[18];
 
 /*Global Variables*/
 extern TaskHandle_t lte_task_handle;
-
+extern QueueHandle_t publish_queue;
+extern QueueHandle_t command_queue;
 /*Global Variables*/
 extern char serialNoStr[SERIAL_NO_LEN];
+extern char alive_msg[ALIVE_MSG_LEN];
 extern bool mqtt_connected;
 extern uint8_t registered;
 extern uint8_t provisioned;
@@ -327,7 +354,7 @@ extern char device_location_str[LOCATION_STR_LEN];
 extern uint16_t teaching_mode_raw_len;
 extern int16_t ir_protocol_num;
 extern uint8_t newDevice;
-extern bool powerDownInProgress;
+extern bool powerDownFlag;
 
 /*Function Declarations*/
 void lte_task(void *args);
@@ -338,7 +365,7 @@ error_codes send_cmd_and_check_response(bool logging, const char *cmd, const cha
 void powerUpLTE();
 void powerCycleDevice(action_type_t type);
 bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno);
-const char* get_error_code_name(error_codes code);
+char* get_error_code_name(error_codes code);
 void handle_ac_control(CommandStruct *cmd_struct);
 void register_gwy();
 void unregister(action_type_t type);

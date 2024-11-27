@@ -66,7 +66,7 @@ static void IRAM_ATTR button_task_handler(void *args)
  */
 void process_press_type(button_press_t *button_press_array, uint8_t *press_count)
 {
-    if (powerDownInProgress) {
+    if (powerDownFlag) {
         gpio_isr_handler_add(BUTTON_GPIO, button_task_handler, NULL);
         vTaskDelete(NULL);
     }
@@ -92,7 +92,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
         case 1:
             ESP_LOGW(BUTTON_TAG, "Single press detected");
 #if (IS_GWY)
-            powerDownInProgress = true;
+            powerDownFlag = true;
 #else
             powerCycleDevice(DUE_TO_BUTTON_PRESS);
 #endif

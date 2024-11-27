@@ -7,6 +7,7 @@
 #include <lte.h>
 
 #define BLE_NODE_COMM_TIMEOUT_MS 20000
+#define BLE_RESP_BUFFER_LEN 200
 
 /*Global Variables*/
 
