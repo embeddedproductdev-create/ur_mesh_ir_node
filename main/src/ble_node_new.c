@@ -326,6 +326,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
     {
         case NODE_PROV_PACKET:
             ESP_LOGI(BLE_TAG, "Sending Node Prov ACK to Provisioner");
+            ack->errorcode = SUCCESS;
             err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;

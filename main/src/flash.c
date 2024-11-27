@@ -439,15 +439,14 @@ void pull_ir_cmd_data()
 
     err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
     if(err) {
-        ESP_LOGE(NVS_TAG, "Failed to open IR NVS : %s",esp_err_to_name(err));
+        ESP_LOGE(NVS_TAG, "Failed to open IR NVS : %s", esp_err_to_name(err));
         return;
     }
 
-    size_t size = teaching_mode_raw_len*sizeof(uint16_t);
+    size_t size = (teaching_mode_raw_len)*sizeof(uint16_t);
     for (uint8_t i = 0; i < MAX_CMDS_IN_TEACHING_MODE; i++)
     {
-        nvs_get_blob(ir_nvs_handle, NVS_TEACHING_MODE_CMD_KEYS[i], &teachingModeIrCmds[i][1], &size);
-        teachingModeIrCmds[i][1] = 0;
+        nvs_get_blob(ir_nvs_handle, NVS_TEACHING_MODE_CMD_KEYS[i], teachingModeIrCmds[i], &size);
     }
 }
 

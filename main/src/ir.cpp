@@ -14,7 +14,7 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
-#define KHZ_41 41
+#define RAW_FREQ 41
 
 const char *RAW_IR_PROTOCOL = "RAW";
 const char *DAIKIN_IR_PROTOCOL = "DAIKIN280";
@@ -163,22 +163,12 @@ void ir_transmit()
     case RAW:
         if (!last_command.power)
         {
-            for(int i=0;i<teaching_mode_raw_len;i++)
-            {
-                printf("%d ",teachingModeIrCmds[0][i]);
-            }
-            printf("\n");
-            ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, KHZ_41);
+            ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, RAW_FREQ);
         }
         else
         {
             uint8_t index = last_command.temperature - MAX_LOW_TEMP + 1;
-            for(int i=0;i<teaching_mode_raw_len;i++)
-            {
-                printf("%d ",teachingModeIrCmds[index][i]);
-            }
-            printf("\n");
-            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, KHZ_41);
+            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, RAW_FREQ);
         }
         break;
 
@@ -748,9 +738,17 @@ void locking_feature(const char *description)
  */
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
-    teaching_in_progress = true;
     esp_err_t err = nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
     if (err) ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
+    err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
+    if (err) {
+        led_set_state(LED_STATE_INVALID_OPERATION);
+        ESP_LOGE(IR_TAG, "IR Partition init failed, Can't proceed with Teaching mode : %s", esp_err_to_name(err));
+        teaching_mode_t.errorCode = IR_PARTITION_INIT_FAILED;
+        goto here;
+    }
+
+    teaching_in_progress = true;
     ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
     update_led_status();
     teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
@@ -761,6 +759,8 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[0]);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8_SIZE);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8_SIZE);
+
+    here:
 #if (IS_GWY)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
@@ -815,6 +815,9 @@ void perform_teaching_process(const char *description)
 
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
+        //We need to neglect the first "1" in the received signal
+        memcpy((void *)results.rawbuf, (const void *)&results.rawbuf[1], results.rawlen-1);
+
         /*I'm not sure why we have to do this, but we're having to multiply the received signal values with 2*/
         for(int i=0;i<results.rawlen;i++)
         {
@@ -824,21 +827,22 @@ void perform_teaching_process(const char *description)
         /*If this is the first IR Signal*/
         if (teaching_mode_t.commandsReceived == 0)
         {
-            teaching_mode_raw_len = results.rawlen;
+            teaching_mode_raw_len = results.rawlen-2;
             set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, teaching_mode_raw_len, UINT16_SIZE);
 
             /*Let's store raw values to nvs flash*/
-            set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, results.rawlen*sizeof(uint16_t));
+            set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, teaching_mode_raw_len*sizeof(uint16_t));
 
             /**
              * @warning We're only comparing power here and not temperature, because, for some AC remotes
              * like LG2, when sending power OFF command, the decoded string doesn't seem to contain temperature at all.
              *
              */
-            ESP_LOGW(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
+            
             if (ac_manual_control_t.power_value == 0)
             {
+                ESP_LOGI(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
                 teaching_mode_t.commandIndex++;
@@ -849,18 +853,20 @@ void perform_teaching_process(const char *description)
             }
             else
             {
+                ESP_LOGW(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
                 led_set_state(LED_STATE_INVALID_OPERATION);
                 teaching_mode_t.errorCode = FAILURE;
             }
         }
         else
         {
-            ESP_LOGW(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
             if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
             {
+                ESP_LOGI(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
                 /*Let's store raw values to nvs flash*/
-                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, (results.rawlen)*sizeof(uint16_t));
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len*sizeof(uint16_t));
 
                 /*We've received a valid IR Signal*/
                 teaching_mode_t.commandsReceived++;
@@ -873,6 +879,8 @@ void perform_teaching_process(const char *description)
             }
             else
             {
+                ESP_LOGE(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
+                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
                 led_set_state(LED_STATE_INVALID_OPERATION);
                 teaching_mode_t.errorCode = FAILURE;
             }

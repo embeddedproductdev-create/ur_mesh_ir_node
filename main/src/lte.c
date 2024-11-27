@@ -175,16 +175,12 @@ void publish_from_queue() {
     while (xQueueReceive(publish_queue, &ack_message, 0) == pdPASS) {
         if (mqtt_publish(ack_message, publish_topic) != SUCCESS) {
             ESP_LOGE(LTE_TAG, "Failed to publish ACK message to MQTT broker.\n");
-            if(xQueueSendToFront(publish_queue, ack_message, portMAX_DELAY) != pdPASS)
-            {
-                ESP_LOGE(LTE_TAG, "Pushing failed publish message to front of Queue failed");
-            }
-            ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
-        }
-        else {
-            ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
             free(ack_message);
         }
+        else {
+            free(ack_message);
+        }
+        ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
     }
 }
 
@@ -196,7 +192,7 @@ void enqueue_for_publish(char *ack) {
     if (xQueueSend(publish_queue, &ack, portMAX_DELAY) != pdPASS) {
         ESP_LOGE(LTE_TAG, "Publish Queue Full. Failed to enqueue ACK");
     }
-    // ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
+    ESP_LOGW(LTE_TAG, "Current publish queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(publish_queue), esp_get_minimum_free_heap_size());
 }
 
 /**
@@ -355,6 +351,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
             jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
 
@@ -633,6 +630,7 @@ char* get_error_code_name(error_codes code) {
         "ENQUEUING_INTO_COMMAND_QUEUE_FAILED",
         "DEVICE_DATA_ERASURE_SUCCESSFUL",
         "DEVICE_DATA_ERASURE_FAILED",
+        "IR_PARTITION_INIT_FAILED",
     };
     
     int index = code + 1; // Adjust index for negative `FAILURE` as -1

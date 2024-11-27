@@ -56,8 +56,6 @@
 #define ESP_BLE_MESH_VND_MODEL_OP_SEND      ESP_BLE_MESH_MODEL_OP_3(0x00, CID_ESP)
 #define ESP_BLE_MESH_VND_MODEL_OP_STATUS    ESP_BLE_MESH_MODEL_OP_3(0x01, CID_ESP)
 
-QueueHandle_t ble_resp_queue;
-
 static uint8_t dev_uuid[ESP_BLE_MESH_OCTET16_LEN];
 
 static struct example_info_store {
@@ -495,7 +493,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
             int64_t end_time = esp_timer_get_time();
             ESP_LOGI(BLE_TAG, "Recv 0x06%" PRIx32 ", tid 0x%04x, time %lldus",
             param->model_operation.opcode, store.vnd_tid, end_time - start_time);
-            enqueue_to_ble_resp_queue(param->model_operation.msg);
+            handle_ble_incoming(param);
         }
         break;
 
@@ -511,7 +509,7 @@ static void example_ble_mesh_custom_model_cb(esp_ble_mesh_model_cb_event_t event
 
     case ESP_BLE_MESH_CLIENT_MODEL_RECV_PUBLISH_MSG_EVT:
         // ESP_LOGI(BLE_TAG, "Receive publish message 0x%06" PRIx32, param->client_recv_publish_msg.opcode);
-        enqueue_to_ble_resp_queue(param->model_operation.msg);
+        handle_ble_incoming(param);
         break;
 
     case ESP_BLE_MESH_CLIENT_MODEL_SEND_TIMEOUT_EVT:
@@ -611,6 +609,28 @@ void ble_init(void)
  */
 
 /**
+ * @brief Function that handles the incoming ble messages from Nodes
+ * @param param 
+ */
+void handle_ble_incoming(esp_ble_mesh_model_cb_param_t *param)
+{
+    teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
+    if(teach_ack->packetid == NODE_TEACHING_MODE) {
+        generate_node_teaching_mode_ack(teach_ack);
+        return;
+    }
+
+    manual_control *manual_control_ack = (manual_control *)param->model_operation.msg;
+    if(manual_control_ack->packetid == NODE_MANUAL_AC_CONTROL_ACK) {
+        generate_node_manual_ac_control_ack(manual_control_ack);
+        return;
+    }
+
+    CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
+    generate_ack(ack->packetid, ack);
+}
+
+/**
  * @brief Function that takes are of sending commands to Nodes
  * @param cmd 
  */
@@ -664,26 +684,6 @@ void send_cmd_to_node(CommandStruct *cmd)
         return;
     }
     esp_ble_mesh_client_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_SEND, sizeof(CommandStruct), (uint8_t *)cmd, 10, true, ROLE_PROVISIONER);
-}
-
-/**
- * @brief Function that adds responses received over ble into queue
- * @param ack 
- */
-void enqueue_to_ble_resp_queue(uint8_t *resp) {
-    if (xQueueSend(ble_resp_queue, resp, portMAX_DELAY) != pdPASS) {
-        ESP_LOGE(LTE_TAG, "BLE response Queue Full. Failed to enqueue ACK.\n");
-    }
-    ESP_LOGW(LTE_TAG, "Current BLE response queue count : %d | Heap : %" PRIu32 " bytes", uxQueueMessagesWaiting(ble_resp_queue), esp_get_minimum_free_heap_size());
-}
-
-/**
- * @brief Thread that takes care of generating acks for ble resopnses received by popping them out from ble resp queue
- * @param args 
- */
-void ble_resp_queue_task(void *args)
-{
-    
 }
 
 #endif

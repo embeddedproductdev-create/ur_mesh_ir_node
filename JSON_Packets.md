@@ -240,7 +240,7 @@
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       8       |   Number   |      8      |
 |    MsgSeqNo    |    778899     |   Number   |   0-65535   |
-|      Mode      |    "Teach"    |   String   |
+|      Mode      |    "Teach"    |   String   |             |
 
 10 chars |
 

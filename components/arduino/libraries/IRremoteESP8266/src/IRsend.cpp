@@ -556,14 +556,16 @@ void IRsend::sendManchester(const uint16_t headermark,
 void IRsend::sendRaw(const uint16_t buf[], const uint16_t len,
                      const uint16_t hz) {
   // Set IR carrier frequency
-  enableIROut(hz);
+  enableIROut(hz, 30);
   for (uint16_t i = 0; i < len; i++) {
+    printf("%d ",buf[i]);
     if (i & 1) {  // Odd bit.
       space(buf[i]);
     } else {  // Even bit.
       mark(buf[i]);
     }
   }
+  printf("\n");
   ledOff();  // We potentially have ended with a mark(), so turn of the LED.
 }
 #endif  // SEND_RAW
