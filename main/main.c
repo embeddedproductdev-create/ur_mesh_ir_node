@@ -19,6 +19,7 @@
 #include <flash.h>
 #include <ir.h>
 #include <ble_new.h>
+#include <temperature_sensor.h>
 
 #define TAG "MAIN"
 
@@ -129,7 +130,7 @@ void app_main(void)
 #endif
 
     print_basic_info();
-
+    temperature_sensor_init();
     hb_init();
     led_init();
     gpio_install_isr_service(0);

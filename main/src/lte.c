@@ -18,6 +18,7 @@
 #include <flash.h>
 #include <ir.h>
 #include <ble_new.h>
+#include <temperature_sensor.h>
 
 char LTE_UART_data[UART_BUFFER_LEN];
 
@@ -92,7 +93,8 @@ const char *UPPER_TEMPERATURE_LIMIT_KEY = "TempLockUpLimit";
 const char *LOWER_TEMPERATURE_LIMIT_KEY = "TempLockLowLimit";
 const char *ERROR_CODE_KEY = "ErrorCode";
 const char *ERROR_MSG_KEY = "ErrorMsg";
-const char *AMBIENT_TEMPERATURE_DATA_KEY = "AmbientTemperature";
+const char *AMBIENT_TEMPERATURE_DIGITAL_DATA_KEY = "AmbientTemperature(Digital)";
+const char *AMBIENT_TEMPERATURE_ANALOG_DATA_KEY = "AmbientTemperature(Analog)";
 const char *PUBLISH_PERIOD_KEY = "PublishPeriodSec";
 const char *FIRMWARE_VERSION_KEY = "FirmwareVersion";
 const char *REGISTERED_KEY = "Registered";
@@ -427,7 +429,10 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(&jwc, MODE_KEY, last_command.mode_str);
             jwObj_int(&jwc, FAN_SPEED_KEY, last_command.fanspeed);
             jwObj_int(&jwc, TEMPERATURE_KEY, last_command.temperature);
-            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DATA_KEY, last_command.ambientTemperature);
+            last_command.ambientTemperatureAnalog = read_analog_temperature_sensor();
+            last_command.ambientTemperatureDigital = read_digital_temperature_sensor();
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DIGITAL_DATA_KEY, last_command.ambientTemperatureDigital);
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_ANALOG_DATA_KEY, last_command.ambientTemperatureAnalog);
             jwObj_int(&jwc, SWING_H_KEY, last_command.swingh);
             jwObj_int(&jwc, SWING_V_KEY, last_command.swingv);
             jwObj_int(&jwc, ONTIMER_KEY, last_command.ontimer);
@@ -445,7 +450,10 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_string(&jwc, MODE_KEY, cmd_struct->mode_str);
             jwObj_int(&jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
             jwObj_int(&jwc, TEMPERATURE_KEY, cmd_struct->temperature);
-            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DATA_KEY, cmd_struct->ambientTemperature);
+            last_command.ambientTemperatureAnalog = read_analog_temperature_sensor();
+            last_command.ambientTemperatureDigital = read_digital_temperature_sensor();
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_DIGITAL_DATA_KEY, cmd_struct->ambientTemperatureDigital);
+            jwObj_int(&jwc, AMBIENT_TEMPERATURE_ANALOG_DATA_KEY, cmd_struct->ambientTemperatureAnalog);
             jwObj_int(&jwc, SWING_H_KEY, cmd_struct->swingh);
             jwObj_int(&jwc, SWING_V_KEY, cmd_struct->swingv);
             jwObj_int(&jwc, ONTIMER_KEY, cmd_struct->ontimer);

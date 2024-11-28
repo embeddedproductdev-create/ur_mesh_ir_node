@@ -10,6 +10,7 @@ set(CUSTOM_SRCS
     src/ir.cpp
     src/ble_prov_new.c
     src/ble_node_new.c
+    src/temperature_sensor.c
 )
 
 set(includeDirs inc)

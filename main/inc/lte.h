@@ -81,7 +81,8 @@ extern const char *UPPER_TEMPERATURE_LIMIT_KEY;
 extern const char *LOWER_TEMPERATURE_LIMIT_KEY;
 extern const char *ERROR_CODE_KEY;
 extern const char *ERROR_MSG_KEY;
-extern const char *AMBIENT_TEMPERATURE_DATA_KEY;
+extern const char *AMBIENT_TEMPERATURE_DIGITAL_DATA_KEY;
+extern const char *AMBIENT_TEMPERATURE_ANALOG_DATA_KEY;
 extern const char *PUBLISH_PERIOD_KEY;
 extern const char *FIRMWARE_VERSION_KEY;
 extern const char *REGISTERED_KEY;
@@ -259,10 +260,11 @@ typedef struct
     uint16_t ontimer;                  // 2 bytes
     uint16_t offtimer;                 // 2 bytes
     uint16_t publishPeriodSec;         // 2 bytes
+    int16_t ambientTemperatureDigital; // 2 bytes
+    int16_t ambientTemperatureAnalog;  // 2 bytes
     error_codes errorcode;             // 1 byte
     uint8_t power;                     // 1 byte
     uint8_t temperature;               // 1 byte
-    uint8_t ambientTemperature;        // 1 byte
     uint8_t fanspeed;                  // 1 byte
     uint8_t mode_num;                  // 1 byte
     uint8_t swingh;                    // 1 byte

@@ -839,7 +839,6 @@ void perform_teaching_process(const char *description)
              * like LG2, when sending power OFF command, the decoded string doesn't seem to contain temperature at all.
              *
              */
-            
             if (ac_manual_control_t.power_value == 0)
             {
                 ESP_LOGI(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
@@ -866,6 +865,7 @@ void perform_teaching_process(const char *description)
             {
                 ESP_LOGI(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
                  results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
+
                 /*Let's store raw values to nvs flash*/
                 set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len*sizeof(uint16_t));
 
@@ -939,6 +939,7 @@ void ir_recv_task(void *args)
                 }
                 printf("\n");
             }
+            
             /**  @warning DO NOT CHANGE THE FOLLOWING ORDER
              * 1) locking Feature
              * 2) Teaching Mode

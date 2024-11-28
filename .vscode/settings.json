@@ -72,7 +72,9 @@
         "string.h": "c",
         "set": "cpp",
         "ble_new.h": "c",
-        "nvs_flash.h": "c"
+        "nvs_flash.h": "c",
+        "temperature_sensor.h": "c",
+        "adc_types_legacy.h": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",
