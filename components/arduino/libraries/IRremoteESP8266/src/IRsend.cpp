@@ -432,6 +432,7 @@ void IRsend::sendGeneric(const uint16_t headermark, const uint32_t headerspace,
                          const uint16_t repeat, const uint8_t dutycycle) {
   // Setup
   enableIROut(frequency, dutycycle);
+  
   // We always send a message, even for repeat=0, hence '<= repeat'.
   for (uint16_t r = 0; r <= repeat; r++) {
     // Header
@@ -557,15 +558,18 @@ void IRsend::sendRaw(const uint16_t buf[], const uint16_t len,
                      const uint16_t hz) {
   // Set IR carrier frequency
   enableIROut(hz, 30);
-  for (uint16_t i = 0; i < len; i++) {
+  // Let's print the values before startin the transmission
+  for (uint16_t i = 0; i < len; i++){
     printf("%d ",buf[i]);
+  }
+  printf("\n");
+  for (uint16_t i = 0; i < len; i++) {
     if (i & 1) {  // Odd bit.
       space(buf[i]);
     } else {  // Even bit.
       mark(buf[i]);
     }
   }
-  printf("\n");
   ledOff();  // We potentially have ended with a mark(), so turn of the LED.
 }
 #endif  // SEND_RAW

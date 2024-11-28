@@ -815,8 +815,9 @@ void perform_teaching_process(const char *description)
 
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
-        //We need to neglect the first "1" in the received signal
-        memcpy((void *)results.rawbuf, (const void *)&results.rawbuf[1], results.rawlen-1);
+        //We need to neglect the first value in the received signal
+        memmove((void *)results.rawbuf, (const void *)&results.rawbuf[1], (results.rawlen-1)*sizeof(results.rawbuf[0]));
+        results.rawlen-=1;
 
         /*I'm not sure why we have to do this, but we're having to multiply the received signal values with 2*/
         for(int i=0;i<results.rawlen;i++)
@@ -827,7 +828,7 @@ void perform_teaching_process(const char *description)
         /*If this is the first IR Signal*/
         if (teaching_mode_t.commandsReceived == 0)
         {
-            teaching_mode_raw_len = results.rawlen-2;
+            teaching_mode_raw_len = results.rawlen;
             set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, teaching_mode_raw_len, UINT16_SIZE);
 
             /*Let's store raw values to nvs flash*/
