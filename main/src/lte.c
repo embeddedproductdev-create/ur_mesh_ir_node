@@ -67,6 +67,8 @@ const char *QMTSTAT_1_ERROR = "+QMTSTAT: 2,1";
 const char *QMTOPEN_2_ERROR = "+QMTOPEN: 2,2";
 const char *QMTOPEN_3_ERROR = "+QMTOPEN: 2,3";
 
+const char will_msg[WILL_MSG_LEN];
+
 /*MQTT Packet JSON Keys*/
 const char *JSON_PACKET_ID_KEY = "JsonPacketID";
 const char *JSON_ACK_NAME_KEY = "JsonAckName";
@@ -1318,7 +1320,7 @@ void initialize_mqtt_cmd_strings()
     MQTT_WILL_QOS,
     MQTT_WILL_RETAIN,
     publish_topic, 
-    WILL_MSG);
+    will_msg);
 }
 
 /**

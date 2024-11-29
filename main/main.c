@@ -118,14 +118,13 @@ void app_main(void)
     nvs_init();
 
 #if (IS_GWY)
-    strcpy(serialNoStr, "GWY00002");
+    sprintf(will_msg, "%s disconnected unexpectedly", serialNoStr);
     sprintf(alive_msg, "%s is alive", serialNoStr);
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
     sprintf(alive_topic, "%s/alive", serialNoStr);
     sprintf(will_topic, "GWYS/will");
 #else
-    strcpy(serialNoStr, "N00004");
     ble_init();
 #endif
 

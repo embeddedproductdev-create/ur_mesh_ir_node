@@ -29,8 +29,7 @@
 
 /*MQTT Configuration parameters*/
 #define MQTT_CLIENT_INDEX 2
-#define WILL_MSG "Device disconnected unexpectedly"
-#define WILL_MSG_LEN strlen(WILL_MSG)
+#define WILL_MSG_LEN 100
 #define MQTT_MSG_ID 2
 #define MQTT_QOS 2
 #define MQTT_WILL_QOS 2
@@ -55,6 +54,8 @@
 #define DEFAULT_DEVICE_LOCATION_STR "EARTH :)"
 
 #define BUTTON_PRESS_MSGSEQNO 9999
+
+extern const char will_msg[WILL_MSG_LEN];
 
 extern const char *JSON_PACKET_ID_KEY;
 extern const char *JSON_ACK_NAME_KEY;

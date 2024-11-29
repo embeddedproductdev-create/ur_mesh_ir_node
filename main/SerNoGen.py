@@ -7,14 +7,14 @@ def generate_nvs_binaries(device_type, start_serial, end_serial, output_dir, nvs
     os.makedirs(output_dir, exist_ok=True)
 
     for i in range(start_serial, end_serial + 1):
-        serial_number = f"{device_type}{str(i).zfill(5)}"
+        serial_number = f"{device_type.upper()}{str(i).zfill(5)}"
         csv_file = f"{output_dir}/nvs_serial_{i}.csv"
         bin_file = f"{output_dir}/nvs_serial_{i}.bin"
         
         # Create a CSV file for the current serial number
         with open(csv_file, "w") as f:
             f.write("key,type,encoding,value\n")
-            f.write(f"{device_type}SerNo,data,string,{serial_number}\n")
+            f.write(f"SerialNo,data,string,{serial_number}\n")
         
         # Generate the NVS binary
         command = f"{nvs_partition_gen_tool} generate {csv_file} {bin_file} 0x6000"
