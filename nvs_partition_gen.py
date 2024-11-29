@@ -13,7 +13,7 @@ import binascii
 import codecs
 import csv
 import datetime
-import distutils.dir_util
+from setuptools import distutils
 import os
 import random
 import struct

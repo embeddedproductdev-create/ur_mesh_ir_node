@@ -60,6 +60,7 @@
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       1       |   Number   |      1      |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   IrProtocol   |     "LG2"     |   String   |     N/A     |
 |   ErrorCode    |       0       |   Number   |  -1 to 67   |
 |    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
@@ -67,8 +68,10 @@
 ```json
 {
   "PacketId": 2,
-  "MsgSeqNo": 54321,
-  "Status": "Success"
+  "GwySerNo": "GWY00001",
+  "IrProtocol": "LG2",
+  "ErrorCode": 0,
+  "ErrorMsg": "SUCCESS"
 }
 ```
 
@@ -76,15 +79,13 @@
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       1       |   Number   |      1      |
+|    PacketId    |       2       |   Number   |      2      |
 |    MsgSeqNo    |     54321     |   Number   |   0-65535   |
-|    Location    |  "2nd Floor"  |   String   |  20 chars   |
 
 ```json
 {
-  "PacketId": 1,
-  "MsgSeqNo": 54321,
-  "Location": "2nd Floor"
+  "PacketId": 2,
+  "MsgSeqNo": 54321
 }
 ```
 
@@ -92,14 +93,17 @@
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       1       |   Number   |      1      |
+|    PacketId    |       2       |   Number   |      2      |
 |    MsgSeqNo    |     54321     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
-  "PacketId": 1,
+  "PacketId": 2,
   "MsgSeqNo": 54321,
+  "GwySerNo": "GWY00001",
   "ErrorCode": 0,
   "ErrorMessage": "SUCCESS"
 }
@@ -107,17 +111,37 @@
 
 ## Gateway AC Control Packet
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       3       |   Number   |      3      |
-|    MsgSeqNo    |     98765     |   Number   |   0-65535   |
-|    Command     |  "Power On"   |   String   |  20 chars   |
+|  Parameter Name  | Example Value | Value Type |        Value Range         |
+| :--------------: | :-----------: | :--------: | :------------------------: |
+|     PacketId     |       3       |   Number   |             3              |
+|     MsgSeqNo     |     98765     |   Number   |          0-65535           |
+|      Power       |       1       |   Number   |            0,1             |
+|   Temperature    |      25       |   Number   |           18-32            |
+|     FanSpeed     |       5       |   Number   |            0-5             |
+|       Mode       |    "Cool"     |   string   | Cool, Heat, Fan, Auto, Dry |
+|      SwingH      |       1       |   Number   |            0,1             |
+|      SwingV      |       1       |   Number   |            0,1             |
+|     OnTimer      |       0       |   Number   |            0-12            |
+|     OffTimer     |       0       |   Number   |            0-12            |
+|     Locking      |       1       |   Number   |            0,1             |
+| TempLockUpLimit  |      18       |   Number   |           18-32            |
+| TempLockLowLimit |      32       |   Number   |           18-32            |
 
 ```json
 {
   "PacketId": 3,
   "MsgSeqNo": 98765,
-  "Command": "Power On"
+  "Power": 1,
+  "Temperature": 25,
+  "FanSpeed": 5,
+  "Mode": "Cool",
+  "SwingH": 1,
+  "SwingV": 1,
+  "OnTimer": 0,
+  "OffTimer": 0,
+  "Locking": 1,
+  "TempLockUpLimit": 18,
+  "TempLockLowLimit": 32
 }
 ```
 
@@ -127,12 +151,15 @@
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       3       |   Number   |      3      |
 |    MsgSeqNo    |     98765     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 3,
   "MsgSeqNo": 98765,
+  "GwySerNo": "GWY00001",
   "ErrorCode": 0,
   "ErrorMessage": "SUCCESS"
 }
@@ -140,17 +167,33 @@
 
 ## Gateway Manual AC Control Ack
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       4       |   Number   |      4      |
-|    MsgSeqNo    |    112233     |   Number   |   0-65535   |
-|    Command     |   "Cooling"   |   String   |  10 chars   |
+|    Parameter Name    | Example Value | Value Type | Value Range |
+| :------------------: | :-----------: | :--------: | :---------: |
+|       PacketId       |       4       |   Number   |      4      |
+|       MsgSeqNo       |     12345     |   Number   |   0-65535   |
+|       GwySerNo       |   GWY00001    |   string   |     N/A     |
+|        Power         |       1       |   Number   |     0,1     |
+|     Temperature      |      23       |   Number   |    18-32    |
+|       FanSpeed       |       5       |   Number   |     0-5     |
+|         Mode         |    "Cool"     |   string   |     N/A     |
+|    PowerErrorCode    |       0       |   Number   |  -1 to 67   |
+| TemperatureErrorCode |       0       |   Number   |  -1 to 67   |
+|  FanspeedErrorCode   |       0       |   Number   |  -1 to 67   |
+|    ModeErrorCode     |       0       |   Number   |  -1 to 67   |
 
 ```json
 {
   "PacketId": 4,
-  "MsgSeqNo": 112233,
-  "Command": "Cooling"
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "Power": 1,
+  "Temperature": 23,
+  "FanSpeed": 5,
+  "Mode": "Cool",
+  "PowerErrorCode": 0,
+  "TemperatureErrorCode": 0,
+  "FanspeedErrorCode": 0,
+  "ModeErrorCode": 0
 }
 ```
 
@@ -159,14 +202,12 @@
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       5       |   Number   |      5      |
-|    MsgSeqNo    |    334455     |   Number   |   0-65535   |
-|   NewConfig    |  "Config X"   |   String   |  20 chars   |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 
 ```json
 {
   "PacketId": 5,
-  "MsgSeqNo": 334455,
-  "NewConfig": "Config X"
+  "MsgSeqNo": 12345
 }
 ```
 
@@ -175,46 +216,80 @@
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       5       |   Number   |      5      |
-|    MsgSeqNo    |    334455     |   Number   |   0-65535   |
-|     Status     |   "Success"   |   String   |  10 chars   |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 5,
-  "MsgSeqNo": 334455,
-  "Status": "Success"
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "ErrorCode": 0,
+  "ErrorMessage": "SUCCESS"
 }
 ```
 
 ## Gateway Heartbeat Ack
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       6       |   Number   |      6      |
-|    MsgSeqNo    |    445566     |   Number   |   0-65535   |
-|     Status     |    "Alive"    |   String   |  10 chars   |
+|       Parameter Name        | Example Value | Value Type |        Value Range         |
+| :-------------------------: | :-----------: | :--------: | :------------------------: |
+|          PacketId           |       6       |   Number   |             6              |
+|          MsgSeqNo           |     12345     |   Number   |          0-65535           |
+|          GwySerNo           |   GWY00001    |   string   |            N/A             |
+| AmbientTemperature(Digital) |      25       |   Number   |            N/A             |
+| AmbientTemperature(Analog)  |      25       |   Number   |            N/A             |
+|          GwySerNo           |   GWY00001    |   string   |            N/A             |
+|            Power            |       1       |   Number   |            0,1             |
+|         Temperature         |      25       |   Number   |           18-32            |
+|          FanSpeed           |       5       |   Number   |            0-5             |
+|            Mode             |    "Cool"     |   string   | Cool, Heat, Fan, Auto, Dry |
+|           SwingH            |       1       |   Number   |            0,1             |
+|           SwingV            |       1       |   Number   |            0,1             |
+|           OnTimer           |       0       |   Number   |            0-12            |
+|          OffTimer           |       0       |   Number   |            0-12            |
+|           Locking           |       1       |   Number   |            0,1             |
+|       TempLockUpLimit       |      18       |   Number   |           18-32            |
+|      TempLockLowLimit       |      32       |   Number   |           18-32            |
 
 ```json
 {
   "PacketId": 6,
-  "MsgSeqNo": 445566,
-  "Status": "Alive"
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "AmbientTemperature(Digital)": 25,
+  "AmbientTemperature(Analog)": 25,
+  "Power": 1,
+  "Temperature": 25,
+  "FanSpeed": 5,
+  "Mode": "Cool",
+  "SwingH": 1,
+  "SwingV": 1,
+  "OnTimer": 0,
+  "OffTimer": 0,
+  "Locking": 1,
+  "TempLockUpLimit": 18,
+  "TempLockLowLimit": 32
 }
 ```
 
 ## Gateway Heartbeat Publish Configuration Packet
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       7       |   Number   |      7      |
-|    MsgSeqNo    |    667788     |   Number   |   0-65535   |
-|    Interval    |     "30s"     |   String   |   5 chars   |
+|  Parameter Name  | Example Value | Value Type | Value Range |
+| :--------------: | :-----------: | :--------: | :---------: |
+|     PacketId     |       7       |   Number   |      7      |
+|     MsgSeqNo     |     12345     |   Number   |   0-65535   |
+| PublishPeriodSec |      300      |   Number   |  300-65535  |
 
 ```json
 {
   "PacketId": 7,
-  "MsgSeqNo": 667788,
-  "Interval": "30s"
+  "MsgSeqNo": 12345,
+  "PublishPeriodSec": 300,
+  "GwySerNo": "GWY00001",
+  "ErrorCode": 0,
+  "ErrorMessage": "SUCCESS"
 }
 ```
 
@@ -223,48 +298,61 @@
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       7       |   Number   |      7      |
-|    MsgSeqNo    |    667788     |   Number   |   0-65535   |
-|     Status     |   "Success"   |   String   |  10 chars   |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 7,
-  "MsgSeqNo": 667788,
-  "Status": "Success"
+  "MsgSeqNo": 12345
 }
 ```
 
 ## Gateway Teaching Mode Packet
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       8       |   Number   |      8      |
-|    MsgSeqNo    |    778899     |   Number   |   0-65535   |
-|      Mode      |    "Teach"    |   String   |             |
-
-10 chars |
+|   Parameter Name    | Example Value | Value Type | Value Range |
+| :-----------------: | :-----------: | :--------: | :---------: |
+|      PacketId       |       8       |   Number   |      8      |
+|      MsgSeqNo       |     12345     |   Number   |   0-65535   |
+|    TeachingStart    |       1       |   Number   |     0,1     |
+| StartingTemperature |      25       |   Number   |    18-32    |
+|  EndingTemperature  |      28       |   Number   |    18-32    |
 
 ```json
 {
   "PacketId": 8,
-  "MsgSeqNo": 778899,
-  "Mode": "Teach"
+  "MsgSeqNo": 12345,
+  "TeachingStart": 1,
+  "StartingTemperature": 25,
+  "EndingTemperature": 28
 }
 ```
 
 ## Gateway Teaching Mode Ack
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       8       |   Number   |      8      |
-|    MsgSeqNo    |    778899     |   Number   |   0-65535   |
-|     Status     |   "Success"   |   String   |  10 chars   |
+|  Parameter Name   |         Example Value         | Value Type | Value Range |
+| :---------------: | :---------------------------: | :--------: | :---------: |
+|     PacketId      |               8               |   Number   |      8      |
+|     MsgSeqNo      |             12345             |   Number   |   0-65535   |
+|     GwySerNo      |           GWY00001            |   string   |     N/A     |
+|     ErrorCode     |               0               |   Number   |  -1 to 67   |
+|     ErrorMsg      |           "SUCCESS"           |   string   |     N/A     |
+| RemainingCommands |               8               |   Number   |    2-16     |
+|    LastCommand    | "Temperature - 18 Power - On" |   string   |     N/A     |
+|    NextCommand    | "Temperature - 19 Power - On" |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 8,
-  "MsgSeqNo": 778899,
-  "Status": "Success"
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "ErrorCode": 0,
+  "ErrorMessage": "SUCCESS",
+  "RemainingCommands": 8,
+  "LastCommand": "Temperature - 18 | Power - On",
+  "NextCommand": "Temperature - 18 | Power - On"
 }
 ```
 
@@ -273,30 +361,47 @@
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       9       |   Number   |      9      |
-|    MsgSeqNo    |    889900     |   Number   |   0-65535   |
-|    InfoType    |    "Error"    |   String   |  10 chars   |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|  ResetDevice   |       0       |   Number   |     0,1     |
+| RestartDevice  |       0       |   Number   |     0,1     |
 
 ```json
 {
   "PacketId": 9,
-  "MsgSeqNo": 889900,
-  "InfoType": "Error"
+  "MsgSeqNo": 12345,
+  "ResetDevice": 0,
+  "RestartDevice": 0
 }
 ```
 
 ## Gateway Debug Info Ack
 
-| Parameter Name | Example Value | Value Type | Value Range |
-| :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       9       |   Number   |      9      |
-|    MsgSeqNo    |    889900     |   Number   |   0-65535   |
-|     Status     |   "Success"   |   String   |  10 chars   |
+|  Parameter Name  | Example Value | Value Type | Value Range |
+| :--------------: | :-----------: | :--------: | :---------: |
+|     PacketId     |       9       |   Number   |      9      |
+|     MsgSeqNo     |     12345     |   Number   |   0-65535   |
+|     GwySerNo     |   GWY00001    |   string   |     N/A     |
+|    ErrorCode     |       0       |   Number   |  -1 to 67   |
+|     ErrorMsg     |   "SUCCESS"   |   string   |     N/A     |
+| FirmwareVersion  |    "1.0.0"    |   string   |     N/A     |
+|    Registered    |   "SUCCESS"   |   Number   |     N/A     |
+|    IrProtocol    |     "LG2"     |   string   |     N/A     |
+| PublishPeriodSec |      300      |   Number   |     N/A     |
+| DeviceUpTimeHrs  |     "0.5"     |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 9,
-  "MsgSeqNo": 889900,
-  "Status": "Success"
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "ErrorCode": 0,
+  
+  "ErrorMessage": "SUCCESS",
+  "FirmwareVersion": "1.0.0",
+  "Registered": 1,
+  "IrProtocol": "LG2",
+  "PublishPeriodSec": 300,
+  "DeviceUpTimeHrs": 0.5
 }
 ```
 
@@ -305,13 +410,17 @@
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |      10       |   Number   |     10      |
-|    MsgSeqNo    |    1000000    |   Number   |   0-65535   |
-|     Status     |     "Ack"     |   String   |  10 chars   |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
+|   ErrorCode    |       0       |   Number   |  -1 to 67   |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
 
 ```json
 {
   "PacketId": 10,
-  "MsgSeqNo": 1000000,
-  "Status": "Ack"
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "ErrorCode": 0,
+  "ErrorMessage": "SUCCESS"
 }
 ```
