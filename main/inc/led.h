@@ -30,6 +30,7 @@ typedef enum {
     LED_STATE_POWERING_DOWN,
     LED_STATE_INVALID_OPERATION,
     LED_STATE_NODE_UNPROV_UNADV,
+    LED_STATE_IR_SIGNAL_DETECTED,
 } led_state_t;
 
 // Structure for RGB color

@@ -77,11 +77,10 @@ const uint8_t kTolerancePercentage = 25;
 manual_control ac_manual_control_t;
 teaching_mode teaching_mode_t;
 
-bool ac_remote_unsupported_flag = false;
-
 /*IR Transmitter Initializations*/
 
 /*AC Class Objects*/
+IRCarrierAc64 ac_carrier64(IR_TRAN_GPIO);
 IRDaikinESP ac_daikin280(IR_TRAN_GPIO);
 IRDaikin216 ac_daikin216(IR_TRAN_GPIO);
 IRDaikin2 ac_daikin2(IR_TRAN_GPIO);
@@ -111,6 +110,7 @@ IRMitsubishiAC ac_mitsubishi144(IR_TRAN_GPIO);
 IRMitsubishiHeavy88Ac ac_mitsubishi88(IR_TRAN_GPIO);
 IRMitsubishiHeavy152Ac ac_mitsubishi152(IR_TRAN_GPIO);
 IRsend ac_custom(IR_TRAN_GPIO);
+IRsend ac_general(IR_TRAN_GPIO);
 
 /**
  * @brief Function that initializes the ir Transmitter setup.
@@ -160,16 +160,17 @@ void ir_transmit()
     led_set_state(LED_STATE_SENDING_IR_COMMAND);
     switch (ir_protocol_num)
     {
-    case RAW:
-        if (!last_command.power)
-        {
-            ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, RAW_FREQ);
-        }
-        else
-        {
-            uint8_t index = last_command.temperature - MAX_LOW_TEMP + 1;
-            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, RAW_FREQ);
-        }
+    case CARRIER_AC64:
+        ac_carrier64.setPower(last_command.power);
+        ac_carrier64.setTemp(last_command.temperature);
+        if (last_command.swingv)
+            last_command.swingv = kDaikinSwingOn;
+        ac_carrier64.setSwingV(last_command.swingv);
+        ac_carrier64.setFan(ac_carrier64.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_carrier64.setOnTimer(last_command.ontimer * 60);
+        ac_carrier64.setOffTimer(last_command.offtimer * 60);
+        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_carrier64.send();
         break;
 
     case DAIKIN:
@@ -211,45 +212,45 @@ void ir_transmit()
         ac_daikin216.send();
         break;
 
-        // case DAIKIN2:
-        //     ac_daikin2.setPower(last_command.power);
-        //     ac_daikin2.setTemp(last_command.temperature);
-        //     if (last_command.swingh)
-        //         ac_daikin2.setSwingHorizontal(kDaikin2swinghAuto);
-        //     else
-        //         ac_daikin2.setSwingHorizontal(kDaikin2swinghOff);
-        //     if (last_command.swingv)
-        //         ac_daikin2.setSwingVertical(kDaikin2swingvAuto);
-        //     else
-        //         ac_daikin2.setSwingVertical(kDaikin2swingvOff);
-        //     ac_daikin2.setFan(ac_daikin2.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        //     ac_daikin2.enableOffTimer(last_command.offtimer);
-        //     ac_daikin2.enableOnTimer(last_command.ontimer);
-        //     ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)last_command.mode_num));
-        //     ac_daikin2.send();
-        //     break;
+    case DAIKIN2:
+        ac_daikin2.setPower(last_command.power);
+        ac_daikin2.setTemp(last_command.temperature);
+        if (last_command.swingh)
+            ac_daikin2.setSwingHorizontal(kDaikin2swinghAuto);
+        else
+            ac_daikin2.setSwingHorizontal(kDaikin2swinghOff);
+        if (last_command.swingv)
+            ac_daikin2.setSwingVertical(kDaikin2swingvAuto);
+        else
+            ac_daikin2.setSwingVertical(kDaikin2swingvOff);
+        ac_daikin2.setFan(ac_daikin2.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_daikin2.enableOffTimer(last_command.offtimer);
+        ac_daikin2.enableOnTimer(last_command.ontimer);
+        ac_daikin2.setMode(ac_daikin2.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_daikin2.send();
+        break;
 
-        // case DAIKIN160:
-        //     ac_daikin160.setPower(last_command.power);
-        //     ac_daikin160.setTemp(last_command.temperature);
-        //     if (last_command.swingv)
-        //         ac_daikin160.setSwingVertical(kDaikin160swingvAuto);
-        //     ac_daikin160.setFan(ac_daikin160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        //     ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)last_command.mode_num));
-        //     ac_daikin160.send();
-        //     break;
+    case DAIKIN160:
+        ac_daikin160.setPower(last_command.power);
+        ac_daikin160.setTemp(last_command.temperature);
+        if (last_command.swingv)
+            ac_daikin160.setSwingVertical(kDaikin160swingvAuto);
+        ac_daikin160.setFan(ac_daikin160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_daikin160.send();
+        break;
 
-        // case DAIKIN176:
-        //     ac_daikin176.setPower(last_command.power);
-        //     ac_daikin176.setTemp(last_command.temperature);
-        //     if (last_command.swingh)
-        //         ac_daikin176.setSwingHorizontal(kDaikin176swinghAuto);
-        //     else
-        //         ac_daikin176.setSwingHorizontal(kDaikin176swinghOff);
-        //     ac_daikin176.setFan(ac_daikin176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        //     ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)last_command.mode_num));
-        //     ac_daikin176.send();
-        //     break;
+    case DAIKIN176:
+        ac_daikin176.setPower(last_command.power);
+        ac_daikin176.setTemp(last_command.temperature);
+        if (last_command.swingh)
+            ac_daikin176.setSwingHorizontal(kDaikin176swinghAuto);
+        else
+            ac_daikin176.setSwingHorizontal(kDaikin176swinghOff);
+        ac_daikin176.setFan(ac_daikin176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_daikin176.send();
+        break;
 
     case DAIKIN64:
         ac_daikinac64.setPowerToggle(last_command.power);
@@ -280,6 +281,39 @@ void ir_transmit()
         ac_daikin128.setOnTimer(last_command.ontimer);
         ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin128.send();
+        break;
+
+    case HAIER_AC:
+        ac_haier.setTemp(last_command.temperature);
+        ac_haier.setSwingV(last_command.swingv);
+        ac_haier.setFan(ac_haier.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_haier.setOffTimer(last_command.offtimer);
+        ac_haier.setOnTimer(last_command.ontimer);
+        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_haier.send();
+        break;
+
+    case HAIER_AC176:
+        ac_haier176.setPower(last_command.power);
+        ac_haier176.setTemp(last_command.temperature);
+        ac_haier176.setSwingH(last_command.swingh);
+        ac_haier176.setSwingV(last_command.swingv);
+        ac_haier176.setFan(ac_haier176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_haier176.setOffTimer(last_command.offtimer);
+        ac_haier176.setOnTimer(last_command.ontimer);
+        ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_haier176.send();
+        break;
+
+    case HAIER_AC160:
+        ac_haier160.setPower(last_command.power);
+        ac_haier160.setTemp(last_command.temperature);
+        ac_haier160.setSwingV(last_command.swingv);
+        ac_haier160.setFan(ac_haier160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_haier160.setOffTimer(last_command.offtimer);
+        ac_haier160.setOnTimer(last_command.ontimer);
+        ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_haier160.send();
         break;
 
     case HITACHI_AC296:
@@ -332,16 +366,89 @@ void ir_transmit()
         ac_hitachi264.send();
         break;
 
-    case VOLTAS:
-        ac_voltas.setPower(last_command.power);
-        ac_voltas.setTemp(last_command.temperature);
-        ac_voltas.setSwingH(last_command.swingh);
-        ac_voltas.setSwingV(last_command.swingv);
-        ac_voltas.setFan(ac_voltas.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_voltas.setOffTime(last_command.offtimer);
-        ac_voltas.setOnTime(last_command.ontimer);
-        ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_voltas.send();
+    case LG2:
+    case LG:
+        ac_lg.setPower(last_command.power);
+        ac_lg.setTemp(last_command.temperature);
+        ac_lg.setSwingH(last_command.swingh);
+        ac_lg.setSwingV(last_command.swingv);
+        ac_lg.setFan(ac_lg.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_lg.send();
+        break;
+
+    case MITSUBISHI112:
+        ac_mitsubishi112.setPower(last_command.power);
+        ac_mitsubishi112.setTemp(last_command.temperature);
+        ac_mitsubishi112.setSwingH(last_command.swingh);
+        ac_mitsubishi112.setSwingV(last_command.swingv);
+        ac_mitsubishi112.setFan(ac_mitsubishi112.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_mitsubishi112.send();
+        break;
+
+    case MITSUBISHI136:
+        ac_mitsubishi136.setPower(last_command.power);
+        ac_mitsubishi136.setTemp(last_command.temperature);
+        if (last_command.swingv)
+        {
+            ac_mitsubishi136.setSwingV(kMitsubishi136swingvAuto);
+        }
+        ac_mitsubishi136.setFan(ac_mitsubishi136.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_mitsubishi136.send();
+        break;
+
+    case MITSUBISHI_AC:
+        ac_mitsubishi144.setPower(last_command.power);
+        ac_mitsubishi144.setTemp(last_command.temperature);
+        ac_mitsubishi144.setFan(ac_mitsubishi144.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_mitsubishi144.send();
+        break;
+
+    case MITSUBISHI_HEAVY_88:
+        ac_mitsubishi88.setPower(last_command.power);
+        ac_mitsubishi88.setTemp(last_command.temperature);
+        ac_mitsubishi88.setFan(ac_mitsubishi88.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        if (last_command.swingh)
+            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
+        else
+            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
+        if (last_command.swingv)
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
+        else
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvOff);
+        ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_mitsubishi88.send();
+        break;
+
+    case MITSUBISHI_HEAVY_152:
+        ac_mitsubishi152.setPower(last_command.power);
+        ac_mitsubishi152.setTemp(last_command.temperature);
+        ac_mitsubishi152.setFan(ac_mitsubishi152.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        if (last_command.swingh)
+            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
+        else
+            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
+        if (last_command.swingv)
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
+        else
+            ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88swingvOff);
+        ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_mitsubishi152.send();
+        break;
+
+    case RAW:
+        if (!last_command.power)
+        {
+            ac_custom.sendRaw(teachingModeIrCmds[0], teaching_mode_raw_len, RAW_FREQ);
+        }
+        else
+        {
+            uint8_t index = last_command.temperature - MAX_LOW_TEMP + 1;
+            ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, RAW_FREQ);
+        }
         break;
 
     case SAMSUNG_AC:
@@ -356,59 +463,16 @@ void ir_transmit()
         ac_samsung.send();
         break;
 
-    case HAIER_AC:
-        ac_haier.setTemp(last_command.temperature);
-        ac_haier.setSwingV(last_command.swingv);
-        ac_haier.setFan(ac_haier.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_haier.setOffTimer(last_command.offtimer);
-        ac_haier.setOnTimer(last_command.ontimer);
-        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_haier.send();
-        break;
-
-    case HAIER_AC176:
-        ac_haier176.setPower(last_command.power);
-        ac_haier176.setTemp(last_command.temperature);
-        ac_haier176.setSwingH(last_command.swingh);
-        ac_haier176.setSwingV(last_command.swingv);
-        ac_haier176.setFan(ac_haier176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_haier176.setOffTimer(last_command.offtimer);
-        ac_haier176.setOnTimer(last_command.ontimer);
-        ac_haier176.setMode(ac_haier176.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_haier176.send();
-        break;
-
-    case HAIER_AC160:
-        ac_haier160.setPower(last_command.power);
-        ac_haier160.setTemp(last_command.temperature);
-        ac_haier160.setSwingV(last_command.swingv);
-        ac_haier160.setFan(ac_haier160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_haier160.setOffTimer(last_command.offtimer);
-        ac_haier160.setOnTimer(last_command.ontimer);
-        ac_haier160.setMode(ac_haier160.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_haier160.send();
-        break;
-
-    case CARRIER_AC64:
-        ac_carrier64.setPower(last_command.power);
-        ac_carrier64.setTemp(last_command.temperature);
-        ac_carrier64.setSwingV(last_command.swingv);
-        ac_carrier64.setFan(ac_carrier64.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_carrier64.setOffTimer(last_command.offtimer);
-        ac_carrier64.setOnTimer(last_command.ontimer);
-        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_carrier64.send();
-        break;
-
-    case LG2:
-    case LG:
-        ac_lg.setPower(last_command.power);
-        ac_lg.setTemp(last_command.temperature);
-        ac_lg.setSwingH(last_command.swingh);
-        ac_lg.setSwingV(last_command.swingv);
-        ac_lg.setFan(ac_lg.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_lg.setMode(ac_lg.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_lg.send();
+    case VOLTAS:
+        ac_voltas.setPower(last_command.power);
+        ac_voltas.setTemp(last_command.temperature);
+        ac_voltas.setSwingH(last_command.swingh);
+        ac_voltas.setSwingV(last_command.swingv);
+        ac_voltas.setFan(ac_voltas.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_voltas.setOffTime(last_command.offtimer);
+        ac_voltas.setOnTime(last_command.ontimer);
+        ac_voltas.setMode(ac_voltas.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_voltas.send();
         break;
 
     case TOSHIBA_AC:
@@ -422,68 +486,6 @@ void ir_transmit()
         ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_toshiba.send();
         break;
-
-    case MITSUBISHI112:
-        ac_mitsubishi112.setPower(last_command.power);
-        ac_mitsubishi112.setTemp(last_command.temperature);
-        ac_mitsubishi112.setSwingH(last_command.swingh);
-        ac_mitsubishi112.setSwingV(last_command.swingv);
-        ac_mitsubishi112.setFan(ac_mitsubishi112.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_mitsubishi112.setMode(ac_mitsubishi112.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_mitsubishi112.send();
-        break;
-
-        // case MITSUBISHI136:
-        //     ac_mitsubishi136.setPower(last_command.power);
-        //     ac_mitsubishi136.setTemp(last_command.temperature);
-        //     if (last_command.swingv)
-        //     {
-        //         ac_mitsubishi136.setSwingV(kMitsubishi136swingvAuto);
-        //     }
-        //     ac_mitsubishi136.setFan(ac_mitsubishi136.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        //     ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)last_command.mode_num));
-        //     ac_mitsubishi136.send();
-        //     break;
-
-    case MITSUBISHI_AC:
-        ac_mitsubishi144.setPower(last_command.power);
-        ac_mitsubishi144.setTemp(last_command.temperature);
-        ac_mitsubishi144.setFan(ac_mitsubishi144.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_mitsubishi144.setMode(ac_mitsubishi144.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_mitsubishi144.send();
-        break;
-
-        // case MITSUBISHI_HEAVY_88:
-        //     ac_mitsubishi88.setPower(last_command.power);
-        //     ac_mitsubishi88.setTemp(last_command.temperature);
-        //     ac_mitsubishi88.setFan(ac_mitsubishi88.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        //     if (last_command.swingh)
-        //         ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
-        //     else
-        //         ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
-        //     if (last_command.swingv)
-        //         ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
-        //     else
-        //         ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvOff);
-        //     ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)last_command.mode_num));
-        //     ac_mitsubishi88.send();
-        //     break;
-
-        // case MITSUBISHI_HEAVY_152:
-        //     ac_mitsubishi152.setPower(last_command.power);
-        //     ac_mitsubishi152.setTemp(last_command.temperature);
-        //     ac_mitsubishi152.setFan(ac_mitsubishi152.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        //     if (last_command.swingh)
-        //         ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
-        //     else
-        //         ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
-        //     if (last_command.swingv)
-        //         ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
-        //     else
-        //         ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88swingvOff);
-        //     ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)last_command.mode_num));
-        //     ac_mitsubishi152.send();
-        //     break;
     }
     irrecv.resume();
 }
@@ -497,8 +499,8 @@ const char *get_protocol_string(int16_t protocol)
 {
     switch (protocol)
     {
-    case RAW:
-        return RAW_IR_PROTOCOL;
+    case CARRIER_AC64:
+        return CARRIER_AC64_IR_PROTOCOL;
     case DAIKIN:
         return DAIKIN_IR_PROTOCOL;
     case DAIKIN200:
@@ -517,6 +519,12 @@ const char *get_protocol_string(int16_t protocol)
         return DAIKIN152_IR_PROTOCOL;
     case DAIKIN128:
         return DAIKIN128_IR_PROTOCOL;
+    case HAIER_AC:
+        return HAIER_AC_IR_PROTOCOL;
+    case HAIER_AC176:
+        return HAIER_AC176_IR_PROTOCOL;
+    case HAIER_AC160:
+        return HAIER_AC160_IR_PROTOCOL;
     case HITACHI_AC296:
         return HITACHI_AC296_IR_PROTOCOL;
     case HITACHI_AC:
@@ -529,24 +537,10 @@ const char *get_protocol_string(int16_t protocol)
         return HITACHI_AC344_IR_PROTOCOL;
     case HITACHI_AC264:
         return HITACHI_AC264_IR_PROTOCOL;
-    case VOLTAS:
-        return VOLTAS_IR_PROTOCOL;
-    case SAMSUNG_AC:
-        return SAMSUNG_AC_IR_PROTOCOL;
-    case HAIER_AC:
-        return HAIER_AC_IR_PROTOCOL;
-    case HAIER_AC176:
-        return HAIER_AC176_IR_PROTOCOL;
-    case HAIER_AC160:
-        return HAIER_AC160_IR_PROTOCOL;
-    case CARRIER_AC64:
-        return CARRIER_AC64_IR_PROTOCOL;
     case LG2:
         return LG2_IR_PROTOCOL;
     case LG:
         return LG_IR_PROTOCOL;
-    case TOSHIBA_AC:
-        return TOSHIBA_AC_IR_PROTOCOL;
     case MITSUBISHI112:
         return MITSUBISHI112_IR_PROTOCOL;
     case MITSUBISHI136:
@@ -557,6 +551,14 @@ const char *get_protocol_string(int16_t protocol)
         return MITSUBISHI_HEAVY_88_IR_PROTOCOL;
     case MITSUBISHI_HEAVY_152:
         return MITSUBISHI_HEAVY_152_IR_PROTOCOL;
+    case SAMSUNG_AC:
+        return SAMSUNG_AC_IR_PROTOCOL;
+    case TOSHIBA_AC:
+        return TOSHIBA_AC_IR_PROTOCOL;
+    case RAW:
+        return RAW_IR_PROTOCOL;
+    case VOLTAS:
+        return VOLTAS_IR_PROTOCOL;
     case UNKNOWN:
         return UNKNOWN_IR_PROTOCOL;
     case UNUSED:
@@ -567,17 +569,16 @@ const char *get_protocol_string(int16_t protocol)
 }
 
 /**
- * @brief Function that checks if the detected IR signal is a supported ir protocol or not
- * If yes, then device is allowed to get configured as the detected protocol. If no, then
- * device will not get configured.
+ * @brief Function that checks if the detected IR signal is a sendable IR Protocol
  * @param protocol
  * @return true
  * @return false
  */
-bool is_supported_remote(uint16_t protocol)
+bool is_sendable_protocol(decode_type_t protocol)
 {
     switch (protocol)
     {
+    case CARRIER_AC64:
     case DAIKIN:
     case DAIKIN200:
     case DAIKIN216:
@@ -587,26 +588,79 @@ bool is_supported_remote(uint16_t protocol)
     case DAIKIN64:
     case DAIKIN152:
     case DAIKIN128:
+    case HAIER_AC:
+    case HAIER_AC176:
+    case HAIER_AC160:
     case HITACHI_AC296:
     case HITACHI_AC:
     case HITACHI_AC1:
     case HITACHI_AC424:
     case HITACHI_AC344:
     case HITACHI_AC264:
-    case VOLTAS:
-    case SAMSUNG_AC:
-    case HAIER_AC:
-    case HAIER_AC176:
-    case HAIER_AC160:
-    case CARRIER_AC64:
     case LG2:
     case LG:
-    case TOSHIBA_AC:
     case MITSUBISHI112:
     case MITSUBISHI136:
     case MITSUBISHI_AC:
     case MITSUBISHI_HEAVY_88:
     case MITSUBISHI_HEAVY_152:
+    case SAMSUNG_AC:
+    case TOSHIBA_AC:
+    case VOLTAS:
+        return true;
+    default:
+        return false;
+    }
+}
+
+/**
+ * @brief Function that checks if the detected IR signal is a decodeable IR Protocol
+ * @param protocol
+ * @return true
+ * @return false
+ */
+bool is_decodeable_protocol(decode_type_t protocol)
+{
+    switch (protocol)
+    {
+    case CARRIER_AC:
+    case CARRIER_AC40:
+    case CARRIER_AC64:
+    case CARRIER_AC84:
+    case CARRIER_AC128:
+    case DAIKIN:
+    case DAIKIN2:
+    case DAIKIN64:
+    case DAIKIN128:
+    case DAIKIN152:
+    case DAIKIN160:
+    case DAIKIN176:
+    case DAIKIN200:
+    case DAIKIN216:
+    case DAIKIN312:
+    case HAIER_AC:
+    case HAIER_AC160:
+    case HAIER_AC176:
+    case HITACHI_AC1:
+    case HITACHI_AC2:
+    case HITACHI_AC3:
+    case HITACHI_AC:
+    case HITACHI_AC264:
+    case HITACHI_AC296:
+    case HITACHI_AC344:
+    case HITACHI_AC424:
+    case LG:
+    case LG2:
+    case MITSUBISHI:
+    case MITSUBISHI_AC:
+    case MITSUBISHI2:
+    case MITSUBISHI112:
+    case MITSUBISHI136:
+    case SAMSUNG_AC:
+    case SAMSUNG:
+    case SAMSUNG36:
+    case TOSHIBA_AC:
+    case VOLTAS:
         return true;
     default:
         return false;
@@ -655,12 +709,18 @@ bool isFetchControlInfoSuccessful(const char *description)
 
     if (strstr(description, "Mode:"))
     {
-        if (strstr(description, "(Cool)")) strcpy(ac_manual_control_t.mode, COOL_MODE_STR);
-        else if(strstr(description, "(Heat)")) strcpy(ac_manual_control_t.mode, HEAT_MODE_STR);
-        else if(strstr(description, "(Auto)")) strcpy(ac_manual_control_t.mode, AUTO_MODE_STR);
-        else if(strstr(description, "(Fan)")) strcpy(ac_manual_control_t.mode, FAN_MODE_STR);
-        else if(strstr(description, "(Dry)")) strcpy(ac_manual_control_t.mode, DRY_MODE_STR);
-        else {
+        if (strstr(description, "(Cool)"))
+            strcpy(ac_manual_control_t.mode, COOL_MODE_STR);
+        else if (strstr(description, "(Heat)"))
+            strcpy(ac_manual_control_t.mode, HEAT_MODE_STR);
+        else if (strstr(description, "(Auto)"))
+            strcpy(ac_manual_control_t.mode, AUTO_MODE_STR);
+        else if (strstr(description, "(Fan)"))
+            strcpy(ac_manual_control_t.mode, FAN_MODE_STR);
+        else if (strstr(description, "(Dry)"))
+            strcpy(ac_manual_control_t.mode, DRY_MODE_STR);
+        else
+        {
             ac_manual_control_t.mode_err = MODE_NOT_AVAILABLE_IN_IR_SIGNAL_DECODED_STRING;
             strcpy(ac_manual_control_t.mode, "-1");
         }
@@ -739,9 +799,11 @@ void locking_feature(const char *description)
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
     esp_err_t err = nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
-    if (err) ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
+    if (err)
+        ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
     err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
-    if (err) {
+    if (err)
+    {
         led_set_state(LED_STATE_INVALID_OPERATION);
         ESP_LOGE(IR_TAG, "IR Partition init failed, Can't proceed with Teaching mode : %s", esp_err_to_name(err));
         teaching_mode_t.errorCode = IR_PARTITION_INIT_FAILED;
@@ -760,7 +822,7 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8_SIZE);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8_SIZE);
 
-    here:
+here:
 #if (IS_GWY)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
@@ -779,14 +841,16 @@ void exit_teaching_mode(bool success)
 {
     if (success)
     {
-        pull_ir_cmd_data(); //Pull the data from nvs flash to RAM for immediate usage
-        configured = true; set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
+        pull_ir_cmd_data(); // Pull the data from nvs flash to RAM for immediate usage
+        configured = true;
+        set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
         ir_protocol_num = RAW;
         strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
         set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
         ESP_LOGI(IR_TAG, "Teaching mode completed successfully");
     }
-    else ESP_LOGW(IR_TAG, "Quitting teaching mode without completion");
+    else
+        ESP_LOGW(IR_TAG, "Quitting teaching mode without completion");
     strcpy(teaching_mode_t.nextCommand, "");
     teaching_in_progress = false;
     update_led_status();
@@ -800,7 +864,7 @@ void exit_teaching_mode(bool success)
 }
 
 /**
- * @brief Function that performs the teaching process.
+ * @brief Function that performs the teaching process with error check support
  * - 1) Detects IR Signal
  * - 2) Decodes information from IR Signal = Temperature, Power
  * - 3) Checks if the expected IR Signal
@@ -808,21 +872,22 @@ void exit_teaching_mode(bool success)
  * - 5) Steps 1 to 4 is repeated until expected number of IR Signals have been received
  * - 6) Quits device from Teaching mode
  */
-void perform_teaching_process(const char *description)
+void perform_teaching_process_with_error_checking(const char *description)
 {
     /*Let's pause the IR Reception until we process the recevied ir signal*/
     irrecv.pause();
 
     if (isFetchControlInfoSuccessful(description) || teaching_mode_t.commandsReceived == 0)
     {
-        //We need to neglect the first value in the received signal
-        memmove((void *)results.rawbuf, (const void *)&results.rawbuf[1], (results.rawlen-1)*sizeof(results.rawbuf[0]));
-        results.rawlen-=1;
+        // We need to neglect the first value in the received signal
+        memmove((void *)results.rawbuf, (const void *)&results.rawbuf[1], (results.rawlen - 1) * sizeof(results.rawbuf[0]));
+        results.rawlen -= 1;
 
-        /*I'm not sure why we have to do this, but we're having to multiply the received signal values with 2*/
-        for(int i=0;i<results.rawlen;i++)
+        /*I'm not sure why we have to do this, but we've to multiply the received signal values with 2*/
+        /*For some reason, if we transmit a signal of length 3.5ms, the receiver side prints it as 1.75ms*/
+        for (int i = 0; i < results.rawlen; i++)
         {
-            results.rawbuf[i]*=2;
+            results.rawbuf[i] *= 2;
         }
 
         /*If this is the first IR Signal*/
@@ -832,7 +897,7 @@ void perform_teaching_process(const char *description)
             set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, teaching_mode_raw_len, UINT16_SIZE);
 
             /*Let's store raw values to nvs flash*/
-            set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, teaching_mode_raw_len*sizeof(uint16_t));
+            set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
 
             /**
              * @warning We're only comparing power here and not temperature, because, for some AC remotes
@@ -842,7 +907,7 @@ void perform_teaching_process(const char *description)
             if (ac_manual_control_t.power_value == 0)
             {
                 ESP_LOGI(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
+                         results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
                 /*We've received a valid first IR Signal*/
                 teaching_mode_t.commandsReceived++;
                 teaching_mode_t.commandIndex++;
@@ -854,7 +919,7 @@ void perform_teaching_process(const char *description)
             else
             {
                 ESP_LOGW(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
+                         results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 0);
                 led_set_state(LED_STATE_INVALID_OPERATION);
                 teaching_mode_t.errorCode = FAILURE;
             }
@@ -864,10 +929,10 @@ void perform_teaching_process(const char *description)
             if (ac_manual_control_t.power_value == 1 && ac_manual_control_t.temperature_value == teaching_mode_t.expectedTemperature)
             {
                 ESP_LOGI(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
+                         results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
 
                 /*Let's store raw values to nvs flash*/
-                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len*sizeof(uint16_t));
+                set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
 
                 /*We've received a valid IR Signal*/
                 teaching_mode_t.commandsReceived++;
@@ -881,7 +946,7 @@ void perform_teaching_process(const char *description)
             else
             {
                 ESP_LOGE(IR_TAG, "Detected Rawlen : %d | Detected Temperature : %d | Detected Power : %d | Required Temperature : %d | Required Power : %d",
-                 results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
+                         results.rawlen, ac_manual_control_t.temperature_value, ac_manual_control_t.power_value, teaching_mode_t.expectedTemperature, 1);
                 led_set_state(LED_STATE_INVALID_OPERATION);
                 teaching_mode_t.errorCode = FAILURE;
             }
@@ -895,8 +960,69 @@ void perform_teaching_process(const char *description)
     if (teaching_mode_t.remainingCommands != 0)
 #if (IS_GWY)
         generate_ack(GWY_TEACHING_MODE, NULL);
+#else
+        send_teaching_mode_ack_to_provisioner();
 #endif
-#if (!IS_GWY)
+
+    /*Teaching mode has been successfully completed*/
+    else
+        exit_teaching_mode(true);
+
+    irrecv.resume();
+}
+
+/**
+ * @brief Function that performs the teaching process without error check support
+ * - 1) Detects IR Signal
+ * - 2) Saves it to nvs flash
+ * - 3) Steps 1 & 2 is repeated until expected number of IR Signals have been received
+ * - 6) Quits device from Teaching mode
+ */
+void perform_teaching_process_without_error_checking()
+{
+    /*Let's pause the IR Reception until we process the recevied ir signal*/
+    irrecv.pause();
+
+    // We need to neglect the first value in the received signal
+    memmove((void *)results.rawbuf, (const void *)&results.rawbuf[1], (results.rawlen - 1) * sizeof(results.rawbuf[0]));
+    results.rawlen -= 1;
+
+    /*I'm not sure why we have to do this, but we've to multiply the received signal values with 2*/
+    /*For some reason, if we transmit a signal of length 3.5ms, the receiver side prints it as 1.75ms*/
+    for (int i = 0; i < results.rawlen; i++)
+    {
+        results.rawbuf[i] *= 2;
+    }
+
+    teaching_mode_raw_len = results.rawlen;
+    set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, teaching_mode_raw_len, UINT16_SIZE);
+
+    /*Let's store raw values to nvs flash*/
+    set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
+
+    teaching_mode_t.commandsReceived++;
+    teaching_mode_t.commandIndex++;
+    teaching_mode_t.remainingCommands--;
+    teaching_mode_t.errorCode = SUCCESS;
+    strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[0]);
+    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
+
+    /*Let's store raw values to nvs flash*/
+    set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
+
+    /*We've received a valid IR Signal*/
+    teaching_mode_t.commandsReceived++;
+    teaching_mode_t.commandIndex++;
+    teaching_mode_t.remainingCommands--;
+    teaching_mode_t.errorCode = SUCCESS;
+    teaching_mode_t.expectedTemperature++;
+    strcpy(teaching_mode_t.lastCommand, teaching_mode_t.nextCommand);
+    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
+
+    if (teaching_mode_t.remainingCommands != 0)
+#if (IS_GWY)
+        generate_ack(GWY_TEACHING_MODE, NULL);
+#else
         send_teaching_mode_ack_to_provisioner();
 #endif
 
@@ -930,16 +1056,16 @@ void ir_recv_task(void *args)
             if (description.length())
                 ESP_LOGW(IR_TAG, "%s\n", description.c_str());
 
-            if(results.rawlen > 20)
+            if (results.rawlen > 20)
             {
                 ESP_LOGE(IR_TAG, "Detected IR Signal values : ");
-                for(int i=0; i<results.rawlen; i++)
+                for (int i = 0; i < results.rawlen; i++)
                 {
-                    printf("%d ",results.rawbuf[i]);
+                    printf("%d ", results.rawbuf[i]);
                 }
                 printf("\n");
             }
-            
+
             /**  @warning DO NOT CHANGE THE FOLLOWING ORDER
              * 1) locking Feature
              * 2) Teaching Mode
@@ -952,6 +1078,7 @@ void ir_recv_task(void *args)
                 ((protocol == ir_protocol_num) || (ir_protocol_num == RAW && results.rawlen == teaching_mode_raw_len)) &&
                 description.length())
             {
+                led_set_state(LED_STATE_IR_SIGNAL_DETECTED);
                 locking_feature(description.c_str());
                 continue;
             }
@@ -959,42 +1086,69 @@ void ir_recv_task(void *args)
             /*Teaching Mode*/
             else if (teaching_in_progress)
             {
-                perform_teaching_process(description.c_str());
+                if (teaching_mode_t.errorCheckEnabled)
+                    perform_teaching_process_with_error_checking(description.c_str());
+                else
+                    perform_teaching_process_without_error_checking();
                 continue;
             }
 
             /*AC Remote Configuration Process*/
             else if ((registered || provisioned) && !configured && protocol != UNKNOWN && !teaching_in_progress)
             {
-                configured = true; update_led_status();
-                ir_protocol_num = protocol;
-                strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-                set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
-                set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
-#if (IS_GWY)
-                generate_ack(GWY_CONF_ACK, NULL);
+                CommandStruct ack;
+                ack.irProtocolNum = protocol;
+#if(IS_GWY)
+                ack.packetid = GWY_CONF_ACK;
+#else
+                ack.packetid = NODE_CONF_ACK;
+                strcpy(ack.deviceName, serialNoStr);
+                ack.elemaddr = last_command.elemaddr;
 #endif
-#if (!IS_GWY)
-                send_ack_to_provisioner(NODE_CONF_ACK, NULL);
-#endif
-                ESP_LOGI(IR_TAG, "AC Remote configuration successful");
-            }
+                if (is_sendable_protocol(protocol))
+                {
+                    configured = true; update_led_status();
+                    ir_protocol_num = protocol;
+                    strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
+                    set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
+                    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 1, UINT8_SIZE);
 
-            /*Unsupported AC Remote*/
-            else if (!configured && protocol == UNKNOWN)
-            {
-                ac_remote_unsupported_flag = true;
+                    ack.errorcode = SUCCESS;
+#if (IS_GWY)
+                    generate_ack(GWY_CONF_ACK, &ack);
+#else
+                    send_ack_to_provisioner(NODE_CONF_ACK, &ack);
+#endif
+                    ESP_LOGI(IR_TAG, "AC Remote configuration successful");
+                    goto here;
+                }
+
                 led_set_state(LED_STATE_INVALID_OPERATION);
-                ESP_LOGD(IR_TAG, "AC Remote Unsupported");
-#if (IS_GWY)
-                generate_ack(GWY_CONF_ACK, NULL);
-#endif
-#if (!IS_GWY)
-                send_ack_to_provisioner(NODE_CONF_ACK, NULL);
-#endif
-                ac_remote_unsupported_flag = false;
-            }
 
+                else if(is_decodeable_protocol(protocol))
+                {
+                    ESP_LOGE(IR_TAG, "AC Remote Configuration Failed | Protocol is deocdeable-only");
+                    ESP_LOGW(IR_TAG, "Move on to Teaching mode with error checking");
+                    ack.errorcode = IR_PROTOCOL_DECODEABLE_ONLY;
+#if (IS_GWY)
+                    generate_ack(GWY_CONF_ACK, &ack);
+#else
+                    send_ack_to_provisioner(NODE_CONF_ACK, &ack);
+#endif
+                }
+                else
+                {
+                    ESP_LOGE(IR_TAG, "AC Remote Configuration Failed | Protocol is neither decodeable nor sendable");
+                    ESP_LOGW(IR_TAG, "Move on to Teaching mode without error checking");
+                    ack.errorcode = IR_PROTOCOL_FULLY_UNSUPPORTED;
+#if (IS_GWY)
+                    generate_ack(GWY_CONF_ACK, &ack);
+#else
+                    send_ack_to_provisioner(NODE_CONF_ACK, &ack);
+#endif
+                }
+            }
+            here:
             yield();
         }
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -1004,7 +1158,7 @@ void ir_recv_task(void *args)
 /**
  * @brief Function that takes are of setting the configured to false,
  * and updating the flash. Common function to both provisioner and node
- * 
+ *
  */
 void handle_reconfiguration()
 {
@@ -1012,17 +1166,18 @@ void handle_reconfiguration()
     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_CONFIGURED_KEY, 0, UINT8_SIZE);
     set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
-    configured = 0; update_led_status();
+    configured = 0;
+    update_led_status();
 }
 
 /**
  * @brief Function that takes care of configuring teaching mode.
  * Common function for both provisioner and node.
- * @param cmd_struct 
+ * @param cmd_struct
  */
 void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
 {
-    memset(&teaching_mode_t, 0, sizeof(teaching_mode)); //Let's clear off the previously stored contents
+    memset(&teaching_mode_t, 0, sizeof(teaching_mode)); // Let's clear off the previously stored contents
     teaching_mode_t.packetid = cmd_struct->packetid;
     teaching_mode_t.errorCode = cmd_struct->errorcode;
     strcpy(teaching_mode_t.deviceName, serialNoStr);
@@ -1030,8 +1185,11 @@ void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
     teaching_mode_t.teachingStart = cmd_struct->teachingStart;
     teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
     teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;
-    if(teaching_mode_t.teachingStart) {
+    teaching_mode_t.errorCheckEnabled = cmd_struct->errorCheckEnabled;
+    if (teaching_mode_t.teachingStart)
+    {
         teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
     }
-    else exit_teaching_mode(false);
+    else
+        exit_teaching_mode(false);
 }

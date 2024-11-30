@@ -183,7 +183,10 @@ typedef enum
     RESET_DEVICE_EXCEEDING_RANGE,
     MISSING_LOGGING,
     LOGGING_EXCEEDING_RANGE,
-    AC_REMOTE_UNSUPPORTED,
+    IR_PROTOCOL_DECODEABLE_ONLY,
+    IR_PROTOCOL_FULLY_UNSUPPORTED,
+    MISSING_ERROR_CHECK,
+    ERROR_CHECK_EXCEEDING_RANGE,
     MISSING_TEACHING_START,
     TEACHING_START_EXCEEDING_RANGE,
     MISSING_STARTING_TEMPERATURE,
@@ -283,6 +286,7 @@ typedef struct
     uint8_t minversion;                // 1 byte
     uint8_t patchversion;              // 1 byte
     uint8_t provisioned;               // 1 byte
+    uint8_t errorCheckEnabled;         // 1 Byte
     bool requestSentToNode;            // 1 byte
     bool configured;                   // 1 byte
     char mode_str[MODE_STR_LEN];   // Variable size, but align at the end
@@ -301,7 +305,7 @@ typedef struct
     int8_t power_value;               // 1 byte
     int8_t fanspeed_value;            // 1 byte
     int8_t temperature_value;         // 1 byte
-    char deviceName[16];                // 16 bytes
+    char deviceName[16];              // 16 bytes
     char mode[8];                     // 8 bytes
     char temperature[4];              // 4 bytes
     char power[4];                    // 4 bytes
@@ -317,15 +321,18 @@ typedef struct
     esp_err_t bleErrorCode;         // 4 bytes
     char lastCommand[36];           // 36 bytes
     char nextCommand[36];           // 36 bytes
-    char deviceName[16];              // 16 bytes
+    char deviceName[16];            // 16 bytes
     error_codes errorCode;          // 1 byte
     uint8_t teachingStart;          // 1 byte
+    uint8_t power;                  // 1 byte
+    uint8_t temperature;            // 1 byte
     uint8_t startingTemperature;    // 1 byte
     uint8_t endingTemperature;      // 1 byte
     uint8_t expectedTemperature;    // 1 byte
     uint8_t commandsReceived;       // 1 byte
     uint8_t commandIndex;           // 1 byte
     uint8_t remainingCommands;      // 1 byte
+    uint8_t errorCheckEnabled;      // 1 byte
 } teaching_mode;
 
 typedef struct {

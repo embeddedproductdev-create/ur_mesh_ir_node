@@ -126,6 +126,7 @@ const char *REMAINING_CMD_KEY = "RemainingCommands";
 const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
 const char *BLE_ERROR_CODE_KEY = "BleErrorCode";
 const char *MESSAGE_KEY = "Message";
+const char *ERROR_CHK_ENABLED_KEY = "ErrorCheckEnabled";
 
 bool powerDownFlag = false;
 
@@ -325,7 +326,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
 {
     char *buffer = (char *)malloc(sizeof(char)*MQTT_ACK_BUFFER_LEN);
     if(!buffer) {
-        ESP_LOGE(LTE_TAG, "%s() - Memory allocation failed",__func__);
+        ESP_LOGE(LTE_TAG, "%s() - Memory allocation failed", __func__);
         return;
     }
     jWriteControl_t jwc;
@@ -364,6 +365,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -373,18 +375,17 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NVS_IR_PROTOCOL_KEY, ir_protocol);
-            if(ir_protocol_num == -1) jwObj_int(&jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_int(&jwc, ERROR_CODE_KEY, SUCCESS);
-            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(SUCCESS));
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+            jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
         
         case NODE_CONF_ACK:
             jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_string(&jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
-            if(cmd_struct->irProtocolNum == -1) jwObj_int(&jwc, ERROR_CODE_KEY, AC_REMOTE_UNSUPPORTED);
-            else jwObj_int(&jwc, ERROR_CODE_KEY, SUCCESS);
+            jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             break;
 
@@ -401,6 +402,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -419,6 +421,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -448,6 +451,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, POWER_KEY, cmd_struct->power);
             jwObj_string(&jwc, MODE_KEY, cmd_struct->mode_str);
             jwObj_int(&jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
@@ -478,6 +482,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -499,6 +504,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, "");
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -539,6 +545,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
             jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
             jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+            jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
             jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
             jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
             jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -617,7 +624,10 @@ char* get_error_code_name(error_codes code) {
         "RESET_DEVICE_EXCEEDING_RANGE",
         "MISSING_LOGGING",
         "LOGGING_EXCEEDING_RANGE",
-        "AC_REMOTE_UNSUPPORTED",
+        "IR_PROTOCOL_DECODEABLE_ONLY",
+        "IR_PROTOCOL_FULLY_UNSUPPORTED",
+        "MISSING_ERROR_CHECK",
+        "ERROR_CHECK_EXCEEDING_RANGE",
         "MISSING_TEACHING_START",
         "TEACHING_START_EXCEEDING_RANGE",
         "MISSING_STARTING_TEMPERATURE",
@@ -867,36 +877,62 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         }
     }
 
-    if(cmd_struct->packetid == GWY_TEACHING_MODE || cmd_struct->packetid == NODE_TEACHING_MODE)
+    if(cmd_struct->packetid == GWY_TEACHING_MODE)
     {
-        if(!cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)) {cmd_struct->errorcode = MISSING_TEACHING_START; return;}
-        if(!cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_STARTING_TEMPERATURE; return;}
-        if(!cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_ENDING_TEMPERATURE; return;}
-        else {
-            int teaching_start, startingTemp, endingTemp;    
+        /**
+         * Check the below three keys only when for when the teaching mode packet is received for the first time
+         */
+        if(!teaching_in_progress) { 
+            if(!cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)) {cmd_struct->errorcode = MISSING_TEACHING_START; return;}
+            if(!cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_STARTING_TEMPERATURE; return;}
+            if(!cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_ENDING_TEMPERATURE; return;}
+            if(!cJSON_GetObjectItem(json_obj, ERROR_CHK_ENABLED_KEY)) {cmd_struct->errorcode = MISSING_ERROR_CHECK; return;}
+            int teaching_start, startingTemp, endingTemp, errorChk;    
             
             teaching_start = cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)->valueint;
             startingTemp = cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY)->valueint;
             endingTemp = cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY)->valueint;
-            
+            errorChk = cJSON_GetObjectItem(json_obj, ERROR_CHK_ENABLED_KEY)->valueint;
+
             if(teaching_start!=0 && teaching_start!=1)  {cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE; return;}
             else cmd_struct->teachingStart = teaching_start;
-            
-            if(teaching_start && teaching_in_progress && cmd_struct->packetid == GWY_TEACHING_MODE) 
-                {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
-            if(!teaching_start && !teaching_in_progress && cmd_struct->packetid == GWY_TEACHING_MODE) 
-                {cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
+
+            if(!teaching_start) {cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
             
             if(!(startingTemp>=MAX_LOW_TEMP && startingTemp<=MAX_HIGH_TEMP)) {cmd_struct->errorcode = STARTING_TEMPERATURE_EXCEEDING_RANGE; return;}
             else cmd_struct->startingTemperature = startingTemp;
             
-            
             if(!(endingTemp>=MAX_LOW_TEMP && endingTemp<=MAX_HIGH_TEMP)) {cmd_struct->errorcode = ENDING_TEMPERATURE_EXCEEDING_RANGE; return;}
             else cmd_struct->endingTemperature = endingTemp;
             
-            
             if(startingTemp>endingTemp) {cmd_struct->errorcode = STARTING_TEMPERATURE_LESS_THAN_ENDING_TEMPERATURE;}
             return;
+
+            if(errorChk!=0 && errorChk!=1) {cmd_struct->errorcode = ERROR_CHECK_EXCEEDING_RANGE; return;}
+            else cmd_struct.errorCheckEnabled = errorChk;
+        }
+
+        /*When Teaching is already in process*/
+        else
+        {
+            if(!cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)) {cmd_struct->errorcode = MISSING_TEACHING_START; return;}
+            if(!cJSON_GetObjectItem(json_obj, ERROR_CHK_ENABLED_KEY)) {cmd_struct->errorcode = MISSING_ERROR_CHECK; return;}
+            int teaching_start, errorChk, power, temperature;
+
+            if(teaching_start!=0 && teaching_start!=1)  {cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE; return;}
+            else cmd_struct->teachingStart = teaching_start;
+            
+            if(teaching_start) {cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE; return;}
+
+            if(!cJSON_GetObjectItem(json_obj, POWER_KEY)) {cmd_struct->errorcode = MISSING_POWER; return;}
+            if(!cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY)) {cmd_struct->errorcode = MISSING_TEMPERATURE; return;}
+
+            power = cJSON_GetObjectItem(json_obj, POWER_KEY)->valueint;
+            temperature = cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY)->valueint;
+
+            if(power!=0 && power!=1) {cmd_struct->errorcode = POWER_EXCEEDING_RANGE; return;}
+            if(!(temperature>=teaching_mode_t.startingTemperature && temperature<=teaching_mode_t.endingTemperature))
+                {cmd_struct->errorcode = TEMPERATURE_EXCEEDING_RANGE; return;}
         }
     }
 

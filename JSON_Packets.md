@@ -332,7 +332,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 {
   "PacketId": 7,
   "MsgSeqNo": 12345,
-  "PublishPeriodSec": 300,
+  "PublishPeriodSec": 300
 }
 ```
 
@@ -366,6 +366,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 | :-----------------: | :-----------: | :--------: | :---------: |
 |      PacketId       |       8       |   Number   |      8      |
 |      MsgSeqNo       |     12345     |   Number   |   0-65535   |
+|  ErrorCheckEnabled  |       1       |   Number   |     0,1     |
 |    TeachingStart    |       1       |   Number   |     0,1     |
 | StartingTemperature |      25       |   Number   |    18-32    |
 |  EndingTemperature  |      28       |   Number   |    18-32    |
@@ -374,6 +375,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 {
   "PacketId": 8,
   "MsgSeqNo": 12345,
+  "ErrorCheckEnabled":1,
   "TeachingStart": 1,
   "StartingTemperature": 25,
   "EndingTemperature": 28
@@ -826,6 +828,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 |      PacketId       |      108      |   Number   |     108     |
 |      MsgSeqNo       |     12345     |   Number   |   0-65535   |
 |     ElementAddr     |      23       |   Number   |   2-65535   |
+|  ErrorCheckEnabled  |       1       |   Number   |     0,1     |
 |    TeachingStart    |       1       |   Number   |     0,1     |
 | StartingTemperature |      25       |   Number   |    18-32    |
 |  EndingTemperature  |      28       |   Number   |    18-32    |
@@ -835,6 +838,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
   "PacketId": 108,
   "MsgSeqNo": 12345,
   "ElementAddr": 23,
+  "ErrorCheckEnabled":1,
   "TeachingStart": 1,
   "StartingTemperature": 25,
   "EndingTemperature": 28

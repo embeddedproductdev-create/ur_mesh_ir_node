@@ -28,7 +28,6 @@
 extern TaskHandle_t ir_recv_task_handle;
 extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CDM_LEN];
 extern const char *TEACHING_MODE_SEQUENCE[];
-extern bool ac_remote_unsupported_flag;
 
 extern const char *RAW_IR_PROTOCOL;
 extern const char *DAIKIN_IR_PROTOCOL;
@@ -71,7 +70,7 @@ extern "C" {
 void ir_recv_task(void *args);
 void ir_tran_setup();
 const char *get_protocol_string(int16_t protocol);
-bool is_supported_remote(int16_t protocol);
+bool is_sendable_protocol(int16_t protocol);
 void ir_transmit();
 void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
 void exit_teaching_mode(bool success);
