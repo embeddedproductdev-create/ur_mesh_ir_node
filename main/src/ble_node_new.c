@@ -465,6 +465,10 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
                 ESP_LOGI(BLE_TAG, "Received Node Teaching Mode Packet from Provisioner");
                 handle_configuring_teaching_mode(cmd);
                 break;
+            
+            case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Node Teaching Mode Cmd Selection Packet from Provisioner");
+                break;
 
             case NODE_AC_CONTROL_PACKET:
                 ESP_LOGI(BLE_TAG, "Received Node AC Control Packet from Provisioner");

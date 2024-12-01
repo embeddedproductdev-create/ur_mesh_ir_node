@@ -69,6 +69,8 @@ const char *TEACHING_MODE_SEQUENCE[] = {
     "Temperature - 32 | Power - On"  // 15
 };
 
+bool teaching_mode_cmd_recvd_array[MAX_CMDS_IN_TEACHING_MODE];
+
 /*IR Receiver Initializations*/
 IRrecv irrecv(IR_RECV_GPIO, IR_RECV_BUFFER_LEN, KTIMEOUT, SAVE_BUFFER_FLAG);
 decode_results results;
@@ -81,6 +83,7 @@ teaching_mode teaching_mode_t;
 
 /*AC Class Objects*/
 IRCarrierAc64 ac_carrier64(IR_TRAN_GPIO);
+
 IRDaikinESP ac_daikin280(IR_TRAN_GPIO);
 IRDaikin216 ac_daikin216(IR_TRAN_GPIO);
 IRDaikin2 ac_daikin2(IR_TRAN_GPIO);
@@ -90,25 +93,32 @@ IRDaikin200 ac_daikin200(IR_TRAN_GPIO);
 IRDaikin64 ac_daikinac64(IR_TRAN_GPIO);
 IRDaikin152 ac_daikin152(IR_TRAN_GPIO);
 IRDaikin128 ac_daikin128(IR_TRAN_GPIO);
+
+IRHaierAC ac_haier(IR_TRAN_GPIO);
+IRHaierAC176 ac_haier176(IR_TRAN_GPIO);
+IRHaierAC160 ac_haier160(IR_TRAN_GPIO);
+
 IRHitachiAc ac_hitachi224(IR_TRAN_GPIO);
 IRHitachiAc1 ac_hitachi104(IR_TRAN_GPIO);
 IRHitachiAc424 ac_hitachi424(IR_TRAN_GPIO);
 IRHitachiAc344 ac_hitachi344(IR_TRAN_GPIO);
 IRHitachiAc264 ac_hitachi264(IR_TRAN_GPIO);
 IRHitachiAc296 ac_hitachi296(IR_TRAN_GPIO);
-IRVoltas ac_voltas(IR_TRAN_GPIO);
-IRSamsungAc ac_samsung(IR_TRAN_GPIO);
-IRHaierAC ac_haier(IR_TRAN_GPIO);
-IRHaierAC176 ac_haier176(IR_TRAN_GPIO);
-IRHaierAC160 ac_haier160(IR_TRAN_GPIO);
+
 IRLgAc ac_lg(IR_TRAN_GPIO);
-IRToshibaAC ac_toshiba(IR_TRAN_GPIO);
-IRCarrierAc64 ac_carrier64(IR_TRAN_GPIO);
+
 IRMitsubishi112 ac_mitsubishi112(IR_TRAN_GPIO);
 IRMitsubishi136 ac_mitsubishi136(IR_TRAN_GPIO);
 IRMitsubishiAC ac_mitsubishi144(IR_TRAN_GPIO);
 IRMitsubishiHeavy88Ac ac_mitsubishi88(IR_TRAN_GPIO);
 IRMitsubishiHeavy152Ac ac_mitsubishi152(IR_TRAN_GPIO);
+
+IRSamsungAc ac_samsung(IR_TRAN_GPIO);
+
+IRToshibaAC ac_toshiba(IR_TRAN_GPIO);
+
+IRVoltas ac_voltas(IR_TRAN_GPIO);
+
 IRsend ac_custom(IR_TRAN_GPIO);
 IRsend ac_general(IR_TRAN_GPIO);
 
@@ -216,13 +226,13 @@ void ir_transmit()
         ac_daikin2.setPower(last_command.power);
         ac_daikin2.setTemp(last_command.temperature);
         if (last_command.swingh)
-            ac_daikin2.setSwingHorizontal(kDaikin2swinghAuto);
+            ac_daikin2.setSwingHorizontal(kDaikin2SwingHAuto);
         else
-            ac_daikin2.setSwingHorizontal(kDaikin2swinghOff);
+            ac_daikin2.setSwingHorizontal(kDaikin2SwingHOff);
         if (last_command.swingv)
-            ac_daikin2.setSwingVertical(kDaikin2swingvAuto);
+            ac_daikin2.setSwingVertical(kDaikin2SwingVAuto);
         else
-            ac_daikin2.setSwingVertical(kDaikin2swingvOff);
+            ac_daikin2.setSwingVertical(kDaikin2SwingVOff);
         ac_daikin2.setFan(ac_daikin2.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_daikin2.enableOffTimer(last_command.offtimer);
         ac_daikin2.enableOnTimer(last_command.ontimer);
@@ -234,7 +244,7 @@ void ir_transmit()
         ac_daikin160.setPower(last_command.power);
         ac_daikin160.setTemp(last_command.temperature);
         if (last_command.swingv)
-            ac_daikin160.setSwingVertical(kDaikin160swingvAuto);
+            ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
         ac_daikin160.setFan(ac_daikin160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin160.send();
@@ -244,9 +254,9 @@ void ir_transmit()
         ac_daikin176.setPower(last_command.power);
         ac_daikin176.setTemp(last_command.temperature);
         if (last_command.swingh)
-            ac_daikin176.setSwingHorizontal(kDaikin176swinghAuto);
+            ac_daikin176.setSwingHorizontal(kDaikin176SwingHAuto);
         else
-            ac_daikin176.setSwingHorizontal(kDaikin176swinghOff);
+            ac_daikin176.setSwingHorizontal(kDaikin176SwingHOff);
         ac_daikin176.setFan(ac_daikin176.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_daikin176.setMode(ac_daikin176.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin176.send();
@@ -392,7 +402,7 @@ void ir_transmit()
         ac_mitsubishi136.setTemp(last_command.temperature);
         if (last_command.swingv)
         {
-            ac_mitsubishi136.setSwingV(kMitsubishi136swingvAuto);
+            ac_mitsubishi136.setSwingV(kMitsubishi136SwingVAuto);
         }
         ac_mitsubishi136.setFan(ac_mitsubishi136.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_mitsubishi136.setMode(ac_mitsubishi136.convertMode((stdAc::opmode_t)last_command.mode_num));
@@ -412,13 +422,13 @@ void ir_transmit()
         ac_mitsubishi88.setTemp(last_command.temperature);
         ac_mitsubishi88.setFan(ac_mitsubishi88.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         if (last_command.swingh)
-            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
+            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
         else
-            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
+            ac_mitsubishi88.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
         if (last_command.swingv)
-            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
         else
-            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvOff);
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVOff);
         ac_mitsubishi88.setMode(ac_mitsubishi88.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_mitsubishi88.send();
         break;
@@ -428,13 +438,13 @@ void ir_transmit()
         ac_mitsubishi152.setTemp(last_command.temperature);
         ac_mitsubishi152.setFan(ac_mitsubishi152.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         if (last_command.swingh)
-            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghAuto);
+            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHAuto);
         else
-            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88swinghOff);
+            ac_mitsubishi152.setSwingHorizontal(kMitsubishiHeavy88SwingHOff);
         if (last_command.swingv)
-            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88swingvAuto);
+            ac_mitsubishi88.setSwingVertical(kMitsubishiHeavy88SwingVAuto);
         else
-            ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88swingvOff);
+            ac_mitsubishi152.setSwingVertical(kMitsubishiHeavy88SwingVOff);
         ac_mitsubishi152.setMode(ac_mitsubishi152.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_mitsubishi152.send();
         break;
@@ -446,7 +456,6 @@ void ir_transmit()
         }
         else
         {
-            uint8_t index = last_command.temperature - MAX_LOW_TEMP + 1;
             ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, RAW_FREQ);
         }
         break;
@@ -799,8 +808,8 @@ void locking_feature(const char *description)
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
     esp_err_t err = nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
-    if (err)
-        ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
+    if (err) ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
+    
     err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
     if (err)
     {
@@ -810,9 +819,9 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
         goto here;
     }
 
-    teaching_in_progress = true;
+    teaching_in_progress = true; update_led_status();
     ESP_LOGW(IR_TAG, "Device Entered Teaching mode");
-    update_led_status();
+    
     teaching_mode_t.errorCode = ENTERED_TEACHING_MODE;
     teaching_mode_t.expectedTemperature = startingTemp;
     teaching_mode_t.commandIndex = startingTemp - MAX_LOW_TEMP;
@@ -821,6 +830,9 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
     strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[0]);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, startingTemp, UINT8_SIZE);
     set_number_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, endingTemp, UINT8_SIZE);
+
+    if(!teaching_mode_t.errorCheckEnabled) 
+        memset(teaching_mode_cmd_recvd_array, false, sizeof(teaching_mode_cmd_recvd_array));
 
 here:
 #if (IS_GWY)
@@ -839,6 +851,10 @@ here:
  */
 void exit_teaching_mode(bool success)
 {
+    teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
+    strcpy(teaching_mode_t.nextCommand, "");
+    teaching_in_progress = false;
+
     if (success)
     {
         pull_ir_cmd_data(); // Pull the data from nvs flash to RAM for immediate usage
@@ -849,18 +865,32 @@ void exit_teaching_mode(bool success)
         set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
         ESP_LOGI(IR_TAG, "Teaching mode completed successfully");
     }
-    else
-        ESP_LOGW(IR_TAG, "Quitting teaching mode without completion");
-    strcpy(teaching_mode_t.nextCommand, "");
-    teaching_in_progress = false;
-    update_led_status();
-    teaching_mode_t.errorCode = EXITED_TEACHING_MODE;
+    else ESP_LOGW(IR_TAG, "Quitting teaching mode without completion");
+    
+     update_led_status();
+    
 #if (IS_GWY)
     generate_ack(GWY_TEACHING_MODE, NULL);
 #endif
 #if (!IS_GWY)
     send_teaching_mode_ack_to_provisioner();
 #endif
+}
+
+/**
+ * @brief Get the remaining teaching mode cmds count
+ * @return uint8_t 
+ */
+uint8_t get_remaining_teaching_mode_cmds_count()
+{
+    uint8_t count = 0;
+    for(uint8_t i=0;i<MAX_CMDS_IN_TEACHING_MODE;i++)
+    {
+        if(teaching_mode_cmd_recvd_array[i]) count++;
+    }
+    uint8_t total_commands_req = teaching_mode_t.startingTemperature-MAX_LOW_TEMP+2;
+    uint8_t remainingCommands = total_commands_req - count;
+    return remainingCommands;
 }
 
 /**
@@ -997,27 +1027,22 @@ void perform_teaching_process_without_error_checking()
     teaching_mode_raw_len = results.rawlen;
     set_number_in_nvs_flash(IR_HANDLE, NVS_RAWLEN_KEY, teaching_mode_raw_len, UINT16_SIZE);
 
-    /*Let's store raw values to nvs flash*/
-    set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
+    if(!teaching_mode_t.power)
+    {
+        /*Let's store raw values to nvs flash*/
+        set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[0], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
+        strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[0]);
+        teaching_mode_cmd_recvd_array[0] = true;
+    }
+    else
+    {
+        teaching_mode_t.commandIndex = teaching_mode_t.temperature - teaching_mode_t.startingTemperature + 1;
+        set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
+        strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
+        teaching_mode_cmd_recvd_array[teaching_mode_t.commandIndex] = true;
+    }
 
-    teaching_mode_t.commandsReceived++;
-    teaching_mode_t.commandIndex++;
-    teaching_mode_t.remainingCommands--;
-    teaching_mode_t.errorCode = SUCCESS;
-    strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[0]);
-    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
-
-    /*Let's store raw values to nvs flash*/
-    set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
-
-    /*We've received a valid IR Signal*/
-    teaching_mode_t.commandsReceived++;
-    teaching_mode_t.commandIndex++;
-    teaching_mode_t.remainingCommands--;
-    teaching_mode_t.errorCode = SUCCESS;
-    teaching_mode_t.expectedTemperature++;
-    strcpy(teaching_mode_t.lastCommand, teaching_mode_t.nextCommand);
-    strcpy(teaching_mode_t.nextCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
+    teaching_mode_t.remainingCommands = get_remaining_teaching_mode_cmds_count();
 
     if (teaching_mode_t.remainingCommands != 0)
 #if (IS_GWY)
@@ -1058,7 +1083,7 @@ void ir_recv_task(void *args)
 
             if (results.rawlen > 20)
             {
-                ESP_LOGE(IR_TAG, "Detected IR Signal values : ");
+                ESP_LOGI(IR_TAG, "Detected IR Signal values : ");
                 for (int i = 0; i < results.rawlen; i++)
                 {
                     printf("%d ", results.rawbuf[i]);
@@ -1093,12 +1118,13 @@ void ir_recv_task(void *args)
                 continue;
             }
 
+            CommandStruct ack;
             /*AC Remote Configuration Process*/
-            else if ((registered || provisioned) && !configured && protocol != UNKNOWN && !teaching_in_progress)
+            if ((registered || provisioned) && !configured && protocol != UNKNOWN && !teaching_in_progress)
             {
-                CommandStruct ack;
+                
                 ack.irProtocolNum = protocol;
-#if(IS_GWY)
+#if (IS_GWY)
                 ack.packetid = GWY_CONF_ACK;
 #else
                 ack.packetid = NODE_CONF_ACK;
@@ -1107,7 +1133,8 @@ void ir_recv_task(void *args)
 #endif
                 if (is_sendable_protocol(protocol))
                 {
-                    configured = true; update_led_status();
+                    configured = true; 
+                    update_led_status();
                     ir_protocol_num = protocol;
                     strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
                     set_number_in_nvs_flash(IR_HANDLE, NVS_IR_PROTOCOL_KEY, ir_protocol_num, INT16_SIZE);
@@ -1125,10 +1152,11 @@ void ir_recv_task(void *args)
 
                 led_set_state(LED_STATE_INVALID_OPERATION);
 
-                else if(is_decodeable_protocol(protocol))
+                if (is_decodeable_protocol(protocol))
                 {
                     ESP_LOGE(IR_TAG, "AC Remote Configuration Failed | Protocol is deocdeable-only");
                     ESP_LOGW(IR_TAG, "Move on to Teaching mode with error checking");
+                    teaching_mode_t.errorCheckEnabled = 1;
                     ack.errorcode = IR_PROTOCOL_DECODEABLE_ONLY;
 #if (IS_GWY)
                     generate_ack(GWY_CONF_ACK, &ack);
@@ -1141,6 +1169,7 @@ void ir_recv_task(void *args)
                     ESP_LOGE(IR_TAG, "AC Remote Configuration Failed | Protocol is neither decodeable nor sendable");
                     ESP_LOGW(IR_TAG, "Move on to Teaching mode without error checking");
                     ack.errorcode = IR_PROTOCOL_FULLY_UNSUPPORTED;
+                    teaching_mode_t.errorCheckEnabled = 0;
 #if (IS_GWY)
                     generate_ack(GWY_CONF_ACK, &ack);
 #else
@@ -1148,7 +1177,7 @@ void ir_recv_task(void *args)
 #endif
                 }
             }
-            here:
+        here:
             yield();
         }
         vTaskDelay(pdMS_TO_TICKS(50));
@@ -1172,24 +1201,49 @@ void handle_reconfiguration()
 
 /**
  * @brief Function that takes care of configuring teaching mode.
- * Common function for both provisioner and node.
+ * Common function to both provisioner and node
  * @param cmd_struct
  */
 void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
 {
-    memset(&teaching_mode_t, 0, sizeof(teaching_mode)); // Let's clear off the previously stored contents
-    teaching_mode_t.packetid = cmd_struct->packetid;
-    teaching_mode_t.errorCode = cmd_struct->errorcode;
-    strcpy(teaching_mode_t.deviceName, serialNoStr);
-    teaching_mode_t.msgseqno = cmd_struct->msgseqno;
-    teaching_mode_t.teachingStart = cmd_struct->teachingStart;
-    teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
-    teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;
-    teaching_mode_t.errorCheckEnabled = cmd_struct->errorCheckEnabled;
-    if (teaching_mode_t.teachingStart)
+
+    /*Button press case*/
+    if (cmd_struct == NULL)
     {
-        teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
+#if (IS_GWY)
+        teaching_mode_t.packetid = GWY_TEACHING_MODE;
+#else
+        teaching_mode_t.packetid = NODE_TEACHING_MODE;
+        strcpy(teaching_mode_t.deviceName, serialNoStr);
+        teaching_mode_t.elemAddr = last_command.elemAddr;
+#endif
+        teaching_mode_t.errorCode = SUCCESS;
+        teaching_mode_t.msgseqno = BUTTON_PRESS_MSGSEQNO;
+        teaching_mode_t.startingTemperature = MAX_LOW_TEMP;
+        teaching_mode_t.endingTemperature = MAX_HIGH_TEMP;
+
+        if (teaching_in_progress)
+        {
+            teaching_mode_t.teachingStart = 0;
+            exit_teaching_mode(false);
+        }
+        else
+        {
+            teaching_mode_t.teachingStart = 1;
+            teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
+        }
     }
+
+    /*MQTT Packet case*/
     else
-        exit_teaching_mode(false);
+    {
+        teaching_mode_t.packetid = cmd_struct->packetid;
+        teaching_mode_t.errorCode = cmd_struct->errorcode;
+        teaching_mode_t.msgseqno = cmd_struct->msgseqno;
+        teaching_mode_t.teachingStart = cmd_struct->teachingStart;
+#if (!IS_GWY)
+        strcpy(teaching_mode_t.deviceName, serialNoStr);
+        teaching_mode_t.elemAddr = last_command.elemAddr;
+#endif
+    }
 }

@@ -28,6 +28,7 @@
 extern TaskHandle_t ir_recv_task_handle;
 extern uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CDM_LEN];
 extern const char *TEACHING_MODE_SEQUENCE[];
+extern bool teaching_mode_cmd_recvd_array[MAX_CMDS_IN_TEACHING_MODE];
 
 extern const char *RAW_IR_PROTOCOL;
 extern const char *DAIKIN_IR_PROTOCOL;

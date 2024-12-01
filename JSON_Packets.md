@@ -25,30 +25,36 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 13. [Gateway Heartbeat Publish Configuration Ack](#gateway-heartbeat-publish-configuration-ack)
 14. [Gateway Teaching Mode Packet](#gateway-teaching-mode-packet)
 15. [Gateway Teaching Mode Ack](#gateway-teaching-mode-ack)
-16. [Gateway Debug Info Packet](#gateway-debug-info-packet)
-17. [Gateway Debug Info Ack](#gateway-debug-info-ack)
-18. [Gateway General Ack](#gateway-general-ack)
-19. [Node Provisioning Ack](#node-provisioning-ack)
-20. [Node AC Remote Configuration Ack](#node-ac-remote-configuration-ack)
-21. [Node UnProvisioning Packet](#node-unprovisioning-packet)
-22. [Node UnProvisioning Ack](#node-unprovisioning-ack)
-23. [Node AC Control Packet](#node-ac-control-packet)
-24. [Node AC Control Ack](#node-ac-control-ack)
-25. [Node Manual AC Control Ack](#node-manual-ac-control-ack)
-26. [Node AC Remote Reconfiguration Packet](#node-ac-remote-reconfiguration-packet)
-27. [Node AC Remote Reconfiguration Ack](#node-ac-remote-reconfiguration-ack)
-28. [Node Heartbeat Ack](#node-heartbeat-ack)
-29. [Node Heartbeat Publish Configuration Packet](#node-heartbeat-publish-configuration-packet)
-30. [Node Heartbeat Publish Configuration Ack](#node-heartbeat-publish-configuration-ack)
-31. [Node Teaching Mode Packet](#node-teaching-mode-packet)
-32. [Node Teaching Mode Ack](#node-teaching-mode-ack)
-33. [Node Debug Info Packet](#node-debug-info-packet)
-34. [Node Debug Info Ack](#node-debug-info-ack)
-35. [Node General Ack](#node-general-ack)
+16. [Gateway Teaching Mode Command Selection Packet](#gateway-teaching-mode-command-selection-packet)
+17. [Gateway Teaching Mode Command Selection Ack](gateway-teaching-mode-command-selection-ack)
+18. [Gateway Debug Info Packet](#gateway-debug-info-packet)
+19. [Gateway Debug Info Ack](#gateway-debug-info-ack)
+20. [Gateway General Ack](#gateway-general-ack)
+21. [Node Provisioning Ack](#node-provisioning-ack)
+22. [Node AC Remote Configuration Ack](#node-ac-remote-configuration-ack)
+23. [Node UnProvisioning Packet](#node-unprovisioning-packet)
+24. [Node UnProvisioning Ack](#node-unprovisioning-ack)
+25. [Node AC Control Packet](#node-ac-control-packet)
+26. [Node AC Control Ack](#node-ac-control-ack)
+27. [Node Manual AC Control Ack](#node-manual-ac-control-ack)
+28. [Node AC Remote Reconfiguration Packet](#node-ac-remote-reconfiguration-packet)
+29. [Node AC Remote Reconfiguration Ack](#node-ac-remote-reconfiguration-ack)
+30. [Node Heartbeat Ack](#node-heartbeat-ack)
+31. [Node Heartbeat Publish Configuration Packet](#node-heartbeat-publish-configuration-packet)
+32. [Node Heartbeat Publish Configuration Ack](#node-heartbeat-publish-configuration-ack)
+33. [Node Teaching Mode Packet](#node-teaching-mode-packet)
+34. [Node Teaching Mode Command Selection Packet](node-teaching-mode-command-selection-packet)
+35. [Node Teaching Mode Command Selection Ack](node-teaching-mode-command-selection-ack)
+36. [Node Teaching Mode Ack](#node-teaching-mode-ack)
+37. [Node Debug Info Packet](#node-debug-info-packet)
+38. [Node Debug Info Ack](#node-debug-info-ack)
+39. [Node General Ack](#node-general-ack)
 
 ---
 
 ## Gateway Registration Packet
+
+- **Description**: This packet is used for registering a new Gateway device.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -90,6 +96,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Gateway AC Remote Configuration Ack
 
+- **Description**: This ack is used to denote that the AC Remote configuration status of the Gateway device. This ack also contains the IrProtocol information which indicates, as which AC remote, the Gateway will be acting as.
+
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |       1       |   Number   |      1      |
@@ -111,6 +119,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Gateway Unregistration Packet
+
+- **Description**: This packet is used for Unregistering a registered Gateway device. Upon unregistration, the Gateway device will be factory reset and will be restarted automatically.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -149,6 +159,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Gateway AC Control Packet
+
+- **Description**: This packet is used for controlling an AC using the Gateway.
 
 |  Parameter Name  | Example Value | Value Type |        Value Range         |
 | :--------------: | :-----------: | :--------: | :------------------------: |
@@ -210,6 +222,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Gateway Manual AC Control Ack
 
+- **Description**: This ack is used for notifiying the user about any manual AC control activity that has happened.
+
 |    Parameter Name    | Example Value | Value Type | Value Range |
 | :------------------: | :-----------: | :--------: | :---------: |
 |       PacketId       |       4       |   Number   |      4      |
@@ -241,6 +255,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Gateway AC Remote Reconfiguration Packet
+
+- **Description**: This packet is used for making the Gateway device unconfigured so that it can be configured with any other AC Remote if needed.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -279,6 +295,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Gateway Heartbeat Ack
+
+- **Description**: This ack is used to denote the alivenss of the Gateway device. This ack will be sent automatically according to the PublishPeriodSec set using the [Gateway Heartbeat Publish Configuration Packet](#gateway-heartbeat-publish-configuration-packet). Default Heartbeat interval is 300s.
 
 |       Parameter Name        | Example Value | Value Type |        Value Range         |
 | :-------------------------: | :-----------: | :--------: | :------------------------: |
@@ -322,6 +340,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Gateway Heartbeat Publish Configuration Packet
 
+- **Description**: This packet is used to set the interval at which the Gateway should send its heartbeat ack.
+
 |  Parameter Name  | Example Value | Value Type | Value Range |
 | :--------------: | :-----------: | :--------: | :---------: |
 |     PacketId     |       7       |   Number   |      7      |
@@ -362,6 +382,11 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Gateway Teaching Mode Packet
 
+- **Description**: This packet is used to make a Gateway enter/exit the Teaching Mode. Teaching mode is the process of recording IR commands fired from AC remote and storing it in flash memory, so that it can be replayed to control the AC. This needs to be used for protocols that are not currently sendable by the library.
+- **TeachingStart**: If this is set to "1", it will make the Gateway to enter Teaching Mode. If this is set to "0", then it will make the Gateway to exit Teaching Mode.
+- **StartingTemperature**: The Starting temperature for the teaching mode process.
+- **EndingTemperature**: The ending temperature for the teaching mode process.
+
 |   Parameter Name    | Example Value | Value Type | Value Range |
 | :-----------------: | :-----------: | :--------: | :---------: |
 |      PacketId       |       8       |   Number   |      8      |
@@ -375,7 +400,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 {
   "PacketId": 8,
   "MsgSeqNo": 12345,
-  "ErrorCheckEnabled":1,
+  "ErrorCheckEnabled": 1,
   "TeachingStart": 1,
   "StartingTemperature": 25,
   "EndingTemperature": 28
@@ -412,7 +437,57 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ---
 
+## Gateway Teaching Mode Command Selection Packet
+
+- **Description**: This packet is used to select the comamnd for which the IR signal needs to be recorded. This packet aids in overwriting the recorded command slots, in case a wrong command was sent by accident. This makes the teaching process for protocols that are fully unsupported by the library to be more robust and reliable.
+- **Power**: If this is set to "0", then a power-off command is about to be recorded.
+- **Temperature**: If this is set to 26, then the "Temperature 26 | Power ON" command is about to be recorded.
+
+| Parameter Name | Example Value | Value Type | Value Range |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       8       |   Number   |      8      |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|     Power      |       1       |   Number   |     0,1     |
+|  Temperature   |      26       |   Number   |    18-32    |
+
+```json
+{
+  "PacketId": 8,
+  "MsgSeqNo": 12345,
+  "Power": 1,
+  "Temperature": 26
+}
+```
+
+---
+
+## Gateway Teaching Mode Command Selection Ack
+
+| Parameter Name | Example Value | Value Type | Value Range |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       8       |   Number   |      8      |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
+|   ErrorCode    |       0       |   Number   |     N/A     |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
+
+```json
+{
+  "PacketId": 8,
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "ErrorCode": 0,
+  "ErrorMsg": "SUCCESS"
+}
+```
+
+---
+
 ## Gateway Debug Info Packet
+
+- **Description**: This packet is used to get useful information from the Gateway, like, How long has the Gateway been running, What firmware is running in the Gateway, etc., This can also be used to either remotely factory reset the Gateway or just remotely restart the Gateway.
+- **ResetDevice**: Setting this to "1" and sending this packet will factory reset the Gateway device.
+- **RestartDevice**: Setting this to "1" and sending this packet will restart the Gateway device.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -466,6 +541,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Gateway General Ack
 
+- **Description**: This ack is used to notify reg. corner error cases that may happen during runtime, like device running out of memory, failed to initialize a partition, etc.,
+
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |      11       |   Number   |     11      |
@@ -487,6 +564,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Node Provisioning Ack
+
+- **Description**: This ack is sent by the Gateway, when it provisions a Node. The **ElementAddr** parameter in the ack is a very crucial parameter, that needs to be noted down for any further communication with the provisioned Node device.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -514,6 +593,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Node AC Remote Configuration Ack
 
+- **Description**: This ack is used to denote that the AC Remote configuration status of the Node device. This ack also contains the IrProtocol information which indicates, as which AC remote, the Node will be acting as.
+
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
 |    PacketId    |      101      |   Number   |     101     |
@@ -539,6 +620,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Node Unprovisioning Packet
+
+- **Description**: This packet is used to Unprovision a Node device. Once unprovisioned, the Node will stop advertising in-order to avoid getting reprovisioned by the Gateway immediately. In case, the same Node wants to be provisioned, it simly needs to be restarted to start its advertising.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -583,6 +666,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Node AC Control Packet
+
+- **Description**: This packet is used to control an AC using Node.
 
 |  Parameter Name  | Example Value | Value Type |        Value Range         |
 | :--------------: | :-----------: | :--------: | :------------------------: |
@@ -650,6 +735,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Node Manual AC Control Ack
 
+- **Description**: This ack is used for notifiying the user about any manual AC control activity that has happened.
+
 |    Parameter Name    | Example Value | Value Type | Value Range |
 | :------------------: | :-----------: | :--------: | :---------: |
 |       PacketId       |      104      |   Number   |     104     |
@@ -685,6 +772,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Node AC Remote Reconfiguration Packet
+
+- **Description**: This packet is used for making the Node device unconfigured so that it can be configured with any other AC Remote if needed.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -729,6 +818,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Node Heartbeat Ack
+
+- **Description**: This ack is used to denote the alivenss of the Node device. This ack will be sent automatically according to the PublishPeriodSec set using the [Node Heartbeat Publish Configuration Packet](#node-heartbeat-publish-configuration-packet). Default Heartbeat interval is 300s.
 
 |       Parameter Name        | Example Value | Value Type |        Value Range         |
 | :-------------------------: | :-----------: | :--------: | :------------------------: |
@@ -777,6 +868,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Node Heartbeat Publish Configuration Packet
 
+- **Description**: This packet is used to set the interval at which the Node should send its heartbeat ack.
+
 |  Parameter Name  | Example Value | Value Type | Value Range |
 | :--------------: | :-----------: | :--------: | :---------: |
 |     PacketId     |      107      |   Number   |     107     |
@@ -823,6 +916,11 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ## Node Teaching Mode Packet
 
+- **Description**: This packet is used to make a Node enter/exit the Teaching Mode. Teaching mode is the process of recording IR commands fired from AC remote and storing it in flash memory, so that it can be replayed to control the AC. This needs to be used for protocols that are not currently sendable by the library.
+- **TeachingStart**: If this is set to "1", it will make the Node to enter Teaching Mode. If this is set to "0", then it will make the Node to exit Teaching Mode.
+- **StartingTemperature**: The Starting temperature for the teaching mode process.
+- **EndingTemperature**: The ending temperature for the teaching mode process.
+
 |   Parameter Name    | Example Value | Value Type | Value Range |
 | :-----------------: | :-----------: | :--------: | :---------: |
 |      PacketId       |      108      |   Number   |     108     |
@@ -838,7 +936,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
   "PacketId": 108,
   "MsgSeqNo": 12345,
   "ElementAddr": 23,
-  "ErrorCheckEnabled":1,
+  "ErrorCheckEnabled": 1,
   "TeachingStart": 1,
   "StartingTemperature": 25,
   "EndingTemperature": 28
@@ -879,7 +977,63 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ---
 
+## Node Teaching Mode Command Selection Packet
+
+- **Description**: This packet is used to select the comamnd for which the IR signal needs to be recorded. This packet aids in overwriting the recorded command slots, in case a wrong command was sent by accident. This makes the teaching process for protocols that are fully unsupported by the library to be more robust and reliable.
+- **Power**: If this is set to "0", then a power-off command is about to be recorded.
+- **Temperature**: If this is set to 26, then the "Temperature 26 | Power ON" command is about to be recorded.
+
+| Parameter Name | Example Value | Value Type | Value Range |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       8       |   Number   |      8      |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|  ElementAddr   |      23       |   Number   |   2-65535   |
+|     Power      |       1       |   Number   |     0,1     |
+|  Temperature   |      26       |   Number   |    18-32    |
+
+```json
+{
+  "PacketId": 8,
+  "MsgSeqNo": 12345,
+  "ElementAddr": 23,
+  "Power": 1,
+  "Temperature": 26
+}
+```
+
+---
+
+## Node Teaching Mode Command Selection Ack
+
+| Parameter Name | Example Value | Value Type | Value Range |
+| :------------: | :-----------: | :--------: | :---------: |
+|    PacketId    |       8       |   Number   |      8      |
+|    MsgSeqNo    |     12345     |   Number   |   0-65535   |
+|    GwySerNo    |   GWY00001    |   string   |     N/A     |
+|   NodeSerNo    |    N00001     |   string   |     N/A     |
+|  ElementAddr   |      23       |   Number   |   2-65535   |
+|   ErrorCode    |       0       |   Number   |     N/A     |
+|    ErrorMsg    |   "SUCCESS"   |   string   |     N/A     |
+
+```json
+{
+  "PacketId": 8,
+  "MsgSeqNo": 12345,
+  "GwySerNo": "GWY00001",
+  "NodeSerNo": "N00001",
+  "ElementAddr": 23,
+  "ErrorCode": 0,
+  "ErrorMsg": "SUCCESS"
+}
+```
+
+---
+
 ## Node Debug Info Packet
+
+- **Description**: This packet is used to get useful information from the Node, like, How long has the Node been running, What firmware is running in the Node, etc., This can also be used to either remotely factory reset the Node or just remotely restart the Node.
+- **ResetDevice**: Setting this to "1" and sending this packet will factory reset the Node device.
+- **RestartDevice**: Setting this to "1" and sending this packet will restart the Node device.
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
@@ -938,6 +1092,8 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 ---
 
 ## Node General Ack
+
+- **Description**: This ack is used to notify reg. corner error cases that may happen during runtime, like device running out of memory, failed to initialize a partition, etc.,
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |

@@ -91,15 +91,15 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
         {
         case 1:
             ESP_LOGW(BUTTON_TAG, "Single press detected");
+            break;
+
+        case 2:
+            ESP_LOGW(BUTTON_TAG, "Double press detected");
 #if (IS_GWY)
             powerDownFlag = true;
 #else
             powerCycleDevice(DUE_TO_BUTTON_PRESS);
 #endif
-            break;
-
-        case 2:
-            ESP_LOGW(BUTTON_TAG, "Double press detected");
             break;
 
         case 3:
@@ -116,11 +116,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 
     case LONG_PRESS_1S:
         ESP_LOGW(BUTTON_TAG, "Long press 1-3s detected");
-        teaching_mode_t.msgseqno = BUTTON_PRESS_MSGSEQNO;
-        if (!teaching_in_progress)
-            teaching_mode_init(MAX_LOW_TEMP, MAX_HIGH_TEMP);
-        else
-            exit_teaching_mode(false);
+        handle_configuring_teaching_mode(NULL);
         break;
 
     case LONG_PRESS_3S:

@@ -665,6 +665,10 @@ void send_cmd_to_node(CommandStruct *cmd)
             ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode packet");
             break;
         
+        case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode Cmd Selection packet");
+            break;
+        
         case NODE_DEBUG_INFO_PACKET:
             ESP_LOGI(BLE_TAG, "Sending Node Debug Info packet");
             break;
