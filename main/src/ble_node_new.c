@@ -421,6 +421,11 @@ void error_check_cmd(CommandStruct *cmd)
             if(!teaching_in_progress && cmd->errorcode) {cmd->errorcode = DEVICE_NOT_IN_TEACHING_MODE; return;}
             break;
         
+        case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
+            if(!(cmd->temperature >= teaching_mode_t.startingTemperature && cmd->temperature <= teaching_mode_t.endingTemperature))
+                cmd->errorcode = TEMPERATURE_EXCEEDING_RANGE;
+            break;
+        
         case NODE_AC_CONTROL_PACKET:
         case NODE_RECONF_PACKET:
             if(!configured) {cmd->errorcode = DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE; return;}

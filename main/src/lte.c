@@ -1172,10 +1172,11 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 #if (IS_GWY)
         if (!(temperature >= teaching_mode_t.startingTemperature && temperature <= teaching_mode_t.endingTemperature))
         {
-            cmd_struct->errorcode = MISSING_TEMPERATURE;
+            cmd_struct->errorcode = TEMPERATURE_EXCEEDING_RANGE;
             return;
         }
-        else teaching_mode_t.temperature = temperature;
+        else
+            teaching_mode_t.temperature = temperature;
 #endif
         cmd_struct->temperature = temperature;
         return;
@@ -1310,7 +1311,7 @@ void parse_json()
             return;
 
         case GWY_TEACHING_MODE_CMD_SELECTION_PACKET:
-            return;
+            break;
 
         case NODE_UNPROV_PACKET:
         case NODE_AC_CONTROL_PACKET:

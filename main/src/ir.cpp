@@ -890,7 +890,7 @@ uint8_t get_remaining_teaching_mode_cmds_count()
     {
         if(teaching_mode_cmd_recvd_array[i]) count++;
     }
-    uint8_t total_commands_req = teaching_mode_t.startingTemperature-MAX_LOW_TEMP+2;
+    uint8_t total_commands_req = teaching_mode_t.endingTemperature-teaching_mode_t.startingTemperature + 2;
     uint8_t remainingCommands = total_commands_req - count;
     return remainingCommands;
 }
@@ -1038,7 +1038,7 @@ void perform_teaching_process_without_error_checking()
     }
     else
     {
-        teaching_mode_t.commandIndex = teaching_mode_t.temperature - teaching_mode_t.startingTemperature + 1;
+        teaching_mode_t.commandIndex = teaching_mode_t.temperature - MAX_LOW_TEMP + 1;
         set_blob_in_nvs_flash(IR_HANDLE, NVS_TEACHING_MODE_CMD_KEYS[teaching_mode_t.commandIndex], (const void *)results.rawbuf, teaching_mode_raw_len * sizeof(uint16_t));
         strcpy(teaching_mode_t.lastCommand, TEACHING_MODE_SEQUENCE[teaching_mode_t.commandIndex]);
         teaching_mode_cmd_recvd_array[teaching_mode_t.commandIndex] = true;
@@ -1218,7 +1218,7 @@ void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
 #else
         teaching_mode_t.packetid = NODE_TEACHING_MODE;
         strcpy(teaching_mode_t.deviceName, serialNoStr);
-        teaching_mode_t.elemAddr = last_command.elemAddr;
+        teaching_mode_t.elemAddr = last_command.elemaddr;
 #endif
         teaching_mode_t.errorCode = SUCCESS;
         teaching_mode_t.msgseqno = BUTTON_PRESS_MSGSEQNO;
@@ -1248,7 +1248,7 @@ void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
         teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;
 #if (!IS_GWY)
         strcpy(teaching_mode_t.deviceName, serialNoStr);
-        teaching_mode_t.elemAddr = last_command.elemAddr;
+        teaching_mode_t.elemAddr = last_command.elemaddr;
 #endif
         if (!teaching_mode_t.teachingStart)
         {
