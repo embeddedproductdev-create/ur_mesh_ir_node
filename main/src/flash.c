@@ -117,14 +117,9 @@ error_codes factory_reset_device(action_type_t type)
  */
 void get_last_ac_cmd_in_nvs_flash()
 {
-    ESP_LOGW(NVS_TAG, "Fetching last ac cmd from nvs flash");
-    esp_err_t err;
-    nvs_handle_t handle;
-    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
-    ESP_LOGW(NVS_TAG, "Opening %s parition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
     size_t size = sizeof(CommandStruct);
-    nvs_get_blob(handle, NVS_LAST_COMMAND_KEY, &last_command, &size);
-    nvs_close(handle);
+    esp_err_t err = nvs_get_blob(ir_nvs_handle, NVS_LAST_COMMAND_KEY, &last_command, &size);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to get %s from nvs flash : %s", NVS_LAST_COMMAND_KEY, esp_err_to_name(err));
 }
 
 /**
@@ -136,12 +131,10 @@ void get_last_ac_cmd_in_nvs_flash()
 void set_last_ac_cmd_in_nvs_flash()
 {
     esp_err_t err;
-    nvs_handle_t handle;
-    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
-    ESP_LOGW(NVS_TAG, "Opening %s parition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
-    nvs_set_blob(handle, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
-    nvs_commit(handle);
-    nvs_close(handle);
+    err = nvs_set_blob(ir_nvs_handle, NVS_LAST_COMMAND_KEY, &last_command, sizeof(CommandStruct));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to set %s in nvs flash : %s", NVS_LAST_COMMAND_KEY, esp_err_to_name(err));
+    err = nvs_commit(ir_nvs_handle);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to Commit - %s : %s", __func__, esp_err_to_name(err));
 }
 
 /**
@@ -157,12 +150,10 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
     switch (nvshandle)
     {
     case IR_HANDLE:
-        err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = ir_nvs_handle;
         break;
     case GENERAL_HANDLE:
-        err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", GENERAL_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = general_nvs_handle;
         break;
     default:
         return;
@@ -172,32 +163,32 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
     {
     case INT8_SIZE:
         err = nvs_set_i8(handle, key, (int8_t)value);
-        ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
+        if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
         break;
 
     case UINT8_SIZE:
         err = nvs_set_u8(handle, key, (uint8_t)value);
-        ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
+        if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
         break;
 
     case INT16_SIZE:
         err = nvs_set_i16(handle, key, (int16_t)value);
-        ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
+        if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
         break;
 
     case UINT16_SIZE:
         err = nvs_set_u16(handle, key, (uint16_t)value);
-        ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
+        if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
         break;
 
     case INT32_SIZE:
         err = nvs_set_i32(handle, key, (int32_t)value);
-        ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
+        if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
         break;
 
     case UINT32_SIZE:
         err = nvs_set_u32(handle, key, (uint32_t)value);
-        ESP_LOGW(NVS_TAG, "setting %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
+        if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d in nvs flash : %s", key, value, esp_err_to_name(err));
         break;
 
     case INT64_SIZE:
@@ -210,8 +201,8 @@ void set_number_in_nvs_flash(handle_enum_t nvshandle, const char *key, int value
         break;
     }
 
-    nvs_commit(general_nvs_handle);
-    nvs_close(general_nvs_handle);
+    err = nvs_commit(handle);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to Commit - %s : %s", __func__, esp_err_to_name(err));
 }
 
 /**
@@ -227,22 +218,20 @@ void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value)
     switch (nvshandle)
     {
     case IR_HANDLE:
-        err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = ir_nvs_handle;
         break;
     case GENERAL_HANDLE:
-        err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", GENERAL_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = general_nvs_handle;
         break;
     default:
         return;
     }
 
     err = nvs_set_str(handle, key, value);
-    ESP_LOGW(NVS_TAG, "setting %s as %s in nvs flash : %s", key, value, esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %s in nvs flash : %s", key, value, esp_err_to_name(err));
 
-    nvs_commit(general_nvs_handle);
-    nvs_close(general_nvs_handle);
+    err = nvs_commit(handle);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to Commit - %s : %s", __func__, esp_err_to_name(err));
 }
 
 /**
@@ -253,26 +242,21 @@ void set_str_in_nvs_flash(handle_enum_t nvshandle, const char *key, char *value)
  */
 void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void *value, size_t length)
 {
-    esp_err_t err;
     nvs_handle_t handle;
     switch (nvshandle)
     {
     case IR_HANDLE:
-        err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = ir_nvs_handle;
         break;
     case GENERAL_HANDLE:
-        err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", GENERAL_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = general_nvs_handle;
         break;
     default:
         return;
     }
-
     nvs_set_blob(handle, key, value, length);
-
-    nvs_commit(general_nvs_handle);
-    nvs_close(general_nvs_handle);
+    esp_err_t err = nvs_commit(handle);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to Commit - %s : %s", __func__, esp_err_to_name(err));
 }
 
 /**
@@ -283,8 +267,6 @@ void set_blob_in_nvs_flash(handle_enum_t nvshandle, const char *key, const void 
  */
 int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, sizes_t size)
 {
-    nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
-
     switch (size)
     {
     case INT8_SIZE:
@@ -314,8 +296,6 @@ int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, size
     default:
         break;
     }
-
-    nvs_close(general_nvs_handle);
     return 0;
 }
 
@@ -327,9 +307,6 @@ int32_t get_number_from_nvs_flash(handle_enum_t nvshandle, const char *key, size
  */
 char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key)
 {
-    nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
-
-    nvs_close(general_nvs_handle);
     return "";
 }
 
@@ -342,25 +319,20 @@ char *get_str_from_nvs_flash(handle_enum_t nvshandle, const char *key)
  */
 void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *out_value, size_t *length)
 {
-    esp_err_t err;
     nvs_handle_t handle;
     switch (nvshandle)
     {
     case IR_HANDLE:
-        err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = ir_nvs_handle;
         break;
     case GENERAL_HANDLE:
-        err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &handle);
-        ESP_LOGW(NVS_TAG, "Opening %s parition : %s", GENERAL_NVS_PARTITION_NAME, esp_err_to_name(err));
+        handle = general_nvs_handle;
         break;
     default:
         return;
     }
-
-    nvs_get_blob(handle, key, out_value, length);
-
-    nvs_close(general_nvs_handle);
+    esp_err_t err = nvs_get_blob(handle, key, out_value, length);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to get %s from nvs flash - %s", key, esp_err_to_name(err));
 }
 
 /**
@@ -370,61 +342,53 @@ void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *out
 esp_err_t init_data_in_nvs(void)
 {
     esp_err_t err;
-    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
-    ESP_LOGW(NVS_TAG, "Opening %s partition : %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
-    err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
-    ESP_LOGW(NVS_TAG, "Opening %s partition : %s", GENERAL_NVS_PARTITION_NAME, esp_err_to_name(err));
 
-    err = nvs_set_u16(ir_nvs_handle, NVS_RAWLEN_KEY, teaching_mode_raw_len);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_RAWLEN_KEY, teaching_mode_raw_len, esp_err_to_name(err));
-    err = nvs_set_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
+    // err = nvs_set_u16(ir_nvs_handle, NVS_RAWLEN_KEY, teaching_mode_raw_len);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_RAWLEN_KEY, teaching_mode_raw_len, esp_err_to_name(err));
+    // err = nvs_set_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
 
     err = nvs_set_u8(general_nvs_handle, NVS_NEW_DEVICE_KEY, 0);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_NEW_DEVICE_KEY, 0, esp_err_to_name(err));
-    err = nvs_set_str(general_nvs_handle, NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO);
-    ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_SERIAL_NO_KEY, DEFAULT_DEVICE_SER_NO, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_REGISTERED_KEY, registered);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_PROVISIONED_KEY, provisioned);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_CONFIGURED_KEY, configured);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_CONFIGURED_KEY, configured, esp_err_to_name(err));
-    err = nvs_set_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR);
-    ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR, esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d : %s", NVS_NEW_DEVICE_KEY, 0, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_REGISTERED_KEY, registered);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_PROVISIONED_KEY, provisioned);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_CONFIGURED_KEY, configured);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_CONFIGURED_KEY, configured, esp_err_to_name(err));
+    // err = nvs_set_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR, esp_err_to_name(err));
     err = nvs_set_u16(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_PUBPERIOD_KEY, publishPeriod, esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d : %s", NVS_PUBPERIOD_KEY, publishPeriod, esp_err_to_name(err));
 
-    err = nvs_set_u8(general_nvs_handle, NVS_POWER_KEY, last_command.power);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_POWER_KEY, last_command.power, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_TEMPERATURE_KEY, last_command.temperature);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_TEMPERATURE_KEY, last_command.temperature, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_FANSPEED_KEY, last_command.fanspeed);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_FANSPEED_KEY, last_command.fanspeed, esp_err_to_name(err));
-    err = nvs_set_str(general_nvs_handle, NVS_MODE_KEY, COOL_MODE_STR);
-    ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_MODE_KEY, COOL_MODE_STR, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_SWINGH_KEY, last_command.swingh);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_SWINGH_KEY, last_command.swingh, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_SWINGV_KEY, last_command.swingv);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_SWINGV_KEY, last_command.swingv, esp_err_to_name(err));
-    err = nvs_set_u16(general_nvs_handle, NVS_ONTIMER_KEY, last_command.ontimer);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_ONTIMER_KEY, last_command.ontimer, esp_err_to_name(err));
-    err = nvs_set_u16(general_nvs_handle, NVS_OFFTIMER_KEY, last_command.offtimer);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_OFFTIMER_KEY, last_command.offtimer, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_LOCKING_KEY, last_command.locking);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOCKING_KEY, last_command.locking, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit, esp_err_to_name(err));
-    err = nvs_set_u8(general_nvs_handle, NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
-    ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_POWER_KEY, last_command.power);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_POWER_KEY, last_command.power, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_TEMPERATURE_KEY, last_command.temperature);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_TEMPERATURE_KEY, last_command.temperature, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_FANSPEED_KEY, last_command.fanspeed);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_FANSPEED_KEY, last_command.fanspeed, esp_err_to_name(err));
+    // err = nvs_set_str(general_nvs_handle, NVS_MODE_KEY, COOL_MODE_STR);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_MODE_KEY, COOL_MODE_STR, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_SWINGH_KEY, last_command.swingh);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_SWINGH_KEY, last_command.swingh, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_SWINGV_KEY, last_command.swingv);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_SWINGV_KEY, last_command.swingv, esp_err_to_name(err));
+    // err = nvs_set_u16(general_nvs_handle, NVS_ONTIMER_KEY, last_command.ontimer);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_ONTIMER_KEY, last_command.ontimer, esp_err_to_name(err));
+    // err = nvs_set_u16(general_nvs_handle, NVS_OFFTIMER_KEY, last_command.offtimer);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_OFFTIMER_KEY, last_command.offtimer, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_LOCKING_KEY, last_command.locking);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOCKING_KEY, last_command.locking, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit, esp_err_to_name(err));
+    // err = nvs_set_u8(general_nvs_handle, NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
+    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit, esp_err_to_name(err));
 
     err = nvs_commit(ir_nvs_handle);
-    ESP_LOGW(NVS_TAG, "Commiting %s handle : %s", IR_NVS_NAMESPACE, esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to Commit %s - %s : %s", IR_NVS_NAMESPACE, __func__, esp_err_to_name(err));
     err = nvs_commit(general_nvs_handle);
-    ESP_LOGW(NVS_TAG, "Commiting %s handle : %s", GENERAL_NVS_NAMESPACE, esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to Commit %s - %s : %s", GENERAL_NVS_NAMESPACE, __func__, esp_err_to_name(err));
 
-    nvs_close(ir_nvs_handle);
-    nvs_close(general_nvs_handle);
     return ESP_OK;
 }
 
@@ -434,15 +398,6 @@ esp_err_t init_data_in_nvs(void)
  */
 void pull_ir_cmd_data()
 {
-    esp_err_t err;
-    ESP_LOGW(NVS_TAG, "Pulling IR Cmd data from flash ... ");
-
-    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
-    if(err) {
-        ESP_LOGE(NVS_TAG, "Failed to open IR NVS : %s", esp_err_to_name(err));
-        return;
-    }
-
     size_t size = (teaching_mode_raw_len)*sizeof(uint16_t);
     for (uint8_t i = 0; i < MAX_CMDS_IN_TEACHING_MODE; i++)
     {
@@ -475,9 +430,6 @@ void print_ir_cmds()
  */
 esp_err_t pull_data_from_nvs(void)
 {
-    nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
-    ESP_LOGW(NVS_TAG, "ErrorCode for pulling from flash : %s", esp_err_to_name(nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle)));
-
     nvs_get_u8(ir_nvs_handle, NVS_TEACHING_MODE_STARTING_TEMPERATURE_KEY, &teaching_mode_t.startingTemperature);
     nvs_get_u8(ir_nvs_handle, NVS_TEACHING_MODE_ENDING_TEMPERATURE_KEY, &teaching_mode_t.endingTemperature);
 
@@ -491,8 +443,8 @@ esp_err_t pull_data_from_nvs(void)
         print_ir_cmds();
     }
 
-    size_t serialNoReqSize = 10;
-    nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &serialNoReqSize);
+    size_t size = sizeof(serialNoStr);
+    nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &size);
     nvs_get_u8(general_nvs_handle, NVS_REGISTERED_KEY, &registered);
     nvs_get_u8(general_nvs_handle, NVS_PROVISIONED_KEY, &provisioned);
     nvs_get_u8(general_nvs_handle, NVS_CONFIGURED_KEY, &configured);
@@ -504,9 +456,6 @@ esp_err_t pull_data_from_nvs(void)
     size_t locationReqSize = LOCATION_STR_LEN;
     nvs_get_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, device_location_str, &locationReqSize);
 
-    // Close
-    nvs_close(ir_nvs_handle);
-    nvs_close(general_nvs_handle);
     return ESP_OK;
 }
 
@@ -517,9 +466,7 @@ esp_err_t pull_data_from_nvs(void)
  */
 bool isNewDevice()
 {
-    nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
     esp_err_t err = nvs_get_u8(general_nvs_handle, NVS_NEW_DEVICE_KEY, &newDevice);
-    nvs_close(general_nvs_handle);
 
     if (err == ESP_ERR_NVS_NOT_FOUND)
     {
@@ -565,6 +512,18 @@ void nvs_init()
         ESP_LOGE(NVS_TAG, "Err in %s NVS partition. Erasing data", GENERAL_NVS_PARTITION_NAME);
         ESP_ERROR_CHECK(nvs_flash_erase_partition(GENERAL_NVS_PARTITION_NAME));
         err = nvs_flash_init_partition(GENERAL_NVS_PARTITION_NAME);
+    }
+
+   //Open the partitions to get their handles
+    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
+    if(err) {
+        ESP_LOGE(NVS_TAG, "Opening IR Partition failed : %s",esp_err_to_name(err));
+        return;
+    }
+    err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
+    if(err){
+        ESP_LOGE(NVS_TAG, "Opening General Partition failed : %s",esp_err_to_name(err));
+        return;
     }
 
     if (isNewDevice())

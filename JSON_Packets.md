@@ -445,14 +445,14 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       8       |   Number   |      8      |
+|    PacketId    |       9       |   Number   |      9      |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |     Power      |       1       |   Number   |     0,1     |
 |  Temperature   |      26       |   Number   |    18-32    |
 
 ```json
 {
-  "PacketId": 8,
+  "PacketId": 9,
   "MsgSeqNo": 12345,
   "Power": 1,
   "Temperature": 26
@@ -465,7 +465,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       8       |   Number   |      8      |
+|    PacketId    |       9       |   Number   |      9      |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   ErrorCode    |       0       |   Number   |     N/A     |
@@ -473,7 +473,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 8,
+  "PacketId": 9,
   "MsgSeqNo": 12345,
   "GwySerNo": "GWY00001",
   "ErrorCode": 0,
@@ -491,14 +491,14 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       9       |   Number   |      9      |
+|    PacketId    |      10       |   Number   |     10      |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |  ResetDevice   |       0       |   Number   |     0,1     |
 | RestartDevice  |       0       |   Number   |     0,1     |
 
 ```json
 {
-  "PacketId": 9,
+  "PacketId": 10,
   "MsgSeqNo": 12345,
   "ResetDevice": 0,
   "RestartDevice": 0
@@ -511,7 +511,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 |  Parameter Name  | Example Value | Value Type | Value Range |
 | :--------------: | :-----------: | :--------: | :---------: |
-|     PacketId     |       9       |   Number   |      9      |
+|     PacketId     |      10       |   Number   |     10      |
 |     MsgSeqNo     |     12345     |   Number   |   0-65535   |
 |     GwySerNo     |   GWY00001    |   string   |     N/A     |
 |    ErrorCode     |       0       |   Number   |     N/A     |
@@ -524,7 +524,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 9,
+  "PacketId": 10,
   "MsgSeqNo": 12345,
   "GwySerNo": "GWY00001",
   "ErrorCode": 0,
@@ -545,7 +545,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |      11       |   Number   |     11      |
+|    PacketId    |      12       |   Number   |     12      |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   ErrorCode    |       0       |   Number   |     N/A     |
@@ -553,7 +553,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 11,
+  "PacketId": 12,
   "MsgSeqNo": 12345,
   "GwySerNo": "GWY00001",
   "ErrorCode": 0,
@@ -985,7 +985,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       8       |   Number   |      8      |
+|    PacketId    |      109      |   Number   |     109     |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |  ElementAddr   |      23       |   Number   |   2-65535   |
 |     Power      |       1       |   Number   |     0,1     |
@@ -993,7 +993,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 8,
+  "PacketId": 109,
   "MsgSeqNo": 12345,
   "ElementAddr": 23,
   "Power": 1,
@@ -1007,7 +1007,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |       8       |   Number   |      8      |
+|    PacketId    |      109      |   Number   |     109     |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   NodeSerNo    |    N00001     |   string   |     N/A     |
@@ -1017,7 +1017,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 8,
+  "PacketId": 109,
   "MsgSeqNo": 12345,
   "GwySerNo": "GWY00001",
   "NodeSerNo": "N00001",
@@ -1037,7 +1037,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |      109      |   Number   |     109     |
+|    PacketId    |      110      |   Number   |     110     |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |  ElementAddr   |      23       |   Number   |   2-65535   |
 |  ResetDevice   |       0       |   Number   |     0,1     |
@@ -1045,7 +1045,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 109,
+  "PacketId": 110,
   "MsgSeqNo": 12345,
   "ElementAddr": 23,
   "ResetDevice": 0,
@@ -1059,7 +1059,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 |  Parameter Name  | Example Value | Value Type | Value Range |
 | :--------------: | :-----------: | :--------: | :---------: |
-|     PacketId     |      109      |   Number   |     109     |
+|     PacketId     |      110      |   Number   |     110     |
 |     MsgSeqNo     |     12345     |   Number   |   0-65535   |
 |     GwySerNo     |   GWY00001    |   string   |     N/A     |
 |    NodeSerNo     |    N00001     |   string   |     N/A     |
@@ -1074,7 +1074,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 109,
+  "PacketId": 110,
   "MsgSeqNo": 12345,
   "GwySerNo": "GWY00001",
   "NodeSerNo": "N00001",
@@ -1097,7 +1097,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 | Parameter Name | Example Value | Value Type | Value Range |
 | :------------: | :-----------: | :--------: | :---------: |
-|    PacketId    |      111      |   Number   |     111     |
+|    PacketId    |      112      |   Number   |     112     |
 |    MsgSeqNo    |     12345     |   Number   |   0-65535   |
 |    GwySerNo    |   GWY00001    |   string   |     N/A     |
 |   ErrorCode    |       0       |   Number   |     N/A     |
@@ -1105,7 +1105,7 @@ The documentation ensures a clear understanding of the JSON Packet and JSON Ack 
 
 ```json
 {
-  "PacketId": 111,
+  "PacketId": 112,
   "MsgSeqNo": 12345,
   "GwySerNo": "GWY00001",
   "ErrorCode": 0,

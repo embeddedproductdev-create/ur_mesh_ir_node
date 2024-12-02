@@ -55,7 +55,7 @@
 
 #define BUTTON_PRESS_MSGSEQNO 9999
 
-extern const char will_msg[WILL_MSG_LEN];
+extern char will_msg[WILL_MSG_LEN];
 
 extern const char *JSON_PACKET_ID_KEY;
 extern const char *JSON_ACK_NAME_KEY;

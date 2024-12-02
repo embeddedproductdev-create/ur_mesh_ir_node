@@ -148,7 +148,8 @@ void led_set_state(led_state_t state)
         esp_timer_start_periodic(blink_timer, FAST_BLINK_INTERVAL_MS * 1000);
         sleep(1);
         update_led_status();
-
+        break;
+        
     default:
         led_set_color(colors.OFF);
         break;

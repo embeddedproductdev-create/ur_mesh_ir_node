@@ -67,7 +67,7 @@ const char *QMTSTAT_1_ERROR = "+QMTSTAT: 2,1";
 const char *QMTOPEN_2_ERROR = "+QMTOPEN: 2,2";
 const char *QMTOPEN_3_ERROR = "+QMTOPEN: 2,3";
 
-const char will_msg[WILL_MSG_LEN];
+char will_msg[WILL_MSG_LEN];
 
 /*MQTT Packet JSON Keys*/
 const char *JSON_PACKET_ID_KEY = "JsonPacketID";
@@ -1687,6 +1687,11 @@ void powerCycleDevice(action_type_t type)
 {
     led_set_state(LED_STATE_POWERING_DOWN);
     powerDownFlag = true;
+
+    //Close the NVS handles
+    nvs_close(ir_nvs_handle);
+    nvs_close(general_nvs_handle);
+
 #if (IS_GWY)
     while (send_cmd_and_check_response(true, POWER_DOWN_CMD, "POWER_DOWN_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS) != SUCCESS)
         vTaskDelay(pdMS_TO_TICKS(500));

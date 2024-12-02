@@ -24,6 +24,7 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 |5|0.8.6|10.07.2024|Kulasekaran|1) Fix for Manual Control ACK not appearing in v0.8.5<br>2)Fix for Gwy reboot issue<br>3)Fix for Node MacId missing in Node Prov Ack<br>4)Fix for Ambient temperature being 0 in Node Heartbeat ACK|[Ver 0.8.6](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/archive/v0.8.6.zip)|
 |6|0.8.7|02.08.2024|Kulasekaran|1) LED indication for unsupported remotes during AC remote configuration process<br>2) NODE_ALREADY_PROV error code removed<br>3) Removed suspend & resume method to avoid assert fail during AC control<br>4) Removed separate thread used for sending IR commands|[Ver 0.8.7](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/releases/tag/v0.8.7)|
 |7|0.8.8|23.07.2024|Kulasekaran|1) Added JSON_PACKET_INVALID errorcode<br>2) Default Heartbeat increased from 10s to 300s<br>3) OTA related changes<br>4) Fixed Teaching Mode End ACK not received from Node|[Ver 0.8.8](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/releases/tag/v0.8.7)|
+|8|1.0.0|03.12.2024|Kulasekaran|1) Automatic provisioning<br>2) Teaching mode made more reliable<br>3) ErrorCodes modified<br>4) LED Indications changed<br>5) Button press functionalities changed|[Ver 1.0.0]()|
 
 </center>
 
