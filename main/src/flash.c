@@ -342,47 +342,9 @@ void get_blob_from_nvs_flash(handle_enum_t nvshandle, const char *key, void *out
 esp_err_t init_data_in_nvs(void)
 {
     esp_err_t err;
-
-    // err = nvs_set_u16(ir_nvs_handle, NVS_RAWLEN_KEY, teaching_mode_raw_len);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_RAWLEN_KEY, teaching_mode_raw_len, esp_err_to_name(err));
-    // err = nvs_set_i16(ir_nvs_handle, NVS_IR_PROTOCOL_KEY, ir_protocol_num);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_IR_PROTOCOL_KEY, ir_protocol_num, esp_err_to_name(err));
-
+    
     err = nvs_set_u8(general_nvs_handle, NVS_NEW_DEVICE_KEY, 0);
     if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d : %s", NVS_NEW_DEVICE_KEY, 0, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_REGISTERED_KEY, registered);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_PROVISIONED_KEY, provisioned);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_REGISTERED_KEY, registered, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_CONFIGURED_KEY, configured);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_CONFIGURED_KEY, configured, esp_err_to_name(err));
-    // err = nvs_set_str(general_nvs_handle, NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_DEVICE_LOCATION_KEY, DEFAULT_DEVICE_LOCATION_STR, esp_err_to_name(err));
-    err = nvs_set_u16(general_nvs_handle, NVS_PUBPERIOD_KEY, publishPeriod);
-    if(err) ESP_LOGE(NVS_TAG, "Failed to set %s as %d : %s", NVS_PUBPERIOD_KEY, publishPeriod, esp_err_to_name(err));
-
-    // err = nvs_set_u8(general_nvs_handle, NVS_POWER_KEY, last_command.power);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_POWER_KEY, last_command.power, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_TEMPERATURE_KEY, last_command.temperature);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_TEMPERATURE_KEY, last_command.temperature, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_FANSPEED_KEY, last_command.fanspeed);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_FANSPEED_KEY, last_command.fanspeed, esp_err_to_name(err));
-    // err = nvs_set_str(general_nvs_handle, NVS_MODE_KEY, COOL_MODE_STR);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %s : %s", NVS_MODE_KEY, COOL_MODE_STR, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_SWINGH_KEY, last_command.swingh);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_SWINGH_KEY, last_command.swingh, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_SWINGV_KEY, last_command.swingv);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_SWINGV_KEY, last_command.swingv, esp_err_to_name(err));
-    // err = nvs_set_u16(general_nvs_handle, NVS_ONTIMER_KEY, last_command.ontimer);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_ONTIMER_KEY, last_command.ontimer, esp_err_to_name(err));
-    // err = nvs_set_u16(general_nvs_handle, NVS_OFFTIMER_KEY, last_command.offtimer);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_OFFTIMER_KEY, last_command.offtimer, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_LOCKING_KEY, last_command.locking);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOCKING_KEY, last_command.locking, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_UPPER_TEMPERATURE_LIMIT_KEY, last_command.upperTemperatureLimit, esp_err_to_name(err));
-    // err = nvs_set_u8(general_nvs_handle, NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit);
-    // ESP_LOGW(NVS_TAG, "Setting %s as %d : %s", NVS_LOWER_TEMPERATURE_LIMIT_KEY, last_command.lowerTemperatureLimit, esp_err_to_name(err));
 
     err = nvs_commit(ir_nvs_handle);
     if(err) ESP_LOGE(NVS_TAG, "Failed to Commit %s - %s : %s", IR_NVS_NAMESPACE, __func__, esp_err_to_name(err));

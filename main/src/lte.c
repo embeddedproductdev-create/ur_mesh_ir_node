@@ -1102,10 +1102,16 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE;
             return;
         }
-        else
+        else 
             cmd_struct->teachingStart = teaching_start;
+        
+        if(teaching_start && teaching_in_progress)
+        {
+            cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE;
+            return;
+        }
 
-        if (!teaching_start)
+        if (!teaching_start && !teaching_in_progress)
         {
             cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE;
             return;
@@ -1561,8 +1567,10 @@ void maintainMQTTConnection()
     if (send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS * 5) != SUCCESS)
         return;
     ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
-    if (registered)
+    if (registered && !ble_initialized) {
+        ble_initialized = true;
         ble_init();
+    }
     need_to_activate_pdp = false;
     mqtt_connected = true;
     update_led_status();
@@ -1577,7 +1585,6 @@ void maintainMQTTConnection()
         }
         if (xTaskGetTickCount() - lastNetworkCheckedTime > NETWORK_CHECK_INTERVAL_TICKS)
         {
-
             lastNetworkCheckedTime = xTaskGetTickCount();
             if (send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_CHECK_CMD, "MQTT_NETWORK_CHECK_CMD", MQTT_NETWORK_CHECK_RESP, MIN_LTE_RESP_WAIT_MS * 3) != SUCCESS)
             {
@@ -1664,7 +1671,7 @@ void initialize_mqtt_cmd_strings()
             MQTT_WILL_FLAG,
             MQTT_WILL_QOS,
             MQTT_WILL_RETAIN,
-            publish_topic,
+            will_topic,
             will_msg);
 }
 

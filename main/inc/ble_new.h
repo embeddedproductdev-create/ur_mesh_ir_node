@@ -10,6 +10,7 @@
 #define BLE_RESP_BUFFER_LEN 200
 
 /*Global Variables*/
+extern bool ble_initialized;
 
 /*Function Declarations*/
 void ble_init();

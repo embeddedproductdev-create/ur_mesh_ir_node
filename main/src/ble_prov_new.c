@@ -31,6 +31,8 @@
 #include <lte.h>
 #include <led.h>
 
+bool ble_initialized = false;
+
 #define BLE_TAG "BLE"
 
 #define CID_ESP             0x02E5

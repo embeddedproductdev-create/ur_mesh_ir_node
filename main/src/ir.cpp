@@ -808,13 +808,15 @@ void locking_feature(const char *description)
 void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 {
     esp_err_t err = nvs_flash_erase_partition(IR_NVS_PARTITION_NAME);
-    if (err) ESP_LOGE(IR_TAG, "Erasing IR NVS partition failed : %s", esp_err_to_name(err));
-    
+    if(err) ESP_LOGE(IR_TAG, "Failed to clear %s partition - %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+
     err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
-    if (err)
-    {
-        led_set_state(LED_STATE_INVALID_OPERATION);
-        ESP_LOGE(IR_TAG, "IR Partition init failed, Can't proceed with Teaching mode : %s", esp_err_to_name(err));
+    if(err) ESP_LOGE(IR_TAG, "Failed to initialize %s partition - %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+
+    err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
+    if(err) ESP_LOGE(IR_TAG, "Failed to open handle to %s partition - %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
+
+    if(err) {
         teaching_mode_t.errorCode = IR_PARTITION_INIT_FAILED;
         goto here;
     }
@@ -1043,7 +1045,8 @@ void perform_teaching_process_without_error_checking()
     }
 
     teaching_mode_t.remainingCommands = get_remaining_teaching_mode_cmds_count();
-
+    teaching_mode_t.errorCode = SUCCESS;
+    
     if (teaching_mode_t.remainingCommands != 0)
 #if (IS_GWY)
         generate_ack(GWY_TEACHING_MODE, NULL);
@@ -1120,7 +1123,7 @@ void ir_recv_task(void *args)
 
             CommandStruct ack;
             /*AC Remote Configuration Process*/
-            if ((registered || provisioned) && !configured && protocol != UNKNOWN && !teaching_in_progress)
+            if ((registered || provisioned) && !configured && !teaching_in_progress)
             {
                 
                 ack.irProtocolNum = protocol;
@@ -1241,9 +1244,19 @@ void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
         teaching_mode_t.errorCode = cmd_struct->errorcode;
         teaching_mode_t.msgseqno = cmd_struct->msgseqno;
         teaching_mode_t.teachingStart = cmd_struct->teachingStart;
+        teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
+        teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;
 #if (!IS_GWY)
         strcpy(teaching_mode_t.deviceName, serialNoStr);
         teaching_mode_t.elemAddr = last_command.elemAddr;
 #endif
+        if (!teaching_mode_t.teachingStart)
+        {
+            exit_teaching_mode(false);
+        }
+        else
+        {
+            teaching_mode_init(teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
+        }
     }
 }
