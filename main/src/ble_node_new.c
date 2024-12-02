@@ -276,6 +276,7 @@ void send_teaching_mode_ack_to_provisioner()
         .send_ttl = 3,
         .send_rel = false,
     };
+    teaching_mode_t.packetid = NODE_TEACHING_MODE;
     strcpy(teaching_mode_t.deviceName, serialNoStr);
     teaching_mode_t.bleErrorCode = SUCCESS;
     ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode ACK to Provisioner");
@@ -382,6 +383,12 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
         
+        case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Node Teaching Mode Command Selection ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+        
         case NODE_DEBUG_INFO_PACKET:
             ESP_LOGI(BLE_TAG, "Sending Node Debug Info ACK to Provisioner");
             ack->majversion = MAJ_VERSION;
@@ -473,6 +480,9 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
             
             case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
                 ESP_LOGI(BLE_TAG, "Received Node Teaching Mode Cmd Selection Packet from Provisioner");
+                teaching_mode_t.power = cmd->power;
+                teaching_mode_t.temperature = cmd->temperature;
+                send_ack_to_provisioner(cmd->packetid, cmd);
                 break;
 
             case NODE_AC_CONTROL_PACKET:

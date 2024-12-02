@@ -256,10 +256,10 @@ void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
     jwObj_int(&jwc, ELEMENT_ADDR_KEY, node_teaching_mode_t->elemAddr);
     jwObj_int(&jwc, ERROR_CODE_KEY, node_teaching_mode_t->errorCode);
     jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(node_teaching_mode_t->errorCode));
-    jwObj_string(&jwc, LAST_CMD_KEY, node_teaching_mode_t->lastCommand);
+    jwObj_int(&jwc, BLE_ERROR_CODE_KEY, node_teaching_mode_t->bleErrorCode);
     jwObj_int(&jwc, REMAINING_CMD_KEY, node_teaching_mode_t->remainingCommands);
+    jwObj_string(&jwc, LAST_CMD_KEY, node_teaching_mode_t->lastCommand);
     if(node_teaching_mode_t->errorCheckEnabled) jwObj_string(&jwc, NEXT_CMD_KEY, node_teaching_mode_t->nextCommand);
-    jwEnd(&jwc);
     jwClose(&jwc);
     enqueue_for_publish(buffer);
 }
@@ -1105,16 +1105,19 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else 
             cmd_struct->teachingStart = teaching_start;
         
-        if(teaching_start && teaching_in_progress)
+        if(cmd_struct->packetid == GWY_TEACHING_MODE)
         {
-            cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE;
-            return;
-        }
+            if(teaching_start && teaching_in_progress)
+            {
+                cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE;
+                return;
+            }
 
-        if (!teaching_start && !teaching_in_progress)
-        {
-            cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE;
-            return;
+            if (!teaching_start && !teaching_in_progress)
+            {
+                cmd_struct->errorcode = DEVICE_NOT_IN_TEACHING_MODE;
+                return;
+            }
         }
 
         if (!(startingTemp >= MAX_LOW_TEMP && startingTemp <= MAX_HIGH_TEMP))
@@ -1166,7 +1169,7 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else
             teaching_mode_t.power = power;
 #else
-        cmd_struct.power = power;
+        cmd_struct->power = power;
 #endif
 
 #if (IS_GWY)
@@ -1373,12 +1376,14 @@ error_codes check_response(char *uart_data, const char *check_string)
  */
 error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *check_string, const char *cmd_name)
 {
+    static uint8_t fail_counter = 0;
     error_codes rc = FAILURE;
     bzero(LTE_UART_data, UART_BUFFER_LEN);
     uart_flush(UART_NUM_1);
     int length = uart_read_bytes(UART_NUM_1, LTE_UART_data, UART_BUFFER_LEN, pdMS_TO_TICKS(timeout_ms));
     if (length > 0)
     {
+        fail_counter = 0;
         if (logging)
             ESP_LOGI(LTE_TAG, "Received : %s", LTE_UART_data);
         if ((rc = check_response(LTE_UART_data, check_string)) == SUCCESS)
@@ -1394,6 +1399,7 @@ error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *
     else
     {
         ESP_LOGE(LTE_TAG, "No Data | data_len : %d", strlen(LTE_UART_data));
+        if(fail_counter++ > 25) esp_restart();
     }
     return rc;
 }

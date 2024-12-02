@@ -291,8 +291,8 @@ typedef struct
     uint8_t errorCheckEnabled;         // 1 Byte
     bool requestSentToNode;            // 1 byte
     bool configured;                   // 1 byte
-    char mode_str[MODE_STR_LEN];   // Variable size, but align at the end
-    char deviceName[16];                 // 16 bytes
+    char mode_str[MODE_STR_LEN];       // Variable size, but align at the end
+    char deviceName[SERIAL_NO_LEN];    // 16 bytes
 } CommandStruct;
 
 
@@ -307,7 +307,7 @@ typedef struct
     int8_t power_value;               // 1 byte
     int8_t fanspeed_value;            // 1 byte
     int8_t temperature_value;         // 1 byte
-    char deviceName[16];              // 16 bytes
+    char deviceName[SERIAL_NO_LEN];   // 16 bytes
     char mode[8];                     // 8 bytes
     char temperature[4];              // 4 bytes
     char power[4];                    // 4 bytes
@@ -323,7 +323,7 @@ typedef struct
     esp_err_t bleErrorCode;         // 4 bytes
     char lastCommand[36];           // 36 bytes
     char nextCommand[36];           // 36 bytes
-    char deviceName[16];            // 16 bytes
+    char deviceName[SERIAL_NO_LEN]; // 16 bytes
     error_codes errorCode;          // 1 byte
     uint8_t teachingStart;          // 1 byte
     uint8_t power;                  // 1 byte

@@ -18,6 +18,7 @@
 
 nvs_handle_t ir_nvs_handle;
 nvs_handle_t general_nvs_handle;
+nvs_handle_t serial_num_nvs_handle;
 
 /**
  * @warning The keys below are used by nvs. They should not be more than 15 chars
@@ -406,7 +407,7 @@ esp_err_t pull_data_from_nvs(void)
     }
 
     size_t size = sizeof(serialNoStr);
-    nvs_get_str(general_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &size);
+    nvs_get_str(serial_num_nvs_handle, NVS_SERIAL_NO_KEY, serialNoStr, &size);
     nvs_get_u8(general_nvs_handle, NVS_REGISTERED_KEY, &registered);
     nvs_get_u8(general_nvs_handle, NVS_PROVISIONED_KEY, &provisioned);
     nvs_get_u8(general_nvs_handle, NVS_CONFIGURED_KEY, &configured);
@@ -455,36 +456,43 @@ void nvs_init()
     esp_err_t err;
 
     err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
-    ESP_LOGI(NVS_TAG, "nvs_flash_init_partition(IR_NVS_PARTITION_NAME) Err : %s", esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to init %s partition - %s", IR_NVS_PARTITION_NAME, esp_err_to_name(err));
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND || err == ESP_ERR_NVS_NOT_ENOUGH_SPACE)
     {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_LOGE(NVS_TAG, "Err in %s NVS partition. Erasing data", IR_NVS_PARTITION_NAME);
         ESP_ERROR_CHECK(nvs_flash_erase_partition(IR_NVS_PARTITION_NAME));
         err = nvs_flash_init_partition(IR_NVS_PARTITION_NAME);
     }
 
     err = nvs_flash_init_partition(GENERAL_NVS_PARTITION_NAME);
-    ESP_LOGI(NVS_TAG, "nvs_flash_init_partition(GENERAL_NVS_PARTITION_NAME) Err : %s", esp_err_to_name(err));
+    if(err) ESP_LOGE(NVS_TAG, "Failed to init %s partition - %s", GENERAL_NVS_PARTITION_NAME, esp_err_to_name(err));
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND || err == ESP_ERR_NVS_NOT_ENOUGH_SPACE)
     {
-        // NVS partition was truncated and needs to be erased
-        // Retry nvs_flash_init
-        ESP_LOGE(NVS_TAG, "Err in %s NVS partition. Erasing data", GENERAL_NVS_PARTITION_NAME);
         ESP_ERROR_CHECK(nvs_flash_erase_partition(GENERAL_NVS_PARTITION_NAME));
         err = nvs_flash_init_partition(GENERAL_NVS_PARTITION_NAME);
     }
 
-   //Open the partitions to get their handles
+    err = nvs_flash_init_partition(SERIALNUM_NVS_PARTITION_NAME);
+    if(err) ESP_LOGE(NVS_TAG, "Failed to init %s partition - %s", SERIALNUM_NVS_PARTITION_NAME, esp_err_to_name(err));
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND || err == ESP_ERR_NVS_NOT_ENOUGH_SPACE)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase_partition(SERIALNUM_NVS_PARTITION_NAME));
+        err = nvs_flash_init_partition(SERIALNUM_NVS_PARTITION_NAME);
+    }
+
+    //Open the partitions to get their handles
     err = nvs_open_from_partition(IR_NVS_PARTITION_NAME, IR_NVS_NAMESPACE, NVS_READWRITE, &ir_nvs_handle);
     if(err) {
-        ESP_LOGE(NVS_TAG, "Opening IR Partition failed : %s",esp_err_to_name(err));
+        ESP_LOGE(NVS_TAG, "Opening %s Partition failed : %s",IR_NVS_PARTITION_NAME,esp_err_to_name(err));
         return;
     }
     err = nvs_open_from_partition(GENERAL_NVS_PARTITION_NAME, GENERAL_NVS_NAMESPACE, NVS_READWRITE, &general_nvs_handle);
     if(err){
-        ESP_LOGE(NVS_TAG, "Opening General Partition failed : %s",esp_err_to_name(err));
+        ESP_LOGE(NVS_TAG, "Opening %s Partition failed : %s",GENERAL_NVS_PARTITION_NAME,esp_err_to_name(err));
+        return;
+    }
+    err = nvs_open_from_partition(SERIALNUM_NVS_PARTITION_NAME, SERIALNUM_NVS_NAMESPACE, NVS_READONLY, &serial_num_nvs_handle);
+    if(err){
+        ESP_LOGE(NVS_TAG, "Opening %s Partition failed : %s",SERIALNUM_NVS_PARTITION_NAME,esp_err_to_name(err));
         return;
     }
 

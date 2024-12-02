@@ -7,9 +7,11 @@
 
 #define IR_NVS_PARTITION_NAME "ir"
 #define GENERAL_NVS_PARTITION_NAME "general"
+#define SERIALNUM_NVS_PARTITION_NAME "serialnum"
 
 #define IR_NVS_NAMESPACE "IR"
 #define GENERAL_NVS_NAMESPACE "GENERAL"
+#define SERIALNUM_NVS_NAMESPACE "serial"
 
 /*Global Variables*/
 extern nvs_handle_t ir_nvs_handle;

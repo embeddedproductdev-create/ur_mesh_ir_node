@@ -839,8 +839,7 @@ void teaching_mode_init(uint8_t startingTemp, uint8_t endingTemp)
 here:
 #if (IS_GWY)
     generate_ack(GWY_TEACHING_MODE, NULL);
-#endif
-#if (!IS_GWY)
+#else
     send_teaching_mode_ack_to_provisioner();
 #endif
 }
@@ -1215,10 +1214,6 @@ void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
     {
 #if (IS_GWY)
         teaching_mode_t.packetid = GWY_TEACHING_MODE;
-#else
-        teaching_mode_t.packetid = NODE_TEACHING_MODE;
-        strcpy(teaching_mode_t.deviceName, serialNoStr);
-        teaching_mode_t.elemAddr = last_command.elemaddr;
 #endif
         teaching_mode_t.errorCode = SUCCESS;
         teaching_mode_t.msgseqno = BUTTON_PRESS_MSGSEQNO;
@@ -1246,10 +1241,6 @@ void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
         teaching_mode_t.teachingStart = cmd_struct->teachingStart;
         teaching_mode_t.startingTemperature = cmd_struct->startingTemperature;
         teaching_mode_t.endingTemperature = cmd_struct->endingTemperature;
-#if (!IS_GWY)
-        strcpy(teaching_mode_t.deviceName, serialNoStr);
-        teaching_mode_t.elemAddr = last_command.elemaddr;
-#endif
         if (!teaching_mode_t.teachingStart)
         {
             exit_teaching_mode(false);

@@ -14,11 +14,11 @@ def generate_nvs_binaries(device_type, start_serial, end_serial, output_dir, nvs
         # Create a CSV file for the current serial number
         with open(csv_file, "w") as f:
             f.write("key,type,encoding,value\n")
-            f.write("GENERAL,namespace,,,\n")
+            f.write("serial,namespace,,,\n")
             f.write(f"SerialNo,data,string,{serial_number}\n")
         
         # Generate the NVS binary
-        command = f"{nvs_partition_gen_tool} generate {csv_file} {bin_file} 0x6000"
+        command = f"{nvs_partition_gen_tool} generate {csv_file} {bin_file} 0x3000"
         subprocess.run(command, shell=True, check=True)
         print(f"Generated: {bin_file}")
 
