@@ -1879,3 +1879,59 @@ Use time: 15 s
 Download result: PASS
 *************************** END ****************************
 
+*************************** START ****************************
+START TIME: 202412031426
+CONNECT BAUD: 115200
+set state: ESP_DL_SYNC
+serial port opened
+-----------
+baud:115200
+root baud:115200
+-------------
+===============BAUD : 115200===============CALL DEVICE SYNC
+connecting...
+mac l: 0xc74be78
+mac h: 0xdcda
+get mac res: 1
+get flash id : 0x001840c8
+manufacturer_id: 0xc8
+device_id: 0x4018
+Wrote 20928 bytes (13294 compressed) at 0x00000000 in 0.2 seconds (effective 697.8 kbit/s)...
+Hash of data verified.Wrote 3072 bytes (141 compressed) at 0x00008000 in 0.0 seconds (effective 821.9 kbit/s)...
+Hash of data verified.Wrote 12288 bytes (143 compressed) at 0x0001b000 in 0.1 seconds (effective 1401.9 kbit/s)...
+Hash of data verified.Wrote 1299856 bytes (734696 compressed) at 0x00020000 in 8.3 seconds (effective 1258.8 kbit/s)...
+Hash of data verified.
+Leaving...
+com closed
+Use time: 12 s
+Download result: PASS
+*************************** END ****************************
+
+*************************** START ****************************
+START TIME: 202412031516
+CONNECT BAUD: 115200
+set state: ESP_DL_SYNC
+serial port opened
+-----------
+baud:115200
+root baud:115200
+-------------
+===============BAUD : 115200===============CALL DEVICE SYNC
+connecting...
+mac l: 0xc74be78
+mac h: 0xdcda
+get mac res: 1
+get flash id : 0x001840c8
+manufacturer_id: 0xc8
+device_id: 0x4018
+Wrote 20928 bytes (13294 compressed) at 0x00000000 in 0.2 seconds (effective 706.3 kbit/s)...
+Hash of data verified.Wrote 3072 bytes (141 compressed) at 0x00008000 in 0.0 seconds (effective 1220.6 kbit/s)...
+Hash of data verified.Wrote 12288 bytes (143 compressed) at 0x0001b000 in 0.1 seconds (effective 1402.5 kbit/s)...
+Hash of data verified.Wrote 1299920 bytes (734640 compressed) at 0x00020000 in 8.2 seconds (effective 1266.7 kbit/s)...
+Hash of data verified.
+Leaving...
+com closed
+Use time: 12 s
+Download result: PASS
+*************************** END ****************************
+

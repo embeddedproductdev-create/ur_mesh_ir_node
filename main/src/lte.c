@@ -110,7 +110,7 @@ const char *PUB_CONF_QUEUE_COUNT_KEY = "PubConfQueueCount";
 const char *TEACHING_MODE_QUEUE_COUNT_KEY = "TeachingModeQueueCount";
 const char *DEBUG_INFO_QUEUE_COUNT_KEY = "DebugInfoQueueCount";
 const char *DEVICE_UPTIME_KEY = "DeviceUpTimeHrs";
-const char *LOGGING_KEY = "Logging";
+const char *RESTART_DEVICE_KEY = "RestartDevice";
 const char *RESET_DEVICE_KEY = "ResetDevice";
 const char *LINK_KEY = "Link";
 const char *TEACHING_START_KEY = "TeachingStart";
@@ -686,8 +686,8 @@ char *get_error_code_name(error_codes code)
         "PUBLISH_PERIOD_EXCEEDING_RANGE",
         "MISSING_RESET_DEVICE",
         "RESET_DEVICE_EXCEEDING_RANGE",
-        "MISSING_LOGGING",
-        "LOGGING_EXCEEDING_RANGE",
+        "MISSING_RESTART_DEVICE",
+        "RESTART_DEVICE_EXCEEDING_RANGE",
         "IR_PROTOCOL_DECODEABLE_ONLY",
         "IR_PROTOCOL_FULLY_UNSUPPORTED",
         "MISSING_ERROR_CHECK",
@@ -1190,11 +1190,12 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             return;
         }
         else
-#if (IS_GWY)
-            teaching_mode_t.power = power;
-#else
-            cmd_struct->power = power;
-#endif
+        {
+            if (cmd_struct->packetid == GWY_TEACHING_MODE_CMD_SELECTION_PACKET)
+                teaching_mode_t.power = power;
+            else
+                cmd_struct->power = power;
+        }
 
         if (!(temperature >= teaching_mode_t.startingTemperature && temperature <= teaching_mode_t.endingTemperature) &&
             cmd_struct->packetid == GWY_TEACHING_MODE_CMD_SELECTION_PACKET)
@@ -1214,10 +1215,10 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
     if (cmd_struct->packetid == GWY_DEBUG_INFO_PACKET || cmd_struct->packetid == NODE_DEBUG_INFO_PACKET)
     {
-        int logging, reset;
-        if (!cJSON_GetObjectItem(json_obj, LOGGING_KEY))
+        int restart, reset;
+        if (!cJSON_GetObjectItem(json_obj, RESTART_DEVICE_KEY))
         {
-            cmd_struct->errorcode = MISSING_LOGGING;
+            cmd_struct->errorcode = MISSING_RESTART_DEVICE;
             return;
         }
         if (!cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY))
@@ -1225,11 +1226,11 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             cmd_struct->errorcode = MISSING_RESET_DEVICE;
             return;
         }
-        logging = cJSON_GetObjectItem(json_obj, LOGGING_KEY)->valueint;
+        restart = cJSON_GetObjectItem(json_obj, RESTART_DEVICE_KEY)->valueint;
         reset = cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY)->valueint;
-        if (logging != 0 && logging != 1)
+        if (restart != 0 && restart != 1)
         {
-            cmd_struct->errorcode = LOGGING_EXCEEDING_RANGE;
+            cmd_struct->errorcode = RESTART_DEVICE_EXCEEDING_RANGE;
             return;
         }
         if (reset != 0 && reset != 1)

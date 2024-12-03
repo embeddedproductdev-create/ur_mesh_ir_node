@@ -331,6 +331,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             CommandStruct provack;
             provack.elemaddr = last_command.elemaddr;
             provack.packetid = NODE_PROV_PACKET;
+            provack.errorcode = SUCCESS;
             strcpy(provack.deviceName, serialNoStr);
             err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&provack);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));

@@ -1084,7 +1084,7 @@ void ir_recv_task(void *args)
             if (description.length())
                 ESP_LOGW(IR_TAG, "%s\n", description.c_str());
 
-            if (results.rawlen > 20)
+            if ((results.rawlen > 20 && !configured) || teaching_in_progress)
             {
                 ESP_LOGI(IR_TAG, "Detected IR Signal values : ");
                 for (int i = 0; i < results.rawlen; i++)

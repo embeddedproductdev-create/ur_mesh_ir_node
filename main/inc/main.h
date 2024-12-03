@@ -8,12 +8,13 @@
  * IT AFFECTS ACROSS THE WHOLE CODEBASE. YOU HAVE BEEN WARNED !!!
  * ===================================================================
  */
-#define IS_GWY 1
-#define CLIENT_RELEASE 0
+#define IS_GWY 0
+#define CLIENT_RELEASE 1
 /*====================================================================*/
 
 #define LTE_THREAD_STACK_SIZE 4096
 #define IR_THREAD_STACK_SIZE 4096
+
 #if(IS_GWY)
 #define MAJ_VERSION 1
 #define MIN_VERSION 0
@@ -25,7 +26,6 @@
 #define MIN_VERSION 0
 #define PATCH_VERSION 1
 #endif
-
 
 #if(!CLIENT_RELEASE)
 #define MQTT_SERVER_IP "54.215.188.103"
@@ -40,6 +40,5 @@
 #define MQTT_BROKER_USERNAME "unimaqtt"
 #define MQTT_BROKER_PASSWORD "T5DRIIJEBgfhjsrFkaDERkgJhswMwk4"
 #endif
-
 
 #endif
