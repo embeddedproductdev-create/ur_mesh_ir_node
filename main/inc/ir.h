@@ -76,7 +76,7 @@ void ir_transmit();
 void teaching_mode_init(uint8_t startingTemperature, uint8_t endingTemperature);
 void exit_teaching_mode(bool success);
 void handle_reconfiguration();
-void handle_configuring_teaching_mode(CommandStruct *cmd_struct);
+void handle_configuring_teaching_mode(action_type_t type, CommandStruct *cmd_struct);
 
 #ifdef __cplusplus
 }

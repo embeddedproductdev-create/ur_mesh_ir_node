@@ -250,7 +250,9 @@ void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
         return;
     }
     jWriteControl_t jwc;
+    jwOpen(&jwc, buffer, MQTT_ACK_BUFFER_LEN, JW_OBJECT, 1);
     jwObj_int(&jwc, JSON_PACKET_ID_KEY, NODE_TEACHING_MODE);
+    jwObj_int(&jwc, MSG_SEQ_NO_KEY, node_teaching_mode_t->msgseqno);
     jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
     jwObj_string(&jwc, NODE_SER_NO_KEY, node_teaching_mode_t->deviceName);
     jwObj_int(&jwc, ELEMENT_ADDR_KEY, node_teaching_mode_t->elemAddr);
@@ -259,7 +261,9 @@ void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t)
     jwObj_int(&jwc, BLE_ERROR_CODE_KEY, node_teaching_mode_t->bleErrorCode);
     jwObj_int(&jwc, REMAINING_CMD_KEY, node_teaching_mode_t->remainingCommands);
     jwObj_string(&jwc, LAST_CMD_KEY, node_teaching_mode_t->lastCommand);
-    if(node_teaching_mode_t->errorCheckEnabled) jwObj_string(&jwc, NEXT_CMD_KEY, node_teaching_mode_t->nextCommand);
+    if (node_teaching_mode_t->errorCheckEnabled)
+        jwObj_string(&jwc, NEXT_CMD_KEY, node_teaching_mode_t->nextCommand);
+    jwEnd(&jwc);
     jwClose(&jwc);
     enqueue_for_publish(buffer);
 }
@@ -281,6 +285,7 @@ void generate_and_publish_debug_info_ack(CommandStruct *ack)
     sprintf(uptime, "%0.2f", ((xTaskGetTickCount() * portTICK_PERIOD_MS) / 3600000.00));
 
     jWriteControl_t jwc;
+    jwOpen(&jwc, buffer, MQTT_ACK_BUFFER_LEN, JW_OBJECT, 1);
     jwObj_int(&jwc, JSON_PACKET_ID_KEY, ack->packetid);
     jwObj_int(&jwc, MSG_SEQ_NO_KEY, ack->msgseqno);
     jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
@@ -316,26 +321,25 @@ void generate_and_publish_debug_info_ack(CommandStruct *ack)
 }
 
 /**
- * @brief General purpose ack generator function
- *
+ * @brief General ack structure constructor function for both Gwy and Node
  */
-void generate_general_ack(uint16_t packetid, error_codes err)
+void construct_general_ack(error_codes err)
 {
-    int size = 1024;
-    char *buffer = (char *)malloc(size);
-    if (!buffer)
-    {
-        ESP_LOGE(LTE_TAG, "Memory Allocation failed for buffer | Can't generate ack");
-        return;
-    }
-    jWriteControl_t jwc;
-    jwOpen(&jwc, buffer, size, JW_OBJECT, 1);
-    jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
-    jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
-    jwObj_int(&jwc, ERROR_CODE_KEY, err);
-    jwEnd(&jwc);
-    jwClose(&jwc);
-    enqueue_for_publish(buffer);
+    CommandStruct ack;
+#if (IS_GWY)
+    ack.packetid = GWY_GENERAL_PACKET;
+#else
+    ack.packetid = NODE_GENERAL_PACKET;
+    ack.elemaddr = last_command.elemaddr;
+    strcpy(ack.deviceName, serialNoStr);
+#endif
+    ack.errorcode = err;
+
+#if (IS_GWY)
+    generate_ack(ack.packetid, &ack);
+#else
+    send_ack_to_provisioner(ack.packetid, &ack);
+#endif
 }
 
 /**
@@ -516,7 +520,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         break;
-    
+
     case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
         jwObj_int(&jwc, JSON_PACKET_ID_KEY, packetid);
         jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
@@ -536,7 +540,8 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(teaching_mode_t.errorCode));
         jwObj_int(&jwc, REMAINING_CMD_KEY, teaching_mode_t.remainingCommands);
         jwObj_string(&jwc, LAST_CMD_KEY, teaching_mode_t.lastCommand);
-        if(teaching_mode_t.errorCheckEnabled) jwObj_string(&jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
+        if (teaching_mode_t.errorCheckEnabled)
+            jwObj_string(&jwc, NEXT_CMD_KEY, teaching_mode_t.nextCommand);
         break;
 
     case NODE_TEACHING_MODE: // Case where Node Teaching Mode got timed out or was not sent at all
@@ -598,6 +603,24 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
             jwObj_int(&jwc, PUBLISH_PERIOD_KEY, cmd_struct->publishPeriodSec);
             jwObj_string(&jwc, DEVICE_UPTIME_KEY, uptime);
         }
+        break;
+
+    case GWY_GENERAL_PACKET:
+        jwObj_int(&jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+        jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+        jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+        jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+        jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
+        break;
+
+    case NODE_GENERAL_PACKET:
+        jwObj_int(&jwc, JSON_PACKET_ID_KEY, cmd_struct->packetid);
+        jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
+        jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
+        jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+        jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
+        jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         break;
 
     default:
@@ -837,7 +860,8 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 
     // At this point, the following Node Packets must already be valid
-    if(cmd_struct->packetid == NODE_RECONF_PACKET || cmd_struct->packetid == NODE_UNPROV_PACKET) return;
+    if (cmd_struct->packetid == NODE_RECONF_PACKET || cmd_struct->packetid == NODE_UNPROV_PACKET)
+        return;
 
     if (cmd_struct->packetid == GWY_RECONF_PACKET && !configured)
     {
@@ -1048,7 +1072,7 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else
         {
             int publishperiod = cJSON_GetObjectItem(json_obj, PUBLISH_PERIOD_KEY)->valueint;
-            // if(!(publishperiod>= MIN_PUBLISH_PERIOD_SEC && publishperiod <= 65535)) cmd_struct->errorcode = PUBLISH_PERIOD_EXCEEDING_RANGE;
+            // if(!(publishperiod>= DEFAULT_PUBLISH_PERIOD_SEC && publishperiod <= 65535)) cmd_struct->errorcode = PUBLISH_PERIOD_EXCEEDING_RANGE;
             // else cmd_struct->publishPeriodSec = publishperiod;
             cmd_struct->publishPeriodSec = publishperiod;
             return;
@@ -1102,12 +1126,12 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE;
             return;
         }
-        else 
+        else
             cmd_struct->teachingStart = teaching_start;
-        
-        if(cmd_struct->packetid == GWY_TEACHING_MODE)
+
+        if (cmd_struct->packetid == GWY_TEACHING_MODE)
         {
-            if(teaching_start && teaching_in_progress)
+            if (teaching_start && teaching_in_progress)
             {
                 cmd_struct->errorcode = DEVICE_ALREADY_IN_TEACHING_MODE;
                 return;
@@ -1165,23 +1189,26 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             cmd_struct->errorcode = POWER_EXCEEDING_RANGE;
             return;
         }
-#if (IS_GWY)
         else
+#if (IS_GWY)
             teaching_mode_t.power = power;
 #else
-        cmd_struct->power = power;
+            cmd_struct->power = power;
 #endif
 
-#if (IS_GWY)
-        if (!(temperature >= teaching_mode_t.startingTemperature && temperature <= teaching_mode_t.endingTemperature))
+        if (!(temperature >= teaching_mode_t.startingTemperature && temperature <= teaching_mode_t.endingTemperature) &&
+            cmd_struct->packetid == GWY_TEACHING_MODE_CMD_SELECTION_PACKET)
         {
             cmd_struct->errorcode = TEMPERATURE_EXCEEDING_RANGE;
             return;
         }
         else
-            teaching_mode_t.temperature = temperature;
-#endif
-        cmd_struct->temperature = temperature;
+        {
+            if (cmd_struct->packetid == GWY_TEACHING_MODE_CMD_SELECTION_PACKET)
+                teaching_mode_t.temperature = temperature;
+            else
+                cmd_struct->temperature = temperature;
+        }
         return;
     }
 
@@ -1223,11 +1250,11 @@ void register_gwy()
     set_str_in_nvs_flash(GENERAL_HANDLE, NVS_DEVICE_LOCATION_KEY, device_location_str);
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 1, UINT8_SIZE);
     hb_timer_start();
-    ble_init();
+    ble_init(); ble_initialized = true;
     if (xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle) != pdPASS)
     {
         ESP_LOGE(LTE_TAG, "IR Recv Task Creation Failed");
-        generate_general_ack(GWY_GENERAL_PACKET, IR_TASK_CREATION_FAILED);
+        construct_general_ack(IR_TASK_CREATION_FAILED);
     }
 }
 
@@ -1248,7 +1275,8 @@ void unregister(action_type_t type)
         generate_ack(ack.packetid, &ack);
     }
 
-    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 0, UINT8_SIZE);
+    vTaskDelete(ir_recv_task_handle);
+    factory_reset_device();
     hb_timer_stop();
 
     powerDownFlag = true;
@@ -1298,7 +1326,7 @@ void parse_json()
                 generate_ack(cmd_struct.packetid, &cmd_struct);
             if (cmd_struct.resetDevice)
             {
-                cmd_struct.errorcode = factory_reset_device(DUE_TO_MQTT_CMD);
+                cmd_struct.errorcode = factory_reset_device();
                 generate_and_publish_debug_info_ack(&cmd_struct);
                 powerCycleDevice(DUE_TO_MQTT_CMD);
             }
@@ -1310,7 +1338,7 @@ void parse_json()
             return;
 
         case GWY_TEACHING_MODE:
-            handle_configuring_teaching_mode(&cmd_struct);
+            handle_configuring_teaching_mode(DUE_TO_MQTT_CMD, &cmd_struct);
             return;
 
         case GWY_TEACHING_MODE_CMD_SELECTION_PACKET:
@@ -1399,7 +1427,8 @@ error_codes fetch_and_check_data(bool logging, uint16_t timeout_ms, const char *
     else
     {
         ESP_LOGE(LTE_TAG, "No Data | data_len : %d", strlen(LTE_UART_data));
-        if(fail_counter++ > 25) esp_restart();
+        if (fail_counter++ > 25)
+            esp_restart();
     }
     return rc;
 }
@@ -1574,7 +1603,8 @@ void maintainMQTTConnection()
     if (send_cmd_and_check_response(LOG_DATA, MQTT_SUB_CMD, "MQTT_SUB_CMD", MQTT_SUB_RESP, MIN_LTE_RESP_WAIT_MS * 5) != SUCCESS)
         return;
     ESP_LOGI(LTE_TAG, "Resumed MQTT Connection");
-    if (registered && !ble_initialized) {
+    if (registered && !ble_initialized)
+    {
         ble_initialized = true;
         ble_init();
     }
@@ -1702,7 +1732,7 @@ void powerCycleDevice(action_type_t type)
     led_set_state(LED_STATE_POWERING_DOWN);
     powerDownFlag = true;
 
-    //Close the NVS handles
+    // Close the NVS handles
     nvs_close(ir_nvs_handle);
     nvs_close(general_nvs_handle);
 

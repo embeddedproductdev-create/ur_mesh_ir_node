@@ -305,8 +305,8 @@
             "e164c72d5f12d03a",
             "fec9c17deae6082b"
         ],
-        "x": 1064,
-        "y": -1,
+        "x": 1284,
+        "y": 439,
         "w": 272,
         "h": 203
     },
@@ -338,12 +338,14 @@
             "b692e8d986fbe3ca",
             "32f40b81ed0016f8",
             "2f852626ea4f3d20",
-            "6b97eb34e2a509b0"
+            "6b97eb34e2a509b0",
+            "4eb1fc758a9ae0ab",
+            "8859639b97d711e2"
         ],
         "x": 154,
         "y": 439,
         "w": 452,
-        "h": 322
+        "h": 362
     },
     {
         "id": "2607943a8d78aacb",
@@ -362,7 +364,7 @@
             "b13a1bb3b94904e5",
             "b841e632f05a3d46"
         ],
-        "x": 734,
+        "x": 874,
         "y": 79,
         "w": 252,
         "h": 82
@@ -3595,8 +3597,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1295,
-        "y": 100,
+        "x": 1515,
+        "y": 540,
         "wires": [
             []
         ],
@@ -3627,8 +3629,8 @@
         "topic": "",
         "payload": "GWY00002",
         "payloadType": "str",
-        "x": 1180,
-        "y": 80,
+        "x": 1400,
+        "y": 520,
         "wires": [
             [
                 "51d756f0287c566a"
@@ -3653,8 +3655,8 @@
         "topic": "",
         "payload": "GWY00001",
         "payloadType": "str",
-        "x": 1180,
-        "y": 40,
+        "x": 1400,
+        "y": 480,
         "wires": [
             [
                 "51d756f0287c566a"
@@ -3679,8 +3681,8 @@
         "topic": "",
         "payload": "GWY00003",
         "payloadType": "str",
-        "x": 1180,
-        "y": 120,
+        "x": 1400,
+        "y": 560,
         "wires": [
             [
                 "51d756f0287c566a"
@@ -3710,7 +3712,7 @@
         "payload": "10",
         "payloadType": "num",
         "x": 250,
-        "y": 720,
+        "y": 760,
         "wires": [
             [
                 "6b97eb34e2a509b0"
@@ -4087,7 +4089,7 @@
         "finalize": "",
         "libs": [],
         "x": 495,
-        "y": 720,
+        "y": 760,
         "wires": [
             [
                 "4bdffcde7ad70484"
@@ -4120,7 +4122,7 @@
         "topic": "",
         "payload": "{\"General Instructions reg the flow\":{\"1)\":\"The boxes that have a tiny '1' marked on them means, they will automatically be injected once the flow is loaded. This is set a few default values\",\"2)\":\"This flow uses the same inject buttons for Gwy related control and Node related control, to make the flow small and less messy\",\"3)\":\"Since, the same inject buttons are used, the user will need to inject the respective Gwy/Node buttons and then inject the respective operation\",\"4)\":\"AC Control Packet can be sent out not just by injecting 'AC control packet' button, but also by injecting any AC Control related buttons, This is done to mimic the user operation with actual AC remote\"},\"Preliminary steps to be followed before using the flow\":{\"STEP 1\":\"Choose which Gwy you are using\",\"STEP 2\":\"Choose which Node you are using\",\"STEP 3\":\"Choose the right Element Address (If you already have a provisioned node)\"},\"Getting the ACKs from the right Gwy\":{\"1)\":\"Please check which debug box is 'activated' and which debug box is 'deactivated'\",\"2)\":\"If you are using GWY00003, then make sure only GWY00003 is activated and other two are deactivated to avoid getting too many ACKs\"}}",
         "payloadType": "json",
-        "x": 830,
+        "x": 970,
         "y": 120,
         "wires": [
             [
@@ -4141,7 +4143,7 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 925,
+        "x": 1065,
         "y": 120,
         "wires": [],
         "l": false
@@ -4203,8 +4205,8 @@
         "type": "mqtt out",
         "z": "9c54f3c8c089fa45",
         "g": "15bb5fa223da72c7",
-        "name": "GWY00001/command",
-        "topic": "GWY00001/command",
+        "name": "GWY00001/commands",
+        "topic": "GWY00001/commands",
         "qos": "2",
         "retain": "false",
         "respTopic": "",
@@ -4212,7 +4214,7 @@
         "userProps": "",
         "correl": "",
         "expiry": "",
-        "broker": "dc9c4c6e985986ab",
+        "broker": "f0e2d1c0.92bb3",
         "x": 405,
         "y": 260,
         "wires": [],
@@ -4394,11 +4396,11 @@
         "type": "mqtt in",
         "z": "9c54f3c8c089fa45",
         "g": "8453c3c42afc8ad4",
-        "name": "GWY00001/message",
-        "topic": "GWY00001/message",
+        "name": "GWY00001/messages",
+        "topic": "GWY00001/messages",
         "qos": "2",
         "datatype": "auto-detect",
-        "broker": "dc9c4c6e985986ab",
+        "broker": "f0e2d1c0.92bb3",
         "nl": false,
         "rap": false,
         "inputs": 0,
@@ -4833,9 +4835,7 @@
         "x": 245,
         "y": 360,
         "wires": [
-            [
-                "e33e844ed5bfa869"
-            ]
+            []
         ],
         "l": false
     },
@@ -4934,7 +4934,7 @@
         "z": "9c54f3c8c089fa45",
         "g": "15bb5fa223da72c7",
         "name": "Json Injector",
-        "func": "const json_packet_enum = Object.freeze({\n    /* GWY PACKETS */\n    GWY_REG_PACKET: 0,\n    GWY_CONF_ACK : 1,\n    GWY_UNREG_PACKET : 2,\n    GWY_AC_CONTROL_PACKET : 3,\n    GWY_MANUAL_AC_CONTROL_ACK: 4,\n    GWY_RECONF_PACKET: 5,\n    GWY_HEARTBEAT_ACK: 6,\n    GWY_HEARTBEAT_PUB_CONF_PACKET: 7,\n    GWY_TEACHING_MODE: 8,\n    GWY_DEBUG_INFO_PACKET: 9,\n\n    /* NODE PACKETS */\n    NODE_PROV_PACKET: 100,\n    NODE_CONF_ACK: 101,\n    NODE_UNPROV_PACKET: 102,\n    NODE_AC_CONTROL_PACKET: 103,\n    NODE_MANUAL_AC_CONTROL_ACK_PACKET: 104,\n    NODE_RECONF_PACKET: 105,\n    NODE_HEARTBEAT_ACK: 106,\n    NODE_HEARTBEAT_PUB_CONF_PACKET: 107,\n    NODE_TEACHING_MODE: 108,\n    NODE_DEBUG_INFO_PACKET: 109,\n\n    /* MISC PACKETS */\n    UNKNOWN_PACKET: 9999\n});\n\nlet randNum = Math.floor((Math.random() * 65535) + 1);\n\nlet Gwybasejson = {\n    \"JsonPacketID\": msg.payload,\n    \"MsgSeqNo\": randNum,\n    \"GwySerNo\": flow.get(\"GwySerNo\"),\n};\n\nlet Nodebasejson = {\n    \"JsonPacketID\": msg.payload,\n    \"MsgSeqNo\": randNum,\n    \"GwySerNo\": flow.get(\"GwySerNo\"),\n    \"NodeSerNo\": flow.get(\"NodeSerNo\"),\n    \"ElementAddr\": flow.get(\"ElementAddr\"),\n}\n\nlet json;\nswitch (msg.payload) {\n    case json_packet_enum.NODE_AC_CONTROL_PACKET:\n        json = {\n            \"Power\": flow.get(\"Power\"),\n            \"Temperature\": flow.get(\"Temperature\"),\n            \"FanSpeed\": flow.get(\"FanSpeed\"),\n            \"Mode\": flow.get(\"Mode\"),\n            \"SwingH\": flow.get(\"SwingH\"),\n            \"SwingV\": flow.get(\"SwingV\"),\n            \"Locking\": flow.get(\"Locking\"),\n            \"OnTimer\": flow.get(\"OnTimer\"),\n            \"OffTimer\": flow.get(\"OffTimer\"),\n            \"TempLockUpLimit\": flow.get(\"TempLockUpLimit\"),\n            \"TempLockLowLimit\": flow.get(\"TempLockLowLimit\")\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_AC_CONTROL_PACKET:\n        json = {\n            \"Power\": flow.get(\"Power\"),\n            \"Temperature\": flow.get(\"Temperature\"),\n            \"FanSpeed\": flow.get(\"FanSpeed\"),\n            \"Mode\": flow.get(\"Mode\"),\n            \"SwingH\": flow.get(\"SwingH\"),\n            \"SwingV\": flow.get(\"SwingV\"),\n            \"Locking\": flow.get(\"Locking\"),\n            \"OnTimer\": flow.get(\"OnTimer\"),\n            \"OffTimer\": flow.get(\"OffTimer\"),\n            \"TempLockUpLimit\": flow.get(\"TempLockUpLimit\"),\n            \"TempLockLowLimit\": flow.get(\"TempLockLowLimit\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_HEARTBEAT_PUB_CONF_PACKET:\n        json = {\n            \"PublishPeriodSec\": flow.get(\"NodePublishPeriod\")\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_HEARTBEAT_PUB_CONF_PACKET:\n        json = {\n            \"PublishPeriodSec\": flow.get(\"GwyPublishPeriod\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_PROV_PACKET:\n        json = {\n            \"JsonPacketID\": msg.payload,\n            \"MsgSeqNo\": randNum,\n            \"GwySerNo\": flow.get(\"GwySerNo\"),\n            \"NodeSerNo\": flow.get(\"NodeSerNo\"),\n            \"Location\": flow.get(\"Location\"),\n            \"MacId\": flow.get(\"MacId\")\n        };\n        msg = {payload: json};\n        break;\n\n    case json_packet_enum.GWY_REG_PACKET:\n        json = {\n            \"Location\": flow.get(\"Location\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_UNREG_PACKET:\n        json = {\n            \"Location\": flow.get(\"Location\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_RECONF_PACKET:\n    case json_packet_enum.GWY_TEACHING_MODE:\n        json = {\n            \"TeachingStart\":flow.get(\"TeachingStart\"),\n            \"StartingTemperature\": flow.get(\"StartingTemperature\"),\n            \"EndingTemperature\":flow.get(\"EndingTemperature\"),\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n    \n    case json_packet_enum.NODE_DEBUG_INFO_PACKET:\n        json = {\n            \"ResetDevice\": 0,\n            \"Logging\": 0\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_DEBUG_INFO_PACKET:\n        json = {\n            \"ResetDevice\": 0,\n            \"Logging\":0\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n\n    case json_packet_enum.NODE_UNPROV_PACKET:\n        json = {\n            \"Location\": flow.get(\"Location\")\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n    \n    case json_packet_enum.NODE_RECONF_PACKET:\n    case json_packet_enum.NODE_TEACHING_MODE:\n        json = {\n            \"TeachingStart\":flow.get(\"TeachingStart\"),\n            \"StartingTemperature\": flow.get(\"StartingTemperature\"),\n            \"EndingTemperature\":flow.get(\"EndingTemperature\"),\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n}\nreturn msg;",
+        "func": "const json_packet_enum = Object.freeze({\n    /* GWY PACKETS */\n    GWY_REG_PACKET: 0,\n    GWY_CONF_ACK: 1,\n    GWY_UNREG_PACKET: 2,\n    GWY_AC_CONTROL_PACKET: 3,\n    GWY_MANUAL_AC_CONTROL_ACK: 4,\n    GWY_RECONF_PACKET: 5,\n    GWY_HEARTBEAT_ACK: 6,\n    GWY_HEARTBEAT_PUB_CONF_PACKET: 7,\n    GWY_TEACHING_MODE: 8,\n    GWY_TEACHING_MODE_CMD_SELECTION: 9,\n    GWY_DEBUG_INFO_PACKET: 10,\n\n    /* NODE PACKETS */\n    NODE_PROV_PACKET: 100,\n    NODE_CONF_ACK: 101,\n    NODE_UNPROV_PACKET: 102,\n    NODE_AC_CONTROL_PACKET: 103,\n    NODE_MANUAL_AC_CONTROL_ACK_PACKET: 104,\n    NODE_RECONF_PACKET: 105,\n    NODE_HEARTBEAT_ACK: 106,\n    NODE_HEARTBEAT_PUB_CONF_PACKET: 107,\n    NODE_TEACHING_MODE: 108,\n    NODE_TEACHING_MODE_CMD_SELECTION: 109,\n    NODE_DEBUG_INFO_PACKET: 110,\n\n    /* MISC PACKETS */\n    UNKNOWN_PACKET: 9999\n});\n\nlet randNum = Math.floor((Math.random() * 65535) + 1);\n\nlet Gwybasejson = {\n    \"JsonPacketID\": msg.payload,\n    \"MsgSeqNo\": randNum,\n};\n\nlet Nodebasejson = {\n    \"JsonPacketID\": msg.payload,\n    \"MsgSeqNo\": randNum,\n    \"ElementAddr\": flow.get(\"ElementAddr\"),\n}\n\nlet json;\nswitch (msg.payload) {\n    case json_packet_enum.GWY_REG_PACKET:\n        json = {\n            \"Location\": flow.get(\"Location\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_UNREG_PACKET:\n        msg = { payload: Object.assign({}, Gwybasejson) };\n        break;\n\n    case json_packet_enum.GWY_AC_CONTROL_PACKET:\n        json = {\n            \"Power\": flow.get(\"Power\"),\n            \"Temperature\": flow.get(\"Temperature\"),\n            \"FanSpeed\": flow.get(\"FanSpeed\"),\n            \"Mode\": flow.get(\"Mode\"),\n            \"SwingH\": flow.get(\"SwingH\"),\n            \"SwingV\": flow.get(\"SwingV\"),\n            \"Locking\": flow.get(\"Locking\"),\n            \"OnTimer\": flow.get(\"OnTimer\"),\n            \"OffTimer\": flow.get(\"OffTimer\"),\n            \"TempLockUpLimit\": flow.get(\"TempLockUpLimit\"),\n            \"TempLockLowLimit\": flow.get(\"TempLockLowLimit\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_RECONF_PACKET:\n        msg = { payload: Object.assign({}, Gwybasejson) };\n        break;\n\n    case json_packet_enum.GWY_TEACHING_MODE:\n        json = {\n            \"TeachingStart\": flow.get(\"TeachingStart\"),\n            \"StartingTemperature\": flow.get(\"StartingTemperature\"),\n            \"EndingTemperature\": flow.get(\"EndingTemperature\"),\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_TEACHING_MODE_CMD_SELECTION:\n        json = {\n            \"Power\": flow.get(\"Power\"),\n            \"Temperature\": flow.get(\"Temperature\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_HEARTBEAT_PUB_CONF_PACKET:\n        json = {\n            \"PublishPeriodSec\": flow.get(\"GwyPublishPeriod\")\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.GWY_DEBUG_INFO_PACKET:\n        json = {\n            \"ResetDevice\": 0,\n            \"RestartDevice\": 0\n        };\n        msg = { payload: Object.assign({}, Gwybasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_UNPROV_PACKET:\n        msg = { payload: Object.assign({}, Nodebasejson) };\n        break;\n\n    case json_packet_enum.NODE_AC_CONTROL_PACKET:\n        json = {\n            \"Power\": flow.get(\"Power\"),\n            \"Temperature\": flow.get(\"Temperature\"),\n            \"FanSpeed\": flow.get(\"FanSpeed\"),\n            \"Mode\": flow.get(\"Mode\"),\n            \"SwingH\": flow.get(\"SwingH\"),\n            \"SwingV\": flow.get(\"SwingV\"),\n            \"Locking\": flow.get(\"Locking\"),\n            \"OnTimer\": flow.get(\"OnTimer\"),\n            \"OffTimer\": flow.get(\"OffTimer\"),\n            \"TempLockUpLimit\": flow.get(\"TempLockUpLimit\"),\n            \"TempLockLowLimit\": flow.get(\"TempLockLowLimit\")\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_RECONF_PACKET:\n        msg = { payload: Object.assign({}, Nodebasejson) };\n        break;\n\n    case json_packet_enum.NODE_HEARTBEAT_PUB_CONF_PACKET:\n        json = {\n            \"PublishPeriodSec\": flow.get(\"NodePublishPeriod\")\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_TEACHING_MODE:\n        json = {\n            \"TeachingStart\": flow.get(\"TeachingStart\"),\n            \"StartingTemperature\": flow.get(\"StartingTemperature\"),\n            \"EndingTemperature\": flow.get(\"EndingTemperature\"),\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_TEACHING_MODE_CMD_SELECTION:\n        json = {\n            \"Power\": flow.get(\"Power\"),\n            \"Temperature\": flow.get(\"Temperature\")\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n\n    case json_packet_enum.NODE_DEBUG_INFO_PACKET:\n        json = {\n            \"ResetDevice\": 0,\n            \"RestartDevice\": 0\n        };\n        msg = { payload: Object.assign({}, Nodebasejson, json) };\n        break;\n}\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -4976,8 +4976,8 @@
         "topic": "",
         "payload": "GWY00004",
         "payloadType": "str",
-        "x": 1181,
-        "y": 161,
+        "x": 1401,
+        "y": 601,
         "wires": [
             [
                 "51d756f0287c566a"
@@ -6058,7 +6058,7 @@
         "z": "9c54f3c8c089fa45",
         "g": "8453c3c42afc8ad4",
         "name": "GwyPublishPeriod",
-        "func": "const now = new Date();\nconst timestamp = now.toLocaleString();\nmsg.payload = `${timestamp}:${msg.payload}`;\nreturn msg;\n",
+        "func": "const now = new Date();\nconst timestamp = now.toLocaleString();\nconst formattedMessage = `${timestamp} - ${msg.payload}`;\nmsg.payload = formattedMessage;\nreturn msg;",
         "outputs": 1,
         "timeout": "",
         "noerr": 0,
@@ -6167,6 +6167,94 @@
         ],
         "l": false,
         "info": "Creates Dynamic JSON as per User Input Values"
+    },
+    {
+        "id": "4eb1fc758a9ae0ab",
+        "type": "inject",
+        "z": "9c54f3c8c089fa45",
+        "g": "93250921e6d76682",
+        "name": "Teaching Mode Cmd Selection",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "9",
+        "payloadType": "num",
+        "x": 320,
+        "y": 720,
+        "wires": [
+            [
+                "8859639b97d711e2"
+            ]
+        ]
+    },
+    {
+        "id": "8859639b97d711e2",
+        "type": "function",
+        "z": "9c54f3c8c089fa45",
+        "g": "93250921e6d76682",
+        "name": "GwyPublishPeriod",
+        "func": "if(flow.get(\"Device\")==1)\n{\n    msg.payload = 109;\n    return msg;\n}\nelse\n{\n    msg.payload = 9;\n    return msg;\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 495,
+        "y": 720,
+        "wires": [
+            [
+                "4bdffcde7ad70484"
+            ]
+        ],
+        "inputLabels": [
+            "Json Packet ID"
+        ],
+        "outputLabels": [
+            "JSON"
+        ],
+        "l": false,
+        "info": "Creates Dynamic JSON as per User Input Values"
+    },
+    {
+        "id": "f0e2d1c0.92bb3",
+        "type": "mqtt-broker",
+        "name": "Unimation",
+        "broker": "3.7.8.183",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
     },
     {
         "id": "dc9c4c6e985986ab",

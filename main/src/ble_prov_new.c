@@ -619,6 +619,7 @@ void handle_ble_incoming(esp_ble_mesh_model_cb_param_t *param)
     teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
     if(teach_ack->packetid == NODE_TEACHING_MODE) {
         generate_node_teaching_mode_ack(teach_ack);
+        if(teach_ack->msgseqno != BUTTON_PRESS_MSGSEQNO) removeQueueItemByMsgSeqNo(command_queue, teach_ack->msgseqno);
         return;
     }
 
@@ -630,6 +631,11 @@ void handle_ble_incoming(esp_ble_mesh_model_cb_param_t *param)
 
     CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
     generate_ack(ack->packetid, ack);
+    if(ack->packetid == NODE_UNPROV_PACKET) {
+        esp_err_t err = esp_ble_mesh_provisioner_delete_node_with_addr(ack->elemaddr);
+        if(err) ESP_LOGE(BLE_TAG, "Failed to remove Node(elemAddr:%d) from database - %s",ack->elemaddr, esp_err_to_name(err));
+    }
+    if(ack->msgseqno != BUTTON_PRESS_MSGSEQNO) removeQueueItemByMsgSeqNo(command_queue, ack->msgseqno);
 }
 
 /**

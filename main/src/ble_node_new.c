@@ -327,8 +327,12 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
     {
         case NODE_PROV_PACKET:
             ESP_LOGI(BLE_TAG, "Sending Node Prov ACK to Provisioner");
-            ack->errorcode = SUCCESS;
-            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+
+            CommandStruct provack;
+            provack.elemaddr = last_command.elemaddr;
+            provack.packetid = NODE_PROV_PACKET;
+            strcpy(provack.deviceName, serialNoStr);
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&provack);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
 
@@ -345,10 +349,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
                 strcpy(unprovack.deviceName, serialNoStr);
                 err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&unprovack);
                 if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
-            }  
-            
-            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
-            if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            }
             break;
         
         case NODE_CONF_ACK:
@@ -429,8 +430,11 @@ void error_check_cmd(CommandStruct *cmd)
             break;
         
         case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
-            if(!(cmd->temperature >= teaching_mode_t.startingTemperature && cmd->temperature <= teaching_mode_t.endingTemperature))
+            if(!(cmd->temperature >= teaching_mode_t.startingTemperature && cmd->temperature <= teaching_mode_t.endingTemperature))\
+            {
+                ESP_LOGW(BLE_TAG, "cmd->Temperature : %d | teaching_mode_t.startingTemperature : %d | teaching_mode_t.endingTemperature : %d",cmd->temperature, teaching_mode_t.startingTemperature, teaching_mode_t.endingTemperature);
                 cmd->errorcode = TEMPERATURE_EXCEEDING_RANGE;
+            }
             break;
         
         case NODE_AC_CONTROL_PACKET:
@@ -475,7 +479,7 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
             
             case NODE_TEACHING_MODE:
                 ESP_LOGI(BLE_TAG, "Received Node Teaching Mode Packet from Provisioner");
-                handle_configuring_teaching_mode(cmd);
+                handle_configuring_teaching_mode(DUE_TO_MQTT_CMD, cmd);
                 break;
             
             case NODE_TEACHING_MODE_CMD_SELECTION_PACKET:
@@ -494,7 +498,7 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
             case NODE_DEBUG_INFO_PACKET:
                 ESP_LOGI(BLE_TAG, "Received Node Debug Info Packet from Provisioner");
                 if(cmd->resetDevice) {
-                    cmd->errorcode = factory_reset_device(DUE_TO_MQTT_CMD);
+                    cmd->errorcode = factory_reset_device();
                     send_ack_to_provisioner(cmd->packetid, cmd);
                     powerCycleDevice(DUE_TO_MQTT_CMD);
                     break;
@@ -545,24 +549,15 @@ void attach_elemAddr_to_structures(uint16_t elemAddr)
 void provision_success_cb()
 {
     provisioned = true; update_led_status();
-
-    CommandStruct provack;
-    provack.elemaddr = last_command.elemaddr;
-    provack.packetid = NODE_PROV_PACKET;
-    strcpy(provack.deviceName, serialNoStr);
-    send_ack_to_provisioner(NODE_PROV_PACKET, &provack);
+    send_ack_to_provisioner(NODE_PROV_PACKET, NULL);
 
     hb_timer_start();
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 1, UINT8_SIZE);
     
     if(xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle) != pdPASS)
     {
-        ESP_LOGE(BLE_TAG, "IR Recv Task Creation Failed. Device will be restarted in 30s");
-        CommandStruct ack;
-        ack.errorcode = IR_TASK_CREATION_FAILED;
-        ack.elemaddr = last_command.elemaddr;
-        strcpy(ack.deviceName, serialNoStr);
-        send_ack_to_provisioner(NODE_GENERAL_PACKET, &ack);
+        ESP_LOGE(BLE_TAG, "IR Recv Task Creation Failed");
+        construct_general_ack(IR_TASK_CREATION_FAILED);
     }
 }
 
@@ -574,10 +569,19 @@ void provision_success_cb()
 void unprovision_success_cb()
 {
     ESP_LOGW(BLE_TAG, "Unprovisioning node");
+
+    provisioned = false; led_set_state(LED_STATE_NODE_UNPROV_UNADV);
+
+    /*Let's stop BLE Advertisement*/
     esp_ble_mesh_node_local_reset();
     esp_ble_mesh_node_prov_disable(ESP_BLE_MESH_PROV_ADV | ESP_BLE_MESH_PROV_GATT);
-    provisioned = false; led_set_state(LED_STATE_NODE_UNPROV_UNADV);
-    set_number_in_nvs_flash(GENERAL_HANDLE, NVS_PROVISIONED_KEY, 0, UINT8_SIZE);
+
+    /*Let's stop IR Receiver task*/
+    vTaskDelete(ir_recv_task_handle);
+
+    /*Let's erase flash*/
+    factory_reset_device();
+
     hb_timer_stop();
 }
 

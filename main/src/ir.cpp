@@ -1066,6 +1066,7 @@ void perform_teaching_process_without_error_checking()
  */
 void ir_recv_task(void *args)
 {
+    ESP_LOGI(IR_TAG, "Starting IR Recv Task");
     irrecv.setUnknownThreshold(12);
     irrecv.setTolerance(kTolerancePercentage);
     irrecv.enableIRIn();
@@ -1101,7 +1102,7 @@ void ir_recv_task(void *args)
              */
 
             /*Locking Feature*/
-            if ((registered || provisioned) && configured && !teaching_in_progress &&
+            if (configured && !teaching_in_progress &&
                 ((protocol == ir_protocol_num) || (ir_protocol_num == RAW && results.rawlen == teaching_mode_raw_len)) &&
                 description.length())
             {
@@ -1122,7 +1123,7 @@ void ir_recv_task(void *args)
 
             CommandStruct ack;
             /*AC Remote Configuration Process*/
-            if ((registered || provisioned) && !configured && !teaching_in_progress)
+            if (!configured && !teaching_in_progress)
             {
                 
                 ack.irProtocolNum = protocol;
@@ -1206,11 +1207,9 @@ void handle_reconfiguration()
  * Common function to both provisioner and node
  * @param cmd_struct
  */
-void handle_configuring_teaching_mode(CommandStruct *cmd_struct)
+void handle_configuring_teaching_mode(action_type_t type, CommandStruct *cmd_struct)
 {
-
-    /*Button press case*/
-    if (cmd_struct == NULL)
+    if (type == DUE_TO_BUTTON_PRESS)
     {
 #if (IS_GWY)
         teaching_mode_t.packetid = GWY_TEACHING_MODE;

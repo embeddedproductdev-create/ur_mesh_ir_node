@@ -37,7 +37,7 @@
 #define MQTT_WILL_FLAG 1
 #define MQTT_KEEP_ALIVE_S 10
 
-#define MIN_PUBLISH_PERIOD_SEC 300
+#define DEFAULT_PUBLISH_PERIOD_SEC 300
 
 /*Sizes and Lengths*/
 #define SERIAL_NO_LEN 16
@@ -389,7 +389,7 @@ extern "C" {
 #endif
 
 void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct);
-void generate_general_ack(uint16_t packetid, error_codes err);
+void construct_general_ack(error_codes err);
 void generate_node_teaching_mode_ack(teaching_mode *node_teaching_mode_t);
 void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_t);
 void enqueue_for_publish(char *ack_json);

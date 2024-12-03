@@ -116,12 +116,12 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
 
     case LONG_PRESS_1S:
         ESP_LOGW(BUTTON_TAG, "Long press 1-3s detected");
-        handle_configuring_teaching_mode(NULL);
+        handle_configuring_teaching_mode(DUE_TO_BUTTON_PRESS, NULL);
         break;
 
     case LONG_PRESS_3S:
         ESP_LOGW(BUTTON_TAG, "Long press >3s detected");
-        factory_reset_device(DUE_TO_BUTTON_PRESS);
+        construct_general_ack(factory_reset_device());
         powerCycleDevice(DUE_TO_BUTTON_PRESS);
         break;
 

@@ -28,21 +28,21 @@ TaskHandle_t lte_task_handle = NULL;
 TaskHandle_t ir_recv_task_handle = NULL;
 
 /*Global Flags/Variables Initialization*/
-uint8_t newDevice;
+uint8_t newDevice = 1;
 char serialNoStr[SERIAL_NO_LEN];
 char alive_msg[ALIVE_MSG_LEN];
-bool mqtt_connected;
-uint8_t registered;
-uint8_t provisioned;
-uint8_t configured;
-bool sending_ir_command;
-bool teaching_in_progress;
-int16_t ir_protocol_num;
+bool mqtt_connected = 0;
+uint8_t registered = 0;
+uint8_t provisioned = 0;
+uint8_t configured = 0;
+bool sending_ir_command = false;
+bool teaching_in_progress = false;
+int16_t ir_protocol_num = -1;
 char ir_protocol[IR_PROTOCOL_NAME_LEN];
-uint16_t publishPeriod;
+uint16_t publishPeriod = DEFAULT_PUBLISH_PERIOD_SEC;
 CommandStruct last_command;
 char device_location_str[LOCATION_STR_LEN];
-uint16_t teaching_mode_raw_len;
+uint16_t teaching_mode_raw_len = 0;
 
 uint16_t teachingModeIrCmds[MAX_CMDS_IN_TEACHING_MODE][TEACHING_MODE_CDM_LEN];
 
@@ -92,38 +92,27 @@ void print_basic_info()
 }
 
 /**
- * @brief Function that initializes global variables to defaults before overwriting them with
- * contents from flash in case of old device.
- *
+ * @brief Function that constructs the MQTT Topic strings and Messages
  */
-void init_global_variables()
+void construct_topics_and_msgs()
 {
-    newDevice = 1;
-    mqtt_connected = false;
-    registered = 0;
-    provisioned = 0;
-    configured = 0;
-    sending_ir_command = false;
-    teaching_in_progress = false;
-    ir_protocol_num = -1;
-    strcpy(ir_protocol, get_protocol_string(ir_protocol_num));
-    publishPeriod = MIN_PUBLISH_PERIOD_SEC;
-    strcpy(device_location_str, DEFAULT_DEVICE_LOCATION_STR);
-    teaching_mode_raw_len = 0;
-}
-
-void app_main(void)
-{
-    init_global_variables();
-    nvs_init();
-
-#if (IS_GWY)
     sprintf(will_msg, "%s disconnected unexpectedly", serialNoStr);
     sprintf(alive_msg, "%s is alive", serialNoStr);
     sprintf(subscribe_topic, "%s/command", serialNoStr);
     sprintf(publish_topic, "%s/message", serialNoStr);
     sprintf(alive_topic, "%s/alive", serialNoStr);
     sprintf(will_topic, "GWYS/will");
+}
+
+/**
+ * @brief Entry point for the entire application
+ */
+void app_main(void)
+{
+    nvs_init();
+
+#if (IS_GWY)
+    construct_topics_and_msgs();
 #else
     ble_init();
 #endif

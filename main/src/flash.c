@@ -68,7 +68,7 @@ const char *NVS_TEACHING_MODE_CMD_KEYS[] = {
 /**
  * @brief Function that resets the device as a new device
  */
-error_codes factory_reset_device(action_type_t type)
+error_codes factory_reset_device()
 {
     esp_err_t err = ESP_OK;
     err = nvs_flash_erase_partition(GENERAL_NVS_PARTITION_NAME);
@@ -92,24 +92,10 @@ error_codes factory_reset_device(action_type_t type)
     else ESP_LOGW(NVS_TAG, "Flash data erased succuessfully");
 
     here:
-    if(err) err = DEVICE_DATA_ERASURE_FAILED;
-
-    if(type == DUE_TO_BUTTON_PRESS)
-    {
-#if (IS_GWY)
-    if(!err) generate_general_ack(GWY_GENERAL_PACKET, DEVICE_DATA_ERASURE_SUCCESSFUL);
-    else generate_general_ack(GWY_GENERAL_PACKET, DEVICE_DATA_ERASURE_FAILED);
-#else
-    CommandStruct ack;
-    ack.packetid = NODE_GENERAL_PACKET;
-    ack.errorcode = err;
-    ack.elemaddr = last_command.elemaddr;
-    ack.msgseqno = BUTTON_PRESS_MSGSEQNO;
-    strcpy(ack.deviceName, serialNoStr);
-    send_ack_to_provisioner(NODE_GENERAL_PACKET, &ack);
-#endif
+    if(err) {
+        err = DEVICE_DATA_ERASURE_FAILED;
+        led_set_state(LED_STATE_INVALID_OPERATION);
     }
-    if(err) led_set_state(LED_STATE_INVALID_OPERATION);
     return err; 
 }
 
