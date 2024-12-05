@@ -392,13 +392,12 @@
             "a1834883d3b51665",
             "30f9d0ca4699e562",
             "8a12f284de75a643",
-            "e33e844ed5bfa869",
-            "5b7ccaf68411a7f2"
+            "e33e844ed5bfa869"
         ],
         "x": 154,
-        "y": 219,
+        "y": 179,
         "w": 342,
-        "h": 202
+        "h": 242
     },
     {
         "id": "8453c3c42afc8ad4",
@@ -421,22 +420,18 @@
             "c08974d04257dbf2",
             "b609244a96d993da",
             "5a0355fe38be07c8",
-            "753bd766fe2da209",
-            "4c4a7f2534eb8d0c",
-            "0c9757dcfcd799f3",
-            "c81c49da78943e7d",
             "751e1553c639b344",
             "e13960097ca55baa",
             "6be6ca25b09c9e73",
             "5cfe864119145b75",
-            "44fd53759d84c3dd",
-            "6f1725ea044ffcbc",
-            "46e64a0af3cf5d3f",
-            "c8ee40e46896d7d8"
+            "c8164a9ebca09224",
+            "a3943b3ace12ead9",
+            "06c8087ea218b976",
+            "23ad1d166b2b7e88"
         ],
         "x": 514,
         "y": 219,
-        "w": 352,
+        "w": 302,
         "h": 202
     },
     {
@@ -455,12 +450,57 @@
         "nodes": [
             "dbb315e0d2b26759",
             "682989149c9de46c",
-            "c6e19313557c32b3",
-            "9ff792a9284b08ea"
+            "c6e19313557c32b3"
         ],
         "x": 964,
         "y": 1399,
-        "w": 332,
+        "w": 282,
+        "h": 122
+    },
+    {
+        "id": "0e9f32d208ba4b2e",
+        "type": "group",
+        "z": "9c54f3c8c089fa45",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "3fc78c676c50424d",
+            "c6e0cf1e0aa4a4d6",
+            "1a77cd19feb8ef4e"
+        ],
+        "x": 1294,
+        "y": 699,
+        "w": 262,
+        "h": 122
+    },
+    {
+        "id": "88753f5d31542be8",
+        "type": "group",
+        "z": "9c54f3c8c089fa45",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "25e29728a45fcd87",
+            "1b29124113a3f7aa",
+            "70f0814af507b85d"
+        ],
+        "x": 1294,
+        "y": 839,
+        "w": 262,
         "h": 122
     },
     {
@@ -635,52 +675,6 @@
         "y": 1639,
         "w": 732,
         "h": 162
-    },
-    {
-        "id": "0e9f32d208ba4b2e",
-        "type": "group",
-        "z": "9c54f3c8c089fa45",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#a4a4a4"
-        },
-        "nodes": [
-            "3fc78c676c50424d",
-            "c6e0cf1e0aa4a4d6",
-            "1a77cd19feb8ef4e"
-        ],
-        "x": 1294,
-        "y": 699,
-        "w": 262,
-        "h": 122
-    },
-    {
-        "id": "88753f5d31542be8",
-        "type": "group",
-        "z": "9c54f3c8c089fa45",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#a4a4a4"
-        },
-        "nodes": [
-            "25e29728a45fcd87",
-            "1b29124113a3f7aa",
-            "70f0814af507b85d"
-        ],
-        "x": 1294,
-        "y": 839,
-        "w": 262,
-        "h": 122
     },
     {
         "id": "204713403aa79b73",
@@ -4281,7 +4275,7 @@
         "correl": "",
         "expiry": "",
         "broker": "dc9c4c6e985986ab",
-        "x": 405,
+        "x": 455,
         "y": 300,
         "wires": [],
         "l": false
@@ -4386,7 +4380,7 @@
             "e13960097ca55baa"
         ],
         "x": 455,
-        "y": 300,
+        "y": 220,
         "wires": []
     },
     {
@@ -4547,8 +4541,8 @@
         "y": 260,
         "wires": [
             [
-                "c1593d5e1ceb29bf",
-                "6f1725ea044ffcbc"
+                "a3943b3ace12ead9",
+                "c1593d5e1ceb29bf"
             ]
         ],
         "l": false
@@ -4575,8 +4569,8 @@
         "y": 300,
         "wires": [
             [
-                "c08974d04257dbf2",
-                "44fd53759d84c3dd"
+                "c8164a9ebca09224",
+                "c08974d04257dbf2"
             ]
         ],
         "l": false
@@ -4603,8 +4597,8 @@
         "y": 340,
         "wires": [
             [
-                "b609244a96d993da",
-                "46e64a0af3cf5d3f"
+                "06c8087ea218b976",
+                "b609244a96d993da"
             ]
         ],
         "l": false
@@ -4631,8 +4625,8 @@
         "y": 380,
         "wires": [
             [
-                "5a0355fe38be07c8",
-                "c8ee40e46896d7d8"
+                "23ad1d166b2b7e88",
+                "5a0355fe38be07c8"
             ]
         ],
         "l": false
@@ -4714,82 +4708,6 @@
         "l": false
     },
     {
-        "id": "753bd766fe2da209",
-        "type": "file",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "IOT_GWY00001_DEBUG_LOG",
-        "filename": "/Users/Computer/Desktop/GWY00001.txt",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": true,
-        "overwriteFile": "false",
-        "encoding": "utf8",
-        "x": 825,
-        "y": 260,
-        "wires": [
-            []
-        ],
-        "l": false
-    },
-    {
-        "id": "4c4a7f2534eb8d0c",
-        "type": "file",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "IOT_GWY00002_DEBUG_LOG",
-        "filename": "/Users/Computer/Desktop/GWY00002.txt",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": true,
-        "overwriteFile": "false",
-        "encoding": "utf8",
-        "x": 825,
-        "y": 300,
-        "wires": [
-            []
-        ],
-        "l": false
-    },
-    {
-        "id": "0c9757dcfcd799f3",
-        "type": "file",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "IOT_GWY00003_DEBUG_LOG",
-        "filename": "/Users/Computer/Desktop/GWY00003.txt",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": true,
-        "overwriteFile": "false",
-        "encoding": "utf8",
-        "x": 825,
-        "y": 340,
-        "wires": [
-            []
-        ],
-        "l": false
-    },
-    {
-        "id": "c81c49da78943e7d",
-        "type": "file",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "IOT_GWY00004_DEBUG_LOG",
-        "filename": "/Users/Computer/Desktop/GWY00004.txt",
-        "filenameType": "str",
-        "appendNewline": true,
-        "createDir": true,
-        "overwriteFile": "false",
-        "encoding": "utf8",
-        "x": 825,
-        "y": 380,
-        "wires": [
-            []
-        ],
-        "l": false
-    },
-    {
         "id": "751e1553c639b344",
         "type": "link in",
         "z": "9c54f3c8c089fa45",
@@ -4802,8 +4720,8 @@
         "y": 260,
         "wires": [
             [
-                "c1593d5e1ceb29bf",
-                "6f1725ea044ffcbc"
+                "a3943b3ace12ead9",
+                "c1593d5e1ceb29bf"
             ]
         ]
     },
@@ -4820,7 +4738,8 @@
         "y": 300,
         "wires": [
             [
-                "44fd53759d84c3dd"
+                "c8164a9ebca09224",
+                "c08974d04257dbf2"
             ]
         ]
     },
@@ -4837,8 +4756,8 @@
         "y": 340,
         "wires": [
             [
-                "b609244a96d993da",
-                "46e64a0af3cf5d3f"
+                "06c8087ea218b976",
+                "b609244a96d993da"
             ]
         ]
     },
@@ -4855,8 +4774,8 @@
         "y": 380,
         "wires": [
             [
-                "5a0355fe38be07c8",
-                "c8ee40e46896d7d8"
+                "23ad1d166b2b7e88",
+                "5a0355fe38be07c8"
             ]
         ]
     },
@@ -4920,9 +4839,7 @@
         "name": "link in 5",
         "links": [
             "4bdffcde7ad70484",
-            "9ff792a9284b08ea",
-            "84c65e76e50190c0",
-            "d63e2b651476e2c9"
+            "9ff792a9284b08ea"
         ],
         "x": 245,
         "y": 280,
@@ -4993,8 +4910,7 @@
         "y": 320,
         "wires": [
             [
-                "ba803b0afe363686",
-                "5b7ccaf68411a7f2"
+                "ba803b0afe363686"
             ]
         ],
         "inputLabels": [
@@ -5031,25 +4947,6 @@
                 "51d756f0287c566a"
             ]
         ]
-    },
-    {
-        "id": "5b7ccaf68411a7f2",
-        "type": "debug",
-        "z": "9c54f3c8c089fa45",
-        "g": "15bb5fa223da72c7",
-        "name": "General DEBUG",
-        "active": true,
-        "tosidebar": true,
-        "console": true,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 325,
-        "y": 260,
-        "wires": [],
-        "l": false
     },
     {
         "id": "4124febb2ccdbec4",
@@ -6021,9 +5918,7 @@
         "x": 1205,
         "y": 1460,
         "wires": [
-            [
-                "9ff792a9284b08ea"
-            ]
+            []
         ],
         "inputLabels": [
             "Json Packet ID"
@@ -6085,136 +5980,6 @@
                 "dbb315e0d2b26759"
             ]
         ]
-    },
-    {
-        "id": "9ff792a9284b08ea",
-        "type": "link out",
-        "z": "9c54f3c8c089fa45",
-        "g": "9478a12968e0865e",
-        "name": "link out 28",
-        "mode": "link",
-        "links": [
-            "a1834883d3b51665"
-        ],
-        "x": 1255,
-        "y": 1460,
-        "wires": []
-    },
-    {
-        "id": "44fd53759d84c3dd",
-        "type": "function",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "GwyPublishPeriod",
-        "func": "const now = new Date();\nconst timestamp = now.toLocaleString();\nconst formattedMessage = `${timestamp} - ${msg.payload}`;\nmsg.payload = formattedMessage;\nreturn msg;",
-        "outputs": 1,
-        "timeout": "",
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 705,
-        "y": 300,
-        "wires": [
-            [
-                "4c4a7f2534eb8d0c"
-            ]
-        ],
-        "inputLabels": [
-            "Json Packet ID"
-        ],
-        "outputLabels": [
-            "JSON"
-        ],
-        "l": false,
-        "info": "Creates Dynamic JSON as per User Input Values"
-    },
-    {
-        "id": "6f1725ea044ffcbc",
-        "type": "function",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "GwyPublishPeriod",
-        "func": "const now = new Date();\nconst timestamp = now.toLocaleString();\nmsg.payload = `${timestamp}:${msg.payload}`;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": "",
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 705,
-        "y": 260,
-        "wires": [
-            [
-                "753bd766fe2da209"
-            ]
-        ],
-        "inputLabels": [
-            "Json Packet ID"
-        ],
-        "outputLabels": [
-            "JSON"
-        ],
-        "l": false,
-        "info": "Creates Dynamic JSON as per User Input Values"
-    },
-    {
-        "id": "c8ee40e46896d7d8",
-        "type": "function",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "GwyPublishPeriod",
-        "func": "const now = new Date();\nconst timestamp = now.toLocaleString();\nmsg.payload = `${timestamp}:${msg.payload}`;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": "",
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 705,
-        "y": 380,
-        "wires": [
-            [
-                "c81c49da78943e7d"
-            ]
-        ],
-        "inputLabels": [
-            "Json Packet ID"
-        ],
-        "outputLabels": [
-            "JSON"
-        ],
-        "l": false,
-        "info": "Creates Dynamic JSON as per User Input Values"
-    },
-    {
-        "id": "46e64a0af3cf5d3f",
-        "type": "function",
-        "z": "9c54f3c8c089fa45",
-        "g": "8453c3c42afc8ad4",
-        "name": "GwyPublishPeriod",
-        "func": "const now = new Date();\nconst timestamp = now.toLocaleString();\nmsg.payload = `${timestamp}:${msg.payload}`;\nreturn msg;\n",
-        "outputs": 1,
-        "timeout": "",
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 705,
-        "y": 340,
-        "wires": [
-            [
-                "0c9757dcfcd799f3"
-            ]
-        ],
-        "inputLabels": [
-            "Json Packet ID"
-        ],
-        "outputLabels": [
-            "JSON"
-        ],
-        "l": false,
-        "info": "Creates Dynamic JSON as per User Input Values"
     },
     {
         "id": "4eb1fc758a9ae0ab",
@@ -6434,6 +6199,90 @@
         ]
     },
     {
+        "id": "c8164a9ebca09224",
+        "type": "flogger",
+        "z": "9c54f3c8c089fa45",
+        "g": "8453c3c42afc8ad4",
+        "name": "GWY00002_LOGGER",
+        "logfile": "GWY00002_LOG",
+        "inputchoice": "object",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "inputmoustache": "Recieved payload {{payload}} and topic {{topic}}",
+        "loglevel": "INFO",
+        "logconfig": "3cbf671b3ee06b85",
+        "sendpane": "",
+        "x": 705,
+        "y": 300,
+        "wires": [
+            []
+        ],
+        "l": false
+    },
+    {
+        "id": "a3943b3ace12ead9",
+        "type": "flogger",
+        "z": "9c54f3c8c089fa45",
+        "g": "8453c3c42afc8ad4",
+        "name": "GWY00001_LOGGER",
+        "logfile": "GWY00001_LOG",
+        "inputchoice": "object",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "inputmoustache": "Recieved payload {{payload}} and topic {{topic}}",
+        "loglevel": "INFO",
+        "logconfig": "3cbf671b3ee06b85",
+        "sendpane": "",
+        "x": 705,
+        "y": 260,
+        "wires": [
+            []
+        ],
+        "l": false
+    },
+    {
+        "id": "06c8087ea218b976",
+        "type": "flogger",
+        "z": "9c54f3c8c089fa45",
+        "g": "8453c3c42afc8ad4",
+        "name": "GWY00003_LOGGER",
+        "logfile": "GWY00003_LOG",
+        "inputchoice": "object",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "inputmoustache": "Recieved payload {{payload}} and topic {{topic}}",
+        "loglevel": "INFO",
+        "logconfig": "3cbf671b3ee06b85",
+        "sendpane": "",
+        "x": 705,
+        "y": 340,
+        "wires": [
+            []
+        ],
+        "l": false
+    },
+    {
+        "id": "23ad1d166b2b7e88",
+        "type": "flogger",
+        "z": "9c54f3c8c089fa45",
+        "g": "8453c3c42afc8ad4",
+        "name": "GWY00004_LOGGER",
+        "logfile": "GWY00004_LOG",
+        "inputchoice": "object",
+        "inputobject": "payload",
+        "inputobjectType": "msg",
+        "inputmoustache": "Recieved payload {{payload}} and topic {{topic}}",
+        "loglevel": "INFO",
+        "logconfig": "3cbf671b3ee06b85",
+        "sendpane": "",
+        "x": 705,
+        "y": 380,
+        "wires": [
+            []
+        ],
+        "l": false
+    },
+    {
         "id": "f0e2d1c0.92bb3",
         "type": "mqtt-broker",
         "name": "Unimation",
@@ -6492,5 +6341,17 @@
         "willMsg": {},
         "userProps": "",
         "sessionExpiry": ""
+    },
+    {
+        "id": "3cbf671b3ee06b85",
+        "type": "config-log",
+        "logname": "Config 1",
+        "logdir": "/Users/Computer/Desktop/",
+        "stamp": "local",
+        "logstyle": "plain",
+        "logrotate": false,
+        "logcompress": false,
+        "logrotatecount": "5",
+        "logsize": "1000"
     }
 ]
