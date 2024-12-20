@@ -1238,6 +1238,9 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
             cmd_struct->errorcode = RESET_DEVICE_EXCEEDING_RANGE;
             return;
         }
+        cmd_struct->restartDevice = restart;
+        cmd_struct->resetDevice = reset;
+        return;
     }
 }
 
