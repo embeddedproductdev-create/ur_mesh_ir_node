@@ -77,7 +77,7 @@
         "adc_types_legacy.h": "c"
     },
     "idf.flashType": "UART",
-    "idf.portWin": "COM3",
+    "idf.portWin": "COM23",
     "idf.adapterTargetName": "esp32s3",
     "C_Cpp.errorSquiggles": "disabled",
     "idf.openOcdConfigs": [
