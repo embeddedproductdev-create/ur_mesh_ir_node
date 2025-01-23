@@ -715,6 +715,28 @@ char *get_error_code_name(error_codes code)
         "DEVICE_DATA_ERASURE_SUCCESSFUL",
         "DEVICE_DATA_ERASURE_FAILED",
         "IR_PARTITION_INIT_FAILED",
+        "POWER_INVALID_FORMAT",
+        "TEMPERATURE_INVALID_FORMAT",
+        "FAN_SPEED_INVALID_FORMAT",
+        "MODE_INVALID_FORMAT",
+        "SWINGH_INVALID_FORMAT",
+        "SWINGV_INVALID_FORMAT",
+        "LOCKING_INVALID_FORMAT",
+        "ONTIMER_INVALID_FORMAT",
+        "OFFTIMER_INVALID_FORMAT",
+        "TEMPERATURE_UPPER_LIMIT_INVALID_FORMAT",
+        "TEMPERATURE_LOWER_LIMIT_INVALID_FORMAT",
+        "PACKETID_INVALID_FORMAT",
+        "MSG_SEQ_NO_INVALID_FORMAT",
+        "ELEMENT_ADDR_INVALID_FORMAT",
+        "LOCATION_INVALID_FORMAT",
+        "PUBLISH_PERIOD_INVALID_FORMAT",
+        "MACID_INVALID_FORMAT",
+        "TEACHING_START_INVALID_FORMAT",
+        "STARTING_TEMPERATURE_INVALID_FORMAT",
+        "ENDING_TEMPERATURE_INVALID_FORMAT",
+        "RESTART_INVALID_FORMAT",
+        "RESET_INVALID_FORMAT",
     };
 
     int index = code + 1; // Adjust index for negative `FAILURE` as -1
@@ -760,15 +782,22 @@ bool isValidMacId(char *macid)
  */
 void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 {
+    cJSON *cJSONTestValue = NULL;
     cmd_struct->errorcode = SUCCESS;
 
     // PacketId will be present in all packets, so let's check that first
-    if (cJSON_GetObjectItem(json_obj, JSON_PACKET_ID_KEY) == NULL)
+    cJSONTestValue = cJSON_GetObjectItem(json_obj, JSON_PACKET_ID_KEY);
+    if (cJSONTestValue == NULL)
     {
         cmd_struct->errorcode = MISSING_PACKET_ID;
         return;
     }
-    mqtt_packets packetid = cJSON_GetObjectItem(json_obj, JSON_PACKET_ID_KEY)->valueint;
+    else if (!cJSON_IsNumber(cJSONTestValue))
+    {
+        cmd_struct->errorcode = PACKETID_INVALID_FORMAT;
+        return;
+    }
+    mqtt_packets packetid = cJSONTestValue->valueint;
 
     if (
         !(packetid >= 0 && packetid < MAX_GWY_PACKET_ID) &&
@@ -788,9 +817,15 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 
     // MsgSeqNo will be present in all packets, so let's check that first
-    if (cJSON_GetObjectItem(json_obj, MSG_SEQ_NO_KEY))
+    cJSONTestValue = cJSON_GetObjectItem(json_obj, MSG_SEQ_NO_KEY);
+    if (cJSONTestValue)
     {
-        int32_t msg_seq_no = cJSON_GetObjectItem(json_obj, MSG_SEQ_NO_KEY)->valueint;
+        if (!cJSON_IsNumber(cJSONTestValue))
+        {
+            cmd_struct->errorcode = MSG_SEQ_NO_INVALID_FORMAT;
+            return;
+        }
+        int32_t msg_seq_no = cJSONTestValue->valueint;
         if (msg_seq_no < 0 && msg_seq_no > 65535)
         {
             cmd_struct->errorcode = MSG_SEQ_NO_EXCEEDING_RANGE;
@@ -805,17 +840,22 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 
     // If it's a Node packet (but not prov packet), let's check for element addr
+    cJSONTestValue = cJSON_GetObjectItem(json_obj, ELEMENT_ADDR_KEY);
     if ((cmd_struct->packetid >= 100 && cmd_struct->packetid < MAX_NODE_PACKET_ID) &&
         cmd_struct->packetid != NODE_PROV_PACKET)
     {
-        if (!cJSON_GetObjectItem(json_obj, ELEMENT_ADDR_KEY))
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_ELEMENT_ADDR;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = ELEMENT_ADDR_INVALID_FORMAT;
+            return;
+        }
         else
         {
-            int elemaddr = cJSON_GetObjectItem(json_obj, ELEMENT_ADDR_KEY)->valueint;
+            int elemaddr = cJSONTestValue->valueint;
             if (elemaddr <= 2 || elemaddr >= 65535)
             {
                 cmd_struct->errorcode = ELEMENT_ADDR_EXCEEDING_RANGE;
@@ -829,6 +869,7 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     }
 
     // We need to check registration packet before checking other packets
+    cJSONTestValue = cJSON_GetObjectItem(json_obj, LOCATION_KEY);
     if (cmd_struct->packetid == GWY_REG_PACKET)
     {
         if (registered)
@@ -836,18 +877,26 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         else
         {
             int length = 0;
-            if (!cJSON_GetObjectItem(json_obj, LOCATION_KEY))
+            if (cJSONTestValue == NULL)
             {
                 cmd_struct->errorcode = MISSING_LOCATION;
                 return;
             }
-            length = strlen(cJSON_GetObjectItem(json_obj, LOCATION_KEY)->valuestring);
-            if (length == 0 || length > LOCATION_STR_LEN)
+            else if (!cJSON_IsString(cJSONTestValue))
             {
-                cmd_struct->errorcode = LOCATION_EXCEEDING_RANGE;
+                cmd_struct->errorcode = LOCATION_INVALID_FORMAT;
                 return;
             }
-            strcpy(device_location_str, cJSON_GetObjectItem(json_obj, LOCATION_KEY)->valuestring);
+            else
+            {
+                length = strlen(cJSONTestValue->valuestring);
+                if (length == 0 || length > LOCATION_STR_LEN)
+                {
+                    cmd_struct->errorcode = LOCATION_EXCEEDING_RANGE;
+                    return;
+                }
+                strcpy(device_location_str, cJSONTestValue->valuestring);
+            }
         }
         return;
     }
@@ -881,84 +930,150 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
         char mode[6] = "";
 
         // First make sure the required Keys are available.
-        if (!cJSON_GetObjectItem(json_obj, POWER_KEY))
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, POWER_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_POWER;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = POWER_INVALID_FORMAT;
+            return;
+        }
         else
-            power = cJSON_GetObjectItem(json_obj, POWER_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY))
+            power = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_TEMPERATURE;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = TEMPERATURE_INVALID_FORMAT;
+            return;
+        }
         else
-            temperature = cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, FAN_SPEED_KEY))
+            temperature = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, FAN_SPEED_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_FAN_SPEED;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = FAN_SPEED_INVALID_FORMAT;
+            return;
+        }
         else
-            fanspeed = cJSON_GetObjectItem(json_obj, FAN_SPEED_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, MODE_KEY))
+            fanspeed = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, MODE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_MODE;
             return;
         }
+        else if(!cJSON_IsString(cJSONTestValue)) {
+            cmd_struct->errorcode = MODE_INVALID_FORMAT;
+            return;
+        }
         else
-            strcpy(mode, cJSON_GetObjectItem(json_obj, MODE_KEY)->valuestring);
-        if (!cJSON_GetObjectItem(json_obj, SWING_H_KEY))
+            strcpy(mode, cJSONTestValue->valuestring);
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, SWING_H_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_SWINGH;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = SWINGH_INVALID_FORMAT;
+            return;
+        }
         else
-            swingh = cJSON_GetObjectItem(json_obj, SWING_H_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, SWING_V_KEY))
+            swingh = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, SWING_V_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_SWINGV;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = SWINGV_INVALID_FORMAT;
+            return;
+        }
         else
-            swingv = cJSON_GetObjectItem(json_obj, SWING_V_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, AC_LOCKING_KEY))
+            swingv = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, AC_LOCKING_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_LOCKING;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = LOCKING_INVALID_FORMAT;
+            return;
+        }
         else
-            locking = cJSON_GetObjectItem(json_obj, AC_LOCKING_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, ONTIMER_KEY))
+            locking = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, ONTIMER_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_ONTIMER;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = ONTIMER_INVALID_FORMAT;
+            return;
+        }
         else
-            ontimer = cJSON_GetObjectItem(json_obj, ONTIMER_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, OFFTIMER_KEY))
+            ontimer = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, OFFTIMER_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_OFFTIMER;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = OFFTIMER_INVALID_FORMAT;
+            return;
+        }
         else
-            offtimer = cJSON_GetObjectItem(json_obj, OFFTIMER_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, UPPER_TEMPERATURE_LIMIT_KEY))
+            offtimer = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, UPPER_TEMPERATURE_LIMIT_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_TEMPERATURE_UPPER_LIMIT;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = TEMPERATURE_UPPER_LIMIT_INVALID_FORMAT;
+            return;
+        }
         else
-            upperTemperatureLimit = cJSON_GetObjectItem(json_obj, UPPER_TEMPERATURE_LIMIT_KEY)->valueint;
-        if (!cJSON_GetObjectItem(json_obj, LOWER_TEMPERATURE_LIMIT_KEY))
+            upperTemperatureLimit = cJSONTestValue->valueint;
+        //========================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, LOWER_TEMPERATURE_LIMIT_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_TEMPERATURE_LOWER_LIMIT;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = TEMPERATURE_LOWER_LIMIT_INVALID_FORMAT;
+            return;
+        }
         else
-            lowerTemperatureLimit = cJSON_GetObjectItem(json_obj, LOWER_TEMPERATURE_LIMIT_KEY)->valueint;
-
+            lowerTemperatureLimit = cJSONTestValue->valueint;
+        //========================================================//
         // Now make sure all values are within range
         if (power != 0 && power != 1)
         {
@@ -1064,16 +1179,21 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
     if (cmd_struct->packetid == GWY_HEARTBEAT_PUB_CONF_PACKET || cmd_struct->packetid == NODE_HEARTBEAT_PUB_CONF_PACKET)
     {
-        if (!cJSON_GetObjectItem(json_obj, PUBLISH_PERIOD_KEY))
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, PUBLISH_PERIOD_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_PUBLISH_PERIOD;
             return;
         }
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = PUBLISH_PERIOD_INVALID_FORMAT;
+            return;
+        }
         else
         {
-            int publishperiod = cJSON_GetObjectItem(json_obj, PUBLISH_PERIOD_KEY)->valueint;
-            // if(!(publishperiod>= DEFAULT_PUBLISH_PERIOD_SEC && publishperiod <= 65535)) cmd_struct->errorcode = PUBLISH_PERIOD_EXCEEDING_RANGE;
-            // else cmd_struct->publishPeriodSec = publishperiod;
+            int publishperiod = cJSONTestValue->valueint;
+            if(!(publishperiod>= DEFAULT_PUBLISH_PERIOD_SEC && publishperiod <= 65535)) cmd_struct->errorcode = PUBLISH_PERIOD_EXCEEDING_RANGE;
+            else cmd_struct->publishPeriodSec = publishperiod;
             cmd_struct->publishPeriodSec = publishperiod;
             return;
         }
@@ -1081,15 +1201,20 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
     if (cmd_struct->packetid == NODE_PROV_PACKET)
     {
-        if (!cJSON_GetObjectItem(json_obj, MAC_ID_KEY))
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, MAC_ID_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_MACID;
+            return;
+        }
+        else if(!cJSON_IsString(cJSONTestValue)) {
+            cmd_struct->errorcode = MACID_INVALID_FORMAT;
             return;
         }
         else
         {
             char macid[20];
-            strcpy(macid, cJSON_GetObjectItem(json_obj, MAC_ID_KEY)->valuestring);
+            strcpy(macid, cJSONTestValue->valuestring);
             if (!isValidMacId(macid))
                 cmd_struct->errorcode = INVALID_MACID;
             else
@@ -1100,27 +1225,45 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
     if (cmd_struct->packetid == GWY_TEACHING_MODE || cmd_struct->packetid == NODE_TEACHING_MODE)
     {
-        if (!cJSON_GetObjectItem(json_obj, TEACHING_START_KEY))
+        int teaching_start, startingTemp, endingTemp;
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, TEACHING_START_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_TEACHING_START;
             return;
         }
-        if (!cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY))
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = TEACHING_START_INVALID_FORMAT;
+            return;
+        }
+        teaching_start = cJSONTestValue->valueint;
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_STARTING_TEMPERATURE;
             return;
         }
-        if (!cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY))
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = STARTING_TEMPERATURE_INVALID_FORMAT;
+            return;
+        }
+        startingTemp = cJSONTestValue->valueint;
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_ENDING_TEMPERATURE;
             return;
         }
-        int teaching_start, startingTemp, endingTemp;
-
-        teaching_start = cJSON_GetObjectItem(json_obj, TEACHING_START_KEY)->valueint;
-        startingTemp = cJSON_GetObjectItem(json_obj, STARTING_TEMPERATURE_KEY)->valueint;
-        endingTemp = cJSON_GetObjectItem(json_obj, ENDING_TEMPERATURE_KEY)->valueint;
-
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = ENDING_TEMPERATURE_INVALID_FORMAT;
+            return;
+        }
+        endingTemp = cJSONTestValue->valueint;
+        //=================================================================//
+        
         if (teaching_start != 0 && teaching_start != 1)
         {
             cmd_struct->errorcode = TEACHING_START_EXCEEDING_RANGE;
@@ -1169,21 +1312,32 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
 
     if (cmd_struct->packetid == GWY_TEACHING_MODE_CMD_SELECTION_PACKET || cmd_struct->packetid == NODE_TEACHING_MODE_CMD_SELECTION_PACKET)
     {
-        if (!cJSON_GetObjectItem(json_obj, POWER_KEY))
+        int power, temperature;
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, POWER_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_POWER;
             return;
         }
-        if (!cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY))
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = POWER_INVALID_FORMAT;
+            return;
+        }
+        else power = cJSONTestValue->valueint;
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_TEMPERATURE;
             return;
         }
-        int power, temperature;
-
-        power = cJSON_GetObjectItem(json_obj, POWER_KEY)->valueint;
-        temperature = cJSON_GetObjectItem(json_obj, TEMPERATURE_KEY)->valueint;
-
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = TEMPERATURE_INVALID_FORMAT;
+            return;
+        }
+        temperature = cJSONTestValue->valueint;
+        //=================================================================//
         if (power != 0 && power != 1)
         {
             cmd_struct->errorcode = POWER_EXCEEDING_RANGE;
@@ -1216,18 +1370,32 @@ void error_check_json(cJSON *json_obj, CommandStruct *cmd_struct)
     if (cmd_struct->packetid == GWY_DEBUG_INFO_PACKET || cmd_struct->packetid == NODE_DEBUG_INFO_PACKET)
     {
         int restart, reset;
-        if (!cJSON_GetObjectItem(json_obj, RESTART_DEVICE_KEY))
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, RESTART_DEVICE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_RESTART_DEVICE;
             return;
         }
-        if (!cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY))
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = RESTART_INVALID_FORMAT;
+            return;
+        }
+        else restart = cJSONTestValue->valueint;
+        //=================================================================//
+        cJSONTestValue = cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY);
+        if (cJSONTestValue == NULL)
         {
             cmd_struct->errorcode = MISSING_RESET_DEVICE;
             return;
         }
-        restart = cJSON_GetObjectItem(json_obj, RESTART_DEVICE_KEY)->valueint;
-        reset = cJSON_GetObjectItem(json_obj, RESET_DEVICE_KEY)->valueint;
+        else if(!cJSON_IsNumber(cJSONTestValue)) {
+            cmd_struct->errorcode = RESET_INVALID_FORMAT;
+            return;
+        }
+        else reset = cJSONTestValue->valueint;
+        //=================================================================//
+        
         if (restart != 0 && restart != 1)
         {
             cmd_struct->errorcode = RESTART_DEVICE_EXCEEDING_RANGE;
@@ -1254,7 +1422,8 @@ void register_gwy()
     set_str_in_nvs_flash(GENERAL_HANDLE, NVS_DEVICE_LOCATION_KEY, device_location_str);
     set_number_in_nvs_flash(GENERAL_HANDLE, NVS_REGISTERED_KEY, 1, UINT8_SIZE);
     hb_timer_start();
-    ble_init(); ble_initialized = true;
+    ble_init();
+    ble_initialized = true;
     if (xTaskCreate(ir_recv_task, "IR Recv Task", IR_THREAD_STACK_SIZE, NULL, 2, &ir_recv_task_handle) != pdPASS)
     {
         ESP_LOGE(LTE_TAG, "IR Recv Task Creation Failed");

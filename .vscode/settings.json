@@ -74,7 +74,8 @@
         "ble_new.h": "c",
         "nvs_flash.h": "c",
         "temperature_sensor.h": "c",
-        "adc_types_legacy.h": "c"
+        "adc_types_legacy.h": "c",
+        "optional": "c"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

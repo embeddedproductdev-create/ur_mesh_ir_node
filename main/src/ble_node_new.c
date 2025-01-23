@@ -297,6 +297,7 @@ void send_manual_control_ack_to_provisioner()
         .send_rel = false,
     };
     strcpy(ac_manual_control_t.deviceName, serialNoStr);
+    ac_manual_control_t.packetid = NODE_MANUAL_AC_CONTROL_ACK;
     ESP_LOGI(BLE_TAG, "Sending Node Manual AC Control ACK to Provisioner");
     esp_err_t err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(manual_control), (uint8_t *)&ac_manual_control_t);
     if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
