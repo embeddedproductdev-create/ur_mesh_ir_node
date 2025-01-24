@@ -1183,7 +1183,7 @@ void ir_recv_task(void *args)
         here:
             yield();
         }
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(5));
     }
 }
 
