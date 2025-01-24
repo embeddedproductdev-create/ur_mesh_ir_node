@@ -75,7 +75,8 @@
         "nvs_flash.h": "c",
         "temperature_sensor.h": "c",
         "adc_types_legacy.h": "c",
-        "optional": "c"
+        "optional": "c",
+        "streambuf": "cpp"
     },
     "idf.flashType": "UART",
     "idf.portWin": "COM23",

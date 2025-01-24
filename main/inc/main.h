@@ -9,11 +9,11 @@
  * ===================================================================
  */
 #define IS_GWY 1
-#define CLIENT_RELEASE 0
+#define CLIENT_RELEASE 1
 /*====================================================================*/
 
 #define LTE_THREAD_STACK_SIZE 4096
-#define IR_THREAD_STACK_SIZE 4096
+#define IR_THREAD_STACK_SIZE 8192
 
 #if(IS_GWY)
 #define MAJ_VERSION 1

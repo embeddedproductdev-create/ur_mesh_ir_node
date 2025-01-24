@@ -23,7 +23,9 @@ The scope of the project is to develop a BLE Mesh based Universal AC controller 
 |6|0.8.7|02.08.2024|Kulasekaran|1) LED indication for unsupported remotes during AC remote configuration process  2) NODE_ALREADY_PROV error code removed  3) Removed suspend & resume method to avoid assert fail during AC control  4) Removed separate thread used for sending IR commands|[Ver 0.8.7](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/releases/tag/v0.8.7)|
 |7|0.8.8|23.07.2024|Kulasekaran|1) Added JSON_PACKET_INVALID errorcode  2) Default Heartbeat increased from 10s to 300s  3) OTA related changes  4) Fixed Teaching Mode End ACK not received from Node|[Ver 0.8.8](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/releases/tag/v0.8.7)|
 |8|1.0.0|02.12.2024|Kulasekaran|1) Automatic provisioning  2) Teaching mode made more reliable  3) ErrorCodes modified  4) LED Indications changed  5) Button press functionalities changed|[Ver 1.0.0](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/commit/203d73dc9965f99c58371fa721d854e389ce116e)|
-|9|1.0.1|03.12.2024|Kulasekaran|1) Bug Fixes with Node Teaching Mode  2) Other minor bug fixes|[Ver 1.0.1]()|
+|9|1.0.1|03.12.2024|Kulasekaran|1) Bug Fixes with Node Teaching Mode  2) Other minor bug fixes|[Ver 1.0.1](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/commit/dcf58a5de94bb573054f6ee0b7d3907aae9ce95c)|
+|11|1.0.2|20.01.2025|Kulasekaran|1) Minor bugfix to resolve Gwy restart issue when receiving control command|[Ver 1.0.2](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/commit/ea5a52bb00ba7f3d62989509ef81a9168f501c32)|
+|12|1.0.3|25.01.2025|Kulasekaran|1) Added invalid format error codes  2) Minor bugfix for node manual ac control ack not reaching cloud|[Ver 1.0.3](http://git.qmaxsys.com/Unimation/c01230-ir-ble-mesh-ac-controller-gwy/commit/fbd181fc243a4b6b923969ac1e87a1a17f948e97)|
 
 ## High level overview
 
