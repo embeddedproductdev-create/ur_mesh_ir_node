@@ -918,7 +918,7 @@ void perform_teaching_process_with_error_checking(const char *description)
         /*For some reason, if we transmit a signal of length 3.5ms, the receiver side prints it as 1.75ms*/
         for (int i = 0; i < results.rawlen; i++)
         {
-            results.rawbuf[i] *= 2;
+            results.rawbuf[i] = results.rawbuf[i] *2;
         }
 
         /*If this is the first IR Signal*/
@@ -1022,7 +1022,7 @@ void perform_teaching_process_without_error_checking()
     /*For some reason, if we transmit a signal of length 3.5ms, the receiver side prints it as 1.75ms*/
     for (int i = 0; i < results.rawlen; i++)
     {
-        results.rawbuf[i] *= 2;
+        results.rawbuf[i] = results.rawbuf[i]*2;
     }
 
     teaching_mode_raw_len = results.rawlen;

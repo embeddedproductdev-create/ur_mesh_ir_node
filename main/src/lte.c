@@ -1434,24 +1434,18 @@ void register_gwy()
 /**
  * @brief Function that unregisters, factory resets and restart the device
  */
-void unregister(action_type_t type)
+void unregister(uint16_t msgseqno)
 {
     registered = 0;
     update_led_status();
-
-    if (type == DUE_TO_BUTTON_PRESS)
-    {
-        CommandStruct ack;
-        ack.packetid = GWY_UNREG_PACKET;
-        ack.msgseqno = BUTTON_PRESS_MSGSEQNO;
-        ack.errorcode = SUCCESS;
-        generate_ack(ack.packetid, &ack);
-    }
-
+    CommandStruct ack;
+    ack.packetid = GWY_UNREG_PACKET;
+    ack.msgseqno = msgseqno;
+    ack.errorcode = SUCCESS;
+    generate_ack(ack.packetid, &ack);
     vTaskDelete(ir_recv_task_handle);
     factory_reset_device();
     hb_timer_stop();
-
     powerDownFlag = true;
 }
 
@@ -1479,7 +1473,7 @@ void parse_json()
             break;
 
         case GWY_UNREG_PACKET:
-            unregister(DUE_TO_MQTT_CMD);
+            unregister(cmd_struct.msgseqno);
             return;
 
         case GWY_AC_CONTROL_PACKET:

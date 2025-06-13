@@ -108,7 +108,7 @@ void process_press_type(button_press_t *button_press_array, uint8_t *press_count
             send_ack_to_provisioner(NODE_UNPROV_PACKET, NULL);
             unprovision_success_cb();
 #else
-            unregister(DUE_TO_BUTTON_PRESS);
+            unregister(BUTTON_PRESS_MSGSEQNO);
 #endif
             break;
         }

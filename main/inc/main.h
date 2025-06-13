@@ -18,7 +18,7 @@
 #if(IS_GWY)
 #define MAJ_VERSION 1
 #define MIN_VERSION 0
-#define PATCH_VERSION 3
+#define PATCH_VERSION 4
 #endif
 
 #if(!IS_GWY)

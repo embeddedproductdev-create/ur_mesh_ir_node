@@ -403,7 +403,7 @@ bool removeQueueItemByMsgSeqNo(QueueHandle_t queue, uint16_t msgseqno);
 char* get_error_code_name(error_codes code);
 void handle_ac_control(CommandStruct *cmd_struct);
 void register_gwy();
-void unregister(action_type_t type);
+void unregister(uint16_t msgseqno);
 void generate_and_publish_debug_info_ack(CommandStruct *ack);
 
 #ifdef __cplusplus
