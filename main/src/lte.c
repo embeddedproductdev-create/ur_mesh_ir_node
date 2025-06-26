@@ -34,9 +34,17 @@ const char *POWER_DOWN_CMD = "AT+QPOWD\r";
 char SET_BAUD_RATE_CMD[MQTT_CMD_RESP_LEN];
 
 /*PDP and TCP config*/
-const char *TCP_CONFIG_CMD = "AT+QICSGP=1,1,\"airtelgprs.com\",\"\",\"\",0\r";
+const char *TCP_CONFIG_AIRTEL_CMD = "AT+QICSGP=1,1,\"airtelgprs.com\",\"\",\"\",0\r";
+const char *TCP_CONFIG_JIO_CMD = "AT+QICSGP=1,1,\"jionet\",\"\",\"\",0\r";
+const char *TCP_CONFIG_VI_CMD = "AT+QICSGP=1,1,\"www\",\"\",\"\",0\r";
+const char *TCP_CONFIG_BSNL_CMD = "AT+QICSGP=1,1,\"bsnlnet\",\"\",\"\",0\r";
+/*Configure Bands to Be Searched*/
+const char *BAND_CHECK_CMD = "AT+QCFG=\"band\"\r";
+const char *BAND_CONFIG_CLR_CMD =  "AT+QCFG=\"band\",0,0,1\r";
+const char *BAND_CONFIG_CMD = "AT+QCFG=\"band\",0x3,0x8000000014,1\r";//0x8000000014 
+const char *REBOOT_CMD = "AT+CFUN=1,1\r";
 const char *PDP_CONTXT_ACT_CMD = "AT+QIACT=1\r";
-
+const char *APN_CONFIG_CMD  = "AT+CGDCONT=1,\"IPV4V6\",\"jionet\"\r";
 /*MQTT Cmd and Resp*/
 const char *CLEAN_SESSION_CMD = "AT+QMTCFG=\"session\",2,1\r";
 char KEEP_ALIVE_CMD[MQTT_CMD_RESP_LEN];
@@ -1733,11 +1741,22 @@ void maintainMQTTConnection()
 {
     error_codes rc;
     static uint8_t ping_fail_counter = 0;
+    send_cmd_and_check_response(LOG_DATA, BAND_CHECK_CMD, "BAND_CHECK_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
     if (need_to_activate_pdp)
     {
-        send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_CMD, "TCP_CONFIG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
-        if (send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 5000) != SUCCESS)
+        send_cmd_and_check_response(LOG_DATA, TCP_CONFIG_JIO_CMD, "TCP_CONFIG_JIO_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+        send_cmd_and_check_response(LOG_DATA, APN_CONFIG_CMD, "APN_CONFIG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+        send_cmd_and_check_response(LOG_DATA, "AT+CGDCONT=2,\"IP\",\"\"\r\n", "APN_CONFIG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+        send_cmd_and_check_response(LOG_DATA, "AT+CGDCONT=3,\"IP\",\"\"\r\n", "APN_CONFIG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
+        send_cmd_and_check_response(LOG_DATA, "AT+CGDCONT?\r\n", "CGDCONT_CHECK_CMD", OK_RESP, 1000);
+        send_cmd_and_check_response(LOG_DATA, "AT+QIDEACT=1\r\n", "DEACT_CMD", OK_RESP, 1000);
+        if (send_cmd_and_check_response(LOG_DATA, PDP_CONTXT_ACT_CMD, "PDP_CONTXT_ACT_CMD", OK_RESP, 5000) != SUCCESS){
             return;
+        }
+        else{
+            send_cmd_and_check_response(LOG_DATA, "AT+QIACT?\r\n", "ACT_CHECK_CMD", OK_RESP, 1000);
+            need_to_activate_pdp=false;
+        }
     }
     if ((rc = send_cmd_and_check_response(LOG_DATA, MQTT_NETWORK_OPEN_CMD, "MQTT_NETWORK_OPEN_CMD", MQTT_NETWORK_OPEN_RESP, MIN_LTE_RESP_WAIT_MS * 5)) == SUCCESS)
         ;
@@ -1759,7 +1778,6 @@ void maintainMQTTConnection()
             break;
         }
     }
-
     if (send_cmd_and_check_response(LOG_DATA, MQTT_CLIENT_CONN_CMD, "MQTT_CLIENT_CONN_CMD", MQTT_CLIENT_CONN_RESP, MIN_LTE_RESP_WAIT_MS * 5) == SUCCESS)
         ;
     else
@@ -1846,6 +1864,14 @@ void MQTT_config()
  */
 void execute_general_AT_cmds()
 {
+    /*Configure Bands to Be Searched*/
+    send_cmd_and_check_response(LOG_DATA, BAND_CHECK_CMD, "BAND_CHECK_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
+    send_cmd_and_check_response(LOG_DATA, BAND_CONFIG_CLR_CMD, "BAND_CONFIG_CLR_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
+    send_cmd_and_check_response(LOG_DATA, BAND_CONFIG_CMD, "BAND_CONFIG_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
+    send_cmd_and_check_response(LOG_DATA, BAND_CHECK_CMD, "BAND_CHECK_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
+    send_cmd_and_check_response(LOG_DATA, REBOOT_CMD, "REBOOT_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
+    vTaskDelay(pdMS_TO_TICKS(500));
+    send_cmd_and_check_response(LOG_DATA, BAND_CHECK_CMD, "BAND_CHECK_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS*10);
     send_cmd_and_check_response(LOG_DATA, "AT&V\r", "DISPLAY_CURRENT_CONFIGURATION", OK_RESP, MIN_LTE_RESP_WAIT_MS);
     send_cmd_and_check_response(LOG_DATA, "ATE0\r", "TURN_OFF_ECHO_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
     send_cmd_and_check_response(LOG_DATA, CHECK_FIRMWARE_CMD, "CHECK_FIRMWARE_CMD", OK_RESP, MIN_LTE_RESP_WAIT_MS);
