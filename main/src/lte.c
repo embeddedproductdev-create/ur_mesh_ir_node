@@ -135,6 +135,7 @@ const char *DETECTED_TEMPERATURE_KEY = "DetectedTemperature";
 const char *BLE_ERROR_CODE_KEY = "BleErrorCode";
 const char *MESSAGE_KEY = "Message";
 const char *ERROR_CHK_ENABLED_KEY = "ErrorCheckEnabled";
+const char *RSSI_KEY = "RSSI_dBm";
 
 bool powerDownFlag = false;
 
@@ -389,6 +390,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         break;
@@ -398,6 +400,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_int(&jwc, MSG_SEQ_NO_KEY, cmd_struct->msgseqno);
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
@@ -417,6 +420,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_string(&jwc, NVS_IR_PROTOCOL_KEY, (char *)get_protocol_string(cmd_struct->irProtocolNum));
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
@@ -436,6 +440,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -455,6 +460,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -485,6 +491,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, POWER_KEY, cmd_struct->power);
         jwObj_string(&jwc, MODE_KEY, cmd_struct->mode_str);
         jwObj_int(&jwc, FAN_SPEED_KEY, cmd_struct->fanspeed);
@@ -516,6 +523,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -535,6 +543,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -558,6 +567,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, "");
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -599,6 +609,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         jwObj_int(&jwc, BLE_ERROR_CODE_KEY, cmd_struct->bleErrorCode);
@@ -627,6 +638,7 @@ void generate_ack(mqtt_packets packetid, CommandStruct *cmd_struct)
         jwObj_string(&jwc, GWY_SER_NO_KEY, serialNoStr);
         jwObj_string(&jwc, NODE_SER_NO_KEY, cmd_struct->deviceName);
         jwObj_int(&jwc, ELEMENT_ADDR_KEY, cmd_struct->elemaddr);
+        jwObj_int(&jwc, RSSI_KEY, cmd_struct->rssi);
         jwObj_int(&jwc, ERROR_CODE_KEY, cmd_struct->errorcode);
         jwObj_string(&jwc, ERROR_MSG_KEY, get_error_code_name(cmd_struct->errorcode));
         break;

@@ -616,6 +616,8 @@ void ble_init(void)
  */
 void handle_ble_incoming(esp_ble_mesh_model_cb_param_t *param)
 {
+    int8_t rssi = param->model_operation.ctx->recv_rssi;
+    ESP_LOGI(BLE_TAG, "Incoming BLE msg RSSI: %d dBm", rssi);
     teaching_mode *teach_ack = (teaching_mode *)param->model_operation.msg;
     if(teach_ack->packetid == NODE_TEACHING_MODE) {
         generate_node_teaching_mode_ack(teach_ack);
@@ -630,6 +632,7 @@ void handle_ble_incoming(esp_ble_mesh_model_cb_param_t *param)
     }
 
     CommandStruct *ack = (CommandStruct *)param->model_operation.msg;
+    ack->rssi = rssi;
     generate_ack(ack->packetid, ack);
     if(ack->packetid == NODE_UNPROV_PACKET) {
         esp_err_t err = esp_ble_mesh_provisioner_delete_node_with_addr(ack->elemaddr);

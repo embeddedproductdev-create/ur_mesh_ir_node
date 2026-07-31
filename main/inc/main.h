@@ -35,10 +35,10 @@
 #endif
 
 #if(CLIENT_RELEASE)
-#define MQTT_SERVER_IP "3.7.8.183"
+#define MQTT_SERVER_IP "195.250.30.213"
 #define MQTT_PORT 1883
-#define MQTT_BROKER_USERNAME "unimaqtt"
-#define MQTT_BROKER_PASSWORD "T5DRIIJEBgfhjsrFkaDERkgJhswMwk4"
+#define MQTT_BROKER_USERNAME "unimationuser"
+#define MQTT_BROKER_PASSWORD "RpGf+zeWueXSOq23E0"
 #endif
 
 #endif

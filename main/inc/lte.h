@@ -113,6 +113,7 @@ extern const char *REMAINING_CMD_KEY;
 extern const char *DETECTED_TEMPERATURE_KEY;
 extern const char *BLE_ERROR_CODE_KEY;
 extern const char *MESSAGE_KEY;
+extern const char *RSSI_KEY;
 
 extern char subscribe_topic[MQTT_TOPIC_NAME_LEN];
 extern char publish_topic[MQTT_TOPIC_NAME_LEN];
@@ -311,6 +312,7 @@ typedef struct
     uint8_t patchversion;              // 1 byte
     uint8_t provisioned;               // 1 byte
     uint8_t errorCheckEnabled;         // 1 Byte
+    int8_t rssi;
     bool requestSentToNode;            // 1 byte
     bool configured;                   // 1 byte
     char mode_str[MODE_STR_LEN];       // Variable size, but align at the end
