@@ -25,21 +25,23 @@ def generate_nvs_binaries(device_type, start_serial, end_serial, output_dir, nvs
 if __name__ == "__main__":
     # Define argument parser
     parser = argparse.ArgumentParser(description="Generate NVS binary files with unique serial numbers for ESP32 devices.")
-    parser.add_argument("--deviceType", type=str, help="Device type prefix for serial numbers (e.g., GWY)", required=False)
-    parser.add_argument("--start_serial", type=int, help="Starting serial number (e.g., 1)", required=False)
-    parser.add_argument("--end_serial", type=int, help="Ending serial number (e.g., 100)", required=False)
+    parser.add_argument("--deviceType", type=str, help="Device type prefix for serial numbers (e.g., GWY, NODE)", required=False, default=None)
+    parser.add_argument("--start_serial", type=int, help="Starting serial number (e.g., 0)", required=False, default=None)
+    parser.add_argument("--end_serial", type=int, help="Ending serial number (e.g., 100)", required=False, default=None)
     parser.add_argument("--output_dir", type=str, help="Directory to save the generated binary files", default=os.path.join(os.path.dirname(__file__), "bin"))
-    parser.add_argument("--nvs_tool_path", type=str, help="Path to the NVS partition generator tool", 
+    parser.add_argument("--nvs_tool_path", type=str, help="Path to the NVS partition generator tool",
                         default="python " + os.path.join(os.path.dirname(__file__), "nvs_partition_gen.py"))
 
     # Parse arguments
     args = parser.parse_args()
 
-    # Prompt user for missing inputs
-    device_type = args.deviceType or input("Enter device type (e.g., GWY): ").strip()
-    start_serial = args.start_serial or int(input("Enter starting serial number: ").strip())
-    end_serial = args.end_serial or int(input("Enter ending serial number: ").strip())
-    output_dir = args.output_dir
+    # Prompt user for missing inputs.
+    # Use 'is None' check instead of truthiness so --start_serial 0 works correctly
+    # (0 is falsy in Python, so 'args.start_serial or input(...)' would prompt even when 0 is passed)
+    device_type   = args.deviceType    if args.deviceType    is not None else input("Enter device type (e.g., GWY, NODE): ").strip()
+    start_serial  = args.start_serial  if args.start_serial  is not None else int(input("Enter starting serial number: ").strip())
+    end_serial    = args.end_serial    if args.end_serial    is not None else int(input("Enter ending serial number: ").strip())
+    output_dir           = args.output_dir
     nvs_partition_gen_tool = args.nvs_tool_path
 
     # Validate inputs
@@ -49,9 +51,9 @@ if __name__ == "__main__":
 
     # Display configuration summary
     print("\nConfiguration:")
-    print(f"  Device Type: {device_type}")
-    print(f"  Serial Number Range: {start_serial} to {end_serial}")
-    print(f"  Output Directory: {output_dir}\n")
+    print(f"  Device Type   : {device_type.upper()}")
+    print(f"  Serial Range  : {start_serial} to {end_serial} ({end_serial - start_serial + 1} devices)")
+    print(f"  Output Dir    : {output_dir}\n")
 
     # Generate NVS binaries
     generate_nvs_binaries(device_type, start_serial, end_serial, output_dir, nvs_partition_gen_tool)

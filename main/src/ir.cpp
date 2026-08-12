@@ -14,6 +14,7 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
+
 #define RAW_FREQ 41
 
 const char *RAW_IR_PROTOCOL = "RAW";
@@ -46,6 +47,8 @@ const char *MITSUBISHI136_IR_PROTOCOL = "MITSUBISHI136";
 const char *MITSUBISHI_AC_IR_PROTOCOL = "MITSUBISHI_AC";
 const char *MITSUBISHI_HEAVY_88_IR_PROTOCOL = "MITSUBISHI_HEAVY_88";
 const char *MITSUBISHI_HEAVY_152_IR_PROTOCOL = "MITSUBISHI_HEAVY_152";
+const char *COOLIX_IR_PROTOCOL = "COOLIX";
+const char *FUJITSU_AC_IR_PROTOCOL = "FUJITSU_AC";
 const char *UNKNOWN_IR_PROTOCOL = "UNKNOWN";
 const char *UNUSED_IR_PROTOCOL = "UNUSED";
 const char *INVALID_IR_PROTOCOL = "INVALID";
@@ -119,8 +122,14 @@ IRToshibaAC ac_toshiba(IR_TRAN_GPIO);
 
 IRVoltas ac_voltas(IR_TRAN_GPIO);
 
+IRCoolixAC ac_coolix(IR_TRAN_GPIO);
+
+IRFujitsuAC ac_fujitsu(IR_TRAN_GPIO, ARRAH2E);
+
 IRsend ac_custom(IR_TRAN_GPIO);
 IRsend ac_general(IR_TRAN_GPIO);
+
+
 
 /**
  * @brief Function that initializes the ir Transmitter setup.
@@ -156,6 +165,8 @@ void ir_tran_setup()
     ac_mitsubishi144.begin();
     ac_mitsubishi88.begin();
     ac_mitsubishi152.begin();
+    ac_coolix.begin();
+    ac_fujitsu.begin();
     ac_custom.begin();
 }
 
@@ -166,8 +177,20 @@ void ir_tran_setup()
 void ir_transmit()
 {
     irrecv.pause();
+    ESP_LOGW("IR_TX", "TRANSMIT CALLED: power=%d temp=%d fanspeed=%d mode_num=%d mode_str=%s protocol=%d",
+        last_command.power,
+        last_command.temperature,
+        last_command.fanspeed,
+        last_command.mode_num,
+        last_command.mode_str,
+        ir_protocol_num);
     vTaskDelay(pdMS_TO_TICKS(1000));
     led_set_state(LED_STATE_SENDING_IR_COMMAND);
+
+    // Boost priority to prevent task preemption during IR bit-bang transmission
+    UBaseType_t prev_priority = uxTaskPriorityGet(NULL);
+    vTaskPrioritySet(NULL, configMAX_PRIORITIES - 1);
+
     switch (ir_protocol_num)
     {
     case CARRIER_AC64:
@@ -179,11 +202,14 @@ void ir_transmit()
         ac_carrier64.setFan(ac_carrier64.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_carrier64.setOnTimer(last_command.ontimer * 60);
         ac_carrier64.setOffTimer(last_command.offtimer * 60);
-        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)last_command.mode_num));
-        ac_carrier64.send();
+        ac_carrier64.setMode(ac_carrier64.convertMode((stdAc::opmode_t)last_command.mode_num));   
+        ac_carrier64.send();    // ~100ms of uninterrupted bit-bang timing
         break;
 
     case DAIKIN:
+        ESP_LOGW("IR_TX", "DAIKIN280 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin280.setPower(last_command.power);
         ac_daikin280.setTemp(last_command.temperature);
         if (last_command.swingh)
@@ -195,11 +221,14 @@ void ir_transmit()
         ac_daikin280.setFan(ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_daikin280.enableOffTimer(last_command.offtimer);
         ac_daikin280.enableOnTimer(last_command.ontimer);
-        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_daikin280.setMode(ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));   
         ac_daikin280.send();
         break;
 
     case DAIKIN200:
+        ESP_LOGW("IR_TX", "DAIKIN200 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin200.setPower(last_command.power);
         ac_daikin200.setSwingHorizontal(last_command.swingh);
         ac_daikin200.setFan(last_command.fanspeed);
@@ -209,6 +238,9 @@ void ir_transmit()
         break;
 
     case DAIKIN216:
+        ESP_LOGW("IR_TX", "DAIKIN216 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin216.setPower(last_command.power);
         ac_daikin216.setTemp(last_command.temperature);
         if (last_command.swingh)
@@ -223,6 +255,9 @@ void ir_transmit()
         break;
 
     case DAIKIN2:
+        ESP_LOGW("IR_TX", "DAIKIN2 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin2.setPower(last_command.power);
         ac_daikin2.setTemp(last_command.temperature);
         if (last_command.swingh)
@@ -241,16 +276,22 @@ void ir_transmit()
         break;
 
     case DAIKIN160:
+        ESP_LOGW("IR_TX", "DAIKIN160 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin160.setPower(last_command.power);
         ac_daikin160.setTemp(last_command.temperature);
         if (last_command.swingv)
             ac_daikin160.setSwingVertical(kDaikin160SwingVAuto);
         ac_daikin160.setFan(ac_daikin160.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
-        ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_daikin160.setMode(ac_daikin160.convertMode((stdAc::opmode_t)last_command.mode_num)); 
         ac_daikin160.send();
         break;
 
     case DAIKIN176:
+        ESP_LOGW("IR_TX", "DAIKIN176 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin176.setPower(last_command.power);
         ac_daikin176.setTemp(last_command.temperature);
         if (last_command.swingh)
@@ -263,6 +304,9 @@ void ir_transmit()
         break;
 
     case DAIKIN64:
+        ESP_LOGW("IR_TX", "DAIKIN64 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikinac64.setPowerToggle(last_command.power);
         ac_daikinac64.setTemp(last_command.temperature);
         ac_daikinac64.setSwingVertical(last_command.swingv);
@@ -274,6 +318,9 @@ void ir_transmit()
         break;
 
     case DAIKIN152:
+        ESP_LOGW("IR_TX", "DAIKIN152 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin152.setPower(last_command.power);
         ac_daikin152.setTemp(last_command.temperature);
         ac_daikin152.setSwingV(last_command.swingv);
@@ -283,13 +330,16 @@ void ir_transmit()
         break;
 
     case DAIKIN128:
+        ESP_LOGW("IR_TX", "DAIKIN128 sending: convertFan=%d convertMode=%d",
+        ac_daikin280.convertFan((stdAc::fanspeed_t)last_command.fanspeed),
+        ac_daikin280.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_daikin128.setPowerToggle(last_command.power);
         ac_daikin128.setTemp(last_command.temperature);
         ac_daikin128.setSwingVertical(last_command.swingv);
         ac_daikin128.setFan(ac_daikin128.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_daikin128.setOffTimer(last_command.offtimer);
         ac_daikin128.setOnTimer(last_command.ontimer);
-        ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_daikin128.setMode(ac_daikin128.convertMode((stdAc::opmode_t)last_command.mode_num)); 
         ac_daikin128.send();
         break;
 
@@ -299,7 +349,7 @@ void ir_transmit()
         ac_haier.setFan(ac_haier.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
         ac_haier.setOffTimer(last_command.offtimer);
         ac_haier.setOnTimer(last_command.ontimer);
-        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_haier.setMode(ac_haier.convertMode((stdAc::opmode_t)last_command.mode_num)); 
         ac_haier.send();
         break;
 
@@ -458,6 +508,7 @@ void ir_transmit()
         {
             ac_custom.sendRaw(teachingModeIrCmds[last_command.temperature - MAX_LOW_TEMP + 1], teaching_mode_raw_len, RAW_FREQ);
         }
+        vTaskDelay(0);    // yield to scheduler, sufficient for ~100ms transmission
         break;
 
     case SAMSUNG_AC:
@@ -495,7 +546,43 @@ void ir_transmit()
         ac_toshiba.setMode(ac_toshiba.convertMode((stdAc::opmode_t)last_command.mode_num));
         ac_toshiba.send();
         break;
+
+    case COOLIX:
+        ac_coolix.setPower(last_command.power);
+        if (!last_command.power)
+        {
+            // Coolix protocol: send immediately after power off, no other params
+            ac_coolix.send();
+            break;
+        }
+        ac_coolix.setTemp(last_command.temperature);
+        // Mode must be set before fan for Coolix
+        ac_coolix.setMode(ac_coolix.convertMode((stdAc::opmode_t)last_command.mode_num));
+        // Fan must be set after mode as setMode can change fan speed
+        ac_coolix.setFan(ac_coolix.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        ac_coolix.send();
+        break;
+
+    case FUJITSU_AC:
+        ac_fujitsu.setPower(last_command.power);
+        ac_fujitsu.setTemp(last_command.temperature);
+        ac_fujitsu.setMode(ac_fujitsu.convertMode((stdAc::opmode_t)last_command.mode_num));
+        ac_fujitsu.setFanSpeed(ac_fujitsu.convertFan((stdAc::fanspeed_t)last_command.fanspeed));
+        if (last_command.swingh && last_command.swingv)
+            ac_fujitsu.setSwing(kFujitsuAcSwingBoth);
+        else if (last_command.swingh)
+            ac_fujitsu.setSwing(kFujitsuAcSwingHoriz);
+        else if (last_command.swingv)
+            ac_fujitsu.setSwing(kFujitsuAcSwingVert);
+        else
+            ac_fujitsu.setSwing(kFujitsuAcSwingOff);
+        ac_fujitsu.setOnTimer(last_command.ontimer * 60);
+        ac_fujitsu.setOffTimer(last_command.offtimer * 60);
+        ac_fujitsu.send();
+        break;
     }
+    // Restore original task priority
+    vTaskPrioritySet(NULL, prev_priority);
     irrecv.resume();
 }
 
@@ -568,6 +655,10 @@ const char *get_protocol_string(int16_t protocol)
         return RAW_IR_PROTOCOL;
     case VOLTAS:
         return VOLTAS_IR_PROTOCOL;
+    case COOLIX:
+        return COOLIX_IR_PROTOCOL;
+    case FUJITSU_AC:
+        return FUJITSU_AC_IR_PROTOCOL;
     case UNKNOWN:
         return UNKNOWN_IR_PROTOCOL;
     case UNUSED:
@@ -616,6 +707,8 @@ bool is_sendable_protocol(decode_type_t protocol)
     case SAMSUNG_AC:
     case TOSHIBA_AC:
     case VOLTAS:
+    case COOLIX:
+    case FUJITSU_AC:
         return true;
     default:
         return false;
@@ -670,6 +763,8 @@ bool is_decodeable_protocol(decode_type_t protocol)
     case SAMSUNG36:
     case TOSHIBA_AC:
     case VOLTAS:
+    case COOLIX:
+    case FUJITSU_AC:
         return true;
     default:
         return false;
