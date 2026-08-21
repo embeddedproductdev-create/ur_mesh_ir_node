@@ -31,6 +31,7 @@
 #include <lte.h>
 #include <ir.h>
 #include <heartbeat.h>
+#include <temperature_sensor.h>
 
 #define BLE_TAG "BLE"
 
@@ -494,6 +495,8 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
             case NODE_AC_CONTROL_PACKET:
                 ESP_LOGI(BLE_TAG, "Received Node AC Control Packet from Provisioner");
                 handle_ac_control(cmd);
+                cmd->ambientTemperatureAnalog = read_analog_temperature_sensor();
+                cmd->ambientTemperatureDigital = read_digital_temperature_sensor();
                 send_ack_to_provisioner(cmd->packetid, cmd);
                 break;
             

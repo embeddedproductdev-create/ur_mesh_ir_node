@@ -1,3 +1,35 @@
+# =============================================================================
+# USAGE - NVS Serial Number Generator for ESP32 BLE Mesh Devices
+# =============================================================================
+#
+# Serial number prefix = first character of --deviceType
+#   NODE → N prefix : N00000, N00001 ... N00100
+#
+# NODE bins (N00000 to N00100):
+#   python SerNoGen.py --deviceType NODE --start_serial 0 --end_serial 100
+#
+# OUTPUT:
+#   .bin files saved to 'bin' subfolder alongside this script.
+#   Each .bin is flashed at offset 0x1b000 (serial NVS partition).
+#   File naming: <prefix><5-digit-number>.bin  e.g. N00001.bin
+#
+# AFTER GENERATING NODE BINS:
+#   Testing  : python node_merge_test.py N00001     (single device)
+#              python node_merge_test.py             (all devices)
+#   Release  : python node_merge_release.py          (versioned, requires git tag)
+#
+# PREREQUISITES:
+#   1. Build the node firmware (IS_GWY=0) in Espressif IDE before merging.
+#   2. For release builds, commit all changes and create a git tag first:
+#          git tag -a v1.1.3 -m "description"
+#          git push origin v1.1.3
+#
+# NOTE:
+#   Regenerating will overwrite existing .bin and .csv files in the bin folder.
+#   Devices already flashed must be reflashed with the new bins.
+#   The bin folder is excluded from git via .gitignore.
+# =============================================================================
+
 import os
 import subprocess
 import argparse
@@ -7,7 +39,7 @@ def generate_nvs_binaries(device_type, start_serial, end_serial, output_dir, nvs
     os.makedirs(output_dir, exist_ok=True)
 
     for i in range(start_serial, end_serial + 1):
-        serial_number = f"{device_type.upper()}{str(i).zfill(5)}"
+        serial_number = f"{device_type.upper()[0]}{str(i).zfill(5)}"
         csv_file = f"{output_dir}/{serial_number}.csv"
         bin_file = f"{output_dir}/{serial_number}.bin"
         

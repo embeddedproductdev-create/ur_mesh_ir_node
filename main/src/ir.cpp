@@ -14,6 +14,9 @@
 #include <json_maker.h>
 #include <cJSON.h>
 
+extern "C" {
+#include <temperature_sensor.h>
+}
 
 #define RAW_FREQ 41
 
@@ -850,6 +853,16 @@ bool isFetchControlInfoSuccessful(const char *description)
     {
         snprintf(ac_manual_control_t.temperature, sizeof(ac_manual_control_t.temperature), (strstr(description, "Temp") + 6));
         ac_manual_control_t.temperature_value = atoi(ac_manual_control_t.temperature);
+        // Populate currACState fields from last_command
+        ac_manual_control_t.swingh = last_command.swingh;
+        ac_manual_control_t.swingv = last_command.swingv;
+        ac_manual_control_t.ontimer = last_command.ontimer;
+        ac_manual_control_t.offtimer = last_command.offtimer;
+        ac_manual_control_t.locking = last_command.locking;
+        ac_manual_control_t.upperTemperatureLimit = last_command.upperTemperatureLimit;
+        ac_manual_control_t.lowerTemperatureLimit = last_command.lowerTemperatureLimit;
+        ac_manual_control_t.ambientTemperatureAnalog = read_analog_temperature_sensor();
+        ac_manual_control_t.ambientTemperatureDigital = read_digital_temperature_sensor();
         return true;
     }
     else
@@ -1140,6 +1153,17 @@ void perform_teaching_process_without_error_checking()
 
     teaching_mode_t.remainingCommands = get_remaining_teaching_mode_cmds_count();
     teaching_mode_t.errorCode = SUCCESS;
+
+    ESP_LOGW(IR_TAG, "Stored slot [%d] | remainingCommands=%d | recvd_array=[%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d]",
+        teaching_mode_t.power ? teaching_mode_t.commandIndex : 0,
+        teaching_mode_t.remainingCommands,
+        teaching_mode_cmd_recvd_array[0],  teaching_mode_cmd_recvd_array[1],
+        teaching_mode_cmd_recvd_array[2],  teaching_mode_cmd_recvd_array[3],
+        teaching_mode_cmd_recvd_array[4],  teaching_mode_cmd_recvd_array[5],
+        teaching_mode_cmd_recvd_array[6],  teaching_mode_cmd_recvd_array[7],
+        teaching_mode_cmd_recvd_array[8],  teaching_mode_cmd_recvd_array[9],
+        teaching_mode_cmd_recvd_array[10], teaching_mode_cmd_recvd_array[11],
+        teaching_mode_cmd_recvd_array[12], teaching_mode_cmd_recvd_array[13]);
     
     if (teaching_mode_t.remainingCommands != 0)
 #if (IS_GWY)

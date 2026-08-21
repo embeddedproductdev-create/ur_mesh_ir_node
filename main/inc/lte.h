@@ -336,6 +336,17 @@ typedef struct
     char temperature[4];              // 4 bytes
     char power[4];                    // 4 bytes
     char fan[2];                      // 2 bytes
+    // Added for currACState support
+    int8_t rssi;                      // 1 byte
+    int8_t swingh;                    // 1 byte
+    int8_t swingv;                    // 1 byte
+    int8_t ontimer;                   // 1 byte
+    int8_t offtimer;                  // 1 byte
+    int8_t locking;                   // 1 byte
+    int8_t upperTemperatureLimit;     // 1 byte
+    int8_t lowerTemperatureLimit;     // 1 byte
+    int16_t ambientTemperatureDigital;// 2 bytes
+    int16_t ambientTemperatureAnalog; // 2 bytes
 } manual_control;
 
 
