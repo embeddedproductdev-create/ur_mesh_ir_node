@@ -236,6 +236,7 @@ void generate_node_manual_ac_control_ack(manual_control *node_ac_manual_control_
     jwObj_int(&jwc, ELEMENT_ADDR_KEY, node_ac_manual_control_t->elemAddr);
     jwObj_int(&jwc, POWER_KEY, node_ac_manual_control_t->power_value);
     jwObj_int(&jwc, DETECTED_TEMPERATURE_KEY, node_ac_manual_control_t->temperature_value);
+    jwObj_int(&jwc, TEMPERATURE_KEY, last_command.temperature);
     jwObj_int(&jwc, FAN_SPEED_KEY, node_ac_manual_control_t->fanspeed_value);
     jwObj_string(&jwc, MODE_KEY, node_ac_manual_control_t->mode);
     jwObj_int(&jwc, POWER_ERROR_KEY, node_ac_manual_control_t->power_err);
