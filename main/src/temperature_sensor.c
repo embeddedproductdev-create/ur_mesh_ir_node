@@ -6,6 +6,9 @@
 #include "driver/adc_i2s_legacy.h"
 #include "driver/adc_types_legacy.h"
 
+#include <lte.h>
+extern CommandStruct last_command;
+
 #define TEMP_TAG "TEMP"
 
 /**
@@ -35,8 +38,37 @@ void read_adc(int *rawdata)
 int16_t read_analog_temperature_sensor()
 {
     int adc_data;
-    read_adc(&adc_data);
-    return (((TEMPERATURE_SLOPE * adc_data)) + (TEMPERATURE_INTERCEPT));
+    int16_t temperature = 0;
+    double valid_sum = 0;
+    uint8_t valid_count = 0;
+
+    for (uint8_t i = 0; i < ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT; i++)
+    {
+        adc2_get_raw(ADC2_CHANNEL_0, ADC_WIDTH_BIT_12, &adc_data);
+        temperature = (int16_t)(((TEMPERATURE_SLOPE * adc_data)) + (TEMPERATURE_INTERCEPT));
+
+        if (temperature >= ANALOG_TEMP_MIN_VALID && temperature <= ANALOG_TEMP_MAX_VALID)
+        {
+            valid_sum += temperature;
+            valid_count++;
+        }
+        else
+        {
+            ESP_LOGD(TEMP_TAG, "Discarding sample: %d°C (outside [%d-%d])",
+                temperature, ANALOG_TEMP_MIN_VALID, ANALOG_TEMP_MAX_VALID);
+        }
+    }
+
+    if (valid_count > 0)
+    {
+        temperature = (int16_t)(valid_sum / valid_count);
+        ESP_LOGI(TEMP_TAG, "Analog temp: %d°C (%d/%d valid samples)",
+            temperature, valid_count, ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT);
+        return temperature;
+    }
+
+    ESP_LOGE(TEMP_TAG, "All %d samples invalid — returning 0", ANALOG_TEMPERATURE_SENSOR_SAMPLE_COUNT);
+    return 0;
 }
 
 /**
@@ -108,7 +140,7 @@ void temperature_sensor_init(void)
     ESP_ERROR_CHECK(i2c_master_init());
     ESP_LOGI(TEMP_TAG, "I2C initialized successfully");
     /*Setting attenuation to 11dB for maximum voltage range*/
-    adc2_config_channel_atten(ADC2_CHANNEL_0, ADC_ATTEN_DB_11);
+    adc2_config_channel_atten(ADC2_CHANNEL_0, ADC_ATTEN_DB_12);
     /*Initializing Digital Temperature Sensor*/
     i2c_write(POINTER_REGISTER);
 }

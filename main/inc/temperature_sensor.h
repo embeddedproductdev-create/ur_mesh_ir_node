@@ -20,6 +20,10 @@
 #define TEMPERATURE_SLOPE -0.0196    /**< Slope for temperature conversion */
 #define TEMPERATURE_INTERCEPT 89.362 /**< Intercept for temperature conversion y = -0.0196x + 89.362*/
 
+#define ANALOG_TEMP_MIN_VALID   16    // °C — used when no reference available
+#define ANALOG_TEMP_MAX_VALID   45    // °C — used when no reference available
+#define ANALOG_TEMP_TOLERANCE   7    // °C — deviation allowed from last set temperature
+
 /*Function declarations*/
 void temperature_sensor_init();
 int16_t read_analog_temperature_sensor();

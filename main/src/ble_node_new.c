@@ -383,6 +383,8 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             ESP_LOGI(BLE_TAG, "Sending HB ACK to Provisioner");
             strcpy(last_command.deviceName, serialNoStr);
             last_command.packetid = NODE_HEARTBEAT_ACK; //We need to set this each time here, since we update the last command when we receive AC control packet.
+            last_command.ambientTemperatureAnalog = read_analog_temperature_sensor();
+            last_command.ambientTemperatureDigital = read_digital_temperature_sensor();
             err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx, ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)&last_command);
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
