@@ -1,0 +1,38 @@
+ld-style-declaration -DARDUINO=10812 -DARDUINO_ESP32S3_DEV -DARDUINO_ARCH_ESP32 -DARDUINO_BOARD=\"ESP32S3_DEV\" -DARDUINO_VARIANT=\"esp32s3\" -DESP32=ESP32 -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/src/ble_node_new.c.obj -MF esp-idf\main\CMakeFiles\__idf_main.dir\src\ble_node_new.c.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/src/ble_node_new.c.obj -c D:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:←[m←[K In function '←[01m←[Ksend_ack_to_provisioner←[m←[K':
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:416:14:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_SUB_ACK←[m←[K' undeclared (first use in this function)
+  416 |         case ←[01;31m←[KNODE_GROUP_SUB_ACK←[m←[K:
+      |              ←[01;31m←[K^~~~~~~~~~~~~~~~~~←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:416:14:←[m←[K ←[01;36m←[Knote: ←[m←[Keach undeclared identifier is reported only once for each function it appears in
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:424:14:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_UNSUB_ACK←[m←[K' undeclared (first use in this function)
+  424 |         case ←[01;31m←[KNODE_GROUP_UNSUB_ACK←[m←[K:
+      |              ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:432:14:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_AC_CONTROL_PACKET←[m←[K' undeclared (first use in this function); did you mean '←[01m←[KNODE_AC_CONTROL_PACKET←[m←[K'?
+  432 |         case ←[01;31m←[KNODE_GROUP_AC_CONTROL_PACKET←[m←[K:
+      |              ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~←[m←[K
+      |              ←[32m←[KNODE_AC_CONTROL_PACKET←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:←[m←[K In function '←[01m←[Kerror_check_cmd←[m←[K':
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:474:14:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_AC_CONTROL_PACKET←[m←[K' undeclared (first use in this function); did you mean '←[01m←[KNODE_AC_CONTROL_PACKET←[m←[K'?
+  474 |         case ←[01;31m←[KNODE_GROUP_AC_CONTROL_PACKET←[m←[K:
+      |              ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~←[m←[K
+      |              ←[32m←[KNODE_AC_CONTROL_PACKET←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:←[m←[K In function '←[01m←[Khandle_cmds_from_provisioner←[m←[K':
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:553:18:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_SUB_PACKET←[m←[K' undeclared (first use in this function); did you mean '←[01m←[KNODE_PROV_PACKET←[m←[K'?
+  553 |             case ←[01;31m←[KNODE_GROUP_SUB_PACKET←[m←[K:
+      |                  ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~~←[m←[K
+      |                  ←[32m←[KNODE_PROV_PACKET←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:571:41:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_SUB_ACK←[m←[K' undeclared (first use in this function)
+  571 |                 send_ack_to_provisioner(←[01;31m←[KNODE_GROUP_SUB_ACK←[m←[K, cmd);
+      |                                         ←[01;31m←[K^~~~~~~~~~~~~~~~~~←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:574:18:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_UNSUB_PACKET←[m←[K' undeclared (first use in this function)
+  574 |             case ←[01;31m←[KNODE_GROUP_UNSUB_PACKET←[m←[K:
+      |                  ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~~~~←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:592:41:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_UNSUB_ACK←[m←[K' undeclared (first use in this function)
+  592 |                 send_ack_to_provisioner(←[01;31m←[KNODE_GROUP_UNSUB_ACK←[m←[K, cmd);
+      |                                         ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~←[m←[K
+←[01m←[KD:/Freelance/Unimation/ble_mesh/ble_mesh_node/main/src/ble_node_new.c:595:18:←[m←[K ←[01;31m←[Kerror: ←[m←[K'←[01m←[KNODE_GROUP_AC_CONTROL_PACKET←[m←[K' undeclared (first use in this function); did you mean '←[01m←[KNODE_AC_CONTROL_PACKET←[m←[K'?
+  595 |             case ←[01;31m←[KNODE_GROUP_AC_CONTROL_PACKET←[m←[K:
+      |                  ←[01;31m←[K^~~~~~~~~~~~~~~~~~~~~~~~~~~~←[m←[K
+      |                  ←[32m←[KNODE_AC_CONTROL_PACKET←[m←[K
+[14/20] Building CXX object esp-idf/main/CMakeFiles/__idf_main.dir/src/ir.cpp.obj←[Kninja: build stopped: subcommand failed.
+ninja failed with exit code 1, output of the command is in the D:\Freelance\Unimation\ble_mesh\ble_mesh_node\build\log\idf_py_stderr_output_27456 and D:\Freelance\Unimation\ble_mesh\ble_mesh_node\build\log\idf_py_stdout_output_27456

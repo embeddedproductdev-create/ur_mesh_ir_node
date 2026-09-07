@@ -413,6 +413,39 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
             if(err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
             break;
 
+        case NODE_AC_CONTROL_ACK:
+            ESP_LOGI(BLE_TAG, "Sending Node AC Control ACK to Provisioner");
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx,
+                ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            if (err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+
+        case NODE_GROUP_SUB_ACK:
+            ESP_LOGI(BLE_TAG, "Sending Group Subscribe ACK to Provisioner — group 0x%04x err=%d packet id=%d",
+                ack->groupaddr, ack->errorcode, ack->packetid);
+            ack->packetid = NODE_GROUP_SUB_ACK;
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx,
+                ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            if (err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+
+        case NODE_GROUP_UNSUB_ACK:
+            ESP_LOGI(BLE_TAG, "Sending Group Unsubscribe ACK to Provisioner — group 0x%04x err=%d",
+                ack->groupaddr, ack->errorcode);
+            ack->packetid = NODE_GROUP_UNSUB_ACK;
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx,
+                ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            if (err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+
+        case NODE_GROUP_AC_CONTROL_PACKET:
+            ESP_LOGI(BLE_TAG, "Sending Group AC Control ACK to Provisioner — seq=%d err=%d",
+                ack->group_cmd_seq, ack->errorcode);
+            err = esp_ble_mesh_server_model_send_msg(&vnd_models[0], &ctx,
+                ESP_BLE_MESH_VND_MODEL_OP_STATUS, sizeof(CommandStruct), (uint8_t *)ack);
+            if (err) ESP_LOGE(BLE_TAG, "Failed to ACK : %s", esp_err_to_name(err));
+            break;
+
         default:
             ESP_LOGE(BLE_TAG, "Unknown ACK type %d in %s", packetid, __func__);
             return;
@@ -445,6 +478,14 @@ void error_check_cmd(CommandStruct *cmd)
         case NODE_AC_CONTROL_PACKET:
         case NODE_RECONF_PACKET:
             if(!configured) {cmd->errorcode = DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE; return;}
+            break;
+
+        case NODE_GROUP_AC_CONTROL_PACKET:
+            if (!configured)
+            {
+                cmd->errorcode = DEVICE_NOT_CONFIGURED_WITH_AC_REMOTE;
+                return;
+            }
             break;
         default:
             break;
@@ -499,7 +540,7 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
                 handle_ac_control(cmd);
                 cmd->ambientTemperatureAnalog = read_analog_temperature_sensor();
                 cmd->ambientTemperatureDigital = read_digital_temperature_sensor();
-                send_ack_to_provisioner(cmd->packetid, cmd);
+                send_ack_to_provisioner(NODE_AC_CONTROL_ACK, cmd);
                 break;
             
             case NODE_DEBUG_INFO_PACKET:
@@ -516,6 +557,60 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
                     break;
                 }
                 send_ack_to_provisioner(cmd->packetid, cmd);
+                break;
+
+            case NODE_GROUP_SUB_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Group Subscribe from Provisioner — group 0x%04x",
+                    cmd->groupaddr);
+                esp_err_t sub_err = esp_ble_mesh_model_subscribe_group_addr(
+                    esp_ble_mesh_get_primary_element_address(),
+                    CID_ESP,
+                    ESP_BLE_MESH_VND_MODEL_ID_SERVER,
+                    cmd->groupaddr);
+                if (sub_err != ESP_OK)
+                {
+                    ESP_LOGE(BLE_TAG, "Group subscribe failed: %s", esp_err_to_name(sub_err));
+                    cmd->errorcode = FAILURE;
+                }
+                else
+                {
+                    ESP_LOGI(BLE_TAG, "Subscribed to group 0x%04x", cmd->groupaddr);
+                    cmd->errorcode = SUCCESS;
+                }
+                send_ack_to_provisioner(NODE_GROUP_SUB_ACK, cmd);
+                break;
+
+            case NODE_GROUP_UNSUB_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Group Unsubscribe from Provisioner — group 0x%04x",
+                    cmd->groupaddr);
+                esp_err_t unsub_err = esp_ble_mesh_model_unsubscribe_group_addr(
+                    esp_ble_mesh_get_primary_element_address(),
+                    CID_ESP,
+                    ESP_BLE_MESH_VND_MODEL_ID_SERVER,
+                    cmd->groupaddr);
+                if (unsub_err != ESP_OK)
+                {
+                    ESP_LOGE(BLE_TAG, "Group unsubscribe failed: %s", esp_err_to_name(unsub_err));
+                    cmd->errorcode = FAILURE;
+                }
+                else
+                {
+                    ESP_LOGI(BLE_TAG, "Unsubscribed from group 0x%04x", cmd->groupaddr);
+                    cmd->errorcode = SUCCESS;
+                }
+                send_ack_to_provisioner(NODE_GROUP_UNSUB_ACK, cmd);
+                break;
+
+            case NODE_GROUP_AC_CONTROL_PACKET:
+                ESP_LOGI(BLE_TAG, "Received Group AC Control — group 0x%04x seq=%d",
+                    cmd->groupaddr, cmd->group_cmd_seq);
+                handle_ac_control(cmd);
+                // Read fresh ambient temperature before sending ACK
+                cmd->ambientTemperatureAnalog  = read_analog_temperature_sensor();
+                cmd->ambientTemperatureDigital = read_digital_temperature_sensor();
+                cmd->elemaddr = esp_ble_mesh_get_primary_element_address(); 
+                // Send unicast ACK back to gateway with seq number for tracker matching
+                send_ack_to_provisioner(NODE_GROUP_AC_CONTROL_PACKET, cmd);
                 break;
 
             default:

@@ -37,7 +37,7 @@
 #define MQTT_WILL_FLAG 1
 #define MQTT_KEEP_ALIVE_S 10
 
-#define DEFAULT_PUBLISH_PERIOD_SEC 300
+#define DEFAULT_PUBLISH_PERIOD_SEC 10
 
 /*Sizes and Lengths*/
 #define SERIAL_NO_LEN 16
@@ -249,8 +249,13 @@ typedef enum
 	GWY_TEACHING_MODE,
     GWY_TEACHING_MODE_CMD_SELECTION_PACKET,
 	GWY_DEBUG_INFO_PACKET,
+    GWY_GENERAL_PACKET=12, 
+    GWY_AC_CONTROL_ACK = 13,                 // 13
+    GWY_GROUP_SUB_PACKET,                    // 14
+    GWY_GROUP_UNSUB_PACKET,                  // 15
+    GWY_GROUP_SUB_ACK,                       // 16
+    GWY_GROUP_UNSUB_ACK,                     // 17
 	MAX_GWY_PACKET_ID,
-    GWY_GENERAL_PACKET, 
 
 	/* NODE PACKETS */
 	NODE_PROV_PACKET = 100,
@@ -264,8 +269,16 @@ typedef enum
 	NODE_TEACHING_MODE,
     NODE_TEACHING_MODE_CMD_SELECTION_PACKET,
 	NODE_DEBUG_INFO_PACKET,
+    NODE_GENERAL_PACKET=112,
+    NODE_AC_CONTROL_ACK = 113,               // 113
+    NODE_GROUP_SUB_PACKET,                   // 114
+    NODE_GROUP_UNSUB_PACKET,                 // 115
+    NODE_GROUP_SUB_ACK,                      // 116
+    NODE_GROUP_UNSUB_ACK,                    // 117
+    NODE_GROUP_AC_CONTROL_PACKET,            // 118
+    NODE_GROUP_AC_CONTROL_IMMEDIATE_ACK,     // 119
+    NODE_GROUP_AC_CONTROL_SUMMARY_ACK,       // 120
 	MAX_NODE_PACKET_ID,
-    NODE_GENERAL_PACKET,
     
     /*MISC*/
     TEST_PACKET = 999
@@ -286,6 +299,8 @@ typedef struct
     int16_t irProtocolNum;             // 2 bytes
     uint16_t msgseqno;                 // 2 bytes
     uint16_t elemaddr;                 // 2 bytes
+    uint16_t groupaddr;                // 2 bytes ← BLE Mesh group address (0xC000–0xFFFE)
+    uint16_t group_cmd_seq;            // 2 bytes ← unique seq per group command, echoed back by node for tracker matching
     uint16_t ontimer;                  // 2 bytes
     uint16_t offtimer;                 // 2 bytes
     uint16_t publishPeriodSec;         // 2 bytes
