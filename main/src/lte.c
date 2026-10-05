@@ -1531,7 +1531,7 @@ void unregister(uint16_t msgseqno)
 void parse_json()
 {
     led_set_state(LED_STATE_CMD_RECVD);
-    CommandStruct cmd_struct;
+    CommandStruct cmd_struct = {0};
 
     cJSON *json_obj = cJSON_Parse(LTE_UART_data);
     if (json_obj == NULL)
