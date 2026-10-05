@@ -7,8 +7,8 @@
 #include "freertos/queue.h"
 #include "freertos/task.h"
 
-#define PUBLISH_QUEUE_SIZE 10
-#define COMMAND_QUEUE_SIZE 10
+#define PUBLISH_QUEUE_SIZE 24
+#define COMMAND_QUEUE_SIZE 24
 #define BLE_RESP_QUEUE_SIZE 50
 
 #define BAUD_RATE 115200
@@ -37,7 +37,7 @@
 #define MQTT_WILL_FLAG 1
 #define MQTT_KEEP_ALIVE_S 10
 
-#define DEFAULT_PUBLISH_PERIOD_SEC 10
+#define DEFAULT_PUBLISH_PERIOD_SEC 300
 
 /*Sizes and Lengths*/
 #define SERIAL_NO_LEN 16
@@ -301,6 +301,7 @@ typedef struct
     uint16_t elemaddr;                 // 2 bytes
     uint16_t groupaddr;                // 2 bytes ← BLE Mesh group address (0xC000–0xFFFE)
     uint16_t group_cmd_seq;            // 2 bytes ← unique seq per group command, echoed back by node for tracker matching
+    uint8_t ttl;
     uint16_t ontimer;                  // 2 bytes
     uint16_t offtimer;                 // 2 bytes
     uint16_t publishPeriodSec;         // 2 bytes
