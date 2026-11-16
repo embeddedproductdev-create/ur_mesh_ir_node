@@ -331,7 +331,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
         case NODE_PROV_PACKET:
             ESP_LOGI(BLE_TAG, "Sending Node Prov ACK to Provisioner");
 
-            CommandStruct provack;
+            CommandStruct provack = {0};
             provack.elemaddr = last_command.elemaddr;
             provack.packetid = NODE_PROV_PACKET;
             provack.errorcode = SUCCESS;
@@ -345,7 +345,7 @@ void send_ack_to_provisioner(uint16_t packetid, CommandStruct *ack)
 
             /*Unprovisioning from button press case*/
             if(ack == NULL) {
-                CommandStruct unprovack;
+                CommandStruct unprovack = {0};
                 unprovack.packetid = NODE_UNPROV_PACKET;
                 unprovack.elemaddr = last_command.elemaddr;
                 unprovack.msgseqno = BUTTON_PRESS_MSGSEQNO;

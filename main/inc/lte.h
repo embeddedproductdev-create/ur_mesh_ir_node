@@ -37,7 +37,7 @@
 #define MQTT_WILL_FLAG 1
 #define MQTT_KEEP_ALIVE_S 10
 
-#define DEFAULT_PUBLISH_PERIOD_SEC 300
+#define DEFAULT_PUBLISH_PERIOD_SEC 30
 
 /*Sizes and Lengths*/
 #define SERIAL_NO_LEN 16
