@@ -33,6 +33,8 @@
 #include <heartbeat.h>
 #include <temperature_sensor.h>
 
+#include "esp_random.h"
+
 #define BLE_TAG "BLE"
 
 #define CID_ESP     0x02E5
@@ -541,6 +543,8 @@ void handle_cmds_from_provisioner(CommandStruct *cmd)
                 handle_ac_control(cmd);
                 cmd->ambientTemperatureAnalog = read_analog_temperature_sensor();
                 cmd->ambientTemperatureDigital = read_digital_temperature_sensor();
+                if (cmd->group_cmd_seq != 0)   // multicast only // to avoid all nodes sending ACK at the same time, we add a random delay before sending ACK
+                    vTaskDelay(pdMS_TO_TICKS(esp_random() % 500));   // 0–499 ms
                 send_ack_to_provisioner(NODE_AC_CONTROL_ACK, cmd);
                 break;
             
